@@ -23,8 +23,13 @@ function getYouTubeId(url: string): string | null {
 }
 
 function getTikTokId(url: string): string | null {
-  const m = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/)
-  return m ? m[1] : null
+  // Handle tiktok.com/@user/video/ID
+  const m1 = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/)
+  if (m1) return m1[1]
+  // Handle tiktokv.com/share/video/ID or tiktok.com/share/video/ID
+  const m2 = url.match(/tiktokv?\.com\/(?:share\/)?video\/(\d+)/)
+  if (m2) return m2[1]
+  return null
 }
 
 export default function EmbedPlayer({ embedUrl, platform, title }: EmbedPlayerProps) {

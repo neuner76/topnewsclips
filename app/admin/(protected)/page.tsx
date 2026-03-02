@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Story } from '@/lib/types'
 import Link from 'next/link'
 import AdminStoryRow from '@/components/admin/AdminStoryRow'
+import IngestButton from '@/components/admin/IngestButton'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -38,12 +39,15 @@ export default async function AdminDashboard() {
       {/* Actions */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold">All Stories</h2>
-        <Link
-          href="/admin/stories/new"
-          className="inline-flex items-center gap-1 bg-foreground text-background text-xs font-semibold px-3 py-1.5 rounded hover:opacity-80 transition-opacity"
-        >
-          + New Story
-        </Link>
+        <div className="flex items-center gap-2">
+          <IngestButton />
+          <Link
+            href="/admin/stories/new"
+            className="inline-flex items-center gap-1 bg-foreground text-background text-xs font-semibold px-3 py-1.5 rounded hover:opacity-80 transition-opacity"
+          >
+            + New Story
+          </Link>
+        </div>
       </div>
 
       {/* Story list */}
