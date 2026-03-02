@@ -14,6 +14,7 @@ const platformLabel: Record<string, string> = {
 export default function AdminStoryRow({ story }: { story: Story }) {
   const [published, setPublished] = useState(story.published)
   const [saving, setSaving] = useState(false)
+  const [deleted, setDeleted] = useState(false)
 
   async function togglePublished() {
     setSaving(true)
@@ -25,6 +26,15 @@ export default function AdminStoryRow({ story }: { story: Story }) {
     setPublished(!published)
     setSaving(false)
   }
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${story.title}"? This cannot be undone.`)) return
+    const supabase = createClient()
+    await supabase.from('stories').delete().eq('id', story.id)
+    setDeleted(true)
+  }
+
+  if (deleted) return null
 
   return (
     <div className="flex items-center gap-4 px-4 py-3">
@@ -63,6 +73,12 @@ export default function AdminStoryRow({ story }: { story: Story }) {
         >
           Edit
         </Link>
+        <button
+          onClick={handleDelete}
+          className="text-xs font-medium text-muted-foreground hover:text-red-600 transition-colors"
+        >
+          Delete
+        </button>
       </div>
     </div>
   )
