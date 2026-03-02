@@ -39,10 +39,15 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
   const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, errors: [], stories: [] }
 
   // 1. Fetch candidates from Reddit + YouTube
-  const [redditClips, youtubeClips] = await Promise.all([
+  const [redditResult, youtubeResult] = await Promise.all([
     fetchRedditClips(),
-    youtubeKey ? fetchYouTubeTrending(youtubeKey) : Promise.resolve([]),
+    youtubeKey ? fetchYouTubeTrending(youtubeKey) : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'] }),
   ])
+
+  result.errors.push(...redditResult.errors, ...youtubeResult.errors)
+
+  const redditClips = redditResult.clips
+  const youtubeClips = youtubeResult.clips
 
   // Normalize to a unified candidate shape
   type Candidate = {

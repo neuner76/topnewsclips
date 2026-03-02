@@ -35,8 +35,9 @@ function extractVideoId(url: string, platform: 'youtube' | 'tiktok' | 'x'): stri
   return null
 }
 
-export async function fetchRedditClips(): Promise<RedditClip[]> {
+export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors: string[] }> {
   const clips: RedditClip[] = []
+  const errors: string[] = []
   const seen = new Set<string>()
 
   for (const sub of SUBREDDITS) {
@@ -44,7 +45,10 @@ export async function fetchRedditClips(): Promise<RedditClip[]> {
       const res = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=25`, {
         headers: { 'User-Agent': 'TopNewsClips/1.0 (news aggregator)' },
       })
-      if (!res.ok) continue
+      if (!res.ok) {
+        errors.push(`Reddit r/${sub}: HTTP ${res.status}`)
+        continue
+      }
 
       const json = await res.json()
       const posts = json?.data?.children ?? []
@@ -75,10 +79,10 @@ export async function fetchRedditClips(): Promise<RedditClip[]> {
           videoId,
         })
       }
-    } catch {
-      // skip failed subreddits
+    } catch (err) {
+      errors.push(`Reddit r/${sub}: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
 
-  return clips
+  return { clips, errors }
 }

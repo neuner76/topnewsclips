@@ -32,8 +32,9 @@ const MSM_CHANNEL_IDS = new Set([
   'UCknLrEdhRCp1aegoMqRaCZg', // ABC News Australia
 ])
 
-export async function fetchYouTubeTrending(apiKey: string): Promise<YouTubeClip[]> {
+export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: YouTubeClip[]; errors: string[] }> {
   const clips: YouTubeClip[] = []
+  const errors: string[] = []
   const seen = new Set<string>()
 
   // Get published cutoff: last 48 hours
@@ -41,7 +42,6 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<YouTubeClip[
 
   for (const query of SEARCH_QUERIES.slice(0, 3)) {
     try {
-      // Search for recent videos on this topic
       const searchUrl = new URL('https://www.googleapis.com/youtube/v3/search')
       searchUrl.searchParams.set('part', 'snippet')
       searchUrl.searchParams.set('q', query)
@@ -53,12 +53,19 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<YouTubeClip[
       searchUrl.searchParams.set('key', apiKey)
 
       const searchRes = await fetch(searchUrl.toString())
-      if (!searchRes.ok) continue
+      if (!searchRes.ok) {
+        const body = await searchRes.text()
+        errors.push(`YouTube search "${query.slice(0, 20)}": HTTP ${searchRes.status} - ${body.slice(0, 100)}`)
+        continue
+      }
 
       const searchJson = await searchRes.json()
       const searchItems = searchJson?.items ?? []
 
-      if (searchItems.length === 0) continue
+      if (searchItems.length === 0) {
+        errors.push(`YouTube search "${query.slice(0, 20)}": 0 results`)
+        continue
+      }
 
       // Get video stats in a single batch call
       const videoIds = searchItems.map((i: { id: { videoId: string } }) => i.id.videoId).join(',')
@@ -97,10 +104,10 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<YouTubeClip[
           publishedAt: snippet.publishedAt,
         })
       }
-    } catch {
-      // skip failed query
+    } catch (err) {
+      errors.push(`YouTube search error: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
 
-  return clips
+  return { clips, errors }
 }
