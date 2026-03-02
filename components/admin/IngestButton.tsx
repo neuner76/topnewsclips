@@ -16,8 +16,9 @@ export default function IngestButton() {
         setStatus('error')
         setResult(data.error ?? 'Unknown error')
       } else {
+        const errStr = data.errors?.length ? ` | ${data.errors.join('; ')}` : ''
         setStatus('done')
-        setResult(`+${data.inserted} published drafts, +${data.needsReview} needs review, ${data.rejected} rejected`)
+        setResult(`+${data.inserted} drafts, +${data.needsReview} review, ${data.rejected} rejected${errStr}`)
       }
     } catch {
       setStatus('error')

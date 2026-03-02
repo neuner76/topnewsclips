@@ -77,7 +77,7 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
   ]
 
   if (candidates.length === 0) {
-    result.errors.push('No candidates found from Reddit or YouTube')
+    result.errors.push(`No candidates: Reddit=${redditClips.length} YouTube=${youtubeClips.length}`)
     return result
   }
 
