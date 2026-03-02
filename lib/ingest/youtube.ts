@@ -48,6 +48,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
       searchUrl.searchParams.set('order', 'viewCount')
       searchUrl.searchParams.set('publishedAfter', cutoff)
       searchUrl.searchParams.set('relevanceLanguage', 'en')
+      searchUrl.searchParams.set('regionCode', 'US')
       searchUrl.searchParams.set('maxResults', '10')
       searchUrl.searchParams.set('key', apiKey)
 
@@ -89,7 +90,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
 
         const stats = statsMap.get(videoId) as { viewCount?: string } | undefined
         const viewCount = parseInt(stats?.viewCount ?? '0', 10)
-        if (viewCount < 1000) continue  // lowered from 5000
+        if (viewCount < 50000) continue
 
         seen.add(videoId)
         clips.push({

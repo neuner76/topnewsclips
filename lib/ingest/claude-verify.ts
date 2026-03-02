@@ -51,13 +51,13 @@ Respond with this exact JSON structure:
   "rejectReason": "reason if rejected, otherwise null"
 }
 
-Decision rules — be VERY generous, default to needs_review:
-- reject ONLY if: clearly pornographic, violent gore, spam/scam, or completely fictional entertainment (movie trailer, game clip)
-- needs_review for everything else — a human will approve before publishing
-- publish only if it is clearly a genuine real-world news event with confidence > 0.85
-- When in doubt, use needs_review, not reject
+Decision rules:
+- reject if ANY of: pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip), compilation of old clips ("top 10", "best moments", "caught on camera compilation"), non-English content, stories irrelevant to US/Western audience, or policy/bureaucratic announcements with no viral footage
+- needs_review for genuine real-world events where a single incident occurred and was filmed — a human will approve before publishing
+- publish only if clearly a genuine viral news event with confidence > 0.85
+- When in doubt between needs_review and reject, use needs_review
 - msmGap is true if fewer than 5 major outlet articles cover this
-- Headlines should be factual and descriptive`
+- Headlines should be factual and specific (name real locations, people, incidents)`
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
