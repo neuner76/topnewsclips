@@ -65,7 +65,9 @@ Decision rules — be VERY generous, default to needs_review:
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : ''
+  const raw = message.content[0].type === 'text' ? message.content[0].text : ''
+  // Strip markdown code fences if Claude wraps the JSON
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
 
   try {
     const result = JSON.parse(text) as VerificationResult
