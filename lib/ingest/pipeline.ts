@@ -104,7 +104,7 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
   }
 
   // 3. Process each new candidate
-  for (const candidate of newCandidates.slice(0, 30)) { // cap at 30 per run to control costs
+  for (const candidate of newCandidates.slice(0, 10)) { // cap at 10 per run (Vercel 10s timeout)
     try {
       // MSM gap check
       const msm = await checkMSMCoverage(candidate.title)
@@ -135,6 +135,7 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
 
       if (verification.decision === 'reject') {
         result.rejected++
+        result.errors.push(`Rejected: "${candidate.title.slice(0, 50)}" — ${verification.rejectReason ?? 'no reason'}`)
         continue
       }
 

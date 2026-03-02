@@ -27,9 +27,9 @@ export async function verifyAndTitle(
 ): Promise<VerificationResult> {
   const client = new Anthropic({ apiKey })
 
-  const prompt = `You are a news curator for TopNewsClips.com, which surfaces viral social media clips that mainstream media ignores.
+  const prompt = `You are a content curator for TopNewsClips.com, which surfaces interesting viral videos and news stories.
 
-Analyze this clip and respond with valid JSON only (no markdown, no explanation):
+Analyze this video/story and respond with valid JSON only (no markdown, no explanation):
 
 CLIP DATA:
 Title: ${clip.title}
@@ -45,19 +45,19 @@ Respond with this exact JSON structure:
   "confidence": 0.0 to 1.0,
   "aiGeneratedRisk": "low" or "medium" or "high",
   "headline": "Compelling 10-15 word headline for the story",
-  "summary": "2 sentences: what happened and why MSM is ignoring it",
+  "summary": "2 sentences describing the content and why it is interesting or newsworthy",
   "msmGap": true or false,
   "decision": "publish" or "needs_review" or "reject",
   "rejectReason": "reason if rejected, otherwise null"
 }
 
-Guidelines:
-- Only reject if: clearly satire/parody, AI-generated fake event, or confidence < 0.3
-- needs_review if confidence is 0.3-0.7 (human will approve before publishing)
-- publish (as draft) if confidence > 0.7 and isRealEvent is true
-- msmGap is true if the event has fewer than 5 major outlet articles
-- Even real events covered by MSM can be msmGap=false — that's fine, still include them
-- Headlines should be factual and compelling, not clickbait`
+Decision rules — be VERY generous, default to needs_review:
+- reject ONLY if: clearly pornographic, violent gore, spam/scam, or completely fictional entertainment (movie trailer, game clip)
+- needs_review for everything else — a human will approve before publishing
+- publish only if it is clearly a genuine real-world news event with confidence > 0.85
+- When in doubt, use needs_review, not reject
+- msmGap is true if fewer than 5 major outlet articles cover this
+- Headlines should be factual and descriptive`
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
