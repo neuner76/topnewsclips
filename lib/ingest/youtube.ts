@@ -9,15 +9,14 @@ export interface YouTubeClip {
   publishedAt: string
 }
 
-// Search terms targeting content MSM typically ignores
+// Broad queries likely to return results daily
 const SEARCH_QUERIES = [
-  'whistleblower leaked footage 2026',
-  'citizen journalism viral 2026',
-  'government corruption exposed 2026',
-  'police brutality caught on camera 2026',
-  'corporate cover up exposed 2026',
-  'protest footage mainstream media ignoring',
-  'leaked documents government 2026',
+  'caught on camera news 2026',
+  'viral video news today',
+  'breaking news footage eyewitness',
+  'police incident caught on video',
+  'protest rally footage',
+  'viral moment news',
 ]
 
 // Known MSM channel IDs to filter out
@@ -37,10 +36,10 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
   const errors: string[] = []
   const seen = new Set<string>()
 
-  // Get published cutoff: last 48 hours
-  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+  // Last 7 days instead of 48 hours — much more content available
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  for (const query of SEARCH_QUERIES.slice(0, 3)) {
+  for (const query of SEARCH_QUERIES.slice(0, 4)) {
     try {
       const searchUrl = new URL('https://www.googleapis.com/youtube/v3/search')
       searchUrl.searchParams.set('part', 'snippet')
@@ -55,7 +54,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
       const searchRes = await fetch(searchUrl.toString())
       if (!searchRes.ok) {
         const body = await searchRes.text()
-        errors.push(`YouTube search "${query.slice(0, 20)}": HTTP ${searchRes.status} - ${body.slice(0, 100)}`)
+        errors.push(`YouTube "${query.slice(0, 20)}": HTTP ${searchRes.status} - ${body.slice(0, 100)}`)
         continue
       }
 
@@ -63,7 +62,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
       const searchItems = searchJson?.items ?? []
 
       if (searchItems.length === 0) {
-        errors.push(`YouTube search "${query.slice(0, 20)}": 0 results`)
+        errors.push(`YouTube "${query.slice(0, 20)}": 0 results`)
         continue
       }
 
@@ -90,7 +89,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
 
         const stats = statsMap.get(videoId) as { viewCount?: string } | undefined
         const viewCount = parseInt(stats?.viewCount ?? '0', 10)
-        if (viewCount < 5000) continue
+        if (viewCount < 1000) continue  // lowered from 5000
 
         seen.add(videoId)
         clips.push({
@@ -105,7 +104,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
         })
       }
     } catch (err) {
-      errors.push(`YouTube search error: ${err instanceof Error ? err.message : String(err)}`)
+      errors.push(`YouTube error: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
 

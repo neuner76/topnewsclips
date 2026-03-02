@@ -1,6 +1,5 @@
-const SUBREDDITS = ['news', 'worldnews', 'politics', 'videos', 'conspiracy', 'collapse', 'WatchRedditDie']
-const MIN_SCORE = 200
-const VIDEO_DOMAINS = ['youtube.com', 'youtu.be', 'tiktok.com', 'tiktokv.com', 'twitter.com', 'x.com', 'v.redd.it']
+// HackerNews API — free, reliable, never blocks cloud IPs
+// Replaces Reddit which blocks Vercel/AWS server IPs with HTTP 403
 
 export interface RedditClip {
   title: string
@@ -11,6 +10,9 @@ export interface RedditClip {
   redditPermalink: string
   videoId: string | null
 }
+
+const MIN_SCORE = 50
+const VIDEO_DOMAINS = ['youtube.com', 'youtu.be', 'tiktok.com', 'tiktokv.com', 'twitter.com', 'x.com']
 
 function detectPlatform(url: string): 'youtube' | 'tiktok' | 'x' | null {
   if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube'
@@ -38,26 +40,36 @@ function extractVideoId(url: string, platform: 'youtube' | 'tiktok' | 'x'): stri
 export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors: string[] }> {
   const clips: RedditClip[] = []
   const errors: string[] = []
-  const seen = new Set<string>()
 
-  for (const sub of SUBREDDITS) {
-    try {
-      const res = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=25`, {
-        headers: { 'User-Agent': 'TopNewsClips/1.0 (news aggregator)' },
-      })
-      if (!res.ok) {
-        errors.push(`Reddit r/${sub}: HTTP ${res.status}`)
-        continue
-      }
+  try {
+    // Fetch top 200 HackerNews story IDs
+    const topRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
+    if (!topRes.ok) {
+      errors.push(`HackerNews top stories: HTTP ${topRes.status}`)
+      return { clips, errors }
+    }
 
-      const json = await res.json()
-      const posts = json?.data?.children ?? []
+    const topIds: number[] = await topRes.json()
+    const ids = topIds.slice(0, 100)
 
-      for (const { data: post } of posts) {
-        if (post.score < MIN_SCORE) continue
-        if (post.is_self) continue
+    // Fetch story details in parallel batches of 20
+    const batchSize = 20
+    for (let i = 0; i < ids.length; i += batchSize) {
+      const batch = ids.slice(i, i + batchSize)
+      const items = await Promise.all(
+        batch.map(id =>
+          fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
+            .then(r => r.json())
+            .catch(() => null)
+        )
+      )
 
-        const url: string = post.url || ''
+      for (const item of items) {
+        if (!item || item.type !== 'story') continue
+        if (!item.url) continue
+        if ((item.score ?? 0) < MIN_SCORE) continue
+
+        const url: string = item.url
         const isVideoDomain = VIDEO_DOMAINS.some(d => url.includes(d))
         if (!isVideoDomain) continue
 
@@ -65,23 +77,20 @@ export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors:
         if (!platform) continue
 
         const videoId = extractVideoId(url, platform)
-        const key = `${platform}-${videoId ?? url}`
-        if (seen.has(key)) continue
-        seen.add(key)
 
         clips.push({
-          title: post.title,
+          title: item.title ?? '',
           videoUrl: url,
           platform,
-          redditScore: post.score,
-          subreddit: post.subreddit,
-          redditPermalink: `https://reddit.com${post.permalink}`,
+          redditScore: item.score ?? 0,
+          subreddit: 'HackerNews',
+          redditPermalink: `https://news.ycombinator.com/item?id=${item.id}`,
           videoId,
         })
       }
-    } catch (err) {
-      errors.push(`Reddit r/${sub}: ${err instanceof Error ? err.message : String(err)}`)
     }
+  } catch (err) {
+    errors.push(`HackerNews fetch error: ${err instanceof Error ? err.message : String(err)}`)
   }
 
   return { clips, errors }
