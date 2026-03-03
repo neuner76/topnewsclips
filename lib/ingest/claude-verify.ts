@@ -52,11 +52,16 @@ Respond with this exact JSON structure:
 }
 
 Decision rules:
-- reject if ANY of: pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip), compilation of old clips ("top 10", "best moments", "caught on camera compilation"), non-English content, or stories set in India, Pakistan, Bangladesh, or other South Asian countries (look for Indian city names, "lakhs", "crore", "rupees", regional Indian police/government), or stories from non-English-speaking countries unless they have major global impact, or policy/bureaucratic announcements with no viral footage
-- needs_review for genuine real-world events where a single incident occurred and was filmed — a human will approve before publishing
+- reject if ANY of:
+  * pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip)
+  * compilation of multiple clips ("top 10", "best moments", "dash cam compilation", "50 biggest")
+  * non-English content or South Asian regional stories (India, Pakistan, Bangladesh — look for city names, lakhs/crore/rupees)
+  * EXTRAORDINARY geopolitical claims (country attacks US military base, assassination of world leader, nuclear strike) with fewer than 10 mainstream news articles — for these claims, absence of coverage means the event DID NOT HAPPEN, not that it's suppressed
+  * any claim involving Iran, Russia, or other adversaries attacking US military installations unless confirmed by 10+ mainstream sources
+  * policy/bureaucratic announcements with no viral footage
+- needs_review for genuine real-world events: local incidents, caught-on-camera moments, domestic US news, minor political incidents
 - publish only if clearly a genuine viral news event with confidence > 0.85
-- When in doubt between needs_review and reject, use needs_review
-- msmGap is true if fewer than 5 major outlet articles cover this
+- msmGap is true if fewer than 5 major outlet articles cover this — but for extraordinary geopolitical claims, low coverage = likely fake, not suppressed
 - Headlines should be factual and specific (name real locations, people, incidents)`
 
   const message = await client.messages.create({
