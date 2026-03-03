@@ -79,6 +79,13 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
             </Link>
           )}
 
+          {/* Journalist credit */}
+          {story.pinned && story.journalist_username && (
+            <p className="text-xs text-muted-foreground mt-1">
+              @{story.journalist_username}
+            </p>
+          )}
+
           {/* Description */}
           {story.description && (
             <p className="editorial-body text-sm mt-2 line-clamp-3 sm:line-clamp-2">{story.description}</p>

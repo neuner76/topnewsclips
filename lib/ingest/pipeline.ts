@@ -50,13 +50,21 @@ export async function runFetch(): Promise<FetchResult> {
   const errors: string[] = []
   let added = 0
 
+  // Fetch active journalist usernames to pass to TikTok scraper
+  const { data: journalistRows } = await supabase
+    .from('featured_journalists')
+    .select('username')
+    .eq('active', true)
+    .eq('platform', 'tiktok')
+  const journalistUsernames = (journalistRows ?? []).map((r: { username: string }) => r.username)
+
   const [redditResult, youtubeResult, tiktokResult] = await Promise.all([
     fetchRedditClips(),
     youtubeKey
       ? fetchYouTubeTrending(youtubeKey)
       : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'] }),
     apifyKey
-      ? fetchTikTokTrending(apifyKey)
+      ? fetchTikTokTrending(apifyKey, journalistUsernames)
       : Promise.resolve({ clips: [], errors: [] }),
   ])
 
@@ -90,6 +98,7 @@ export async function runFetch(): Promise<FetchResult> {
       viralScore: c.viewCount,
       source: `TikTok/@${c.authorName}`,
       thumbnailUrl: c.thumbnailUrl ?? null,
+      journalistUsername: c.journalistUsername ?? null,
     })),
   ]
 
@@ -130,6 +139,7 @@ export async function runFetch(): Promise<FetchResult> {
       viral_score: c.viralScore,
       source: c.source,
       thumbnail_url: (c as { thumbnailUrl?: string | null }).thumbnailUrl ?? null,
+      journalist_username: (c as { journalistUsername?: string | null }).journalistUsername ?? null,
     })
     if (!error) {
       added++
@@ -217,11 +227,26 @@ export async function runProcess(): Promise<PipelineResult> {
         display_order: 99,
         category: verification.category,
         thumbnail_url: candidate.thumbnail_url ?? null,
+        journalist_username: candidate.journalist_username ?? null,
       })
 
       if (error) {
         result.errors.push(`Failed to insert ${candidate.slug}: ${error.message}`)
         continue
+      }
+
+      // Auto-pin if from a featured journalist and no story from them is already pinned in this category
+      if (candidate.journalist_username && verification.category) {
+        const { data: existingPin } = await supabase
+          .from('stories')
+          .select('id')
+          .eq('journalist_username', candidate.journalist_username)
+          .eq('category', verification.category)
+          .eq('pinned', true)
+          .limit(1)
+        if (!existingPin || existingPin.length === 0) {
+          await supabase.from('stories').update({ pinned: true }).eq('slug', candidate.slug)
+        }
       }
 
       if (verification.decision === 'needs_review') {

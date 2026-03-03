@@ -51,6 +51,12 @@ export default function AdminStoryRow({ story }: { story: Story }) {
           {story.category && (
             <span className="ml-2 font-medium capitalize">{story.category}</span>
           )}
+          {story.journalist_username && (
+            <span className="ml-2 font-medium">@{story.journalist_username}</span>
+          )}
+          {story.pinned && (
+            <span className="ml-2 font-semibold text-foreground">PINNED</span>
+          )}
           {story.msm_gap && (
             <span className="ml-2 text-[oklch(0.45_0.22_24)] font-medium">MSM Blackout</span>
           )}

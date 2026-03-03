@@ -43,6 +43,7 @@ export default function StoryForm({ story }: StoryFormProps) {
   const [category, setCategory] = useState<'good' | 'bad' | 'ugly' | ''>(story?.category ?? '')
   const [msmGap, setMsmGap] = useState(story?.msm_gap ?? false)
   const [msmNotes, setMsmNotes] = useState(story?.msm_notes ?? '')
+  const [pinned, setPinned] = useState(story?.pinned ?? false)
   const [published, setPublished] = useState(story?.published ?? false)
   const [displayOrder, setDisplayOrder] = useState(String(story?.display_order ?? '99'))
   const [saving, setSaving] = useState(false)
@@ -75,6 +76,7 @@ export default function StoryForm({ story }: StoryFormProps) {
       category: category || null,
       msm_gap: msmGap,
       msm_notes: msmNotes || null,
+      pinned,
       published,
       display_order: parseInt(displayOrder) || 99,
     }
@@ -251,6 +253,27 @@ export default function StoryForm({ story }: StoryFormProps) {
               />
             </div>
           )}
+        </div>
+
+        {/* Journalist credit (read-only) */}
+        {story?.journalist_username && (
+          <div className="px-4 py-3 bg-zinc-50 border border-border rounded-md">
+            <p className="text-xs text-muted-foreground">Featured journalist</p>
+            <p className="text-sm font-medium mt-0.5">@{story.journalist_username}</p>
+          </div>
+        )}
+
+        {/* Pinned */}
+        <div className="flex items-center justify-between p-4 bg-zinc-50 border border-border rounded-md">
+          <div>
+            <Label htmlFor="pinned" className="text-sm font-semibold">Pin to top</Label>
+            <p className="text-xs text-muted-foreground mt-0.5">Show this story first in its section.</p>
+          </div>
+          <Switch
+            id="pinned"
+            checked={pinned}
+            onCheckedChange={setPinned}
+          />
         </div>
 
         {/* Published */}

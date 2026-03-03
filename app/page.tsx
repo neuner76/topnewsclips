@@ -19,12 +19,23 @@ function formatDate(date: Date) {
 interface SectionProps {
   title: string
   subtitle: string
+  pinned: Story[]
+  voices: Story[]
   stories: Story[]
   accentClass: string
 }
 
-function Section({ title, subtitle, stories, accentClass }: SectionProps) {
-  if (stories.length === 0) return null
+function SubHeader({ label }: { label: string }) {
+  return (
+    <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mt-5 mb-1">
+      {label}
+    </p>
+  )
+}
+
+function Section({ title, subtitle, pinned, voices, stories, accentClass }: SectionProps) {
+  const isEmpty = pinned.length === 0 && voices.length === 0 && stories.length === 0
+  let rank = 1
   return (
     <section className="mb-12">
       <div className="border-t-2 border-foreground pt-4 mb-1">
@@ -33,11 +44,36 @@ function Section({ title, subtitle, stories, accentClass }: SectionProps) {
         </h2>
         <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
       </div>
-      <div>
-        {stories.map((story, i) => (
-          <StoryCard key={story.id} story={story} rank={i + 1} />
-        ))}
-      </div>
+      {isEmpty ? (
+        <p className="text-sm text-muted-foreground py-6">Stories being curated — check back soon.</p>
+      ) : (
+        <div>
+          {pinned.length > 0 && (
+            <>
+              <SubHeader label="Featured" />
+              {pinned.map(story => (
+                <StoryCard key={story.id} story={story} rank={rank++} />
+              ))}
+            </>
+          )}
+          {voices.length > 0 && (
+            <>
+              <SubHeader label="Independent Voices" />
+              {voices.map(story => (
+                <StoryCard key={story.id} story={story} rank={rank++} />
+              ))}
+            </>
+          )}
+          {stories.length > 0 && (
+            <>
+              <SubHeader label="Trending" />
+              {stories.map(story => (
+                <StoryCard key={story.id} story={story} rank={rank++} />
+              ))}
+            </>
+          )}
+        </div>
+      )}
     </section>
   )
 }
@@ -49,15 +85,25 @@ export default async function HomePage() {
     .from('stories')
     .select('*')
     .eq('published', true)
+    .order('pinned', { ascending: false })
     .order('display_order', { ascending: true })
     .order('view_count', { ascending: false })
     .limit(60)
 
   const all = (stories as Story[]) ?? []
 
-  const good = all.filter(s => s.category === 'good')
-  const bad  = all.filter(s => s.category === 'bad')
-  const ugly = all.filter(s => s.category === 'ugly')
+  function splitSection(category: 'good' | 'bad' | 'ugly') {
+    const section = all.filter(s => s.category === category)
+    return {
+      pinned:  section.filter(s => s.pinned),
+      voices:  section.filter(s => !s.pinned && !!s.journalist_username),
+      stories: section.filter(s => !s.pinned && !s.journalist_username),
+    }
+  }
+
+  const good = splitSection('good')
+  const bad  = splitSection('bad')
+  const ugly = splitSection('ugly')
   const uncategorized = all.filter(s => !s.category)
 
   const totalCount = all.length
@@ -78,8 +124,8 @@ export default async function HomePage() {
               Today&apos;s Top Clips
             </h1>
             <p className="editorial-body mt-2 max-w-2xl">
-              The stories social media can&apos;t stop sharing — ranked by real cross-platform
-              engagement. Stories marked{' '}
+              Independent journalists. Real stories. No corporate filter.{' '}
+              Stories marked{' '}
               <span className="font-semibold text-[oklch(0.45_0.22_24)]">MSM BLACKOUT</span>{' '}
               have not appeared in any major mainstream outlet.
             </p>
@@ -102,39 +148,39 @@ export default async function HomePage() {
           </div>
         )}
 
-        {totalCount === 0 ? (
-          <div className="py-20 text-center">
-            <p className="text-muted-foreground">Stories are being curated. Check back soon.</p>
-          </div>
-        ) : (
-          <>
-            <Section
-              title="The Good"
-              subtitle="Heroes, rescues, and breakthroughs in energy, food, water, and planet"
-              stories={good}
-              accentClass="text-[oklch(0.38_0.13_145)]"
-            />
-            <Section
-              title="The Bad"
-              subtitle="Crime, corruption, and misconduct the public deserves to know about"
-              stories={bad}
-              accentClass="text-foreground"
-            />
-            <Section
-              title="The Ugly"
-              subtitle="What the media won't show you — significant stories with zero mainstream coverage"
-              stories={ugly}
-              accentClass="text-[oklch(0.45_0.22_24)]"
-            />
-            {uncategorized.length > 0 && (
-              <Section
-                title="Latest"
-                subtitle="Recently added"
-                stories={uncategorized}
-                accentClass="text-muted-foreground"
-              />
-            )}
-          </>
+        <Section
+          title="The Good"
+          subtitle="Heroes, rescues, and breakthroughs in energy, food, water, and planet"
+          pinned={good.pinned}
+          voices={good.voices}
+          stories={good.stories}
+          accentClass="text-[oklch(0.38_0.13_145)]"
+        />
+        <Section
+          title="The Bad"
+          subtitle="Government corruption, misconduct, and institutional failures the public deserves to know about"
+          pinned={bad.pinned}
+          voices={bad.voices}
+          stories={bad.stories}
+          accentClass="text-foreground"
+        />
+        <Section
+          title="The Ugly"
+          subtitle="What the media won't show you — significant stories with zero mainstream coverage"
+          pinned={ugly.pinned}
+          voices={ugly.voices}
+          stories={ugly.stories}
+          accentClass="text-[oklch(0.45_0.22_24)]"
+        />
+        {uncategorized.length > 0 && (
+          <Section
+            title="Latest"
+            subtitle="Recently added"
+            pinned={[]}
+            voices={[]}
+            stories={uncategorized}
+            accentClass="text-muted-foreground"
+          />
         )}
 
         <EmailCapture />

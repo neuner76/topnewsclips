@@ -59,10 +59,10 @@ Respond with this exact JSON structure:
   "rejectReason": "reason if rejected, otherwise null"
 }
 
-CATEGORY RULES:
-- "good": Uplifting or heroic moments (rescues, acts of kindness, community wins), AND positive innovations in clean energy, food technology, water purification, or environmental breakthroughs
-- "bad": Crime, corruption, police misconduct, fraud, injustice — incidents the public should know about
-- "ugly": Stories with significant social engagement but little or no mainstream coverage — what the media is suppressing or ignoring. If msmGap is true, category should almost always be "ugly"
+CATEGORY RULES — think like an independent journalist editor, not a viral content aggregator:
+- "good": Heroic moments, rescues, acts of courage or community kindness that deserve amplification. Also: verified breakthroughs in clean energy, food technology, water access, or environmental solutions from credible independent sources.
+- "bad": Institutional failures the public deserves to know — government corruption, corporate fraud, police misconduct, civil rights violations, abuse of power by institutions. Must be a specific documented incident, not general commentary.
+- "ugly": Stories that independent journalists are covering but mainstream media is ignoring or actively suppressing. If msmGap=true and the incident is real and documented, this is almost always "ugly". The gap between viral reach and MSM silence IS the story.
 
 REJECT (hard rules — no exceptions):
   * pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip)

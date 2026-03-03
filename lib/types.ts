@@ -15,6 +15,8 @@ export interface Story {
   display_order: number
   category: 'good' | 'bad' | 'ugly' | null
   thumbnail_url: string | null
+  journalist_username: string | null
+  pinned: boolean
   created_at: string
   updated_at: string
 }

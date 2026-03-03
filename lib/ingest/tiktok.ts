@@ -7,6 +7,7 @@ export interface TikTokClip {
   authorName: string
   description: string
   thumbnailUrl: string | null
+  journalistUsername: string | null
 }
 
 // Hashtags that surface US news / incident / positive innovation content
@@ -25,11 +26,17 @@ const ACTOR_ID = 'clockworks~tiktok-scraper'
  * 1. Collect items from the last SUCCEEDED run (returns immediately from dataset cache)
  * 2. Fire a new async run so fresh results are ready next cycle
  * Results are one fetch cycle (~15-30 min) behind, which is fine for a news feed.
+ *
+ * @param profiles - Optional list of TikTok @usernames to scrape (featured journalists)
  */
-export async function fetchTikTokTrending(apiKey: string): Promise<{ clips: TikTokClip[]; errors: string[] }> {
+export async function fetchTikTokTrending(
+  apiKey: string,
+  profiles: string[] = []
+): Promise<{ clips: TikTokClip[]; errors: string[] }> {
   const clips: TikTokClip[] = []
   const errors: string[] = []
   const seen = new Set<string>()
+  const journalistSet = new Set(profiles.map(u => u.toLowerCase()))
 
   // Step 1: collect results from the last successful run
   try {
@@ -52,7 +59,12 @@ export async function fetchTikTokTrending(apiKey: string): Promise<{ clips: TikT
           if (!videoId || seen.has(videoId)) continue
 
           const playCount = Number(item.playCount ?? item.stats?.playCount ?? 0)
-          if (playCount < 100000) continue
+          // Lower threshold for featured journalists
+          const authorUniqueId: string =
+            (item.authorMeta?.uniqueId ?? item.author?.uniqueId ?? '').toLowerCase()
+          const isJournalist = journalistSet.has(authorUniqueId)
+
+          if (!isJournalist && playCount < 100000) continue
 
           // Skip non-English content
           const text: string = item.text ?? ''
@@ -77,6 +89,7 @@ export async function fetchTikTokTrending(apiKey: string): Promise<{ clips: TikT
             authorName,
             description: text.slice(0, 500),
             thumbnailUrl,
+            journalistUsername: isJournalist ? authorUniqueId : null,
           })
         }
       }
@@ -99,6 +112,7 @@ export async function fetchTikTokTrending(apiKey: string): Promise<{ clips: TikT
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         hashtags: HASHTAGS,
+        profiles: profiles.length > 0 ? profiles : undefined,
         resultsPerPage: 10,
         maxProfilesPerQuery: 1,
         shouldDownloadVideos: false,
