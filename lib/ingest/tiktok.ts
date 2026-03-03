@@ -13,8 +13,8 @@ const HASHTAGS = [
   'bodycam',
   'caughtoncamera',
   'policeincident',
-  'dashcam',
-  'breakingnews',
+  'policechase',
+  'arrestvideo',
 ]
 
 const ACTOR_ID = 'clockworks~tiktok-scraper'
