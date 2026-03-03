@@ -36,8 +36,12 @@ export default function EmbedPlayer({ embedUrl, platform, title }: EmbedPlayerPr
   if (platform === 'youtube') {
     const videoId = getYouTubeId(embedUrl)
     if (!videoId) return <EmbedFallback url={embedUrl} />
+    const isShort = embedUrl.includes('/shorts/')
     return (
-      <div className="relative w-full aspect-video rounded overflow-hidden bg-zinc-100">
+      <div className={isShort
+        ? "relative mx-auto rounded overflow-hidden bg-zinc-100 w-full max-w-[340px] aspect-[9/16]"
+        : "relative w-full aspect-video rounded overflow-hidden bg-zinc-100"
+      }>
         <iframe
           src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
           title={title}

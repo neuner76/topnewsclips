@@ -36,7 +36,7 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
     <article className="group py-6 border-t border-border first:border-t-2 first:border-foreground">
       <div className="flex gap-4 sm:gap-6">
         {/* Rank */}
-        <div className="flex-shrink-0 w-8 pt-0.5">
+        <div className="hidden sm:block flex-shrink-0 w-8 pt-0.5">
           <span className="text-2xl font-bold text-muted-foreground/30 leading-none tabular-nums">
             {String(rank).padStart(2, '0')}
           </span>
