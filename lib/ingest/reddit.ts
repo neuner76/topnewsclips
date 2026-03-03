@@ -1,5 +1,5 @@
-// Reddit public JSON API — no OAuth required
-// Targets subreddits aligned with viral caught-on-camera US content
+// PullPush.io — community Pushshift mirror that archives Reddit posts
+// Works from cloud IPs unlike reddit.com which blocks AWS/Vercel
 
 export interface RedditClip {
   title: string
@@ -11,7 +11,6 @@ export interface RedditClip {
   videoId: string | null
 }
 
-// Subreddits ordered by relevance to site content
 const SUBREDDITS = [
   'PublicFreakout',
   'bodycam',
@@ -51,48 +50,56 @@ export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors:
   const errors: string[] = []
   const seen = new Set<string>()
 
+  // 7 days ago as Unix timestamp
+  const after = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000)
+
   for (const subreddit of SUBREDDITS) {
     try {
-      const res = await fetch(`https://www.reddit.com/r/${subreddit}/hot.json?limit=25`, {
-        headers: {
-          'User-Agent': 'web:topnewsclips:v1.0 (news aggregator)',
-        },
+      const url = new URL('https://api.pullpush.io/reddit/search/submission/')
+      url.searchParams.set('subreddit', subreddit)
+      url.searchParams.set('sort', 'score')
+      url.searchParams.set('sort_type', 'desc')
+      url.searchParams.set('size', '25')
+      url.searchParams.set('after', String(after))
+
+      const res = await fetch(url.toString(), {
+        headers: { 'User-Agent': 'topnewsclips/1.0' },
       })
 
       if (!res.ok) {
-        errors.push(`r/${subreddit}: HTTP ${res.status}`)
+        errors.push(`PullPush r/${subreddit}: HTTP ${res.status}`)
         continue
       }
 
       const json = await res.json()
-      const posts: Array<{ data: Record<string, unknown> }> = json?.data?.children ?? []
+      const posts: Record<string, unknown>[] = json?.data ?? []
 
-      for (const { data: post } of posts) {
+      for (const post of posts) {
         if (!post?.url) continue
         if ((post.score as number ?? 0) < MIN_SCORE) continue
-        if (post.over_18) continue // skip NSFW
+        if (post.over_18) continue
 
-        const url = post.url as string
-        if (!VIDEO_DOMAINS.some(d => url.includes(d))) continue
+        const videoUrl = post.url as string
+        if (!VIDEO_DOMAINS.some(d => videoUrl.includes(d))) continue
 
-        const platform = detectPlatform(url)
+        const platform = detectPlatform(videoUrl)
         if (!platform) continue
 
-        if (seen.has(url)) continue
-        seen.add(url)
+        if (seen.has(videoUrl)) continue
+        seen.add(videoUrl)
 
         clips.push({
           title: (post.title as string) ?? '',
-          videoUrl: url,
+          videoUrl,
           platform,
           redditScore: (post.score as number) ?? 0,
           subreddit,
           redditPermalink: `https://reddit.com${post.permalink as string}`,
-          videoId: extractVideoId(url, platform),
+          videoId: extractVideoId(videoUrl, platform),
         })
       }
     } catch (err) {
-      errors.push(`r/${subreddit}: ${err instanceof Error ? err.message : String(err)}`)
+      errors.push(`PullPush r/${subreddit}: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
 
