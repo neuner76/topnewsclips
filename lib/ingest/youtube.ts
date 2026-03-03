@@ -38,8 +38,8 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
   const errors: string[] = []
   const seen = new Set<string>()
 
-  // Last 72 hours — fresh enough to be news, wide enough to find content
-  const cutoff = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()
+  // Last 7 days — wide enough to find content, Claude filters for relevance
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   for (const query of SEARCH_QUERIES.slice(0, 4)) {
     try {
@@ -47,7 +47,6 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
       searchUrl.searchParams.set('part', 'snippet')
       searchUrl.searchParams.set('q', query)
       searchUrl.searchParams.set('type', 'video')
-      searchUrl.searchParams.set('videoCategoryId', '25') // News & Politics only
       searchUrl.searchParams.set('order', 'viewCount')
       searchUrl.searchParams.set('publishedAfter', cutoff)
       searchUrl.searchParams.set('relevanceLanguage', 'en')
