@@ -9,14 +9,14 @@ export interface YouTubeClip {
   publishedAt: string
 }
 
-// Broad queries likely to return results daily
+// US-specific queries for viral news footage
 const SEARCH_QUERIES = [
-  'caught on camera news 2026',
-  'viral video news today',
-  'breaking news footage eyewitness',
-  'police incident caught on video',
-  'protest rally footage',
-  'viral moment news',
+  'caught on camera USA 2026',
+  'viral news footage America 2026',
+  'police incident video United States',
+  'breaking news eyewitness video US',
+  'caught on camera US news today',
+  'viral moment United States news',
 ]
 
 // Known MSM channel IDs to filter out

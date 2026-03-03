@@ -52,7 +52,7 @@ Respond with this exact JSON structure:
 }
 
 Decision rules:
-- reject if ANY of: pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip), compilation of old clips ("top 10", "best moments", "caught on camera compilation"), non-English content, stories irrelevant to US/Western audience, or policy/bureaucratic announcements with no viral footage
+- reject if ANY of: pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip), compilation of old clips ("top 10", "best moments", "caught on camera compilation"), non-English content, or stories set in India, Pakistan, Bangladesh, or other South Asian countries (look for Indian city names, "lakhs", "crore", "rupees", regional Indian police/government), or stories from non-English-speaking countries unless they have major global impact, or policy/bureaucratic announcements with no viral footage
 - needs_review for genuine real-world events where a single incident occurred and was filmed — a human will approve before publishing
 - publish only if clearly a genuine viral news event with confidence > 0.85
 - When in doubt between needs_review and reject, use needs_review
