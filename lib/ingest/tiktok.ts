@@ -17,20 +17,76 @@ const HASHTAGS = [
   'breakingnews',
 ]
 
+const ACTOR_ID = 'clockworks~tiktok-scraper'
+
+/**
+ * Async Apify pattern — works within Vercel's 10s function timeout:
+ * 1. Collect items from the last SUCCEEDED run (returns immediately from dataset cache)
+ * 2. Fire a new async run so fresh results are ready next cycle
+ * Results are one fetch cycle (~15-30 min) behind, which is fine for a news feed.
+ */
 export async function fetchTikTokTrending(apiKey: string): Promise<{ clips: TikTokClip[]; errors: string[] }> {
   const clips: TikTokClip[] = []
   const errors: string[] = []
   const seen = new Set<string>()
 
+  // Step 1: collect results from the last successful run
   try {
-    const url = new URL(
-      'https://api.apify.com/v2/acts/clockworks~tiktok-scraper/run-sync-get-dataset-items'
+    const itemsUrl = new URL(
+      `https://api.apify.com/v2/acts/${ACTOR_ID}/runs/last/dataset/items`
     )
-    url.searchParams.set('token', apiKey)
-    url.searchParams.set('timeout', '7')
-    url.searchParams.set('memory', '256')
+    itemsUrl.searchParams.set('token', apiKey)
+    itemsUrl.searchParams.set('status', 'SUCCEEDED')
 
-    const res = await fetch(url.toString(), {
+    const res = await fetch(itemsUrl.toString(), {
+      signal: AbortSignal.timeout(5000),
+    })
+
+    if (res.ok) {
+      const items = await res.json()
+
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          const videoId: string = String(item.id ?? '')
+          if (!videoId || seen.has(videoId)) continue
+
+          const playCount = Number(item.playCount ?? item.stats?.playCount ?? 0)
+          if (playCount < 100000) continue
+
+          // Skip non-English content
+          const text: string = item.text ?? ''
+          if (/[\u0600-\u0DFF\u0900-\u097F\u4E00-\u9FFF]/.test(text)) continue
+
+          const authorName: string = item.authorMeta?.name ?? item.author?.uniqueId ?? 'unknown'
+          const videoUrl = `https://www.tiktok.com/@${authorName}/video/${videoId}`
+
+          seen.add(videoId)
+          clips.push({
+            title: text.slice(0, 200) || `TikTok by @${authorName}`,
+            videoId,
+            videoUrl,
+            platform: 'tiktok',
+            viewCount: playCount,
+            authorName,
+            description: text.slice(0, 500),
+          })
+        }
+      }
+    } else if (res.status !== 404) {
+      // 404 just means no previous run exists yet — not an error
+      const body = await res.text()
+      errors.push(`Apify TikTok dataset: HTTP ${res.status} - ${body.slice(0, 120)}`)
+    }
+  } catch (err) {
+    errors.push(`Apify TikTok fetch error: ${err instanceof Error ? err.message : String(err)}`)
+  }
+
+  // Step 2: fire a new async run so data is fresh next cycle
+  try {
+    const runUrl = new URL(`https://api.apify.com/v2/acts/${ACTOR_ID}/runs`)
+    runUrl.searchParams.set('token', apiKey)
+
+    await fetch(runUrl.toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -41,49 +97,12 @@ export async function fetchTikTokTrending(apiKey: string): Promise<{ clips: TikT
         shouldDownloadCovers: false,
         shouldDownloadSubtitles: false,
       }),
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(5000),
     })
-
-    if (!res.ok) {
-      const body = await res.text()
-      errors.push(`Apify TikTok: HTTP ${res.status} - ${body.slice(0, 120)}`)
-      return { clips, errors }
-    }
-
-    const items = await res.json()
-
-    if (!Array.isArray(items)) {
-      errors.push('Apify TikTok: unexpected response format')
-      return { clips, errors }
-    }
-
-    for (const item of items) {
-      const videoId: string = String(item.id ?? '')
-      if (!videoId || seen.has(videoId)) continue
-
-      const playCount = Number(item.playCount ?? item.stats?.playCount ?? 0)
-      if (playCount < 100000) continue
-
-      // Skip non-English content
-      const text: string = item.text ?? ''
-      if (/[\u0600-\u0DFF\u0900-\u097F\u4E00-\u9FFF]/.test(text)) continue
-
-      const authorName: string = item.authorMeta?.name ?? item.author?.uniqueId ?? 'unknown'
-      const videoUrl = `https://www.tiktok.com/@${authorName}/video/${videoId}`
-
-      seen.add(videoId)
-      clips.push({
-        title: text.slice(0, 200) || `TikTok by @${authorName}`,
-        videoId,
-        videoUrl,
-        platform: 'tiktok',
-        viewCount: playCount,
-        authorName,
-        description: text.slice(0, 500),
-      })
-    }
+    // We don't await the run to finish — it runs in the background on Apify's servers
   } catch (err) {
-    errors.push(`Apify TikTok error: ${err instanceof Error ? err.message : String(err)}`)
+    // Non-fatal: we still return whatever clips we collected above
+    errors.push(`Apify TikTok start-run error: ${err instanceof Error ? err.message : String(err)}`)
   }
 
   return { clips, errors }
