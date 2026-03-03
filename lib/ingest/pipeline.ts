@@ -86,14 +86,17 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
     return result
   }
 
-  // 2. Check which slugs already exist
+  // 2. Check which slugs already exist (stories + previously rejected)
   const slugsToCheck = candidates.map(c => makeSlug(c.platform, c.videoId, c.title))
-  const { data: existing } = await supabase
-    .from('stories')
-    .select('slug')
-    .in('slug', slugsToCheck)
+  const [{ data: existing }, { data: rejectedSlugs }] = await Promise.all([
+    supabase.from('stories').select('slug').in('slug', slugsToCheck),
+    supabase.from('rejected_slugs').select('slug').in('slug', slugsToCheck),
+  ])
 
-  const existingSlugs = new Set((existing ?? []).map((r: { slug: string }) => r.slug))
+  const existingSlugs = new Set([
+    ...(existing ?? []).map((r: { slug: string }) => r.slug),
+    ...(rejectedSlugs ?? []).map((r: { slug: string }) => r.slug),
+  ])
   const newCandidates = candidates.filter(
     c => !existingSlugs.has(makeSlug(c.platform, c.videoId, c.title))
   )
@@ -136,6 +139,8 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
       if (verification.decision === 'reject') {
         result.rejected++
         result.errors.push(`Rejected: "${candidate.title.slice(0, 50)}" — ${verification.rejectReason ?? 'no reason'}`)
+        // Store slug so it's skipped on future runs
+        await supabase.from('rejected_slugs').upsert({ slug, reason: verification.rejectReason ?? '' })
         continue
       }
 
