@@ -4,6 +4,7 @@ import type { Story } from '@/lib/types'
 import MSMBadge from './MSMBadge'
 import PlatformBadge from './PlatformBadge'
 import PressureScore from './PressureScore'
+import CategoryBadge from './CategoryBadge'
 
 interface StoryCardProps {
   story: Story
@@ -47,6 +48,7 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
           {/* Badges + date */}
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <PlatformBadge platform={story.platform} />
+            <CategoryBadge category={story.category} />
             {story.msm_gap && <MSMBadge notes={story.msm_notes} size="sm" />}
             <span className="text-xs text-muted-foreground ml-auto">
               {formatPublishedDate(story.created_at)}

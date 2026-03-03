@@ -199,6 +199,7 @@ export async function runProcess(): Promise<PipelineResult> {
         msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}`,
         published: false,
         display_order: 99,
+        category: verification.category,
       })
 
       if (error) {

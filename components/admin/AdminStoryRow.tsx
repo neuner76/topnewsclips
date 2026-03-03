@@ -48,6 +48,9 @@ export default function AdminStoryRow({ story }: { story: Story }) {
         <p className="text-sm font-medium truncate">{story.title}</p>
         <p className="text-xs text-muted-foreground tabular-nums">
           {(story.view_count / 1000).toFixed(0)}K views
+          {story.category && (
+            <span className="ml-2 font-medium capitalize">{story.category}</span>
+          )}
           {story.msm_gap && (
             <span className="ml-2 text-[oklch(0.45_0.22_24)] font-medium">MSM Blackout</span>
           )}

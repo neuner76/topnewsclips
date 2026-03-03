@@ -40,6 +40,7 @@ export default function StoryForm({ story }: StoryFormProps) {
   const [platform, setPlatform] = useState<Platform>(story?.platform ?? 'youtube')
   const [viewCount, setViewCount] = useState(String(story?.view_count ?? ''))
   const [shareCount, setShareCount] = useState(String(story?.share_count ?? ''))
+  const [category, setCategory] = useState<'good' | 'bad' | 'ugly' | ''>(story?.category ?? '')
   const [msmGap, setMsmGap] = useState(story?.msm_gap ?? false)
   const [msmNotes, setMsmNotes] = useState(story?.msm_notes ?? '')
   const [published, setPublished] = useState(story?.published ?? false)
@@ -71,6 +72,7 @@ export default function StoryForm({ story }: StoryFormProps) {
       platform,
       view_count: parseInt(viewCount) || 0,
       share_count: parseInt(shareCount) || 0,
+      category: category || null,
       msm_gap: msmGap,
       msm_notes: msmNotes || null,
       published,
@@ -128,6 +130,22 @@ export default function StoryForm({ story }: StoryFormProps) {
             <option value="youtube">YouTube</option>
             <option value="x">X / Twitter</option>
             <option value="tiktok">TikTok</option>
+          </select>
+        </div>
+
+        {/* Category */}
+        <div className="space-y-1.5">
+          <Label htmlFor="category">Category</Label>
+          <select
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as 'good' | 'bad' | 'ugly' | '')}
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+          >
+            <option value="">(none)</option>
+            <option value="good">The Good</option>
+            <option value="bad">The Bad</option>
+            <option value="ugly">The Ugly</option>
           </select>
         </div>
 

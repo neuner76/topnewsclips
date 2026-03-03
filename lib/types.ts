@@ -13,6 +13,7 @@ export interface Story {
   msm_notes: string | null
   published: boolean
   display_order: number
+  category: 'good' | 'bad' | 'ugly' | null
   created_at: string
   updated_at: string
 }

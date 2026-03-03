@@ -8,6 +8,7 @@ import Footer from '@/components/Footer'
 import EmbedPlayer from '@/components/EmbedPlayer'
 import MSMBadge from '@/components/MSMBadge'
 import PlatformBadge from '@/components/PlatformBadge'
+import CategoryBadge from '@/components/CategoryBadge'
 import PressureScore from '@/components/PressureScore'
 import ShareButtons from '@/components/ShareButtons'
 
@@ -84,6 +85,7 @@ export default async function StoryPage({ params }: Props) {
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <PlatformBadge platform={s.platform} />
+          <CategoryBadge category={s.category} />
           {s.msm_gap && <MSMBadge notes={s.msm_notes} />}
         </div>
 

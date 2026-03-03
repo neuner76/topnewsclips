@@ -14,12 +14,12 @@ export interface YouTubeClip {
 const SEARCH_QUERIES = [
   'bodycam footage released 2026',
   'road rage dashcam viral 2026',
-  'town hall confrontation viral video 2026',
   'caught on camera local news America 2026',
   'police shooting bodycam released 2026',
   'arrest video released police department 2026',
   'security camera footage incident viral 2026',
-  'bystander video incident news 2026',
+  'breakthrough clean energy technology 2026',
+  'food water innovation breakthrough 2026',
 ]
 
 // Known MSM channel IDs to filter out

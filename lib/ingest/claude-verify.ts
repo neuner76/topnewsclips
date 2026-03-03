@@ -17,6 +17,7 @@ export interface VerificationResult {
   headline: string
   summary: string
   msmGap: boolean
+  category: 'good' | 'bad' | 'ugly'
   decision: 'publish' | 'needs_review' | 'reject'
   rejectReason?: string
 }
@@ -53,9 +54,15 @@ Respond with this exact JSON structure:
   "headline": "Compelling 10-15 word headline naming the specific location and what happened",
   "summary": "2 sentences. Sentence 1: what specifically happened, naming the city/state and specific outcome (injuries, arrests, damage). Sentence 2: what makes it notable or visually compelling. Never use vague phrases like 'highlights the risks of' or 'raises questions about' — be specific and concrete.",
   "msmGap": true or false,
+  "category": "good" or "bad" or "ugly",
   "decision": "publish" or "needs_review" or "reject",
   "rejectReason": "reason if rejected, otherwise null"
 }
+
+CATEGORY RULES:
+- "good": Uplifting or heroic moments (rescues, acts of kindness, community wins), AND positive innovations in clean energy, food technology, water purification, or environmental breakthroughs
+- "bad": Crime, corruption, police misconduct, fraud, injustice — incidents the public should know about
+- "ugly": Stories with significant social engagement but little or no mainstream coverage — what the media is suppressing or ignoring. If msmGap is true, category should almost always be "ugly"
 
 REJECT (hard rules — no exceptions):
   * pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip)
@@ -64,7 +71,7 @@ REJECT (hard rules — no exceptions):
   * any international military conflict, missile strike, drone attack, or war footage regardless of view count — these are consistently misinformation on YouTube
   * geopolitical claims (country attacks military base, assassination, nuclear event) with fewer than 20 mainstream articles — absence of coverage = event did not happen
   * cute animal stories with no news angle
-  * policy announcements or press conferences with no incident footage
+  * policy announcements or press conferences with no incident footage (exception: technology demonstrations showing real breakthroughs in clean energy, food, water, or environmental innovation)
   * stories where the specific location (city/state) cannot be determined from the title or description
 
 APPROVE as needs_review: genuine single-incident US domestic footage — bodycam, security cam, bystander video, local protest, weather event, police incident, political confrontation, consumer/business dispute caught on video
@@ -96,6 +103,7 @@ APPROVE as needs_review: genuine single-incident US domestic footage — bodycam
       headline: clip.title.slice(0, 100),
       summary: '',
       msmGap: false,
+      category: 'bad' as const,
       decision: 'reject',
       rejectReason: 'Failed to parse Claude response',
     }
