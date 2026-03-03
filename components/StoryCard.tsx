@@ -60,9 +60,23 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
             </h2>
           </Link>
 
+          {/* Thumbnail — mobile only, full width below title */}
+          {thumbnail && (
+            <Link href={`/story/${story.slug}`} className="block sm:hidden mt-2" tabIndex={-1} aria-hidden>
+              <Image
+                src={thumbnail}
+                alt=""
+                width={320}
+                height={180}
+                className="w-full rounded object-cover aspect-video"
+                unoptimized
+              />
+            </Link>
+          )}
+
           {/* Description */}
           {story.description && (
-            <p className="editorial-body text-sm mt-1.5 line-clamp-2">{story.description}</p>
+            <p className="editorial-body text-sm mt-2 line-clamp-3 sm:line-clamp-2">{story.description}</p>
           )}
 
           {/* Footer */}
@@ -77,7 +91,7 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
           </div>
         </div>
 
-        {/* Thumbnail — desktop only, YouTube only */}
+        {/* Thumbnail — desktop only, right side */}
         {thumbnail && (
           <Link
             href={`/story/${story.slug}`}
