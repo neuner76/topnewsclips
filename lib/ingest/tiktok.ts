@@ -6,6 +6,7 @@ export interface TikTokClip {
   viewCount: number
   authorName: string
   description: string
+  thumbnailUrl: string | null
 }
 
 // Hashtags that surface US news / incident / positive innovation content
@@ -60,6 +61,12 @@ export async function fetchTikTokTrending(apiKey: string): Promise<{ clips: TikT
           const authorName: string = item.authorMeta?.name ?? item.author?.uniqueId ?? 'unknown'
           const videoUrl = `https://www.tiktok.com/@${authorName}/video/${videoId}`
 
+          const thumbnailUrl: string | null =
+            item.videoMeta?.coverUrl ??
+            item.videoMeta?.originCoverUrl ??
+            item.covers?.default ??
+            null
+
           seen.add(videoId)
           clips.push({
             title: text.slice(0, 200) || `TikTok by @${authorName}`,
@@ -69,6 +76,7 @@ export async function fetchTikTokTrending(apiKey: string): Promise<{ clips: TikT
             viewCount: playCount,
             authorName,
             description: text.slice(0, 500),
+            thumbnailUrl,
           })
         }
       }

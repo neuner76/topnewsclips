@@ -31,7 +31,10 @@ function formatPublishedDate(dateStr: string): string {
 }
 
 export default function StoryCard({ story, rank }: StoryCardProps) {
-  const thumbnail = story.platform === 'youtube' ? getYouTubeThumbnail(story.embed_url) : null
+  const thumbnail =
+    story.platform === 'youtube'
+      ? getYouTubeThumbnail(story.embed_url)
+      : story.thumbnail_url ?? null
 
   return (
     <article className="group py-6 border-t border-border first:border-t-2 first:border-foreground">

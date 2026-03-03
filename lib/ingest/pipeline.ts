@@ -89,6 +89,7 @@ export async function runFetch(): Promise<FetchResult> {
       description: c.description,
       viralScore: c.viewCount,
       source: `TikTok/@${c.authorName}`,
+      thumbnailUrl: c.thumbnailUrl ?? null,
     })),
   ]
 
@@ -128,6 +129,7 @@ export async function runFetch(): Promise<FetchResult> {
       description: c.description,
       viral_score: c.viralScore,
       source: c.source,
+      thumbnail_url: (c as { thumbnailUrl?: string | null }).thumbnailUrl ?? null,
     })
     if (!error) {
       added++
@@ -214,6 +216,7 @@ export async function runProcess(): Promise<PipelineResult> {
         published: false,
         display_order: 99,
         category: verification.category,
+        thumbnail_url: candidate.thumbnail_url ?? null,
       })
 
       if (error) {

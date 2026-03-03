@@ -14,6 +14,7 @@ export interface Story {
   published: boolean
   display_order: number
   category: 'good' | 'bad' | 'ugly' | null
+  thumbnail_url: string | null
   created_at: string
   updated_at: string
 }
