@@ -29,6 +29,19 @@ const HASHTAGS = [
   'cleanenergy',
 ]
 
+// Known MSM / large-network TikTok accounts to exclude
+const MSM_ACCOUNTS = new Set([
+  'abc7newsbayarea', 'abc7la', 'abc7chicago', 'abc7ny', 'abc7',
+  'cbsnews', 'cbs8sandiego', 'cbsmornings',
+  'nbcnews', 'nbc', 'nbcla', 'nbcchicago',
+  'foxnews', 'fox5dc', 'fox5ny', 'fox13news',
+  'cnn', 'cnni',
+  'msnbc',
+  'bbcnews', 'bbcbreaking',
+  'nytimes', 'washingtonpost', 'usatoday',
+  'apnews',
+])
+
 const ACTOR_ID = 'clockworks~tiktok-scraper'
 
 /**
@@ -74,11 +87,18 @@ export async function fetchTikTokTrending(
             (item.authorMeta?.uniqueId ?? item.author?.uniqueId ?? '').toLowerCase()
           const isJournalist = journalistSet.has(authorUniqueId)
 
+          // Skip MSM accounts unless they're an explicitly featured journalist
+          if (!isJournalist && MSM_ACCOUNTS.has(authorUniqueId)) continue
+
           if (!isJournalist && playCount < 100000) continue
 
           // Skip non-English content
           const text: string = item.text ?? ''
           if (/[\u0600-\u0DFF\u0900-\u097F\u4E00-\u9FFF]/.test(text)) continue
+
+          // Skip hashtag-only posts (no real content to evaluate)
+          const nonHashtagWords = text.replace(/#\w+/g, '').trim()
+          if (nonHashtagWords.length < 20) continue
 
           const authorName: string = item.authorMeta?.name ?? item.author?.uniqueId ?? 'unknown'
           const videoUrl = `https://www.tiktok.com/@${authorName}/video/${videoId}`
