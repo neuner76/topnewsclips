@@ -20,7 +20,7 @@ const SEARCH_QUERIES = [
   'police shooting bodycam released 2026',
   'arrest video released police department 2026',
   'security camera footage incident viral 2026',
-  'storm damage local news footage 2026',
+  'caught on tape news incident America 2026',
   'viral news video America 2026',
   'bystander video incident news 2026',
 ]
