@@ -12,13 +12,13 @@ export interface YouTubeClip {
 // Incident-specific queries that naturally skew toward US domestic footage
 const SEARCH_QUERIES = [
   'bodycam footage released 2026',
-  'security camera viral incident news',
-  'viral police video news 2026',
+  'police chase caught on camera America 2026',
+  'town hall confrontation viral video 2026',
   'school board meeting viral 2026',
-  'police chase footage local news 2026',
-  'weather disaster footage news 2026',
-  'caught on camera local news incident 2026',
+  'weather tornado flood footage local news 2026',
+  'caught on camera local news America 2026',
   'dashcam accident viral news America',
+  'city council protest viral footage 2026',
 ]
 
 // Known MSM channel IDs to filter out
@@ -89,6 +89,11 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
 
         if (seen.has(videoId)) continue
         if (MSM_CHANNEL_IDS.has(channelId)) continue
+
+        // Skip non-English titles (Telugu, Hindi, Arabic, etc. contain non-ASCII characters)
+        // eslint-disable-next-line no-control-regex
+        const nonAsciiRatio = (snippet.title.match(/[^\x00-\x7F]/g) ?? []).length / snippet.title.length
+        if (nonAsciiRatio > 0.1) continue
 
         const stats = statsMap.get(videoId) as { viewCount?: string } | undefined
         const viewCount = parseInt(stats?.viewCount ?? '0', 10)
