@@ -1,5 +1,5 @@
-// HackerNews API — free, reliable, never blocks cloud IPs
-// Replaces Reddit which blocks Vercel/AWS server IPs with HTTP 403
+// Reddit public JSON API — no OAuth required
+// Targets subreddits aligned with viral caught-on-camera US content
 
 export interface RedditClip {
   title: string
@@ -11,7 +11,16 @@ export interface RedditClip {
   videoId: string | null
 }
 
-const MIN_SCORE = 50
+// Subreddits ordered by relevance to site content
+const SUBREDDITS = [
+  'PublicFreakout',
+  'bodycam',
+  'Unexpected',
+  'IDontWorkHereLady',
+  'ActualPublicFreakouts',
+]
+
+const MIN_SCORE = 100
 const VIDEO_DOMAINS = ['youtube.com', 'youtu.be', 'tiktok.com', 'tiktokv.com', 'twitter.com', 'x.com']
 
 function detectPlatform(url: string): 'youtube' | 'tiktok' | 'x' | null {
@@ -40,57 +49,51 @@ function extractVideoId(url: string, platform: 'youtube' | 'tiktok' | 'x'): stri
 export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors: string[] }> {
   const clips: RedditClip[] = []
   const errors: string[] = []
+  const seen = new Set<string>()
 
-  try {
-    // Fetch top 200 HackerNews story IDs
-    const topRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
-    if (!topRes.ok) {
-      errors.push(`HackerNews top stories: HTTP ${topRes.status}`)
-      return { clips, errors }
-    }
+  for (const subreddit of SUBREDDITS) {
+    try {
+      const res = await fetch(`https://www.reddit.com/r/${subreddit}/hot.json?limit=25`, {
+        headers: {
+          'User-Agent': 'web:topnewsclips:v1.0 (news aggregator)',
+        },
+      })
 
-    const topIds: number[] = await topRes.json()
-    const ids = topIds.slice(0, 100)
+      if (!res.ok) {
+        errors.push(`r/${subreddit}: HTTP ${res.status}`)
+        continue
+      }
 
-    // Fetch story details in parallel batches of 20
-    const batchSize = 20
-    for (let i = 0; i < ids.length; i += batchSize) {
-      const batch = ids.slice(i, i + batchSize)
-      const items = await Promise.all(
-        batch.map(id =>
-          fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
-            .then(r => r.json())
-            .catch(() => null)
-        )
-      )
+      const json = await res.json()
+      const posts: Array<{ data: Record<string, unknown> }> = json?.data?.children ?? []
 
-      for (const item of items) {
-        if (!item || item.type !== 'story') continue
-        if (!item.url) continue
-        if ((item.score ?? 0) < MIN_SCORE) continue
+      for (const { data: post } of posts) {
+        if (!post?.url) continue
+        if ((post.score as number ?? 0) < MIN_SCORE) continue
+        if (post.over_18) continue // skip NSFW
 
-        const url: string = item.url
-        const isVideoDomain = VIDEO_DOMAINS.some(d => url.includes(d))
-        if (!isVideoDomain) continue
+        const url = post.url as string
+        if (!VIDEO_DOMAINS.some(d => url.includes(d))) continue
 
         const platform = detectPlatform(url)
         if (!platform) continue
 
-        const videoId = extractVideoId(url, platform)
+        if (seen.has(url)) continue
+        seen.add(url)
 
         clips.push({
-          title: item.title ?? '',
+          title: (post.title as string) ?? '',
           videoUrl: url,
           platform,
-          redditScore: item.score ?? 0,
-          subreddit: 'HackerNews',
-          redditPermalink: `https://news.ycombinator.com/item?id=${item.id}`,
-          videoId,
+          redditScore: (post.score as number) ?? 0,
+          subreddit,
+          redditPermalink: `https://reddit.com${post.permalink as string}`,
+          videoId: extractVideoId(url, platform),
         })
       }
+    } catch (err) {
+      errors.push(`r/${subreddit}: ${err instanceof Error ? err.message : String(err)}`)
     }
-  } catch (err) {
-    errors.push(`HackerNews fetch error: ${err instanceof Error ? err.message : String(err)}`)
   }
 
   return { clips, errors }
