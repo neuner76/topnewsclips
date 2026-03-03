@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { fetchRedditClips, type RedditClip } from './reddit'
 import { fetchYouTubeTrending, type YouTubeClip } from './youtube'
+import { fetchTikTokTrending, type TikTokClip } from './tiktok'
 import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
 
@@ -45,17 +46,21 @@ function getSupabase() {
 export async function runFetch(): Promise<FetchResult> {
   const supabase = getSupabase()
   const youtubeKey = process.env.YOUTUBE_API_KEY
+  const apifyKey = process.env.APIFY_API_KEY
   const errors: string[] = []
   let added = 0
 
-  const [redditResult, youtubeResult] = await Promise.all([
+  const [redditResult, youtubeResult, tiktokResult] = await Promise.all([
     fetchRedditClips(),
     youtubeKey
       ? fetchYouTubeTrending(youtubeKey)
       : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'] }),
+    apifyKey
+      ? fetchTikTokTrending(apifyKey)
+      : Promise.resolve({ clips: [], errors: [] }),
   ])
 
-  errors.push(...redditResult.errors, ...youtubeResult.errors)
+  errors.push(...redditResult.errors, ...youtubeResult.errors, ...tiktokResult.errors)
 
   const candidates = [
     ...redditResult.clips.map((c: RedditClip) => ({
@@ -75,6 +80,15 @@ export async function runFetch(): Promise<FetchResult> {
       description: c.description,
       viralScore: c.viewCount,
       source: `YouTube/${c.channelTitle}`,
+    })),
+    ...tiktokResult.clips.map((c: TikTokClip) => ({
+      title: c.title,
+      videoUrl: c.videoUrl,
+      platform: 'tiktok',
+      videoId: c.videoId,
+      description: c.description,
+      viralScore: c.viewCount,
+      source: `TikTok/@${c.authorName}`,
     })),
   ]
 
