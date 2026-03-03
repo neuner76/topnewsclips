@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import MSMBadge from './MSMBadge'
 import PlatformBadge from './PlatformBadge'
@@ -9,9 +10,30 @@ interface StoryCardProps {
   rank: number
 }
 
+function getYouTubeThumbnail(embedUrl: string): string | null {
+  const m = embedUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  if (!m) return null
+  return `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`
+}
+
+function formatPublishedDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+
+  if (diffHours < 1) return 'Just now'
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 export default function StoryCard({ story, rank }: StoryCardProps) {
+  const thumbnail = story.platform === 'youtube' ? getYouTubeThumbnail(story.embed_url) : null
+
   return (
-    <article className="group py-6 rule-thin border-t border-border first:border-t-2 first:border-foreground">
+    <article className="group py-6 border-t border-border first:border-t-2 first:border-foreground">
       <div className="flex gap-4 sm:gap-6">
         {/* Rank */}
         <div className="flex-shrink-0 w-8 pt-0.5">
@@ -22,10 +44,13 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Badges */}
+          {/* Badges + date */}
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <PlatformBadge platform={story.platform} />
             {story.msm_gap && <MSMBadge notes={story.msm_notes} size="sm" />}
+            <span className="text-xs text-muted-foreground ml-auto">
+              {formatPublishedDate(story.created_at)}
+            </span>
           </div>
 
           {/* Title */}
@@ -51,6 +76,25 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
             </Link>
           </div>
         </div>
+
+        {/* Thumbnail — desktop only, YouTube only */}
+        {thumbnail && (
+          <Link
+            href={`/story/${story.slug}`}
+            className="flex-shrink-0 hidden sm:block"
+            tabIndex={-1}
+            aria-hidden
+          >
+            <Image
+              src={thumbnail}
+              alt=""
+              width={160}
+              height={90}
+              className="rounded object-cover w-40 h-[90px] opacity-90 group-hover:opacity-100 transition-opacity"
+              unoptimized
+            />
+          </Link>
+        )}
       </div>
     </article>
   )
