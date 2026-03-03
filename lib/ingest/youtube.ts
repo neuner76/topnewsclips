@@ -90,10 +90,8 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
         if (seen.has(videoId)) continue
         if (MSM_CHANNEL_IDS.has(channelId)) continue
 
-        // Skip non-English titles (Telugu, Hindi, Arabic, etc. contain non-ASCII characters)
-        // eslint-disable-next-line no-control-regex
-        const nonAsciiRatio = (snippet.title.match(/[^\x00-\x7F]/g) ?? []).length / snippet.title.length
-        if (nonAsciiRatio > 0.1) continue
+        // Skip Indic/Arabic scripts: Telugu, Hindi, Bengali, Tamil, Kannada, Malayalam, Arabic, etc.
+        if (/[\u0600-\u0DFF]/.test(snippet.title)) continue
 
         const stats = statsMap.get(videoId) as { viewCount?: string } | undefined
         const viewCount = parseInt(stats?.viewCount ?? '0', 10)
