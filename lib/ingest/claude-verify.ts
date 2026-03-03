@@ -67,7 +67,7 @@ CATEGORY RULES — think like an independent journalist editor, not a viral cont
 REJECT (hard rules — no exceptions):
   * pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip)
   * compilation of multiple clips ("top 10", "best of", "50 biggest", "dash cam compilation")
-  * non-English content or stories from India, Pakistan, Bangladesh, or other South Asian countries
+  * non-English content or stories from outside the United States — this includes UK (England, Scotland, Wales, Northern Ireland), Canada, Australia, India, Pakistan, Bangladesh, and all other non-US countries. Specific tell-tale signs: UK locations (London, Sheffield, Manchester, Birmingham, Leeds, Bristol, Liverpool, Glasgow, Edinburgh, Cardiff, any mention of "Road" suffixed UK street names like "London Road"), references to police as "officers" responding under UK forces, NHS, etc.
   * any international military conflict, missile strike, drone attack, or war footage regardless of view count — these are consistently misinformation on YouTube
   * geopolitical claims (country attacks military base, assassination, nuclear event) with fewer than 20 mainstream articles — absence of coverage = event did not happen
   * cute animal stories with no news angle
