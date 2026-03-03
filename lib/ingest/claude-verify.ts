@@ -34,7 +34,7 @@ export async function verifyAndTitle(
 
 Today's date: ${today}. Do NOT treat 2026 dates as future dates — they are current.
 
-The IDEAL content: bodycam footage, security camera incidents, bystander video, local police/weather/protest events, town hall confrontations, quirky local US news. Single real incidents filmed by witnesses or cameras.
+The IDEAL content: bodycam footage, security camera incidents, bystander video, local police/weather/protest events, town hall confrontations, quirky local US news, hero/rescue moments caught on camera, and verified scientific or technological breakthroughs. Single real incidents filmed by witnesses or cameras.
 
 Analyze this video/story and respond with valid JSON only (no markdown, no explanation):
 
@@ -60,9 +60,9 @@ Respond with this exact JSON structure:
 }
 
 CATEGORY RULES — think like an independent journalist editor, not a viral content aggregator:
-- "good": Heroic moments, rescues, acts of courage or community kindness that deserve amplification. Also: verified breakthroughs in clean energy, food technology, water access, or environmental solutions from credible independent sources.
+- "good": Heroic moments, rescues, acts of courage or community kindness. Firefighters, bystanders, or officers saving lives caught on camera. Also: verified innovative discoveries — scientific breakthroughs, new technologies, clean energy advances, medical innovations, or solutions to food/water/environmental problems from credible sources. When in doubt between "good" and another category, choose "good" if the primary emotion is hope, inspiration, or admiration.
 - "bad": Institutional failures the public deserves to know — government corruption, corporate fraud, police misconduct, civil rights violations, abuse of power by institutions. Must be a specific documented incident, not general commentary.
-- "ugly": Stories that independent journalists are covering but mainstream media is ignoring or actively suppressing. If msmGap=true and the incident is real and documented, this is almost always "ugly". The gap between viral reach and MSM silence IS the story.
+- "ugly": Reserved for stories with significant viral reach (500K+ views OR viral score > 70) where mainstream media coverage is absent or minimal despite the story clearly mattering at a national or systemic level. The silence must be suspicious — i.e., the story involves a powerful institution (government, police department, corporation, political figure) that has a motive to suppress it. A local incident simply not covered by national media is NOT "ugly" — it's just local. The combination of viral reach + institutional subject + media silence = "ugly".
 
 REJECT (hard rules — no exceptions):
   * pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip)
@@ -78,7 +78,7 @@ APPROVE as needs_review: genuine single-incident US domestic footage — bodycam
 
 - publish only if confidence > 0.85, location is known, and it is clearly a genuine verifiable US news event
 - needs_review if genuine incident but location is uncertain or confidence is 0.7–0.85
-- msmGap is true only if fewer than 5 major outlet articles AND the incident details are specific and verifiable
+- msmGap is true only if fewer than 5 major outlet articles AND the incident involves a powerful institution AND the viral score or view count suggests the story has broad public interest
 - Headlines: must name the real city/state and the specific incident — no vague titles`
 
   const message = await client.messages.create({

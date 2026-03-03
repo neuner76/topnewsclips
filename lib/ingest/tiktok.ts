@@ -12,11 +12,21 @@ export interface TikTokClip {
 
 // Hashtags that surface US news / incident / positive innovation content
 const HASHTAGS = [
+  // Incident / accountability
   'bodycam',
   'caughtoncamera',
   'policeincident',
   'policechase',
   'arrestvideo',
+  // Hero / rescue (feeds "good" category)
+  'rescue',
+  'herocop',
+  'goodsamaritan',
+  'firefighterrescue',
+  // Innovation / discovery (feeds "good" category)
+  'scientificdiscovery',
+  'breakthrough',
+  'cleanenergy',
 ]
 
 const ACTOR_ID = 'clockworks~tiktok-scraper'
