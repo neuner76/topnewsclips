@@ -27,7 +27,11 @@ export async function verifyAndTitle(
 ): Promise<VerificationResult> {
   const client = new Anthropic({ apiKey })
 
+  const today = new Date().toISOString().split('T')[0] // e.g. 2026-02-28
+
   const prompt = `You are a content curator for TopNewsClips.com, which surfaces viral caught-on-camera moments and local news incidents that mainstream media undercovers.
+
+Today's date: ${today}. Do NOT treat 2026 dates as future dates — they are current.
 
 The IDEAL content: bodycam footage, security camera incidents, bystander video, local police/weather/protest events, town hall confrontations, quirky local US news. Single real incidents filmed by witnesses or cameras.
 

@@ -13,7 +13,7 @@ export interface YouTubeClip {
 const SEARCH_QUERIES = [
   'bodycam footage released 2026',
   'security camera viral incident news',
-  'bystander video confrontation news 2026',
+  'viral police video news 2026',
   'school board meeting viral 2026',
   'police chase footage local news 2026',
   'weather disaster footage news 2026',
