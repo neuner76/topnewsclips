@@ -10,18 +10,15 @@ export interface YouTubeClip {
 }
 
 // Incident-specific queries that naturally skew toward US domestic footage
+// Capped at 8 to stay within YouTube API default quota (10k units/day)
 const SEARCH_QUERIES = [
   'bodycam footage released 2026',
   'road rage dashcam viral 2026',
   'town hall confrontation viral video 2026',
-  'school board meeting viral 2026',
   'caught on camera local news America 2026',
-  'dashcam accident viral news America',
   'police shooting bodycam released 2026',
   'arrest video released police department 2026',
   'security camera footage incident viral 2026',
-  'caught on tape news incident America 2026',
-  'viral news video America 2026',
   'bystander video incident news 2026',
 ]
 
