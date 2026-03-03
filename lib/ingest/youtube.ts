@@ -12,7 +12,7 @@ export interface YouTubeClip {
 // Incident-specific queries that naturally skew toward US domestic footage
 const SEARCH_QUERIES = [
   'bodycam footage released 2026',
-  'police chase caught on camera America 2026',
+  'road rage dashcam viral 2026',
   'town hall confrontation viral video 2026',
   'school board meeting viral 2026',
   'weather tornado flood footage local news 2026',
