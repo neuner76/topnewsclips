@@ -50,8 +50,8 @@ Respond with this exact JSON structure:
   "isRealEvent": true or false,
   "confidence": 0.0 to 1.0,
   "aiGeneratedRisk": "low" or "medium" or "high",
-  "headline": "Compelling 10-15 word headline for the story",
-  "summary": "2 sentences describing what happened and why it is interesting",
+  "headline": "Compelling 10-15 word headline naming the specific location and what happened",
+  "summary": "2 sentences. Sentence 1: what specifically happened, naming the city/state and specific outcome (injuries, arrests, damage). Sentence 2: what makes it notable or visually compelling. Never use vague phrases like 'highlights the risks of' or 'raises questions about' — be specific and concrete.",
   "msmGap": true or false,
   "decision": "publish" or "needs_review" or "reject",
   "rejectReason": "reason if rejected, otherwise null"
@@ -65,12 +65,14 @@ REJECT (hard rules — no exceptions):
   * geopolitical claims (country attacks military base, assassination, nuclear event) with fewer than 20 mainstream articles — absence of coverage = event did not happen
   * cute animal stories with no news angle
   * policy announcements or press conferences with no incident footage
+  * stories where the specific location (city/state) cannot be determined from the title or description
 
 APPROVE as needs_review: genuine single-incident US domestic footage — bodycam, security cam, bystander video, local protest, weather event, police incident, political confrontation, consumer/business dispute caught on video
 
-- publish only if confidence > 0.85 and clearly a genuine verifiable US news event
-- msmGap is true if fewer than 5 major outlet articles
-- Headlines: factual, specific, name the real location and what happened`
+- publish only if confidence > 0.85, location is known, and it is clearly a genuine verifiable US news event
+- needs_review if genuine incident but location is uncertain or confidence is 0.7–0.85
+- msmGap is true only if fewer than 5 major outlet articles AND the incident details are specific and verifiable
+- Headlines: must name the real city/state and the specific incident — no vague titles`
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
