@@ -14,9 +14,9 @@ export interface RedditClip {
 const SUBREDDITS = [
   'PublicFreakout',
   'bodycam',
-  'Unexpected',
-  'IDontWorkHereLady',
   'ActualPublicFreakouts',
+  'IDontWorkHereLady',
+  'CaughtOnCamera',
 ]
 
 const MIN_SCORE = 100
