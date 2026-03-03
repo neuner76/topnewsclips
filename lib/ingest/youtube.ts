@@ -19,6 +19,10 @@ const SEARCH_QUERIES = [
   'caught on camera local news America 2026',
   'dashcam accident viral news America',
   'city council protest viral footage 2026',
+  'police shooting bodycam released 2026',
+  'arrest video released police department 2026',
+  'security camera footage incident viral 2026',
+  'wildfire evacuation footage local news 2026',
 ]
 
 // Known MSM channel IDs to filter out
@@ -41,7 +45,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
   // Last 7 days — wide enough to find content, Claude filters for relevance
   const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  for (const query of SEARCH_QUERIES.slice(0, 4)) {
+  for (const query of SEARCH_QUERIES) {
     try {
       const searchUrl = new URL('https://www.googleapis.com/youtube/v3/search')
       searchUrl.searchParams.set('part', 'snippet')

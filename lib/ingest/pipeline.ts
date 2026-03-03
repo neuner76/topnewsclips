@@ -12,6 +12,11 @@ export interface PipelineResult {
   stories: Array<{ title: string; slug: string; decision: string }>
 }
 
+export interface FetchResult {
+  added: number
+  errors: string[]
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -29,51 +34,43 @@ function delay(ms: number) {
   return new Promise(r => setTimeout(r, ms))
 }
 
-export async function runIngestionPipeline(): Promise<PipelineResult> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-  const anthropicKey = process.env.ANTHROPIC_API_KEY!
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
+// Phase 1: fetch all sources and queue new candidates into the candidates table
+export async function runFetch(): Promise<FetchResult> {
+  const supabase = getSupabase()
   const youtubeKey = process.env.YOUTUBE_API_KEY
+  const errors: string[] = []
+  let added = 0
 
-  const supabase = createClient(supabaseUrl, supabaseKey)
-  const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, errors: [], stories: [] }
-
-  // 1. Fetch candidates from Reddit + YouTube
   const [redditResult, youtubeResult] = await Promise.all([
     fetchRedditClips(),
-    youtubeKey ? fetchYouTubeTrending(youtubeKey) : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'] }),
+    youtubeKey
+      ? fetchYouTubeTrending(youtubeKey)
+      : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'] }),
   ])
 
-  result.errors.push(...redditResult.errors, ...youtubeResult.errors)
+  errors.push(...redditResult.errors, ...youtubeResult.errors)
 
-  const redditClips = redditResult.clips
-  const youtubeClips = youtubeResult.clips
-
-  // Normalize to a unified candidate shape
-  type Candidate = {
-    title: string
-    videoUrl: string
-    platform: 'youtube' | 'tiktok' | 'x'
-    videoId: string | null
-    description: string
-    viralScore: number
-    source: string
-  }
-
-  const candidates: Candidate[] = [
-    ...redditClips.map((c: RedditClip) => ({
+  const candidates = [
+    ...redditResult.clips.map((c: RedditClip) => ({
       title: c.title,
       videoUrl: c.videoUrl,
-      platform: c.platform,
+      platform: c.platform as string,
       videoId: c.videoId,
       description: '',
       viralScore: c.redditScore,
       source: `r/${c.subreddit}`,
     })),
-    ...youtubeClips.map((c: YouTubeClip) => ({
+    ...youtubeResult.clips.map((c: YouTubeClip) => ({
       title: c.title,
       videoUrl: c.videoUrl,
-      platform: 'youtube' as const,
+      platform: 'youtube',
       videoId: c.videoId,
       description: c.description,
       viralScore: c.viewCount,
@@ -82,45 +79,87 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
   ]
 
   if (candidates.length === 0) {
-    result.errors.push(`No candidates: Reddit=${redditClips.length} YouTube=${youtubeClips.length}`)
-    return result
+    errors.push('No candidates fetched from any source')
+    return { added, errors }
   }
 
-  // 2. Check which slugs already exist (stories + previously rejected)
   const slugsToCheck = candidates.map(c => makeSlug(c.platform, c.videoId, c.title))
-  const [{ data: existing }, { data: rejectedSlugs }] = await Promise.all([
-    supabase.from('stories').select('slug').in('slug', slugsToCheck),
-    supabase.from('rejected_slugs').select('slug').in('slug', slugsToCheck),
+
+  // Check all three tables at once to avoid re-queuing known content
+  const [{ data: existingStories }, { data: existingRejected }, { data: existingCandidates }] =
+    await Promise.all([
+      supabase.from('stories').select('slug').in('slug', slugsToCheck),
+      supabase.from('rejected_slugs').select('slug').in('slug', slugsToCheck),
+      supabase.from('candidates').select('slug').in('slug', slugsToCheck),
+    ])
+
+  const knownSlugs = new Set([
+    ...(existingStories ?? []).map((r: { slug: string }) => r.slug),
+    ...(existingRejected ?? []).map((r: { slug: string }) => r.slug),
+    ...(existingCandidates ?? []).map((r: { slug: string }) => r.slug),
   ])
 
-  const existingSlugs = new Set([
-    ...(existing ?? []).map((r: { slug: string }) => r.slug),
-    ...(rejectedSlugs ?? []).map((r: { slug: string }) => r.slug),
-  ])
   const newCandidates = candidates.filter(
-    c => !existingSlugs.has(makeSlug(c.platform, c.videoId, c.title))
+    c => !knownSlugs.has(makeSlug(c.platform, c.videoId, c.title))
   )
 
-  if (newCandidates.length === 0) {
-    result.errors.push('All candidates already exist in database')
+  for (const c of newCandidates) {
+    const slug = makeSlug(c.platform, c.videoId, c.title)
+    const { error } = await supabase.from('candidates').insert({
+      slug,
+      title: c.title,
+      video_url: c.videoUrl,
+      platform: c.platform,
+      video_id: c.videoId,
+      description: c.description,
+      viral_score: c.viralScore,
+      source: c.source,
+    })
+    if (!error) {
+      added++
+    } else {
+      errors.push(`Failed to queue ${slug}: ${error.message}`)
+    }
+  }
+
+  return { added, errors }
+}
+
+// Phase 2: process next 10 pending candidates from the queue through Claude
+export async function runProcess(): Promise<PipelineResult> {
+  const supabase = getSupabase()
+  const anthropicKey = process.env.ANTHROPIC_API_KEY!
+  const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, errors: [], stories: [] }
+
+  const { data: pending, error: fetchError } = await supabase
+    .from('candidates')
+    .select('*')
+    .eq('processed', false)
+    .order('fetched_at', { ascending: true })
+    .limit(10)
+
+  if (fetchError) {
+    result.errors.push(`Failed to fetch candidates queue: ${fetchError.message}`)
     return result
   }
 
-  // 3. Process each new candidate
-  for (const candidate of newCandidates.slice(0, 10)) { // cap at 10 per run (Vercel 10s timeout)
+  if (!pending || pending.length === 0) {
+    result.errors.push('No pending candidates in queue — run Fetch first')
+    return result
+  }
+
+  for (const candidate of pending) {
     try {
-      // MSM gap check
       const msm = await checkMSMCoverage(candidate.title)
       await delay(200)
 
-      // Claude verification
       const verification = await verifyAndTitle(
         {
           title: candidate.title,
-          description: candidate.description,
+          description: candidate.description ?? '',
           platform: candidate.platform,
           source: candidate.source,
-          viralScore: candidate.viralScore,
+          viralScore: candidate.viral_score,
           msmArticleCount: msm.articleCount,
           msmGap: msm.msmGap,
         },
@@ -128,30 +167,33 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
       )
       await delay(100)
 
-      const slug = makeSlug(candidate.platform, candidate.videoId, candidate.title)
+      // Mark processed regardless of outcome
+      await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
 
       result.stories.push({
         title: verification.headline,
-        slug,
+        slug: candidate.slug,
         decision: verification.decision,
       })
 
       if (verification.decision === 'reject') {
         result.rejected++
-        result.errors.push(`Rejected: "${candidate.title.slice(0, 50)}" — ${verification.rejectReason ?? 'no reason'}`)
-        // Store slug so it's skipped on future runs
-        await supabase.from('rejected_slugs').upsert({ slug, reason: verification.rejectReason ?? '' })
+        result.errors.push(
+          `Rejected: "${candidate.title.slice(0, 50)}" — ${verification.rejectReason ?? 'no reason'}`
+        )
+        await supabase
+          .from('rejected_slugs')
+          .upsert({ slug: candidate.slug, reason: verification.rejectReason ?? '' })
         continue
       }
 
-      // Insert into Supabase as draft
       const { error } = await supabase.from('stories').insert({
         title: verification.headline,
-        slug,
+        slug: candidate.slug,
         description: verification.summary,
-        embed_url: candidate.videoUrl,
+        embed_url: candidate.video_url,
         platform: candidate.platform,
-        view_count: candidate.viralScore,
+        view_count: candidate.viral_score,
         share_count: 0,
         msm_gap: verification.msmGap,
         msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}`,
@@ -160,7 +202,7 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
       })
 
       if (error) {
-        result.errors.push(`Failed to insert ${slug}: ${error.message}`)
+        result.errors.push(`Failed to insert ${candidate.slug}: ${error.message}`)
         continue
       }
 
@@ -170,9 +212,22 @@ export async function runIngestionPipeline(): Promise<PipelineResult> {
         result.inserted++
       }
     } catch (err) {
-      result.errors.push(`Error processing candidate: ${err instanceof Error ? err.message : String(err)}`)
+      result.errors.push(
+        `Error processing ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`
+      )
     }
   }
 
   return result
+}
+
+// Convenience: fetch + process in one call (used by existing /api/ingest route)
+export async function runIngestionPipeline(): Promise<PipelineResult & { queued: number }> {
+  const fetchResult = await runFetch()
+  const processResult = await runProcess()
+  return {
+    ...processResult,
+    queued: fetchResult.added,
+    errors: [...fetchResult.errors, ...processResult.errors],
+  }
 }
