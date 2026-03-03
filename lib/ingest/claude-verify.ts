@@ -27,7 +27,9 @@ export async function verifyAndTitle(
 ): Promise<VerificationResult> {
   const client = new Anthropic({ apiKey })
 
-  const prompt = `You are a content curator for TopNewsClips.com, which surfaces interesting viral videos and news stories.
+  const prompt = `You are a content curator for TopNewsClips.com, which surfaces viral caught-on-camera moments and local news incidents that mainstream media undercovers.
+
+The IDEAL content: bodycam footage, security camera incidents, bystander video, local police/weather/protest events, town hall confrontations, quirky local US news. Single real incidents filmed by witnesses or cameras.
 
 Analyze this video/story and respond with valid JSON only (no markdown, no explanation):
 
@@ -45,24 +47,26 @@ Respond with this exact JSON structure:
   "confidence": 0.0 to 1.0,
   "aiGeneratedRisk": "low" or "medium" or "high",
   "headline": "Compelling 10-15 word headline for the story",
-  "summary": "2 sentences describing the content and why it is interesting or newsworthy",
+  "summary": "2 sentences describing what happened and why it is interesting",
   "msmGap": true or false,
   "decision": "publish" or "needs_review" or "reject",
   "rejectReason": "reason if rejected, otherwise null"
 }
 
-Decision rules:
-- reject if ANY of:
+REJECT (hard rules — no exceptions):
   * pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip)
-  * compilation of multiple clips ("top 10", "best moments", "dash cam compilation", "50 biggest")
-  * non-English content or South Asian regional stories (India, Pakistan, Bangladesh — look for city names, lakhs/crore/rupees)
-  * EXTRAORDINARY geopolitical claims (country attacks US military base, assassination of world leader, nuclear strike) with fewer than 10 mainstream news articles — for these claims, absence of coverage means the event DID NOT HAPPEN, not that it's suppressed
-  * any claim involving Iran, Russia, or other adversaries attacking US military installations unless confirmed by 10+ mainstream sources
-  * policy/bureaucratic announcements with no viral footage
-- needs_review for genuine real-world events: local incidents, caught-on-camera moments, domestic US news, minor political incidents
-- publish only if clearly a genuine viral news event with confidence > 0.85
-- msmGap is true if fewer than 5 major outlet articles cover this — but for extraordinary geopolitical claims, low coverage = likely fake, not suppressed
-- Headlines should be factual and specific (name real locations, people, incidents)`
+  * compilation of multiple clips ("top 10", "best of", "50 biggest", "dash cam compilation")
+  * non-English content or stories from India, Pakistan, Bangladesh, or other South Asian countries
+  * any international military conflict, missile strike, drone attack, or war footage regardless of view count — these are consistently misinformation on YouTube
+  * geopolitical claims (country attacks military base, assassination, nuclear event) with fewer than 20 mainstream articles — absence of coverage = event did not happen
+  * cute animal stories with no news angle
+  * policy announcements or press conferences with no incident footage
+
+APPROVE as needs_review: genuine single-incident US domestic footage — bodycam, security cam, bystander video, local protest, weather event, police incident, political confrontation, consumer/business dispute caught on video
+
+- publish only if confidence > 0.85 and clearly a genuine verifiable US news event
+- msmGap is true if fewer than 5 major outlet articles
+- Headlines: factual, specific, name the real location and what happened`
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',

@@ -9,14 +9,16 @@ export interface YouTubeClip {
   publishedAt: string
 }
 
-// US-specific queries for viral news footage
+// Incident-specific queries that naturally skew toward US domestic footage
 const SEARCH_QUERIES = [
-  'caught on camera USA 2026',
-  'viral news footage America 2026',
-  'police incident video United States',
-  'breaking news eyewitness video US',
-  'caught on camera US news today',
-  'viral moment United States news',
+  'bodycam footage released 2026',
+  'security camera viral incident news',
+  'bystander video confrontation news 2026',
+  'school board meeting viral 2026',
+  'police chase footage local news 2026',
+  'weather disaster footage news 2026',
+  'caught on camera local news incident 2026',
+  'dashcam accident viral news America',
 ]
 
 // Known MSM channel IDs to filter out
@@ -36,8 +38,8 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
   const errors: string[] = []
   const seen = new Set<string>()
 
-  // Last 7 days instead of 48 hours — much more content available
-  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  // Last 72 hours — fresh enough to be news, wide enough to find content
+  const cutoff = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()
 
   for (const query of SEARCH_QUERIES.slice(0, 4)) {
     try {
@@ -45,6 +47,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
       searchUrl.searchParams.set('part', 'snippet')
       searchUrl.searchParams.set('q', query)
       searchUrl.searchParams.set('type', 'video')
+      searchUrl.searchParams.set('videoCategoryId', '25') // News & Politics only
       searchUrl.searchParams.set('order', 'viewCount')
       searchUrl.searchParams.set('publishedAfter', cutoff)
       searchUrl.searchParams.set('relevanceLanguage', 'en')
