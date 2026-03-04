@@ -96,9 +96,9 @@ export async function fetchTikTokTrending(
           const text: string = item.text ?? ''
           if (/[\u0600-\u0DFF\u0900-\u097F\u4E00-\u9FFF]/.test(text)) continue
 
-          // Skip hashtag-only posts (no real content to evaluate)
+          // Skip hashtag-only posts (no real content to evaluate) — exempt journalists
           const nonHashtagWords = text.replace(/#\w+/g, '').trim()
-          if (nonHashtagWords.length < 20) continue
+          if (!isJournalist && nonHashtagWords.length < 20) continue
 
           const authorName: string = item.authorMeta?.name ?? item.author?.uniqueId ?? 'unknown'
           const videoUrl = `https://www.tiktok.com/@${authorName}/video/${videoId}`
