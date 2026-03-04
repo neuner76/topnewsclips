@@ -24,9 +24,8 @@ const HASHTAGS = [
   'goodsamaritan',
   'firefighterrescue',
   // Innovation / discovery (feeds "good" category)
-  'scientificdiscovery',
-  'breakthrough',
   'cleanenergy',
+  'newscience',
 ]
 
 // Known MSM / large-network TikTok accounts to exclude
@@ -146,7 +145,7 @@ export async function fetchTikTokTrending(
           ? profiles.map(u => `https://www.tiktok.com/@${u}`)
           : undefined,
         resultsPerPage: 10,
-        maxProfilesPerQuery: 5,
+        maxProfilesPerQuery: 25,
         shouldDownloadVideos: false,
         shouldDownloadCovers: false,
         shouldDownloadSubtitles: false,

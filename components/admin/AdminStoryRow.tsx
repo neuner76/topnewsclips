@@ -76,6 +76,14 @@ export default function AdminStoryRow({ story }: { story: Story }) {
         >
           {saving ? '...' : published ? 'Live' : 'Draft'}
         </button>
+        <a
+          href={story.embed_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          View
+        </a>
         <Link
           href={`/admin/stories/${story.id}`}
           className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
