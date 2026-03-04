@@ -35,9 +35,36 @@ const MSM_CHANNEL_IDS = new Set([
   'UCknLrEdhRCp1aegoMqRaCZg', // ABC News Australia
 ])
 
+/**
+ * Resolve a YouTube channel handle/username to an internal channel ID.
+ * Tries @handle format first, then legacy forUsername.
+ * Costs 1 API unit — call once and cache the result in the DB.
+ */
+export async function resolveYouTubeChannelId(handle: string, apiKey: string): Promise<string | null> {
+  for (const [param, value] of [
+    ['forHandle', `@${handle}`],
+    ['forUsername', handle],
+  ] as [string, string][]) {
+    try {
+      const url = new URL('https://www.googleapis.com/youtube/v3/channels')
+      url.searchParams.set('part', 'id')
+      url.searchParams.set(param, value)
+      url.searchParams.set('key', apiKey)
+
+      const res = await fetch(url.toString())
+      if (!res.ok) continue
+      const json = await res.json()
+      if (json?.items?.[0]?.id) return json.items[0].id as string
+    } catch {
+      // try next param
+    }
+  }
+  return null
+}
+
 export async function fetchYouTubeTrending(
   apiKey: string,
-  channelHandles: string[] = []
+  journalists: { username: string; channelId: string }[] = []
 ): Promise<{ clips: YouTubeClip[]; errors: string[] }> {
   const clips: YouTubeClip[] = []
   const errors: string[] = []
@@ -95,7 +122,7 @@ export async function fetchYouTubeTrending(
         if (seen.has(videoId)) continue
         if (MSM_CHANNEL_IDS.has(channelId)) continue
 
-        // Skip Indic/Arabic scripts: Telugu, Hindi, Bengali, Tamil, Kannada, Malayalam, Arabic, etc.
+        // Skip Indic/Arabic scripts
         if (/[\u0600-\u0DFF]/.test(snippet.title)) continue
 
         const stats = statsMap.get(videoId) as { viewCount?: string } | undefined
@@ -120,111 +147,95 @@ export async function fetchYouTubeTrending(
     }
   }
 
-  // Fetch recent videos from featured journalist channels
-  if (channelHandles.length > 0) {
-    await fetchJournalistChannels(apiKey, channelHandles, clips, errors, seen)
+  // Fetch journalist channels via RSS — no API quota used
+  if (journalists.length > 0) {
+    await fetchJournalistChannelsViaRSS(journalists, clips, errors, seen)
   }
 
   return { clips, errors }
 }
 
-async function fetchJournalistChannels(
-  apiKey: string,
-  handles: string[],
+// RSS feed returns the last 15 videos from a channel — no API key needed, no quota cost
+async function fetchJournalistChannelsViaRSS(
+  journalists: { username: string; channelId: string }[],
   clips: YouTubeClip[],
   errors: string[],
   seen: Set<string>
 ) {
-  // 14-day window so we don't miss less-frequent posters
   const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
 
-  for (const handle of handles) {
+  for (const { username, channelId } of journalists) {
     try {
-      // Resolve handle → internal channel ID
-      // Try @handle format first, fall back to legacy forUsername for /c/ channels
-      let channelItem: { id: string; snippet?: { title?: string } } | undefined
+      const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
+      const res = await fetch(rssUrl, { signal: AbortSignal.timeout(5000) })
 
-      for (const param of ['forHandle', 'forUsername'] as const) {
-        const channelUrl = new URL('https://www.googleapis.com/youtube/v3/channels')
-        channelUrl.searchParams.set('part', 'id,snippet')
-        channelUrl.searchParams.set(param, param === 'forHandle' ? `@${handle}` : handle)
-        channelUrl.searchParams.set('key', apiKey)
-
-        const channelRes = await fetch(channelUrl.toString())
-        if (!channelRes.ok) continue
-        const channelJson = await channelRes.json()
-        if (channelJson?.items?.[0]) {
-          channelItem = channelJson.items[0]
-          break
-        }
-      }
-
-      if (!channelItem) {
-        errors.push(`YouTube journalist @${handle}: channel not found`)
+      if (!res.ok) {
+        errors.push(`YouTube journalist @${username}: RSS HTTP ${res.status}`)
         continue
       }
 
-      const channelId: string = channelItem.id
-      const channelTitle: string = channelItem.snippet?.title ?? handle
-
-      // Fetch 5 most recent videos from this channel
-      const searchUrl = new URL('https://www.googleapis.com/youtube/v3/search')
-      searchUrl.searchParams.set('part', 'snippet')
-      searchUrl.searchParams.set('channelId', channelId)
-      searchUrl.searchParams.set('type', 'video')
-      searchUrl.searchParams.set('order', 'date')
-      searchUrl.searchParams.set('publishedAfter', cutoff)
-      searchUrl.searchParams.set('maxResults', '5')
-      searchUrl.searchParams.set('key', apiKey)
-
-      const searchRes = await fetch(searchUrl.toString())
-      if (!searchRes.ok) {
-        errors.push(`YouTube journalist @${handle}: search HTTP ${searchRes.status}`)
-        continue
-      }
-
-      const searchJson = await searchRes.json()
-      const searchItems: Array<{ id: { videoId: string }; snippet: { title: string; description: string; publishedAt: string } }> =
-        searchJson?.items ?? []
-
-      if (searchItems.length === 0) continue
-
-      // Batch fetch stats
-      const videoIds = searchItems.map(i => i.id.videoId).join(',')
-      const statsUrl = new URL('https://www.googleapis.com/youtube/v3/videos')
-      statsUrl.searchParams.set('part', 'statistics')
-      statsUrl.searchParams.set('id', videoIds)
-      statsUrl.searchParams.set('key', apiKey)
-
-      const statsRes = await fetch(statsUrl.toString())
-      const statsJson = statsRes.ok ? await statsRes.json() : { items: [] }
-      const statsMap = new Map(
-        (statsJson.items ?? []).map((i: { id: string; statistics: { viewCount?: string } }) => [i.id, i.statistics])
-      )
-
-      for (const item of searchItems) {
-        const videoId = item.id.videoId
-        if (seen.has(videoId)) continue
-
-        const snippet = item.snippet
-        const stats = statsMap.get(videoId) as { viewCount?: string } | undefined
-        const viewCount = parseInt(stats?.viewCount ?? '0', 10)
-
-        seen.add(videoId)
-        clips.push({
-          title: snippet.title,
-          videoId,
-          videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
-          platform: 'youtube',
-          viewCount,
-          channelTitle,
-          description: (snippet.description ?? '').slice(0, 500),
-          publishedAt: snippet.publishedAt,
-          journalistUsername: handle.toLowerCase(),
-        })
-      }
+      const xml = await res.text()
+      const newClips = parseRSSEntries(xml, username, cutoff, seen)
+      clips.push(...newClips)
     } catch (err) {
-      errors.push(`YouTube journalist @${handle}: ${err instanceof Error ? err.message : String(err)}`)
+      errors.push(`YouTube journalist @${username}: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
+}
+
+function parseRSSEntries(
+  xml: string,
+  journalistUsername: string,
+  cutoff: string,
+  seen: Set<string>
+): YouTubeClip[] {
+  const clips: YouTubeClip[] = []
+  const channelTitle =
+    xml.match(/<author>\s*<name>([^<]+)<\/name>/)?.[1] ?? journalistUsername
+
+  const entries = xml.split('<entry>').slice(1)
+
+  for (const entry of entries) {
+    const videoId = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/)?.[1]
+    if (!videoId || seen.has(videoId)) continue
+
+    const published = entry.match(/<published>([^<]+)<\/published>/)?.[1] ?? ''
+    if (published && published < cutoff) continue
+
+    const rawTitle =
+      entry.match(/<media:title>([^<]*)<\/media:title>/)?.[1] ??
+      entry.match(/<title>([^<]*)<\/title>/)?.[1] ??
+      ''
+    const rawDesc = entry.match(/<media:description>([\s\S]*?)<\/media:description>/)?.[1] ?? ''
+    const viewsStr = entry.match(/<media:statistics views="(\d+)"/)?.[1] ?? '0'
+
+    seen.add(videoId)
+    clips.push({
+      title: decodeXML(stripCDATA(rawTitle)).slice(0, 200),
+      videoId,
+      videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
+      platform: 'youtube',
+      viewCount: parseInt(viewsStr, 10),
+      channelTitle: decodeXML(channelTitle),
+      description: decodeXML(stripCDATA(rawDesc)).slice(0, 500),
+      publishedAt: published,
+      journalistUsername,
+    })
+  }
+
+  return clips
+}
+
+function stripCDATA(s: string): string {
+  return s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+}
+
+function decodeXML(s: string): string {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim()
 }

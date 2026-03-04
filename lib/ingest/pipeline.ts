@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { fetchRedditClips, type RedditClip } from './reddit'
-import { fetchYouTubeTrending, type YouTubeClip } from './youtube'
+import { fetchYouTubeTrending, resolveYouTubeChannelId, type YouTubeClip } from './youtube'
 import { fetchTikTokTrending, type TikTokClip } from './tiktok'
 import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
@@ -53,15 +53,31 @@ export async function runFetch(): Promise<FetchResult> {
   // Fetch active journalist usernames per platform
   const [{ data: tiktokJournalistRows }, { data: youtubeJournalistRows }] = await Promise.all([
     supabase.from('featured_journalists').select('username').eq('active', true).eq('platform', 'tiktok'),
-    supabase.from('featured_journalists').select('username').eq('active', true).eq('platform', 'youtube'),
+    supabase.from('featured_journalists').select('username, channel_id').eq('active', true).eq('platform', 'youtube'),
   ])
   const journalistUsernames = (tiktokJournalistRows ?? []).map((r: { username: string }) => r.username)
-  const youtubeJournalistHandles = (youtubeJournalistRows ?? []).map((r: { username: string }) => r.username)
+
+  // Resolve any YouTube journalist channel IDs not yet cached in the DB
+  const youtubeJournalists: { username: string; channelId: string }[] = []
+  for (const row of (youtubeJournalistRows ?? []) as { username: string; channel_id: string | null }[]) {
+    let channelId = row.channel_id
+    if (!channelId && youtubeKey) {
+      channelId = await resolveYouTubeChannelId(row.username, youtubeKey)
+      if (channelId) {
+        await supabase
+          .from('featured_journalists')
+          .update({ channel_id: channelId })
+          .eq('platform', 'youtube')
+          .eq('username', row.username)
+      }
+    }
+    if (channelId) youtubeJournalists.push({ username: row.username, channelId })
+  }
 
   const [redditResult, youtubeResult, tiktokResult] = await Promise.all([
     fetchRedditClips(),
     youtubeKey
-      ? fetchYouTubeTrending(youtubeKey, youtubeJournalistHandles)
+      ? fetchYouTubeTrending(youtubeKey, youtubeJournalists)
       : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'] }),
     apifyKey
       ? fetchTikTokTrending(apifyKey, journalistUsernames)
