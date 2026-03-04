@@ -140,20 +140,25 @@ async function fetchJournalistChannels(
 
   for (const handle of handles) {
     try {
-      // Resolve @handle → internal channel ID
-      const channelUrl = new URL('https://www.googleapis.com/youtube/v3/channels')
-      channelUrl.searchParams.set('part', 'id,snippet')
-      channelUrl.searchParams.set('forHandle', `@${handle}`)
-      channelUrl.searchParams.set('key', apiKey)
+      // Resolve handle → internal channel ID
+      // Try @handle format first, fall back to legacy forUsername for /c/ channels
+      let channelItem: { id: string; snippet?: { title?: string } } | undefined
 
-      const channelRes = await fetch(channelUrl.toString())
-      if (!channelRes.ok) {
-        errors.push(`YouTube journalist @${handle}: channel lookup HTTP ${channelRes.status}`)
-        continue
+      for (const param of ['forHandle', 'forUsername'] as const) {
+        const channelUrl = new URL('https://www.googleapis.com/youtube/v3/channels')
+        channelUrl.searchParams.set('part', 'id,snippet')
+        channelUrl.searchParams.set(param, param === 'forHandle' ? `@${handle}` : handle)
+        channelUrl.searchParams.set('key', apiKey)
+
+        const channelRes = await fetch(channelUrl.toString())
+        if (!channelRes.ok) continue
+        const channelJson = await channelRes.json()
+        if (channelJson?.items?.[0]) {
+          channelItem = channelJson.items[0]
+          break
+        }
       }
 
-      const channelJson = await channelRes.json()
-      const channelItem = channelJson?.items?.[0]
       if (!channelItem) {
         errors.push(`YouTube journalist @${handle}: channel not found`)
         continue
