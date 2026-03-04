@@ -18,8 +18,7 @@ export interface VerificationResult {
   headline: string
   summary: string
   msmGap: boolean
-  category: 'good' | 'bad' | 'ugly'
-  subcategory: 'footage' | 'story' | 'discovery' | 'investigation' | 'testimony' | 'pattern'
+  category: 'raw' | 'reported' | 'analysis'
   decision: 'publish' | 'needs_review' | 'reject'
   rejectReason?: string
 }
@@ -57,30 +56,21 @@ Respond with this exact JSON structure:
   "headline": "Compelling 10-15 word headline",
   "summary": "2 sentences. Sentence 1: what specifically happened and the specific outcome. Sentence 2: what makes it notable or visually compelling. Never use vague phrases like 'highlights the risks of' or 'raises questions about' — be specific and concrete.",
   "msmGap": true or false,
-  "category": "good" or "bad" or "ugly",
-  "subcategory": see subcategory rules below,
+  "category": "raw" or "reported" or "analysis",
   "decision": "publish" or "needs_review" or "reject",
   "rejectReason": "reason if rejected, otherwise null"
 }
 
-CATEGORY RULES — think like an independent journalist editor, not a viral content aggregator:
-- "good": Heroic moments, rescues, acts of courage or community kindness. Firefighters, bystanders, or officers saving lives caught on camera. Also: verified innovative discoveries — scientific breakthroughs, new technologies, clean energy advances, medical innovations, or solutions to food/water/environmental problems from credible sources. When in doubt between "good" and another category, choose "good" if the primary emotion is hope, inspiration, or admiration.
-- "bad": Institutional failures the public deserves to know — government corruption, corporate fraud, police misconduct, civil rights violations, abuse of power by institutions. Must be a specific documented incident, not general commentary. A car chase, arrest, or local crime is NOT "bad" unless the clip itself shows documented police misconduct, excessive force, or a civil rights violation — the mere presence of police does not qualify.
-- "ugly": Reserved for stories with significant viral reach (500K+ views OR viral score > 70) where mainstream media coverage is absent or minimal despite the story clearly mattering at a national or systemic level. The silence must be suspicious — i.e., the story involves a powerful institution (government, police department, corporation, political figure) that has a motive to suppress it. A local incident simply not covered by national media is NOT "ugly" — it's just local. The combination of viral reach + institutional subject + media silence = "ugly".
-
-SUBCATEGORY RULES — choose the one that best fits:
-- "footage": raw caught-on-camera video — bodycam, security cam, bystander clip, dashcam
-- "story": documented hero story, rescue narrative, community achievement (may include interview elements)
-- "discovery": scientific breakthrough, innovation, clean energy, technology advance (talking head OK)
-- "investigation": investigative journalist reporting, documented institutional exposé, in-depth reporting
-- "testimony": whistleblower, survivor account, firsthand witness, person speaking directly to camera about what they experienced
-- "pattern": documented systemic issue showing a repeated or ongoing institutional failure
+CATEGORY RULES:
+- "raw": Unedited or minimally narrated video. Bodycam, dashcam, security cam, bystander recordings, protest footage, weather events. The camera is the reporter — no journalist framing required.
+- "reported": A journalist or credible source has investigated and is reporting findings. Exposés, FOIA-based stories, undercover work, on-the-ground field reporting, documented institutional failures. The journalist did the work.
+- "analysis": Commentary, opinion, or context from an independent voice. The journalist's argument or perspective is the content. Talking-head pieces, explainers, editorial commentary, investigative summaries.
 
 TRUSTED JOURNALIST EXCEPTION — if "Trusted Journalist: YES":
 A new post from a trusted curated journalist is news, even without incident footage. Talking head interviews, opinion pieces, and investigative commentary from these sources ARE publishable content. Apply these relaxed rules:
 - Location requirement is WAIVED — they may report on national or systemic issues
 - Incident footage requirement is WAIVED — their perspective and reporting IS the story
-- Assign subcategory "story", "discovery", "investigation", or "testimony" as appropriate
+- Assign category "reported" or "analysis" as appropriate
 - Still reject if content is clearly off-topic (entertainment, personal lifestyle, self-promotion unrelated to news or public interest)
 - Set confidence to 0.9 if the content is clearly on-topic reporting from the journalist
 
@@ -97,11 +87,13 @@ REJECT (hard rules — no exceptions):
 
 APPROVE as needs_review: genuine single-incident US domestic footage — bodycam, security cam, bystander video, local protest, weather event, police incident, political confrontation, consumer/business dispute caught on video
 
-- publish only if confidence > 0.85 and it is clearly a genuine verifiable US news event or on-topic journalist content
-- needs_review if genuine incident or journalist content but confidence is 0.7–0.85
+PUBLISH THRESHOLDS:
+- Trusted Journalist content: publish if confidence ≥ 0.75 and content is clearly on-topic independent reporting. These voices exist to inform, empower, and advocate — give them the benefit of the doubt.
+- Incident footage: publish if confidence > 0.85 and clearly a genuine verifiable US news event
+- needs_review if genuine incident or journalist content but confidence falls below publish threshold
 - msmGap is true only if fewer than 5 major outlet articles AND the incident involves a powerful institution AND the viral score or view count suggests the story has broad public interest
 - Headlines for incident footage: must name the real city/state and the specific incident — no vague titles
-- Headlines for journalist content (subcategory story/discovery/investigation/testimony): name the journalist's topic and key claim — location optional`
+- Headlines for journalist content (category reported/analysis): name the journalist's topic and key claim — location optional`
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -125,8 +117,7 @@ APPROVE as needs_review: genuine single-incident US domestic footage — bodycam
       headline: clip.title.slice(0, 100),
       summary: '',
       msmGap: false,
-      category: 'bad' as const,
-      subcategory: 'footage' as const,
+      category: 'raw' as const,
       decision: 'reject',
       rejectReason: 'Failed to parse Claude response',
     }

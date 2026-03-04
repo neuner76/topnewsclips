@@ -13,8 +13,8 @@ export interface Story {
   msm_notes: string | null
   published: boolean
   display_order: number
-  category: 'good' | 'bad' | 'ugly' | null
-  subcategory: 'footage' | 'story' | 'discovery' | 'investigation' | 'testimony' | 'pattern' | null
+  category: 'raw' | 'reported' | 'analysis' | null
+  subcategory: string | null
   thumbnail_url: string | null
   journalist_username: string | null
   pinned: boolean

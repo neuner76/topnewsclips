@@ -179,7 +179,7 @@ export async function runProcess(): Promise<PipelineResult> {
     .select('*')
     .eq('processed', false)
     .order('fetched_at', { ascending: true })
-    .limit(10)
+    .limit(25)
 
   if (fetchError) {
     result.errors.push(`Failed to fetch candidates queue: ${fetchError.message}`)
@@ -244,7 +244,6 @@ export async function runProcess(): Promise<PipelineResult> {
         published: false,
         display_order: 99,
         category: verification.category,
-        subcategory: verification.subcategory ?? null,
         thumbnail_url: candidate.thumbnail_url ?? null,
         journalist_username: candidate.journalist_username ?? null,
       })
@@ -252,20 +251,6 @@ export async function runProcess(): Promise<PipelineResult> {
       if (error) {
         result.errors.push(`Failed to insert ${candidate.slug}: ${error.message}`)
         continue
-      }
-
-      // Auto-pin if from a featured journalist and no story from them is already pinned in this category
-      if (candidate.journalist_username && verification.category) {
-        const { data: existingPin } = await supabase
-          .from('stories')
-          .select('id')
-          .eq('journalist_username', candidate.journalist_username)
-          .eq('category', verification.category)
-          .eq('pinned', true)
-          .limit(1)
-        if (!existingPin || existingPin.length === 0) {
-          await supabase.from('stories').update({ pinned: true }).eq('slug', candidate.slug)
-        }
       }
 
       if (verification.decision === 'needs_review') {

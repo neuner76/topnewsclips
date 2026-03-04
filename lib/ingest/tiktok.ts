@@ -81,9 +81,12 @@ export async function fetchTikTokTrending(
           if (!videoId || seen.has(videoId)) continue
 
           const playCount = Number(item.playCount ?? item.stats?.playCount ?? 0)
-          // Lower threshold for featured journalists
+          // Extract username: prefer uniqueId, fall back to parsing webVideoUrl
+          // (clockworks~tiktok-scraper uses authorMeta.name as display name, not handle)
+          const webVideoUrl: string = item.webVideoUrl ?? ''
+          const urlUsername = webVideoUrl.match(/tiktok\.com\/@([^/]+)\//)?.[1]?.toLowerCase() ?? ''
           const authorUniqueId: string =
-            (item.authorMeta?.uniqueId ?? item.author?.uniqueId ?? '').toLowerCase()
+            (item.authorMeta?.uniqueId ?? item.author?.uniqueId ?? urlUsername).toLowerCase()
           const isJournalist = journalistSet.has(authorUniqueId)
 
           // Skip MSM accounts unless they're an explicitly featured journalist
@@ -99,8 +102,8 @@ export async function fetchTikTokTrending(
           const nonHashtagWords = text.replace(/#\w+/g, '').trim()
           if (!isJournalist && nonHashtagWords.length < 20) continue
 
-          const authorName: string = item.authorMeta?.name ?? item.author?.uniqueId ?? 'unknown'
-          const videoUrl = `https://www.tiktok.com/@${authorName}/video/${videoId}`
+          const authorName: string = item.authorMeta?.name ?? authorUniqueId ?? 'unknown'
+          const videoUrl = webVideoUrl || `https://www.tiktok.com/@${authorUniqueId || authorName}/video/${videoId}`
 
           const thumbnailUrl: string | null =
             item.videoMeta?.coverUrl ??

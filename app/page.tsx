@@ -92,7 +92,7 @@ export default async function HomePage() {
 
   const all = (stories as Story[]) ?? []
 
-  function splitSection(category: 'good' | 'bad' | 'ugly') {
+  function splitSection(category: 'raw' | 'reported' | 'analysis') {
     const section = all.filter(s => s.category === category)
     return {
       pinned:  section.filter(s => s.pinned),
@@ -101,9 +101,9 @@ export default async function HomePage() {
     }
   }
 
-  const good = splitSection('good')
-  const bad  = splitSection('bad')
-  const ugly = splitSection('ugly')
+  const raw      = splitSection('raw')
+  const reported = splitSection('reported')
+  const analysis = splitSection('analysis')
   const uncategorized = all.filter(s => !s.category)
 
   const totalCount = all.length
@@ -149,27 +149,27 @@ export default async function HomePage() {
         )}
 
         <Section
-          title="The Good"
-          subtitle="Heroes, rescues, and breakthroughs in energy, food, water, and planet"
-          pinned={good.pinned}
-          voices={good.voices}
-          stories={good.stories}
-          accentClass="text-[oklch(0.38_0.13_145)]"
-        />
-        <Section
-          title="The Bad"
-          subtitle="Government corruption, misconduct, and institutional failures the public deserves to know about"
-          pinned={bad.pinned}
-          voices={bad.voices}
-          stories={bad.stories}
+          title="Raw Footage"
+          subtitle="Bodycam, dashcam, security cam, bystander video — unfiltered and unedited"
+          pinned={raw.pinned}
+          voices={raw.voices}
+          stories={raw.stories}
           accentClass="text-foreground"
         />
         <Section
-          title="The Ugly"
-          subtitle="What the media won't show you — significant stories with zero mainstream coverage"
-          pinned={ugly.pinned}
-          voices={ugly.voices}
-          stories={ugly.stories}
+          title="Reported"
+          subtitle="Independent journalists investigating what institutions don't want you to see"
+          pinned={reported.pinned}
+          voices={reported.voices}
+          stories={reported.stories}
+          accentClass="text-[oklch(0.38_0.13_145)]"
+        />
+        <Section
+          title="Analysis"
+          subtitle="Independent voices making sense of what's happening and why it matters"
+          pinned={analysis.pinned}
+          voices={analysis.voices}
+          stories={analysis.stories}
           accentClass="text-[oklch(0.45_0.22_24)]"
         />
         {uncategorized.length > 0 && (
