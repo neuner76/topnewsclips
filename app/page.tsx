@@ -149,12 +149,12 @@ export default async function HomePage() {
         )}
 
         <Section
-          title="Raw Footage"
-          subtitle="Bodycam, dashcam, security cam, bystander video — unfiltered and unedited"
-          pinned={raw.pinned}
-          voices={raw.voices}
-          stories={raw.stories}
-          accentClass="text-foreground"
+          title="Analysis"
+          subtitle="Independent voices making sense of what's happening and why it matters"
+          pinned={analysis.pinned}
+          voices={analysis.voices}
+          stories={analysis.stories}
+          accentClass="text-[oklch(0.45_0.22_24)]"
         />
         <Section
           title="Reported"
@@ -165,12 +165,12 @@ export default async function HomePage() {
           accentClass="text-[oklch(0.38_0.13_145)]"
         />
         <Section
-          title="Analysis"
-          subtitle="Independent voices making sense of what's happening and why it matters"
-          pinned={analysis.pinned}
-          voices={analysis.voices}
-          stories={analysis.stories}
-          accentClass="text-[oklch(0.45_0.22_24)]"
+          title="Raw Footage"
+          subtitle="Bodycam, dashcam, security cam, bystander video — unfiltered and unedited"
+          pinned={raw.pinned}
+          voices={raw.voices}
+          stories={raw.stories}
+          accentClass="text-foreground"
         />
         {uncategorized.length > 0 && (
           <Section
