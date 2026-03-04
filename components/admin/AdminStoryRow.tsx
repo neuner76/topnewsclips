@@ -15,6 +15,23 @@ export default function AdminStoryRow({ story }: { story: Story }) {
   const [published, setPublished] = useState(story.published)
   const [saving, setSaving] = useState(false)
   const [deleted, setDeleted] = useState(false)
+  const [title, setTitle] = useState(story.title)
+  const [rewriting, setRewriting] = useState(false)
+
+  async function handleRewrite() {
+    setRewriting(true)
+    try {
+      const res = await fetch('/api/admin/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storyId: story.id }),
+      })
+      const data = await res.json()
+      if (data.title) setTitle(data.title)
+    } finally {
+      setRewriting(false)
+    }
+  }
 
   async function togglePublished() {
     setSaving(true)
@@ -45,7 +62,7 @@ export default function AdminStoryRow({ story }: { story: Story }) {
 
       {/* Title */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{story.title}</p>
+        <p className="text-sm font-medium truncate">{title}</p>
         <p className="text-xs text-muted-foreground tabular-nums">
           {(story.view_count / 1000).toFixed(0)}K views
           {story.category && (
@@ -90,6 +107,13 @@ export default function AdminStoryRow({ story }: { story: Story }) {
         >
           Edit
         </Link>
+        <button
+          onClick={handleRewrite}
+          disabled={rewriting}
+          className="text-xs font-medium text-[oklch(0.52_0.14_196)] hover:underline transition-colors disabled:opacity-50"
+        >
+          {rewriting ? '...' : 'Rewrite'}
+        </button>
         <button
           onClick={handleDelete}
           className="text-xs font-medium text-muted-foreground hover:text-red-600 transition-colors"
