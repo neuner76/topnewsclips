@@ -61,12 +61,31 @@ export default function StoryCard({ story }: StoryCardProps) {
 
   return (
     <article className="group py-3 border-b border-border">
+      {/* Thumbnail — full width on mobile, hidden on desktop (shown in row below) */}
+      {thumbnail && !showEmbed && (
+        <button
+          onClick={() => canEmbed && setShowEmbed(true)}
+          className="block sm:hidden w-full mb-2 text-left"
+          tabIndex={-1}
+          aria-hidden
+        >
+          <Image
+            src={thumbnail}
+            alt=""
+            width={640}
+            height={360}
+            className="rounded object-cover w-full aspect-video opacity-90 group-hover:opacity-100 transition-opacity"
+            unoptimized
+          />
+        </button>
+      )}
+
       <div className="flex gap-3 items-start">
-        {/* Thumbnail — left side */}
+        {/* Thumbnail — desktop only, left side */}
         {thumbnail && !showEmbed && (
           <button
             onClick={() => canEmbed && setShowEmbed(true)}
-            className="flex-shrink-0"
+            className="flex-shrink-0 hidden sm:block"
             tabIndex={-1}
             aria-hidden
           >
@@ -75,7 +94,7 @@ export default function StoryCard({ story }: StoryCardProps) {
               alt=""
               width={120}
               height={68}
-              className="rounded object-cover w-24 h-14 sm:w-32 sm:h-[72px] opacity-90 group-hover:opacity-100 transition-opacity"
+              className="rounded object-cover w-32 h-[72px] opacity-90 group-hover:opacity-100 transition-opacity"
               unoptimized
             />
           </button>
