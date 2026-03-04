@@ -50,18 +50,18 @@ export async function runFetch(): Promise<FetchResult> {
   const errors: string[] = []
   let added = 0
 
-  // Fetch active journalist usernames to pass to TikTok scraper
-  const { data: journalistRows } = await supabase
-    .from('featured_journalists')
-    .select('username')
-    .eq('active', true)
-    .eq('platform', 'tiktok')
-  const journalistUsernames = (journalistRows ?? []).map((r: { username: string }) => r.username)
+  // Fetch active journalist usernames per platform
+  const [{ data: tiktokJournalistRows }, { data: youtubeJournalistRows }] = await Promise.all([
+    supabase.from('featured_journalists').select('username').eq('active', true).eq('platform', 'tiktok'),
+    supabase.from('featured_journalists').select('username').eq('active', true).eq('platform', 'youtube'),
+  ])
+  const journalistUsernames = (tiktokJournalistRows ?? []).map((r: { username: string }) => r.username)
+  const youtubeJournalistHandles = (youtubeJournalistRows ?? []).map((r: { username: string }) => r.username)
 
   const [redditResult, youtubeResult, tiktokResult] = await Promise.all([
     fetchRedditClips(),
     youtubeKey
-      ? fetchYouTubeTrending(youtubeKey)
+      ? fetchYouTubeTrending(youtubeKey, youtubeJournalistHandles)
       : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'] }),
     apifyKey
       ? fetchTikTokTrending(apifyKey, journalistUsernames)
@@ -88,6 +88,7 @@ export async function runFetch(): Promise<FetchResult> {
       description: c.description,
       viralScore: c.viewCount,
       source: `YouTube/${c.channelTitle}`,
+      journalistUsername: c.journalistUsername ?? null,
     })),
     ...tiktokResult.clips.map((c: TikTokClip) => ({
       title: c.title,

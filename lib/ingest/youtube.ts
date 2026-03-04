@@ -7,6 +7,7 @@ export interface YouTubeClip {
   channelTitle: string
   description: string
   publishedAt: string
+  journalistUsername: string | null
 }
 
 // Incident-specific queries that naturally skew toward US domestic footage
@@ -34,7 +35,10 @@ const MSM_CHANNEL_IDS = new Set([
   'UCknLrEdhRCp1aegoMqRaCZg', // ABC News Australia
 ])
 
-export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: YouTubeClip[]; errors: string[] }> {
+export async function fetchYouTubeTrending(
+  apiKey: string,
+  channelHandles: string[] = []
+): Promise<{ clips: YouTubeClip[]; errors: string[] }> {
   const clips: YouTubeClip[] = []
   const errors: string[] = []
   const seen = new Set<string>()
@@ -108,6 +112,7 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
           channelTitle: snippet.channelTitle,
           description: (snippet.description ?? '').slice(0, 500),
           publishedAt: snippet.publishedAt,
+          journalistUsername: null,
         })
       }
     } catch (err) {
@@ -115,5 +120,106 @@ export async function fetchYouTubeTrending(apiKey: string): Promise<{ clips: You
     }
   }
 
+  // Fetch recent videos from featured journalist channels
+  if (channelHandles.length > 0) {
+    await fetchJournalistChannels(apiKey, channelHandles, clips, errors, seen)
+  }
+
   return { clips, errors }
+}
+
+async function fetchJournalistChannels(
+  apiKey: string,
+  handles: string[],
+  clips: YouTubeClip[],
+  errors: string[],
+  seen: Set<string>
+) {
+  // 14-day window so we don't miss less-frequent posters
+  const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+
+  for (const handle of handles) {
+    try {
+      // Resolve @handle → internal channel ID
+      const channelUrl = new URL('https://www.googleapis.com/youtube/v3/channels')
+      channelUrl.searchParams.set('part', 'id,snippet')
+      channelUrl.searchParams.set('forHandle', `@${handle}`)
+      channelUrl.searchParams.set('key', apiKey)
+
+      const channelRes = await fetch(channelUrl.toString())
+      if (!channelRes.ok) {
+        errors.push(`YouTube journalist @${handle}: channel lookup HTTP ${channelRes.status}`)
+        continue
+      }
+
+      const channelJson = await channelRes.json()
+      const channelItem = channelJson?.items?.[0]
+      if (!channelItem) {
+        errors.push(`YouTube journalist @${handle}: channel not found`)
+        continue
+      }
+
+      const channelId: string = channelItem.id
+      const channelTitle: string = channelItem.snippet?.title ?? handle
+
+      // Fetch 5 most recent videos from this channel
+      const searchUrl = new URL('https://www.googleapis.com/youtube/v3/search')
+      searchUrl.searchParams.set('part', 'snippet')
+      searchUrl.searchParams.set('channelId', channelId)
+      searchUrl.searchParams.set('type', 'video')
+      searchUrl.searchParams.set('order', 'date')
+      searchUrl.searchParams.set('publishedAfter', cutoff)
+      searchUrl.searchParams.set('maxResults', '5')
+      searchUrl.searchParams.set('key', apiKey)
+
+      const searchRes = await fetch(searchUrl.toString())
+      if (!searchRes.ok) {
+        errors.push(`YouTube journalist @${handle}: search HTTP ${searchRes.status}`)
+        continue
+      }
+
+      const searchJson = await searchRes.json()
+      const searchItems: Array<{ id: { videoId: string }; snippet: { title: string; description: string; publishedAt: string } }> =
+        searchJson?.items ?? []
+
+      if (searchItems.length === 0) continue
+
+      // Batch fetch stats
+      const videoIds = searchItems.map(i => i.id.videoId).join(',')
+      const statsUrl = new URL('https://www.googleapis.com/youtube/v3/videos')
+      statsUrl.searchParams.set('part', 'statistics')
+      statsUrl.searchParams.set('id', videoIds)
+      statsUrl.searchParams.set('key', apiKey)
+
+      const statsRes = await fetch(statsUrl.toString())
+      const statsJson = statsRes.ok ? await statsRes.json() : { items: [] }
+      const statsMap = new Map(
+        (statsJson.items ?? []).map((i: { id: string; statistics: { viewCount?: string } }) => [i.id, i.statistics])
+      )
+
+      for (const item of searchItems) {
+        const videoId = item.id.videoId
+        if (seen.has(videoId)) continue
+
+        const snippet = item.snippet
+        const stats = statsMap.get(videoId) as { viewCount?: string } | undefined
+        const viewCount = parseInt(stats?.viewCount ?? '0', 10)
+
+        seen.add(videoId)
+        clips.push({
+          title: snippet.title,
+          videoId,
+          videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
+          platform: 'youtube',
+          viewCount,
+          channelTitle,
+          description: (snippet.description ?? '').slice(0, 500),
+          publishedAt: snippet.publishedAt,
+          journalistUsername: handle.toLowerCase(),
+        })
+      }
+    } catch (err) {
+      errors.push(`YouTube journalist @${handle}: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
 }
