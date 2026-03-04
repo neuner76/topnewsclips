@@ -14,13 +14,9 @@ export interface YouTubeClip {
 // Capped at 8 to stay within YouTube API default quota (10k units/day)
 const SEARCH_QUERIES = [
   'bodycam footage released 2026',
-  'road rage dashcam viral 2026',
   'caught on camera local news America 2026',
-  'police shooting bodycam released 2026',
-  'arrest video released police department 2026',
   'security camera footage incident viral 2026',
   'breakthrough clean energy technology 2026',
-  'food water innovation breakthrough 2026',
 ]
 
 // Known MSM channel IDs to filter out
