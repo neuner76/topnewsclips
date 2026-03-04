@@ -53,7 +53,7 @@ Respond with this exact JSON structure:
   "isRealEvent": true or false,
   "confidence": 0.0 to 1.0,
   "aiGeneratedRisk": "low" or "medium" or "high",
-  "headline": "Compelling 10-15 word headline",
+  "headline": "Compelling 10-15 word headline. Never start with the journalist's name or 'Trusted Journalist'. Lead with the story.",
   "summary": "2 sentences. Sentence 1: what specifically happened and the specific outcome. Sentence 2: what makes it notable or visually compelling. Never use vague phrases like 'highlights the risks of' or 'raises questions about' — be specific and concrete.",
   "msmGap": true or false,
   "category": "raw" or "reported" or "analysis",
