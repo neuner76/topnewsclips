@@ -188,6 +188,7 @@ export async function runProcess(): Promise<PipelineResult> {
           viralScore: candidate.viral_score,
           msmArticleCount: msm.articleCount,
           msmGap: msm.msmGap,
+          isJournalist: !!candidate.journalist_username,
         },
         anthropicKey
       )
@@ -226,6 +227,7 @@ export async function runProcess(): Promise<PipelineResult> {
         published: false,
         display_order: 99,
         category: verification.category,
+        subcategory: verification.subcategory ?? null,
         thumbnail_url: candidate.thumbnail_url ?? null,
         journalist_username: candidate.journalist_username ?? null,
       })

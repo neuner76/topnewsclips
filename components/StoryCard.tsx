@@ -52,6 +52,11 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <PlatformBadge platform={story.platform} />
             <CategoryBadge category={story.category} />
+            {story.subcategory && story.subcategory !== 'footage' && (
+              <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground/70 border border-border px-1.5 py-0.5 rounded">
+                {story.subcategory}
+              </span>
+            )}
             {story.msm_gap && <MSMBadge notes={story.msm_notes} size="sm" />}
             <span className="text-xs text-muted-foreground ml-auto">
               {formatPublishedDate(story.created_at)}

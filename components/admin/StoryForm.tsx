@@ -41,6 +41,7 @@ export default function StoryForm({ story }: StoryFormProps) {
   const [viewCount, setViewCount] = useState(String(story?.view_count ?? ''))
   const [shareCount, setShareCount] = useState(String(story?.share_count ?? ''))
   const [category, setCategory] = useState<'good' | 'bad' | 'ugly' | ''>(story?.category ?? '')
+  const [subcategory, setSubcategory] = useState(story?.subcategory ?? '')
   const [msmGap, setMsmGap] = useState(story?.msm_gap ?? false)
   const [msmNotes, setMsmNotes] = useState(story?.msm_notes ?? '')
   const [pinned, setPinned] = useState(story?.pinned ?? false)
@@ -74,6 +75,7 @@ export default function StoryForm({ story }: StoryFormProps) {
       view_count: parseInt(viewCount) || 0,
       share_count: parseInt(shareCount) || 0,
       category: category || null,
+      subcategory: subcategory || null,
       msm_gap: msmGap,
       msm_notes: msmNotes || null,
       pinned,
@@ -135,20 +137,39 @@ export default function StoryForm({ story }: StoryFormProps) {
           </select>
         </div>
 
-        {/* Category */}
-        <div className="space-y-1.5">
-          <Label htmlFor="category">Category</Label>
-          <select
-            id="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value as 'good' | 'bad' | 'ugly' | '')}
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
-          >
-            <option value="">(none)</option>
-            <option value="good">The Good</option>
-            <option value="bad">The Bad</option>
-            <option value="ugly">The Ugly</option>
-          </select>
+        {/* Category + Subcategory */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="category">Category</Label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as 'good' | 'bad' | 'ugly' | '')}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+            >
+              <option value="">(none)</option>
+              <option value="good">The Good</option>
+              <option value="bad">The Bad</option>
+              <option value="ugly">The Ugly</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="subcategory">Subcategory</Label>
+            <select
+              id="subcategory"
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+            >
+              <option value="">(none)</option>
+              <option value="footage">Footage</option>
+              <option value="story">Story</option>
+              <option value="discovery">Discovery</option>
+              <option value="investigation">Investigation</option>
+              <option value="testimony">Testimony</option>
+              <option value="pattern">Pattern</option>
+            </select>
+          </div>
         </div>
 
         {/* Title */}

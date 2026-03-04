@@ -14,6 +14,7 @@ export interface Story {
   published: boolean
   display_order: number
   category: 'good' | 'bad' | 'ugly' | null
+  subcategory: 'footage' | 'story' | 'discovery' | 'investigation' | 'testimony' | 'pattern' | null
   thumbnail_url: string | null
   journalist_username: string | null
   pinned: boolean
