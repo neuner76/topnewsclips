@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Story } from '@/lib/types'
@@ -17,6 +20,20 @@ function getYouTubeThumbnail(embedUrl: string): string | null {
   return `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`
 }
 
+function getEmbedUrl(story: Story): string | null {
+  if (story.platform === 'youtube') {
+    const m = story.embed_url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+    if (!m) return null
+    return `https://www.youtube.com/embed/${m[1]}?autoplay=1`
+  }
+  if (story.platform === 'tiktok') {
+    const m = story.embed_url.match(/video\/(\d+)/)
+    if (!m) return null
+    return `https://www.tiktok.com/embed/v2/${m[1]}`
+  }
+  return null
+}
+
 function formatPublishedDate(dateStr: string): string {
   const date = new Date(dateStr)
   const now = new Date()
@@ -31,10 +48,16 @@ function formatPublishedDate(dateStr: string): string {
 }
 
 export default function StoryCard({ story, rank }: StoryCardProps) {
+  const [showEmbed, setShowEmbed] = useState(false)
+
   const thumbnail =
     story.platform === 'youtube'
       ? getYouTubeThumbnail(story.embed_url)
       : story.thumbnail_url ?? null
+
+  const embedUrl = getEmbedUrl(story)
+  const canEmbed = !!embedUrl
+  const isTikTok = story.platform === 'tiktok'
 
   return (
     <article className="group py-6 border-t border-border first:border-t-2 first:border-foreground">
@@ -71,8 +94,13 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
           </Link>
 
           {/* Thumbnail — mobile only, full width below title */}
-          {thumbnail && (
-            <Link href={`/story/${story.slug}`} className="block sm:hidden mt-2" tabIndex={-1} aria-hidden>
+          {thumbnail && !showEmbed && (
+            <button
+              onClick={() => canEmbed && setShowEmbed(true)}
+              className="block sm:hidden mt-2 w-full text-left"
+              tabIndex={-1}
+              aria-hidden
+            >
               <Image
                 src={thumbnail}
                 alt=""
@@ -81,7 +109,7 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
                 className="w-full rounded object-cover aspect-video"
                 unoptimized
               />
-            </Link>
+            </button>
           )}
 
           {/* Journalist credit */}
@@ -99,19 +127,30 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
           {/* Footer */}
           <div className="flex items-center gap-4 mt-3">
             <PressureScore viewCount={story.view_count} shareCount={story.share_count} />
-            <Link
-              href={`/story/${story.slug}`}
-              className="text-xs font-semibold text-foreground hover:underline underline-offset-2 ml-auto"
-            >
-              Watch →
-            </Link>
+            {canEmbed ? (
+              <button
+                onClick={() => setShowEmbed(v => !v)}
+                className="text-xs font-semibold text-foreground hover:underline underline-offset-2 ml-auto"
+              >
+                {showEmbed ? '▲ Close' : 'Watch →'}
+              </button>
+            ) : (
+              <a
+                href={story.embed_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-foreground hover:underline underline-offset-2 ml-auto"
+              >
+                Watch ↗
+              </a>
+            )}
           </div>
         </div>
 
         {/* Thumbnail — desktop only, right side */}
-        {thumbnail && (
-          <Link
-            href={`/story/${story.slug}`}
+        {thumbnail && !showEmbed && (
+          <button
+            onClick={() => canEmbed && setShowEmbed(true)}
             className="flex-shrink-0 hidden sm:block"
             tabIndex={-1}
             aria-hidden
@@ -124,9 +163,25 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
               className="rounded object-cover w-40 h-[90px] opacity-90 group-hover:opacity-100 transition-opacity"
               unoptimized
             />
-          </Link>
+          </button>
         )}
       </div>
+
+      {/* Inline embed */}
+      {showEmbed && embedUrl && (
+        <div className={`mt-4 ${isTikTok ? 'flex justify-start' : 'w-full'}`}>
+          <iframe
+            src={embedUrl}
+            className={
+              isTikTok
+                ? 'rounded border border-border w-full max-w-[325px] h-[580px]'
+                : 'w-full rounded border border-border aspect-video'
+            }
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      )}
     </article>
   )
 }
