@@ -130,6 +130,7 @@
 :root {
   --editorial-accent: oklch(0.51 0.22 24);
   --editorial-accent-light: oklch(0.96 0.03 24);
+  --brand-teal: oklch(0.52 0.14 196);
 }
 
 /* Editorial typography utilities */

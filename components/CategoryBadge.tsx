@@ -3,9 +3,9 @@ interface CategoryBadgeProps {
 }
 
 const config = {
-  raw:      { label: 'RAW',      color: 'text-neutral-600 bg-neutral-100 border-neutral-300' },
+  raw:      { label: 'RAW',      color: 'text-[oklch(0.48_0.12_85)] bg-[oklch(0.97_0.04_85)] border-[oklch(0.88_0.08_85)]' },
   reported: { label: 'REPORTED', color: 'text-[oklch(0.38_0.13_145)] bg-[oklch(0.94_0.05_145)] border-[oklch(0.84_0.09_145)]' },
-  analysis: { label: 'ANALYSIS', color: 'text-[oklch(0.45_0.22_24)] bg-[oklch(0.96_0.03_24)] border-[oklch(0.88_0.06_24)]' },
+  analysis: { label: 'ANALYSIS', color: 'text-[oklch(0.52_0.14_196)] bg-[oklch(0.95_0.04_196)] border-[oklch(0.82_0.08_196)]' },
 }
 
 export default function CategoryBadge({ category }: CategoryBadgeProps) {

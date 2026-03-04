@@ -38,11 +38,11 @@ function Section({ title, subtitle, pinned, voices, stories, accentClass }: Sect
   let rank = 1
   return (
     <section className="mb-12">
-      <div className="border-t-2 border-foreground pt-4 mb-1">
+      <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
         <h2 className={`text-2xl sm:text-3xl font-black tracking-tight uppercase ${accentClass}`}>
           {title}
         </h2>
-        <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
       </div>
       {isEmpty ? (
         <p className="text-sm text-muted-foreground py-6">Stories being curated — check back soon.</p>
@@ -119,14 +119,14 @@ export default async function HomePage() {
           <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-3">
             {formatDate(new Date())}
           </p>
-          <div className="border-t-2 border-foreground pb-4">
-            <h1 className="editorial-title pt-4">
+          <div className="border-b-2 border-[oklch(0.52_0.14_196)] pb-4">
+            <h1 className="editorial-title pt-2">
               Today&apos;s Top Clips
             </h1>
             <p className="editorial-body mt-2 max-w-2xl">
               Independent journalists. Real stories. No corporate filter.{' '}
               Stories marked{' '}
-              <span className="font-semibold text-[oklch(0.45_0.22_24)]">MSM BLACKOUT</span>{' '}
+              <span className="font-semibold text-[oklch(0.51_0.22_24)]">MSM BLACKOUT</span>{' '}
               have not appeared in any major mainstream outlet.
             </p>
           </div>

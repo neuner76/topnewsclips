@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Header() {
   return (
-    <header className="border-b border-border bg-background sticky top-0 z-50">
+    <header className="border-b-2 border-[oklch(0.52_0.14_196)] bg-background sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -19,7 +19,7 @@ export default function Header() {
             </Link>
             <Link
               href="/#subscribe"
-              className="bg-foreground text-background px-3 py-1.5 rounded text-xs font-semibold hover:opacity-80 transition-opacity"
+              className="bg-[oklch(0.52_0.14_196)] text-white px-3 py-1.5 rounded text-xs font-semibold hover:opacity-80 transition-opacity"
             >
               Subscribe
             </Link>

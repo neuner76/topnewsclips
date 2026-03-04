@@ -47,7 +47,7 @@ function formatPublishedDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export default function StoryCard({ story, rank }: StoryCardProps) {
+export default function StoryCard({ story }: StoryCardProps) {
   const [showEmbed, setShowEmbed] = useState(false)
 
   const thumbnail =
@@ -60,72 +60,44 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
   const isTikTok = story.platform === 'tiktok'
 
   return (
-    <article className="group py-6 border-t border-border first:border-t-2 first:border-foreground">
-      <div className="flex gap-4 sm:gap-6">
-        {/* Rank */}
-        <div className="hidden sm:block flex-shrink-0 w-8 pt-0.5">
-          <span className="text-2xl font-bold text-muted-foreground/30 leading-none tabular-nums">
-            {String(rank).padStart(2, '0')}
-          </span>
-        </div>
-
+    <article className="group py-3 border-b border-border">
+      <div className="flex gap-3 items-start">
         {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Badges + date */}
-          <div className="flex flex-wrap items-center gap-2 mb-2">
+          {/* Badges row */}
+          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
             <PlatformBadge platform={story.platform} />
             <CategoryBadge category={story.category} />
             {story.msm_gap && <MSMBadge notes={story.msm_notes} size="sm" />}
-            <span className="text-xs text-muted-foreground ml-auto">
-              {formatPublishedDate(story.created_at)}
-            </span>
+            {story.journalist_username && (
+              <span className="text-[10px] font-medium text-muted-foreground">
+                @{story.journalist_username}
+              </span>
+            )}
           </div>
 
           {/* Title */}
           <Link href={`/story/${story.slug}`} className="block group/title">
-            <h2 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2 decoration-foreground/30">
+            <h2 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2 decoration-foreground/30 line-clamp-2">
               {story.title}
             </h2>
           </Link>
 
-          {/* Thumbnail — mobile only, full width below title */}
-          {thumbnail && !showEmbed && (
-            <button
-              onClick={() => canEmbed && setShowEmbed(true)}
-              className="block sm:hidden mt-2 w-full text-left"
-              tabIndex={-1}
-              aria-hidden
-            >
-              <Image
-                src={thumbnail}
-                alt=""
-                width={320}
-                height={180}
-                className="w-full rounded object-cover aspect-video"
-                unoptimized
-              />
-            </button>
-          )}
-
-          {/* Journalist credit */}
-          {story.pinned && story.journalist_username && (
-            <p className="text-xs text-muted-foreground mt-1">
-              @{story.journalist_username}
-            </p>
-          )}
-
           {/* Description */}
           {story.description && (
-            <p className="editorial-body text-sm mt-2 line-clamp-3 sm:line-clamp-2">{story.description}</p>
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{story.description}</p>
           )}
 
           {/* Footer */}
-          <div className="flex items-center gap-4 mt-3">
+          <div className="flex items-center gap-3 mt-2">
             <PressureScore viewCount={story.view_count} shareCount={story.share_count} />
+            <span className="text-xs text-muted-foreground">
+              {formatPublishedDate(story.created_at)}
+            </span>
             {canEmbed ? (
               <button
                 onClick={() => setShowEmbed(v => !v)}
-                className="text-xs font-semibold text-foreground hover:underline underline-offset-2 ml-auto"
+                className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto"
               >
                 {showEmbed ? '▲ Close' : 'Watch →'}
               </button>
@@ -134,7 +106,7 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
                 href={story.embed_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-semibold text-foreground hover:underline underline-offset-2 ml-auto"
+                className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto"
               >
                 Watch ↗
               </a>
@@ -142,20 +114,20 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
           </div>
         </div>
 
-        {/* Thumbnail — desktop only, right side */}
+        {/* Thumbnail — always visible, right side */}
         {thumbnail && !showEmbed && (
           <button
             onClick={() => canEmbed && setShowEmbed(true)}
-            className="flex-shrink-0 hidden sm:block"
+            className="flex-shrink-0"
             tabIndex={-1}
             aria-hidden
           >
             <Image
               src={thumbnail}
               alt=""
-              width={160}
-              height={90}
-              className="rounded object-cover w-40 h-[90px] opacity-90 group-hover:opacity-100 transition-opacity"
+              width={120}
+              height={68}
+              className="rounded object-cover w-24 h-14 sm:w-32 sm:h-[72px] opacity-90 group-hover:opacity-100 transition-opacity"
               unoptimized
             />
           </button>
@@ -164,7 +136,7 @@ export default function StoryCard({ story, rank }: StoryCardProps) {
 
       {/* Inline embed */}
       {showEmbed && embedUrl && (
-        <div className={`mt-4 ${isTikTok ? 'flex justify-start' : 'w-full'}`}>
+        <div className={`mt-3 ${isTikTok ? 'flex justify-start' : 'w-full'}`}>
           <iframe
             src={embedUrl}
             className={
