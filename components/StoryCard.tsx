@@ -62,6 +62,25 @@ export default function StoryCard({ story }: StoryCardProps) {
   return (
     <article className="group py-3 border-b border-border">
       <div className="flex gap-3 items-start">
+        {/* Thumbnail — left side */}
+        {thumbnail && !showEmbed && (
+          <button
+            onClick={() => canEmbed && setShowEmbed(true)}
+            className="flex-shrink-0"
+            tabIndex={-1}
+            aria-hidden
+          >
+            <Image
+              src={thumbnail}
+              alt=""
+              width={120}
+              height={68}
+              className="rounded object-cover w-24 h-14 sm:w-32 sm:h-[72px] opacity-90 group-hover:opacity-100 transition-opacity"
+              unoptimized
+            />
+          </button>
+        )}
+
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Badges row */}
@@ -114,24 +133,6 @@ export default function StoryCard({ story }: StoryCardProps) {
           </div>
         </div>
 
-        {/* Thumbnail — always visible, right side */}
-        {thumbnail && !showEmbed && (
-          <button
-            onClick={() => canEmbed && setShowEmbed(true)}
-            className="flex-shrink-0"
-            tabIndex={-1}
-            aria-hidden
-          >
-            <Image
-              src={thumbnail}
-              alt=""
-              width={120}
-              height={68}
-              className="rounded object-cover w-24 h-14 sm:w-32 sm:h-[72px] opacity-90 group-hover:opacity-100 transition-opacity"
-              unoptimized
-            />
-          </button>
-        )}
       </div>
 
       {/* Inline embed */}
