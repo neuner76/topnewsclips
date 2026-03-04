@@ -142,9 +142,11 @@ export async function fetchTikTokTrending(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         hashtags: HASHTAGS,
-        profiles: profiles.length > 0 ? profiles : undefined,
+        profiles: profiles.length > 0
+          ? profiles.map(u => `https://www.tiktok.com/@${u}`)
+          : undefined,
         resultsPerPage: 10,
-        maxProfilesPerQuery: 1,
+        maxProfilesPerQuery: 5,
         shouldDownloadVideos: false,
         shouldDownloadCovers: false,
         shouldDownloadSubtitles: false,
