@@ -15,16 +15,10 @@ const HASHTAGS = [
   // Incident / accountability
   'bodycam',
   'caughtoncamera',
-  'policeincident',
-  'policechase',
-  'arrestvideo',
   // Hero / rescue (feeds "good" category)
   'rescue',
-  'herocop',
   'goodsamaritan',
-  'firefighterrescue',
   // Innovation / discovery (feeds "good" category)
-  'cleanenergy',
   'newscience',
 ]
 
@@ -147,8 +141,8 @@ export async function fetchTikTokTrending(
         profiles: profiles.length > 0
           ? profiles.map(u => `https://www.tiktok.com/@${u}`)
           : undefined,
-        resultsPerPage: 10,
-        maxProfilesPerQuery: 25,
+        resultsPerPage: 3,
+        maxProfilesPerQuery: 10,
         shouldDownloadVideos: false,
         shouldDownloadCovers: false,
         shouldDownloadSubtitles: false,
