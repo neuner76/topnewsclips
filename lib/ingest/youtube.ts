@@ -132,39 +132,45 @@ async function searchYouTubeNews(
 
   if (snippetMap.size === 0) return
 
-  // Step 2: batch fetch view counts for all collected video IDs (1 API unit)
-  try {
-    const statsUrl = new URL('https://www.googleapis.com/youtube/v3/videos')
-    statsUrl.searchParams.set('part', 'statistics')
-    statsUrl.searchParams.set('id', [...snippetMap.keys()].join(','))
-    statsUrl.searchParams.set('key', apiKey)
+  // Step 2: batch fetch view counts — videos.list max is 50 IDs per request
+  const allIds = [...snippetMap.keys()]
+  const chunks: string[][] = []
+  for (let i = 0; i < allIds.length; i += 50) chunks.push(allIds.slice(i, i + 50))
 
-    const res = await fetch(statsUrl.toString(), { signal: AbortSignal.timeout(8000) })
-    if (!res.ok) {
-      errors.push(`YouTube stats batch: HTTP ${res.status}`)
-      return
+  for (const chunk of chunks) {
+    try {
+      const statsUrl = new URL('https://www.googleapis.com/youtube/v3/videos')
+      statsUrl.searchParams.set('part', 'statistics')
+      statsUrl.searchParams.set('id', chunk.join(','))
+      statsUrl.searchParams.set('key', apiKey)
+
+      const res = await fetch(statsUrl.toString(), { signal: AbortSignal.timeout(8000) })
+      if (!res.ok) {
+        errors.push(`YouTube stats batch: HTTP ${res.status}`)
+        continue
+      }
+
+      const json = await res.json()
+      for (const item of json.items ?? []) {
+        const videoId: string = item.id ?? ''
+        const snippet = snippetMap.get(videoId)
+        if (!snippet) continue
+
+        clips.push({
+          title: snippet.title,
+          videoId,
+          videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
+          platform: 'youtube',
+          viewCount: parseInt(item.statistics?.viewCount ?? '0', 10),
+          channelTitle: snippet.channelTitle,
+          description: snippet.description,
+          publishedAt: snippet.publishedAt,
+          journalistUsername: null,
+        })
+      }
+    } catch (err) {
+      errors.push(`YouTube stats batch: ${err instanceof Error ? err.message : String(err)}`)
     }
-
-    const json = await res.json()
-    for (const item of json.items ?? []) {
-      const videoId: string = item.id ?? ''
-      const snippet = snippetMap.get(videoId)
-      if (!snippet) continue
-
-      clips.push({
-        title: snippet.title,
-        videoId,
-        videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
-        platform: 'youtube',
-        viewCount: parseInt(item.statistics?.viewCount ?? '0', 10),
-        channelTitle: snippet.channelTitle,
-        description: snippet.description,
-        publishedAt: snippet.publishedAt,
-        journalistUsername: null,
-      })
-    }
-  } catch (err) {
-    errors.push(`YouTube stats batch: ${err instanceof Error ? err.message : String(err)}`)
   }
 }
 
