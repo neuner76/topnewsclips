@@ -15,11 +15,20 @@ const HASHTAGS = [
   // Incident / accountability
   'bodycam',
   'caughtoncamera',
-  // Hero / rescue (feeds "good" category)
+  // Hero / rescue
   'rescue',
   'goodsamaritan',
-  // Innovation / discovery (feeds "good" category)
+  // Politics & World
+  'breakingnews',
+  'uspolitics',
+  'worldnews',
+  // Science & Tech
+  'science',
+  'technology',
   'newscience',
+  // Business
+  'business',
+  'economy',
 ]
 
 // Known MSM / large-network TikTok accounts to exclude

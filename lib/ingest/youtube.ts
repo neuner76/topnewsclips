@@ -38,20 +38,134 @@ export async function resolveYouTubeChannelId(handle: string, apiKey: string): P
   return null
 }
 
+// Search queries targeting each digest category.
+// Each costs 100 API units. With a 10k/day quota this leaves room for ~14 pipeline runs/day.
+const NEWS_SEARCH_QUERIES = [
+  // Politics & World Affairs
+  { q: 'breaking news congress senate hearing', label: 'politics' },
+  { q: 'breaking news white house government policy', label: 'politics' },
+  // Science & Technology
+  { q: 'scientific discovery breakthrough research', label: 'science' },
+  { q: 'new technology innovation demo', label: 'tech' },
+  // Business & Markets
+  { q: 'stock market economy federal reserve news', label: 'business' },
+  // Incident footage (supplements Reddit/TikTok)
+  { q: 'bodycam footage caught on camera news', label: 'incident' },
+]
+
+const SEARCH_WINDOW_HOURS = 48
+
 export async function fetchYouTubeTrending(
-  _apiKey: string,
+  apiKey: string,
   journalists: { username: string; channelId: string }[] = []
 ): Promise<{ clips: YouTubeClip[]; errors: string[] }> {
   const clips: YouTubeClip[] = []
   const errors: string[] = []
   const seen = new Set<string>()
 
-  // Fetch journalist channels via RSS — no API quota used
-  if (journalists.length > 0) {
-    await fetchJournalistChannelsViaRSS(journalists, clips, errors, seen)
-  }
+  // Run journalist RSS and search queries in parallel
+  await Promise.all([
+    journalists.length > 0
+      ? fetchJournalistChannelsViaRSS(journalists, clips, errors, seen)
+      : Promise.resolve(),
+    searchYouTubeNews(apiKey, clips, errors, seen),
+  ])
 
   return { clips, errors }
+}
+
+async function searchYouTubeNews(
+  apiKey: string,
+  clips: YouTubeClip[],
+  errors: string[],
+  seen: Set<string>
+) {
+  const publishedAfter = new Date(
+    Date.now() - SEARCH_WINDOW_HOURS * 60 * 60 * 1000
+  ).toISOString()
+
+  // Step 1: run all search queries, collect video IDs + snippets
+  const snippetMap = new Map<string, {
+    title: string
+    description: string
+    channelTitle: string
+    publishedAt: string
+  }>()
+
+  await Promise.all(
+    NEWS_SEARCH_QUERIES.map(async ({ q, label }) => {
+      try {
+        const url = new URL('https://www.googleapis.com/youtube/v3/search')
+        url.searchParams.set('part', 'snippet')
+        url.searchParams.set('q', q)
+        url.searchParams.set('type', 'video')
+        url.searchParams.set('order', 'viewCount')
+        url.searchParams.set('publishedAfter', publishedAfter)
+        url.searchParams.set('regionCode', 'US')
+        url.searchParams.set('relevanceLanguage', 'en')
+        url.searchParams.set('maxResults', '10')
+        url.searchParams.set('key', apiKey)
+
+        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8000) })
+        if (!res.ok) {
+          errors.push(`YouTube search [${label}]: HTTP ${res.status}`)
+          return
+        }
+
+        const json = await res.json()
+        for (const item of json.items ?? []) {
+          const videoId: string = item.id?.videoId ?? ''
+          if (!videoId || seen.has(videoId)) continue
+          seen.add(videoId)
+          snippetMap.set(videoId, {
+            title: item.snippet?.title ?? '',
+            description: item.snippet?.description ?? '',
+            channelTitle: item.snippet?.channelTitle ?? '',
+            publishedAt: item.snippet?.publishedAt ?? '',
+          })
+        }
+      } catch (err) {
+        errors.push(`YouTube search [${label}]: ${err instanceof Error ? err.message : String(err)}`)
+      }
+    })
+  )
+
+  if (snippetMap.size === 0) return
+
+  // Step 2: batch fetch view counts for all collected video IDs (1 API unit)
+  try {
+    const statsUrl = new URL('https://www.googleapis.com/youtube/v3/videos')
+    statsUrl.searchParams.set('part', 'statistics')
+    statsUrl.searchParams.set('id', [...snippetMap.keys()].join(','))
+    statsUrl.searchParams.set('key', apiKey)
+
+    const res = await fetch(statsUrl.toString(), { signal: AbortSignal.timeout(8000) })
+    if (!res.ok) {
+      errors.push(`YouTube stats batch: HTTP ${res.status}`)
+      return
+    }
+
+    const json = await res.json()
+    for (const item of json.items ?? []) {
+      const videoId: string = item.id ?? ''
+      const snippet = snippetMap.get(videoId)
+      if (!snippet) continue
+
+      clips.push({
+        title: snippet.title,
+        videoId,
+        videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        platform: 'youtube',
+        viewCount: parseInt(item.statistics?.viewCount ?? '0', 10),
+        channelTitle: snippet.channelTitle,
+        description: snippet.description,
+        publishedAt: snippet.publishedAt,
+        journalistUsername: null,
+      })
+    }
+  } catch (err) {
+    errors.push(`YouTube stats batch: ${err instanceof Error ? err.message : String(err)}`)
+  }
 }
 
 // RSS feed returns the last 15 videos from a channel — no API key needed, no quota cost

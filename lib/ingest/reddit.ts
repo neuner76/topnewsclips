@@ -12,11 +12,21 @@ export interface RedditClip {
 }
 
 const SUBREDDITS = [
+  // Incident footage (existing strength)
   'PublicFreakout',
   'bodycam',
   'ActualPublicFreakouts',
-  'IDontWorkHereLady',
   'CaughtOnCamera',
+  // Broader news categories
+  'news',
+  'worldnews',
+  'science',
+  'technology',
+  'Economics',
+  // Viral/quirky (feeds Etcetera)
+  'Damnthatsinteresting',
+  'nextfuckinglevel',
+  'interestingasfuck',
 ]
 
 const MIN_SCORE = 100
