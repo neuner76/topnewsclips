@@ -26,9 +26,8 @@ const HASHTAGS = [
   'science',
   'technology',
   'newscience',
-  // Business
-  'business',
-  'economy',
+  // Business (kept narrow — generic finance pulls too much commentary)
+  'consumerfraud',
 ]
 
 // Known MSM / large-network TikTok accounts to exclude

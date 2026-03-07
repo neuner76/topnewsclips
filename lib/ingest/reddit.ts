@@ -22,7 +22,6 @@ const SUBREDDITS = [
   'worldnews',
   'science',
   'technology',
-  'Economics',
   // Viral/quirky (feeds Etcetera)
   'Damnthatsinteresting',
   'nextfuckinglevel',
