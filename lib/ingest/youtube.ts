@@ -55,6 +55,26 @@ const NEWS_SEARCH_QUERIES = [
 
 const SEARCH_WINDOW_HOURS = 48
 
+// Known low-quality channels to skip in search results.
+// Add channel titles here as you encounter them in reject logs.
+const BLOCKED_CHANNEL_TITLES = new Set([
+  // Bodycam compilation/reaction channels
+  'Zowoki',
+  'Core Decode',
+  'police usa new',
+  'The Crime Chronicles-True crime',
+  'police justice body cam',
+  // Partisan commentary
+  'Really American',
+  'Ayyan',
+  // Pseudoscience / clickbait
+  'FactFusion007',
+  // Finance influencers
+  'SwingTradeShorts',
+  'Stocks With Zach',
+  'Apex Finance',
+])
+
 export async function fetchYouTubeTrending(
   apiKey: string,
   journalists: { username: string; channelId: string }[] = []
@@ -116,11 +136,13 @@ async function searchYouTubeNews(
         for (const item of json.items ?? []) {
           const videoId: string = item.id?.videoId ?? ''
           if (!videoId || seen.has(videoId)) continue
+          const channelTitle: string = item.snippet?.channelTitle ?? ''
+          if (BLOCKED_CHANNEL_TITLES.has(channelTitle)) continue
           seen.add(videoId)
           snippetMap.set(videoId, {
             title: item.snippet?.title ?? '',
             description: item.snippet?.description ?? '',
-            channelTitle: item.snippet?.channelTitle ?? '',
+            channelTitle,
             publishedAt: item.snippet?.publishedAt ?? '',
           })
         }
