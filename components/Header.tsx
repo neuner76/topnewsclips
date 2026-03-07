@@ -17,9 +17,6 @@ export default function Header() {
             <Link href="/?view=clips" className="hover:text-foreground transition-colors">
               Clips
             </Link>
-            <Link href="/archive" className="hover:text-foreground transition-colors">
-              Archive
-            </Link>
             <Link
               href="/#subscribe"
               className="bg-[oklch(0.52_0.14_196)] text-white px-3 py-1.5 rounded text-xs font-semibold hover:opacity-80 transition-opacity"
