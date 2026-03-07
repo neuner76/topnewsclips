@@ -35,6 +35,45 @@ function delay(ms: number) {
   return new Promise(r => setTimeout(r, ms))
 }
 
+// Returns the significant words from a title (strips stop words and short tokens)
+function sigWords(title: string): Set<string> {
+  const stop = new Set([
+    'the','a','an','and','or','but','in','on','at','to','for','of','with',
+    'by','from','that','this','is','are','was','were','be','been','have',
+    'has','had','will','after','during','its','as','after','outside','near',
+    'into','over','three','four','five','two','six','seven','eight','nine',
+  ])
+  return new Set(
+    title.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 3 && !stop.has(w))
+  )
+}
+
+// True if two titles share enough words to likely be the same incident
+function isSameIncident(a: string, b: string, threshold = 3): boolean {
+  const wa = sigWords(a)
+  const wb = sigWords(b)
+  let overlap = 0
+  for (const w of wa) if (wb.has(w)) overlap++
+  return overlap >= threshold
+}
+
+// Keep only the highest-viral-score version when multiple candidates cover the same incident
+function deduplicateByTitle<T extends { title: string; viralScore: number }>(candidates: T[]): T[] {
+  const result: T[] = []
+  for (const c of candidates) {
+    const idx = result.findIndex(r => isSameIncident(r.title, c.title))
+    if (idx === -1) {
+      result.push(c)
+    } else if (c.viralScore > result[idx].viralScore) {
+      result[idx] = c
+    }
+  }
+  return result
+}
+
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -124,7 +163,10 @@ export async function runFetch(): Promise<FetchResult> {
     return { added, errors }
   }
 
-  const slugsToCheck = candidates.map(c => makeSlug(c.platform, c.videoId, c.title))
+  // Deduplicate across sources — same incident covered by multiple channels keeps highest view count
+  const dedupedCandidates = deduplicateByTitle(candidates)
+
+  const slugsToCheck = dedupedCandidates.map(c => makeSlug(c.platform, c.videoId, c.title))
 
   // Check all three tables at once to avoid re-queuing known content
   const [{ data: existingStories }, { data: existingRejected }, { data: existingCandidates }] =
@@ -140,7 +182,7 @@ export async function runFetch(): Promise<FetchResult> {
     ...(existingCandidates ?? []).map((r: { slug: string }) => r.slug),
   ])
 
-  const newCandidates = candidates.filter(
+  const newCandidates = dedupedCandidates.filter(
     c => !knownSlugs.has(makeSlug(c.platform, c.videoId, c.title))
   )
 

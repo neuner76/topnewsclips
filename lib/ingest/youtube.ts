@@ -40,17 +40,17 @@ export async function resolveYouTubeChannelId(handle: string, apiKey: string): P
 
 // Search queries targeting each digest category.
 // Each costs 100 API units. With a 10k/day quota this leaves room for ~14 pipeline runs/day.
+// Note: science/tech is intentionally omitted — journalist RSS (Veritasium, SciShow, Dr. Campbell)
+// produces far cleaner results than search, which floods with clickbait and international content.
 const NEWS_SEARCH_QUERIES = [
-  // Politics — specific hearings/investigations, not press briefings
+  // Politics — specific enough to avoid press briefings
   { q: 'senate hearing testimony investigation 2026', label: 'politics' },
   { q: 'congressional hearing whistleblower accountability', label: 'politics' },
-  // Science — peer-reviewed findings, not product demos
-  { q: 'scientific study published research university findings', label: 'science' },
-  // Incident footage — specific, not generic "breaking news"
-  { q: 'bodycam footage police incident 2026', label: 'incident' },
-  { q: 'caught on camera security footage news', label: 'incident' },
-  // Local news with video — more likely to surface underreported stories
-  { q: 'local news investigation caught on video', label: 'local' },
+  // Incident footage — US-anchored terms reduce international CCTV noise
+  { q: 'bodycam footage US police department 2026', label: 'incident' },
+  { q: 'police bodycam shooting arrest american', label: 'incident' },
+  // Local US news with video
+  { q: 'local news caught on video american police fire', label: 'local' },
 ]
 
 const SEARCH_WINDOW_HOURS = 48
