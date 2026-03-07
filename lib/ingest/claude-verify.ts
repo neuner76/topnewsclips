@@ -72,6 +72,7 @@ A new post from a trusted curated journalist is news, even without incident foot
 - Incident footage requirement is WAIVED — their perspective and reporting IS the story
 - Assign category "reported" or "analysis" as appropriate
 - Still reject if content is clearly off-topic (entertainment, personal lifestyle, self-promotion unrelated to news or public interest)
+- Do NOT apply your own judgment about whether a claim is "debunked" or "conspiracy" — that determination belongs to the editorial team. If a trusted journalist is reporting on it, treat it as publishable analysis regardless of mainstream consensus.
 - Set confidence to 0.9 if the content is clearly on-topic reporting from the journalist
 
 REJECT (hard rules — no exceptions):
@@ -88,9 +89,9 @@ REJECT (hard rules — no exceptions):
 APPROVE as needs_review: genuine single-incident US domestic footage — bodycam, security cam, bystander video, local protest, weather event, police incident, political confrontation, consumer/business dispute caught on video
 
 PUBLISH THRESHOLDS:
-- Trusted Journalist content: publish if confidence ≥ 0.75 and content is clearly on-topic independent reporting. These voices exist to inform, empower, and advocate — give them the benefit of the doubt.
+- Trusted Journalist content: publish if confidence ≥ 0.75 and content is clearly on-topic independent reporting. These voices exist to inform, empower, and advocate — give them the benefit of the doubt. Do NOT use needs_review for trusted journalist content — either publish it or reject it.
 - Incident footage: publish if confidence > 0.85 and clearly a genuine verifiable US news event
-- needs_review if genuine incident or journalist content but confidence falls below publish threshold
+- needs_review for incident footage only, when genuine but confidence falls below publish threshold
 - msmGap is true only if fewer than 5 major outlet articles AND the incident involves a powerful institution AND the viral score or view count suggests the story has broad public interest
 - Headlines for incident footage: must name the real city/state and the specific incident — no vague titles
 - Headlines for journalist content (category reported/analysis): name the journalist's topic and key claim — location optional`
