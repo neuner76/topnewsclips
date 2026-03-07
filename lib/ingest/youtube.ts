@@ -67,8 +67,13 @@ const BLOCKED_CHANNEL_TITLES = new Set([
   // Partisan commentary
   'Really American',
   'Ayyan',
-  // Pseudoscience / clickbait
+  // Pseudoscience / clickbait / paranormal
   'FactFusion007',
+  'Brain_Burst',
+  'Modern Love Exposed',
+  'Mr Evidence',
+  'InOutExposed',
+  'Bodycam Detained',
   // Finance influencers
   'SwingTradeShorts',
   'Stocks With Zach',
