@@ -11,10 +11,11 @@ jobs:
     steps:
       - name: Fetch + Process
         run: |
-          curl -sf -X GET "${{ secrets.SITE_URL }}/api/ingest" \
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
       - name: Generate Digest
+        if: always()
         run: |
-          curl -sf -X GET "${{ secrets.SITE_URL }}/api/admin/digest" \
+          curl -s --max-time 60 -X GET "${{ secrets.SITE_URL }}/api/admin/digest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
