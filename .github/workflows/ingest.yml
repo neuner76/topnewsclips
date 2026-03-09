@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Fetch + Process
         run: |
-          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest" \
+          curl -s --max-time 600 -X GET "${{ secrets.SITE_URL }}/api/ingest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
       - name: Generate Digest
