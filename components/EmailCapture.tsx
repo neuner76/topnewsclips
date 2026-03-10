@@ -39,11 +39,10 @@ export default function EmailCapture() {
     <section id="subscribe" className="bg-foreground text-background rounded-lg px-6 py-8 sm:px-10 sm:py-10 my-12">
       <div className="max-w-xl mx-auto text-center">
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-2">
-          The daily briefing mainstream media won&apos;t give you.
+          The daily briefing built for independents.
         </h2>
         <p className="text-sm text-background/70 mb-6">
-          Get the top viral stories — ranked by real engagement — delivered every morning.
-          Free to start. No spam.
+          Real stories. No party filter. Delivered every morning — free, no spam.
         </p>
 
         {status === 'success' ? (

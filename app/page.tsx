@@ -247,7 +247,7 @@ export default async function HomePage({
             Today&apos;s Top Clips
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Independent journalists. Real stories. No corporate filter.
+            News for the 50% — independent journalists, no party filter.
           </p>
         </div>
 
