@@ -20,3 +20,9 @@ jobs:
         run: |
           curl -s --max-time 60 -X GET "${{ secrets.SITE_URL }}/api/admin/digest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Cleanup Old Stories
+        if: always()
+        run: |
+          curl -s --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/cleanup" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

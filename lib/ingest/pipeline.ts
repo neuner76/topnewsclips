@@ -60,6 +60,26 @@ function isSameIncident(a: string, b: string, threshold = 3): boolean {
   return overlap >= threshold
 }
 
+const JOURNALIST_DAILY_CAP = 3
+
+// Limit each journalist to their top N stories by viral score per run
+function capByJournalist<T extends { journalistUsername?: string | null; viralScore: number }>(
+  candidates: T[]
+): T[] {
+  const counts = new Map<string, number>()
+  const result: T[] = []
+  // Sort highest viral score first so we keep the best ones
+  const sorted = [...candidates].sort((a, b) => b.viralScore - a.viralScore)
+  for (const c of sorted) {
+    const key = c.journalistUsername ?? '__none__'
+    const count = counts.get(key) ?? 0
+    if (c.journalistUsername && count >= JOURNALIST_DAILY_CAP) continue
+    counts.set(key, count + 1)
+    result.push(c)
+  }
+  return result
+}
+
 // Keep only the highest-viral-score version when multiple candidates cover the same incident
 function deduplicateByTitle<T extends { title: string; viralScore: number }>(candidates: T[]): T[] {
   const result: T[] = []
@@ -164,7 +184,7 @@ export async function runFetch(): Promise<FetchResult> {
   }
 
   // Deduplicate across sources — same incident covered by multiple channels keeps highest view count
-  const dedupedCandidates = deduplicateByTitle(candidates)
+  const dedupedCandidates = capByJournalist(deduplicateByTitle(candidates))
 
   const slugsToCheck = dedupedCandidates.map(c => makeSlug(c.platform, c.videoId, c.title))
 
