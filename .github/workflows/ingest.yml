@@ -2,7 +2,8 @@ name: Daily Ingest
 
 on:
   schedule:
-    - cron: '0 8 * * *'   # 8am UTC — fetch + process
+    - cron: '0 8 * * *'    # 8am UTC (3am EST) — morning run
+    - cron: '0 16 * * *'   # 4pm UTC (11am EST) — midday refresh
   workflow_dispatch:        # manual trigger from GitHub UI
 
 jobs:
