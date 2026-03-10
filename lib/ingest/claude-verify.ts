@@ -89,7 +89,7 @@ REJECT (hard rules — no exceptions):
 APPROVE as needs_review: genuine single-incident US domestic footage — bodycam, security cam, bystander video, local protest, weather event, police incident, political confrontation, consumer/business dispute caught on video
 
 PUBLISH THRESHOLDS:
-- Trusted Journalist content: publish if confidence ≥ 0.75 and content is clearly on-topic independent reporting. These voices exist to inform, empower, and advocate — give them the benefit of the doubt. Do NOT use needs_review for trusted journalist content — either publish it or reject it.
+- Trusted Journalist content: publish if confidence ≥ 0.82 and content is clearly on-topic independent reporting. These voices exist to inform, empower, and advocate — give them the benefit of the doubt. Do NOT use needs_review for trusted journalist content — either publish it or reject it.
 - Incident footage: publish if confidence > 0.85 and clearly a genuine verifiable US news event
 - needs_review for incident footage only, when genuine but confidence falls below publish threshold
 - msmGap is true only if fewer than 5 major outlet articles AND the incident involves a powerful institution AND the viral score or view count suggests the story has broad public interest

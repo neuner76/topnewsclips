@@ -2,6 +2,7 @@ import { getLatestDigest } from '@/lib/digest'
 import type { NeedToKnowItem, InTheKnowItem } from '@/lib/digest'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import EmailCapture from '@/components/EmailCapture'
 import Link from 'next/link'
 
 export const revalidate = 300
@@ -157,7 +158,9 @@ export default async function DigestPage() {
           </>
         )}
 
-        <div className="mt-12 pt-6 border-t border-border text-center">
+        <EmailCapture />
+
+        <div className="mt-4 pt-6 border-t border-border text-center">
           <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
             ← Back to all clips
           </Link>

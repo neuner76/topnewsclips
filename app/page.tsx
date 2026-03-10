@@ -234,6 +234,7 @@ export default async function HomePage({
   const reported = splitSection('reported')
   const analysis = splitSection('analysis')
   const uncategorized = all.filter(s => !s.category)
+  const msmBlackout = all.filter(s => s.msm_gap)
 
   return (
     <>
@@ -300,6 +301,19 @@ export default async function HomePage({
                   Read full digest →
                 </p>
               </Link>
+            )}
+            {msmBlackout.length > 0 && (
+              <section className="mb-12">
+                <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-[oklch(0.52_0.14_196)]">
+                    MSM Blackout
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Stories the mainstream media isn&apos;t covering</p>
+                </div>
+                <div>
+                  {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} rank={0} />)}
+                </div>
+              </section>
             )}
             <Section
               title="Analysis"
