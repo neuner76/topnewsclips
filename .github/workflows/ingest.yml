@@ -10,9 +10,14 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch + Process
+      - name: Fetch
         run: |
-          curl -s --max-time 600 -X GET "${{ secrets.SITE_URL }}/api/ingest" \
+          curl -s --max-time 60 -X GET "${{ secrets.SITE_URL }}/api/ingest/fetch" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process
+        run: |
+          curl -s --max-time 600 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
       - name: Generate Digest
