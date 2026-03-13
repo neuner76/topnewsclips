@@ -15,9 +15,21 @@ jobs:
           curl -s --max-time 60 -X GET "${{ secrets.SITE_URL }}/api/ingest/fetch" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
-      - name: Process
+      - name: Process (batch 1)
         run: |
-          curl -s --max-time 600 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+          curl -s --max-time 120 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 2)
+        if: always()
+        run: |
+          curl -s --max-time 120 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 3)
+        if: always()
+        run: |
+          curl -s --max-time 120 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
       - name: Generate Digest
