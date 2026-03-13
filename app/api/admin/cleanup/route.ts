@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     .from('stories')
     .update({ published: false })
     .eq('published', true)
-    .lt('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .lt('created_at', new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString())
     .select('id')
 
   if (error) {

@@ -208,7 +208,7 @@ async function fetchJournalistChannelsViaRSS(
   errors: string[],
   seen: Set<string>
 ) {
-  const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
 
   for (const { username, channelId } of journalists) {
     try {
