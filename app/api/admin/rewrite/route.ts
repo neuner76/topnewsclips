@@ -46,8 +46,8 @@ Current description: ${story.description || '(none)'}
 Rewrite both for a curious citizen who wants to understand what's happening in their country. Respond with valid JSON only:
 
 {
-  "headline": "10-15 words. Lead with the most newsworthy fact. Make the reader feel the stakes. No passive voice. No journalist name at the start.",
-  "description": "2 sentences. Sentence 1: what specifically happened, where, and who is affected — name real people, institutions, or places. Sentence 2: why this matters to ordinary people — safety, rights, money, accountability, or civic life. Be direct and concrete. No filler like 'highlights', 'raises questions', or 'sparks debate'."
+  "headline": "10-15 words. Lead with the most newsworthy fact. Make the reader feel the stakes. No passive voice. Never mention the journalist's name, channel name, or outlet name — the story is the story, not the messenger.",
+  "description": "2 sentences, maximum 25 words each. Sentence 1: what specifically happened, where, and who is affected — name real people, institutions, or places. Sentence 2: why this matters to ordinary people — safety, rights, money, accountability, or civic life. Be direct and concrete. Never editorialize or use politically charged language like 'authoritarian', 'extremist', 'radical', or 'alarming'. Never use 'highlights', 'raises questions', 'sparks debate', or any phrase that softens facts. Must be informative to citizens of any political affiliation."
 }`
 
   const message = await client.messages.create({
