@@ -65,7 +65,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   }))
 
   const response = await claude.messages.create({
-    model: 'claude-opus-4-6',
+    model: 'claude-sonnet-4-6',
     max_tokens: 4096,
     messages: [{
       role: 'user',
