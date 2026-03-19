@@ -62,24 +62,6 @@ function isSameIncident(a: string, b: string, threshold = 3): boolean {
 
 const JOURNALIST_DAILY_CAP = 3
 
-// Limit each journalist to their top N stories by viral score per run
-function capByJournalist<T extends { journalistUsername?: string | null; viralScore: number }>(
-  candidates: T[]
-): T[] {
-  const counts = new Map<string, number>()
-  const result: T[] = []
-  // Sort highest viral score first so we keep the best ones
-  const sorted = [...candidates].sort((a, b) => b.viralScore - a.viralScore)
-  for (const c of sorted) {
-    const key = c.journalistUsername ?? '__none__'
-    const count = counts.get(key) ?? 0
-    if (c.journalistUsername && count >= JOURNALIST_DAILY_CAP) continue
-    counts.set(key, count + 1)
-    result.push(c)
-  }
-  return result
-}
-
 // Keep only the highest-viral-score version when multiple candidates cover the same incident
 function deduplicateByTitle<T extends { title: string; viralScore: number }>(candidates: T[]): T[] {
   const result: T[] = []
@@ -184,17 +166,27 @@ export async function runFetch(): Promise<FetchResult> {
   }
 
   // Deduplicate across sources — same incident covered by multiple channels keeps highest view count
-  const dedupedCandidates = capByJournalist(deduplicateByTitle(candidates))
+  const dedupedCandidates = deduplicateByTitle(candidates)
 
   const slugsToCheck = dedupedCandidates.map(c => makeSlug(c.platform, c.videoId, c.title))
 
   // Check all three tables at once to avoid re-queuing known content
-  const [{ data: existingStories }, { data: existingRejected }, { data: existingCandidates }] =
+  const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const [{ data: existingStories }, { data: existingRejected }, { data: existingCandidates }, { data: todayStories }, { data: todayCandidates }] =
     await Promise.all([
       supabase.from('stories').select('slug').in('slug', slugsToCheck),
       supabase.from('rejected_slugs').select('slug').in('slug', slugsToCheck),
       supabase.from('candidates').select('slug').in('slug', slugsToCheck),
+      supabase.from('stories').select('journalist_username').not('journalist_username', 'is', null).gte('created_at', todayCutoff),
+      supabase.from('candidates').select('journalist_username').not('journalist_username', 'is', null).gte('fetched_at', todayCutoff),
     ])
+
+  // Count how many stories each journalist already has queued or published today
+  const todayJournalistCounts = new Map<string, number>()
+  for (const r of [...(todayStories ?? []), ...(todayCandidates ?? [])]) {
+    const u = (r as { journalist_username: string }).journalist_username
+    todayJournalistCounts.set(u, (todayJournalistCounts.get(u) ?? 0) + 1)
+  }
 
   const knownSlugs = new Set([
     ...(existingStories ?? []).map((r: { slug: string }) => r.slug),
@@ -202,9 +194,19 @@ export async function runFetch(): Promise<FetchResult> {
     ...(existingCandidates ?? []).map((r: { slug: string }) => r.slug),
   ])
 
-  const newCandidates = dedupedCandidates.filter(
-    c => !knownSlugs.has(makeSlug(c.platform, c.videoId, c.title))
+  // Apply daily journalist cap across all runs — sort by viral score, keep best
+  const sortedCandidates = [...dedupedCandidates].sort((a, b) =>
+    (b.viralScore ?? 0) - (a.viralScore ?? 0)
   )
+  const newCandidates = sortedCandidates.filter(c => {
+    if (knownSlugs.has(makeSlug(c.platform, c.videoId, c.title))) return false
+    const username = (c as { journalistUsername?: string | null }).journalistUsername
+    if (!username) return true
+    const count = todayJournalistCounts.get(username) ?? 0
+    if (count >= JOURNALIST_DAILY_CAP) return false
+    todayJournalistCounts.set(username, count + 1)
+    return true
+  })
 
   for (const c of newCandidates) {
     const slug = makeSlug(c.platform, c.videoId, c.title)
