@@ -1,0 +1,179 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
+import { getLatestDigest, type DigestContent } from '@/lib/digest'
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00Z')
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+}
+
+function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): string {
+  const inTheKnowCategories = [
+    'Politics & World Affairs',
+    'Science & Technology',
+    'Business & Markets',
+    'Sports, Entertainment, & Culture',
+  ] as const
+
+  const needToKnowHtml = content.needToKnow.map(item => `
+    <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid #e5e7eb;">
+      <a href="${siteUrl}/story/${item.slug}" style="text-decoration:none;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">NEED TO KNOW</div>
+        <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
+      </a>
+      ${item.paragraphs.map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#374151;">${p}</p>`).join('')}
+      <a href="${siteUrl}/story/${item.slug}" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;">Read more →</a>
+    </div>
+  `).join('')
+
+  const inTheKnowHtml = inTheKnowCategories.map(cat => {
+    const items = content.inTheKnow[cat]
+    if (!items || items.length === 0) return ''
+    return `
+      <div style="margin-bottom:20px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6b7280;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;">${cat}</div>
+        ${items.map(item => {
+          const text = item.slug
+            ? `<a href="${siteUrl}/story/${item.slug}" style="color:#111827;text-decoration:none;">${item.text}</a>`
+            : item.text
+          return `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#374151;">• ${text}</p>`
+        }).join('')}
+      </div>
+    `
+  }).join('')
+
+  const etceteraHtml = content.etcetera.length > 0 ? `
+    <div style="margin-top:28px;padding:20px 24px;background:#f9fafb;border-radius:8px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#6b7280;text-transform:uppercase;margin-bottom:12px;">ETCETERA</div>
+      ${content.etcetera.map(item => `<p style="margin:0 0-8px;font-size:13px;line-height:1.6;color:#6b7280;">• ${item}</p>`).join('')}
+    </div>
+  ` : ''
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TopNewsClips — ${formatDate(date)}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div style="max-width:620px;margin:0 auto;background:#ffffff;">
+
+    <!-- Header -->
+    <div style="background:#ffffff;border-bottom:3px solid #0e7490;padding:20px 32px;">
+      <a href="${siteUrl}" style="text-decoration:none;">
+        <div style="font-size:22px;font-weight:900;letter-spacing:-0.03em;color:#111827;">TopNewsClips</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;">News for the 50% · Independent voices · No party filter</div>
+      </a>
+      <div style="font-size:12px;color:#9ca3af;margin-top:6px;">${formatDate(date)}</div>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:32px;">
+
+      <!-- Need to Know -->
+      ${needToKnowHtml}
+
+      <!-- In the Know -->
+      <div style="margin-top:8px;">
+        <div style="font-size:13px;font-weight:800;letter-spacing:0.06em;color:#111827;text-transform:uppercase;margin-bottom:20px;padding-bottom:8px;border-bottom:2px solid #111827;">In The Know</div>
+        ${inTheKnowHtml}
+      </div>
+
+      ${etceteraHtml}
+
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:24px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+      <a href="${siteUrl}" style="font-size:13px;font-weight:700;color:#0e7490;text-decoration:none;">topnewsclips.com</a>
+      <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">
+        You're receiving this because you subscribed at topnewsclips.com.<br>
+        <a href="${siteUrl}/unsubscribe?email={{email}}" style="color:#9ca3af;">Unsubscribe</a>
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>`
+}
+
+export async function GET(request: Request) {
+  const auth = request.headers.get('Authorization')
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const resendKey = process.env.RESEND_API_KEY
+  if (!resendKey) {
+    return NextResponse.json({ error: 'RESEND_API_KEY not set' }, { status: 500 })
+  }
+
+  const digest = await getLatestDigest()
+  if (!digest) {
+    return NextResponse.json({ error: 'No digest found' }, { status: 404 })
+  }
+
+  // Only send today's digest
+  const today = new Date().toISOString().split('T')[0]
+  if (digest.date !== today) {
+    return NextResponse.json({ error: `Digest is from ${digest.date}, not today (${today})` }, { status: 400 })
+  }
+
+  const supabase = getSupabase()
+  const { data: subscribers, error } = await supabase
+    .from('subscribers')
+    .select('email')
+
+  if (error) {
+    return NextResponse.json({ error: `Failed to fetch subscribers: ${error.message}` }, { status: 500 })
+  }
+
+  if (!subscribers || subscribers.length === 0) {
+    return NextResponse.json({ sent: 0, message: 'No subscribers' })
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://topnewsclips.com'
+  const resend = new Resend(resendKey)
+
+  const emails = subscribers.map((s: { email: string }) => s.email)
+  const baseHtml = buildEmailHtml(digest.content, digest.date, siteUrl)
+  const subject = `Your briefing — ${formatDate(digest.date)}`
+
+  // Resend supports batch send up to 100 emails per request
+  // Each email gets a personalized unsubscribe link
+  const BATCH_SIZE = 100
+  let sent = 0
+  const errors: string[] = []
+
+  for (let i = 0; i < emails.length; i += BATCH_SIZE) {
+    const batch = emails.slice(i, i + BATCH_SIZE)
+    try {
+      await resend.batch.send(
+        batch.map(email => ({
+          from: 'TopNewsClips <digest@topnewsclips.com>',
+          to: email,
+          subject,
+          html: baseHtml.replace('{{email}}', encodeURIComponent(email)),
+          headers: {
+            'List-Unsubscribe': `<${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
+        }))
+      )
+      sent += batch.length
+    } catch (err) {
+      errors.push(`Batch ${i / BATCH_SIZE + 1}: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  return NextResponse.json({ sent, total: emails.length, errors })
+}
