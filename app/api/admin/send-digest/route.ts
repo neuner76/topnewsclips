@@ -30,7 +30,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
         <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
       </a>
       ${item.paragraphs.map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#374151;">${p}</p>`).join('')}
-      <a href="${siteUrl}/story/${item.slug}" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;">Read more →</a>
+      <a href="${siteUrl}/story/${item.slug}" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;">Watch →</a>
     </div>
   `).join('')
 
@@ -106,6 +106,71 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
 </html>`
 }
 
+function buildEmailText(content: DigestContent, date: string, siteUrl: string): string {
+  const inTheKnowCategories = [
+    'Politics & World Affairs',
+    'Science & Technology',
+    'Business & Markets',
+    'Sports, Entertainment, & Culture',
+  ] as const
+
+  const lines: string[] = []
+
+  lines.push(`TOPNEWSCLIPS — ${formatDate(date)}`)
+  lines.push('News for the 50% · Independent voices · No party filter')
+  lines.push('')
+  lines.push('━'.repeat(60))
+  lines.push('')
+
+  // Need to Know
+  for (const item of content.needToKnow) {
+    lines.push('NEED TO KNOW')
+    lines.push(item.sectionTitle.toUpperCase())
+    lines.push('')
+    for (const p of item.paragraphs) {
+      lines.push(p)
+      lines.push('')
+    }
+    lines.push(`Watch: ${siteUrl}/story/${item.slug}`)
+    lines.push('')
+    lines.push('─'.repeat(60))
+    lines.push('')
+  }
+
+  // In the Know
+  lines.push('IN THE KNOW')
+  lines.push('')
+  for (const cat of inTheKnowCategories) {
+    const items = content.inTheKnow[cat]
+    if (!items || items.length === 0) continue
+    lines.push(cat.toUpperCase())
+    for (const item of items) {
+      const link = item.slug ? ` ${siteUrl}/story/${item.slug}` : ''
+      lines.push(`• ${item.text}${link}`)
+    }
+    lines.push('')
+  }
+
+  // Etcetera
+  if (content.etcetera.length > 0) {
+    lines.push('─'.repeat(60))
+    lines.push('')
+    lines.push('ETCETERA')
+    lines.push('')
+    for (const item of content.etcetera) {
+      lines.push(`• ${item}`)
+    }
+    lines.push('')
+  }
+
+  lines.push('━'.repeat(60))
+  lines.push(`${siteUrl}`)
+  lines.push('You\'re receiving this because you subscribed at topnewsclips.com.')
+  lines.push('Unsubscribe: {{unsubscribe}}')
+
+  return lines.join('\n')
+}
+
 export async function GET(request: Request) {
   const auth = request.headers.get('Authorization')
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -146,6 +211,7 @@ export async function GET(request: Request) {
 
   const emails = subscribers.map((s: { email: string }) => s.email)
   const baseHtml = buildEmailHtml(digest.content, digest.date, siteUrl)
+  const baseText = buildEmailText(digest.content, digest.date, siteUrl)
   const subject = `Your briefing — ${formatDate(digest.date)}`
 
   // Resend supports batch send up to 100 emails per request
@@ -163,6 +229,7 @@ export async function GET(request: Request) {
           to: email,
           subject,
           html: baseHtml.replace('{{email}}', encodeURIComponent(email)),
+          text: baseText.replace('{{unsubscribe}}', `${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}`),
           headers: {
             'List-Unsubscribe': `<${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}>`,
             'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
