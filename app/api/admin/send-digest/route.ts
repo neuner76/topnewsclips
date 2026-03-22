@@ -71,7 +71,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
     <div style="background:#ffffff;border-bottom:3px solid #0e7490;padding:20px 32px;">
       <a href="${siteUrl}" style="text-decoration:none;">
         <div style="font-size:22px;font-weight:900;letter-spacing:-0.03em;color:#111827;">TopNewsClips</div>
-        <div style="font-size:11px;color:#6b7280;margin-top:2px;">News for the 50% · Independent voices · No party filter</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;">Independent news. No agenda.</div>
       </a>
       <div style="font-size:12px;color:#9ca3af;margin-top:6px;">${formatDate(date)}</div>
     </div>
@@ -117,7 +117,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
   const lines: string[] = []
 
   lines.push(`TOPNEWSCLIPS — ${formatDate(date)}`)
-  lines.push('News for the 50% · Independent voices · No party filter')
+  lines.push('Independent news. No agenda.')
   lines.push('')
   lines.push('━'.repeat(60))
   lines.push('')

@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'About — TopNewsClips',
-  description: 'News for the 50% — independent journalists, no party filter.',
+  description: 'Independent news. No agenda.',
 }
 
 export default function AboutPage() {
@@ -17,7 +17,7 @@ export default function AboutPage() {
         <div className="mb-10 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">About</h1>
           <p className="text-sm text-muted-foreground">
-            News for the 50% — independent journalists, no party filter.
+            Independent news. No agenda.
           </p>
         </div>
 
