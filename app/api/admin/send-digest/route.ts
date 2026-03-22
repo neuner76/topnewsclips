@@ -97,7 +97,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
       <a href="${siteUrl}" style="font-size:13px;font-weight:700;color:#0e7490;text-decoration:none;">topnewsclips.com</a>
       <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">
         You're receiving this because you subscribed at topnewsclips.com.<br>
-        <a href="${siteUrl}/unsubscribe?email={{email}}" style="color:#9ca3af;">Unsubscribe</a>
+        <a href="${siteUrl}/api/unsubscribe?email={{email}}" style="color:#9ca3af;">Unsubscribe</a>
       </p>
     </div>
 
@@ -229,9 +229,9 @@ export async function GET(request: Request) {
           to: email,
           subject,
           html: baseHtml.replace('{{email}}', encodeURIComponent(email)),
-          text: baseText.replace('{{unsubscribe}}', `${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}`),
+          text: baseText.replace('{{unsubscribe}}', `${siteUrl}/api/unsubscribe?email=${encodeURIComponent(email)}`),
           headers: {
-            'List-Unsubscribe': `<${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}>`,
+            'List-Unsubscribe': `<${siteUrl}/api/unsubscribe?email=${encodeURIComponent(email)}>`,
             'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
           },
         }))
