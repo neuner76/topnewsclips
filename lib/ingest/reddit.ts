@@ -12,17 +12,19 @@ export interface RedditClip {
 }
 
 const SUBREDDITS = [
-  // Incident footage (existing strength)
+  // Incident footage
   'PublicFreakout',
   'bodycam',
   'ActualPublicFreakouts',
   'CaughtOnCamera',
-  // Broader news categories
-  'news',
-  'worldnews',
+  // Raw footage variety
+  'Roadcam',
+  'AbruptChaos',
+  'tornado',
+  'nonononoyes',
+  // Science/tech (feeds Analysis + Etcetera)
   'science',
   'technology',
-  // Viral/quirky (feeds Etcetera)
   'Damnthatsinteresting',
   'nextfuckinglevel',
   'interestingasfuck',
@@ -59,8 +61,8 @@ export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors:
   const errors: string[] = []
   const seen = new Set<string>()
 
-  // 7 days ago as Unix timestamp
-  const after = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000)
+  // 48 hours ago as Unix timestamp
+  const after = Math.floor((Date.now() - 48 * 60 * 60 * 1000) / 1000)
 
   for (const subreddit of SUBREDDITS) {
     try {
