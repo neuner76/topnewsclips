@@ -53,7 +53,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   const { data: stories, error } = await supabase
     .from('stories')
-    .select('id, title, slug, description, category, journalist_username, msm_gap')
+    .select('id, title, slug, description, category, journalist_username, msm_gap, region')
     .eq('published', true)
     .order('pinned', { ascending: false })
     .order('display_order', { ascending: true })
