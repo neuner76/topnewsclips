@@ -42,7 +42,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
         <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6b7280;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;">${cat}</div>
         ${items.map(item => {
           const text = item.slug
-            ? `<a href="${siteUrl}/story/${item.slug}" style="color:#111827;text-decoration:none;">${item.text}</a>`
+            ? `<a href="${siteUrl}/story/${item.slug}" target="_blank" rel="noopener noreferrer" style="color:#111827;text-decoration:none;">${item.text}</a>`
             : item.text
           return `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#374151;">• ${text}</p>`
         }).join('')}
