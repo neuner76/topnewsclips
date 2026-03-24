@@ -41,7 +41,7 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
         rel="noopener noreferrer"
         className="inline-block mt-4 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
       >
-        Watch clip →
+        Watch →
       </Link>
     </article>
   )
