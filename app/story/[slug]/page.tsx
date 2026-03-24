@@ -30,11 +30,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('stories')
-    .select('title, description, embed_url, platform')
+    .select('title, description, embed_url, platform, published')
     .eq('slug', slug)
     .single()
 
-  if (!data) return {}
+  if (!data || !data.published) return {}
 
   const ogImage = data.platform === 'youtube' ? getYouTubeThumbnailUrl(data.embed_url) : null
   const description = (data.description ?? '').slice(0, 155)
