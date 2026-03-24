@@ -37,19 +37,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) return {}
 
   const ogImage = data.platform === 'youtube' ? getYouTubeThumbnailUrl(data.embed_url) : null
+  const description = (data.description ?? '').slice(0, 155)
+  const canonicalUrl = `https://www.topnewsclips.com/story/${slug}`
 
   return {
     title: `${data.title} — Top News Clips`,
-    description: data.description,
+    description,
+    alternates: { canonical: canonicalUrl },
     openGraph: {
       title: data.title,
-      description: data.description,
+      description,
+      url: canonicalUrl,
       ...(ogImage && { images: [{ url: ogImage, width: 1280, height: 720 }] }),
     },
     twitter: {
       card: ogImage ? 'summary_large_image' : 'summary',
       title: data.title,
-      description: data.description,
+      description,
+      site: '@topnewsclips',
       ...(ogImage && { images: [ogImage] }),
     },
   }

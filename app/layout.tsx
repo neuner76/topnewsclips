@@ -8,21 +8,25 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: 'Top News Clips — The Stories Mainstream Media Ignores',
+  title: 'Top News Clips — Independent News. No Agenda.',
   description:
-    "The viral stories rocking social media that mainstream outlets won't touch. Real clips. Real engagement. No gatekeeping.",
-  metadataBase: new URL('https://topnewsclips.com'),
+    'Independent news clips and journalism mainstream media undercovers. Bodycam footage, investigative reporting, and global stories — unfiltered.',
+  metadataBase: new URL('https://www.topnewsclips.com'),
+  alternates: {
+    canonical: 'https://www.topnewsclips.com',
+  },
   openGraph: {
-    title: 'Top News Clips',
-    description: 'The viral stories mainstream media ignores.',
-    url: 'https://topnewsclips.com',
+    title: 'Top News Clips — Independent News. No Agenda.',
+    description: 'Independent news clips mainstream media undercovers.',
+    url: 'https://www.topnewsclips.com',
     siteName: 'Top News Clips',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Top News Clips',
-    description: 'The viral stories mainstream media ignores.',
+    title: 'Top News Clips — Independent News. No Agenda.',
+    description: 'Independent news clips mainstream media undercovers.',
+    site: '@topnewsclips',
   },
 }
 
