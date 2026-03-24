@@ -144,7 +144,10 @@ async function fetchGlobalYouTubeRSS(
   for (const { channelId, region, label } of GLOBAL_YOUTUBE_CHANNELS) {
     try {
       const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
-      const res = await fetch(rssUrl, { signal: AbortSignal.timeout(5000) })
+      const res = await fetch(rssUrl, {
+        signal: AbortSignal.timeout(5000),
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TopNewsClips/1.0)' },
+      })
 
       if (!res.ok) {
         errors.push(`Global YouTube RSS ${label}: HTTP ${res.status}`)
