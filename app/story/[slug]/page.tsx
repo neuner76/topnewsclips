@@ -102,8 +102,45 @@ export default async function StoryPage({ params }: Props) {
     })
     .filter(r => r.region !== null || s.region !== null) // at least one must be international
 
+  const canonicalUrl = `https://www.topnewsclips.com/story/${s.slug}`
+  const ogImage = s.platform === 'youtube' ? getYouTubeThumbnailUrl(s.embed_url) : s.thumbnail_url ?? null
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'NewsArticle',
+        headline: s.title,
+        description: (s.description ?? '').slice(0, 155),
+        url: canonicalUrl,
+        datePublished: s.created_at,
+        dateModified: s.updated_at,
+        image: ogImage ?? undefined,
+        publisher: {
+          '@type': 'Organization',
+          name: 'Top News Clips',
+          url: 'https://www.topnewsclips.com',
+        },
+        mainEntityOfPage: canonicalUrl,
+      },
+      ...(s.platform === 'youtube' && s.embed_url ? [{
+        '@type': 'VideoObject',
+        name: s.title,
+        description: (s.description ?? '').slice(0, 155),
+        thumbnailUrl: ogImage ?? undefined,
+        uploadDate: s.created_at,
+        embedUrl: s.embed_url,
+        url: canonicalUrl,
+      }] : []),
+    ],
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
 
