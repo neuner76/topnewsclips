@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('slug', slug)
     .single()
 
-  if (!data || !data.published) return {}
+  if (!data) return {}
 
   const ogImage = data.platform === 'youtube' ? getYouTubeThumbnailUrl(data.embed_url) : null
   const description = (data.description ?? '').slice(0, 155)
@@ -68,7 +68,6 @@ export default async function StoryPage({ params }: Props) {
     .from('stories')
     .select('*')
     .eq('slug', slug)
-    .eq('published', true)
     .single()
 
   if (!story) notFound()
@@ -151,6 +150,16 @@ export default async function StoryPage({ params }: Props) {
         >
           ← Back to Today&apos;s Digest
         </Link>
+
+        {/* Archived banner */}
+        {!s.published && (
+          <div className="mb-5 px-4 py-3 bg-muted border border-border rounded text-sm text-muted-foreground">
+            This story is from {new Date(s.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} and has cycled out of the daily feed.{' '}
+            <Link href="/" className="font-semibold text-foreground hover:underline underline-offset-2">
+              See today&apos;s stories →
+            </Link>
+          </div>
+        )}
 
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
