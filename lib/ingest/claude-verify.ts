@@ -40,6 +40,7 @@ Title: ${clip.title}
 Description: ${clip.description.slice(0, 400)}
 Platform: ${clip.platform}
 Viral Score: ${clip.viralScore}
+US Mainstream Media Articles Found: ${clip.msmArticleCount === -1 ? 'unknown' : clip.msmArticleCount}
 
 Respond with this exact JSON structure:
 {
@@ -48,17 +49,21 @@ Respond with this exact JSON structure:
   "aiGeneratedRisk": "low" or "medium" or "high",
   "headline": "Direct 10-15 word headline stating the most newsworthy fact. Name the country or region. No passive voice. No hedge words.",
   "summary": "2 sentences max 25 words each. Sentence 1: what happened, where, who was involved. Sentence 2: why it matters to the wider world or to Americans specifically.",
-  "msmGap": false,
+  "msmGap": true or false,
   "category": "reported" or "analysis" or "raw",
   "decision": "publish" or "reject",
   "rejectReason": "reason if rejected, otherwise null"
 }
 
+msmGap rules:
+- Set to true if US Mainstream Media Articles Found < 8 AND the story is genuinely significant (major protests, government action, economic crisis, natural disaster, military conflict). This means the US media is ignoring something the rest of the world considers important — a Global Blindspot.
+- Set to false if the story is already well-covered by US media or is minor news.
+
 REJECT if:
 - Celebrity gossip, entertainment, sports scores with no broader significance
 - Clearly propaganda or state media with no factual news value
 - Content that cannot be verified as a real event
-- Duplicate of a story already well-covered by US mainstream media (msmArticleCount > 50)
+- Duplicate of a story already well-covered by US mainstream media (US Mainstream Media Articles Found > 50)
 
 PUBLISH if confidence >= 0.72 and it is a genuine newsworthy international event.`
 }

@@ -6,6 +6,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import StoryCard from '@/components/StoryCard'
 import EmailCapture from '@/components/EmailCapture'
+import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import Link from 'next/link'
 
 export const revalidate = 300
@@ -245,6 +246,7 @@ export default async function HomePage({
     if (!globalByRegion.has(s.region!)) globalByRegion.set(s.region!, s)
   }
   const globalLens = [...globalByRegion.values()]
+  const globalBlindspots = globalStories.filter(s => s.msm_gap)
 
   return (
     <>
@@ -325,6 +327,32 @@ export default async function HomePage({
                 </div>
               </section>
             )}
+            {globalBlindspots.length > 0 && (
+              <section className="mb-12">
+                <div className="border-l-4 border-[oklch(0.58_0.14_55)] pl-3 mb-3">
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-[oklch(0.52_0.14_55)]">
+                    Global Blindspot
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Stories the rest of the world is covering that US media is ignoring</p>
+                </div>
+                <div>
+                  {globalBlindspots.map(s => (
+                    <div key={s.id} className="group py-3 border-b border-border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
+                        <GlobalBlindspotBadge />
+                      </div>
+                      <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
+                        <h3 className="font-bold text-[15px] leading-snug group-hover/title:underline underline-offset-2">{s.title}</h3>
+                      </Link>
+                      {s.description && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
             {globalLens.length > 0 && (
               <section className="mb-12">
                 <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
@@ -337,7 +365,8 @@ export default async function HomePage({
                   {globalLens.map(s => (
                     <div key={s.id} className="group py-3 border-b border-border">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold tracking-widest text-[oklch(0.52_0.14_196)] uppercase">{s.region}</span>
+                        <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
+                        {s.msm_gap && <GlobalBlindspotBadge />}
                       </div>
                       <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
                         <h3 className="font-bold text-[15px] leading-snug group-hover/title:underline underline-offset-2">{s.title}</h3>
