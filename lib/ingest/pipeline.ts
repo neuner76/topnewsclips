@@ -124,7 +124,7 @@ export async function runFetch(): Promise<FetchResult> {
     apifyKey
       ? fetchTikTokTrending(apifyKey, journalistUsernames)
       : Promise.resolve({ clips: [], errors: [] }),
-    fetchGlobalClips(),
+    fetchGlobalClips(youtubeKey),
   ])
 
   errors.push(...redditResult.errors, ...youtubeResult.errors, ...tiktokResult.errors, ...globalResult.errors)

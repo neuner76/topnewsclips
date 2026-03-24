@@ -118,7 +118,7 @@ async function fetchGlobalReddit(
         seen.add(videoUrl)
 
         clips.push({
-          title: (post.title as string) ?? '',
+          title: cleanTitle((post.title as string) ?? ''),
           videoUrl,
           platform,
           score: (post.score as number) ?? 0,
@@ -134,7 +134,15 @@ async function fetchGlobalReddit(
   }
 }
 
-async function fetchGlobalYouTubeRSS(
+// Strip common channel name suffixes from YouTube titles e.g. "Story title | DW News" → "Story title"
+function cleanTitle(title: string): string {
+  return title.replace(/\s*[|\-–—]\s*(DW News|Al Jazeera English|FRANCE 24 English|FRANCE 24|NHK World|NHK|Arirang News|Arirang)(\s+English)?\s*$/i, '').trim()
+}
+
+// Uses YouTube Data API playlistItems — 1 quota unit per channel, reliable from cloud IPs
+// Each channel's uploads playlist ID = 'UU' + channelId.slice(2)
+async function fetchGlobalYouTubeAPI(
+  apiKey: string,
   clips: GlobalClip[],
   errors: string[],
   seen: Set<string>
@@ -143,59 +151,57 @@ async function fetchGlobalYouTubeRSS(
 
   for (const { channelId, region, label } of GLOBAL_YOUTUBE_CHANNELS) {
     try {
-      const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
-      const res = await fetch(rssUrl, {
-        signal: AbortSignal.timeout(5000),
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TopNewsClips/1.0)' },
-      })
+      const uploadsPlaylistId = 'UU' + channelId.slice(2)
+      const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems')
+      url.searchParams.set('part', 'snippet')
+      url.searchParams.set('playlistId', uploadsPlaylistId)
+      url.searchParams.set('maxResults', '10')
+      url.searchParams.set('key', apiKey)
+
+      const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8000) })
 
       if (!res.ok) {
-        errors.push(`Global YouTube RSS ${label}: HTTP ${res.status}`)
+        errors.push(`Global YouTube API ${label}: HTTP ${res.status}`)
         continue
       }
 
-      const xml = await res.text()
-      const entries = xml.split('<entry>').slice(1)
-
-      for (const entry of entries) {
-        const videoId = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/)?.[1]
+      const json = await res.json()
+      for (const item of json.items ?? []) {
+        const snippet = item.snippet
+        const videoId: string = snippet?.resourceId?.videoId ?? ''
         if (!videoId || seen.has(videoId)) continue
 
-        const published = entry.match(/<published>([^<]+)<\/published>/)?.[1] ?? ''
+        const published: string = snippet?.publishedAt ?? ''
         if (published && published < cutoff) continue
-
-        const rawTitle =
-          entry.match(/<media:title>([^<]*)<\/media:title>/)?.[1] ??
-          entry.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''
-        const rawDesc = entry.match(/<media:description>([\s\S]*?)<\/media:description>/)?.[1] ?? ''
-        const viewsStr = entry.match(/<media:statistics views="(\d+)"/)?.[1] ?? '0'
 
         seen.add(videoId)
         clips.push({
-          title: decodeXML(stripCDATA(rawTitle)).slice(0, 200),
+          title: cleanTitle(snippet?.title ?? '').slice(0, 200),
           videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
           platform: 'youtube',
-          score: parseInt(viewsStr, 10),
+          score: 0, // playlistItems doesn't return view counts — MSM check will evaluate importance
           source: `YouTube/${label}`,
           videoId,
           region,
-          description: decodeXML(stripCDATA(rawDesc)).slice(0, 500),
+          description: (snippet?.description ?? '').slice(0, 500),
         })
       }
     } catch (err) {
-      errors.push(`Global YouTube RSS ${label}: ${err instanceof Error ? err.message : String(err)}`)
+      errors.push(`Global YouTube API ${label}: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
 }
 
-export async function fetchGlobalClips(): Promise<{ clips: GlobalClip[]; errors: string[] }> {
+export async function fetchGlobalClips(apiKey?: string): Promise<{ clips: GlobalClip[]; errors: string[] }> {
   const clips: GlobalClip[] = []
   const errors: string[] = []
   const seen = new Set<string>()
 
   await Promise.all([
     fetchGlobalReddit(clips, errors, seen),
-    fetchGlobalYouTubeRSS(clips, errors, seen),
+    apiKey
+      ? fetchGlobalYouTubeAPI(apiKey, clips, errors, seen)
+      : Promise.resolve(errors.push('YOUTUBE_API_KEY not set — skipping global YouTube channels')),
   ])
 
   return { clips, errors }
