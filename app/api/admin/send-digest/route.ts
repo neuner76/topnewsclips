@@ -30,7 +30,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
         <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
       </a>
       ${item.paragraphs.map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#374151;">${p}</p>`).join('')}
-      <a href="${siteUrl}/story/${item.slug}" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;">Watch →</a>
+      <a href="${siteUrl}/story/${item.slug}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;">Watch →</a>
     </div>
   `).join('')
 

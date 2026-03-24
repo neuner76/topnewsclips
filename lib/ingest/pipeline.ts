@@ -232,6 +232,8 @@ export async function runFetch(): Promise<FetchResult> {
   return { added, errors }
 }
 
+const TOPIC_DAILY_CAP = 2
+
 // Phase 2: process next 10 pending candidates from the queue through Claude
 export async function runProcess(): Promise<PipelineResult> {
   const supabase = getSupabase()
@@ -253,6 +255,26 @@ export async function runProcess(): Promise<PipelineResult> {
   if (!pending || pending.length === 0) {
     result.errors.push('No pending candidates in queue — run Fetch first')
     return result
+  }
+
+  // Fetch today's published story titles for topic diversity enforcement
+  const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data: todayPublished } = await supabase
+    .from('stories')
+    .select('title')
+    .eq('published', true)
+    .gte('created_at', todayCutoff)
+
+  const publishedTitles: string[] = (todayPublished ?? []).map((r: { title: string }) => r.title)
+
+  // Count topic clusters already published today — used to enforce TOPIC_DAILY_CAP
+  // Each published title may be representative of a topic cluster; we track overlap counts
+  function topicAlreadyCapped(candidateTitle: string): boolean {
+    let overlap = 0
+    for (const published of publishedTitles) {
+      if (isSameIncident(candidateTitle, published, 2)) overlap++
+    }
+    return overlap >= TOPIC_DAILY_CAP
   }
 
   for (const candidate of pending) {
@@ -295,6 +317,18 @@ export async function runProcess(): Promise<PipelineResult> {
         continue
       }
 
+      // Topic diversity cap — skip if this topic already has TOPIC_DAILY_CAP stories published today
+      if (topicAlreadyCapped(verification.headline)) {
+        result.rejected++
+        result.errors.push(
+          `Topic cap: "${verification.headline.slice(0, 50)}" — too many similar stories today`
+        )
+        await supabase
+          .from('rejected_slugs')
+          .upsert({ slug: candidate.slug, reason: 'topic_cap: too many similar stories today' })
+        continue
+      }
+
       const { error } = await supabase.from('stories').insert({
         title: verification.headline,
         slug: candidate.slug,
@@ -322,6 +356,9 @@ export async function runProcess(): Promise<PipelineResult> {
       } else {
         result.inserted++
       }
+
+      // Add to in-memory published list so topic cap applies within this run too
+      publishedTitles.push(verification.headline)
     } catch (err) {
       result.errors.push(
         `Error processing ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`

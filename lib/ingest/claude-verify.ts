@@ -66,6 +66,8 @@ CATEGORY RULES:
 - "reported": A journalist or credible source has investigated and is reporting findings. Exposés, FOIA-based stories, undercover work, on-the-ground field reporting, documented institutional failures. The journalist did the work.
 - "analysis": Commentary, opinion, or context from an independent voice. The journalist's argument or perspective is the content. Talking-head pieces, explainers, editorial commentary, investigative summaries.
 
+The "category" field above is the content type (raw/reported/analysis). The story's topic section for display purposes is determined separately by the digest — do NOT conflate them. Note: stories about Epstein, political sex crimes, government corruption, and elite institutional abuse belong to Politics & World Affairs, not Sports/Entertainment/Culture — even if the subject is a celebrity.
+
 TRUSTED JOURNALIST EXCEPTION — if "Trusted Journalist: YES":
 A new post from a trusted curated journalist is news, even without incident footage. Talking head interviews, opinion pieces, and investigative commentary from these sources ARE publishable content. Apply these relaxed rules:
 - Location requirement is WAIVED — they may report on national or systemic issues
