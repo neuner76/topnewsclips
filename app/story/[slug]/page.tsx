@@ -76,7 +76,7 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Back */}
         <Link
-          href="/"
+          href="/?view=clips"
           className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
           ← Back to Today&apos;s Clips
@@ -121,7 +121,7 @@ export default async function StoryPage({ params }: Props) {
         {/* Back to feed */}
         <div className="mt-10 pt-6 border-t border-border">
           <Link
-            href="/"
+            href="/?view=clips"
             className="text-sm font-semibold text-foreground hover:underline underline-offset-2"
           >
             ← See all of today&apos;s clips
