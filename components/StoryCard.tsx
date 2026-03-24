@@ -1,6 +1,3 @@
-'use client'
-
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Story } from '@/lib/types'
@@ -20,19 +17,6 @@ function getYouTubeThumbnail(embedUrl: string): string | null {
   return `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`
 }
 
-function getEmbedUrl(story: Story): string | null {
-  if (story.platform === 'youtube') {
-    const m = story.embed_url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-    if (!m) return null
-    return `https://www.youtube.com/embed/${m[1]}?autoplay=1`
-  }
-  if (story.platform === 'tiktok') {
-    const m = story.embed_url.match(/video\/(\d+)/)
-    if (!m) return null
-    return `https://www.tiktok.com/embed/v2/${m[1]}`
-  }
-  return null
-}
 
 function formatPublishedDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -48,27 +32,16 @@ function formatPublishedDate(dateStr: string): string {
 }
 
 export default function StoryCard({ story }: StoryCardProps) {
-  const [showEmbed, setShowEmbed] = useState(false)
-
   const thumbnail =
     story.platform === 'youtube'
       ? getYouTubeThumbnail(story.embed_url)
       : story.thumbnail_url ?? null
 
-  const embedUrl = getEmbedUrl(story)
-  const canEmbed = !!embedUrl
-  const isTikTok = story.platform === 'tiktok'
-
   return (
     <article className="group py-3 border-b border-border">
       {/* Thumbnail — full width on mobile, hidden on desktop (shown in row below) */}
-      {thumbnail && !showEmbed && (
-        <button
-          onClick={() => canEmbed && setShowEmbed(true)}
-          className="block sm:hidden w-full mb-2 text-left"
-          tabIndex={-1}
-          aria-hidden
-        >
+      {thumbnail && (
+        <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block sm:hidden w-full mb-2">
           <Image
             src={thumbnail}
             alt=""
@@ -77,18 +50,13 @@ export default function StoryCard({ story }: StoryCardProps) {
             className="rounded object-cover w-full aspect-video opacity-90 group-hover:opacity-100 transition-opacity"
             unoptimized
           />
-        </button>
+        </a>
       )}
 
       <div className="flex gap-3 items-start">
         {/* Thumbnail — desktop only, left side */}
-        {thumbnail && !showEmbed && (
-          <button
-            onClick={() => canEmbed && setShowEmbed(true)}
-            className="flex-shrink-0 hidden sm:block"
-            tabIndex={-1}
-            aria-hidden
-          >
+        {thumbnail && (
+          <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 hidden sm:block">
             <Image
               src={thumbnail}
               alt=""
@@ -97,7 +65,7 @@ export default function StoryCard({ story }: StoryCardProps) {
               className="rounded object-cover w-32 h-[72px] opacity-90 group-hover:opacity-100 transition-opacity"
               unoptimized
             />
-          </button>
+          </a>
         )}
 
         {/* Content */}
@@ -145,21 +113,6 @@ export default function StoryCard({ story }: StoryCardProps) {
 
       </div>
 
-      {/* Inline embed */}
-      {showEmbed && embedUrl && (
-        <div className={`mt-3 ${isTikTok ? 'flex justify-start' : 'w-full'}`}>
-          <iframe
-            src={embedUrl}
-            className={
-              isTikTok
-                ? 'rounded border border-border w-full max-w-[325px] h-[580px]'
-                : 'w-full rounded border border-border aspect-video'
-            }
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-      )}
     </article>
   )
 }
