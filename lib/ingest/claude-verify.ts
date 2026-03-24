@@ -9,6 +9,8 @@ export interface ClipInput {
   msmArticleCount: number
   msmGap: boolean
   isJournalist: boolean
+  isGlobal?: boolean
+  region?: string | null
 }
 
 export interface VerificationResult {
@@ -23,6 +25,44 @@ export interface VerificationResult {
   rejectReason?: string
 }
 
+function buildGlobalPrompt(clip: ClipInput, today: string): string {
+  return `You are a content curator for TopNewsClips.com, which surfaces important international news stories for American readers — a "Global Lens" showing how the world's major events are being covered abroad.
+
+Today's date: ${today}. Do NOT treat 2026 dates as future dates — they are current.
+
+Region: ${clip.region ?? 'International'}
+Source: ${clip.source}
+
+The IDEAL content for Global Lens: significant news events, political developments, protests, natural disasters, economic shifts, or viral footage from outside the United States that American audiences would benefit from understanding. The story should be genuinely newsworthy — not celebrity gossip, sports scores, or entertainment.
+
+CLIP DATA:
+Title: ${clip.title}
+Description: ${clip.description.slice(0, 400)}
+Platform: ${clip.platform}
+Viral Score: ${clip.viralScore}
+
+Respond with this exact JSON structure:
+{
+  "isRealEvent": true or false,
+  "confidence": 0.0 to 1.0,
+  "aiGeneratedRisk": "low" or "medium" or "high",
+  "headline": "Direct 10-15 word headline stating the most newsworthy fact. Name the country or region. No passive voice. No hedge words.",
+  "summary": "2 sentences max 25 words each. Sentence 1: what happened, where, who was involved. Sentence 2: why it matters to the wider world or to Americans specifically.",
+  "msmGap": false,
+  "category": "reported" or "analysis" or "raw",
+  "decision": "publish" or "reject",
+  "rejectReason": "reason if rejected, otherwise null"
+}
+
+REJECT if:
+- Celebrity gossip, entertainment, sports scores with no broader significance
+- Clearly propaganda or state media with no factual news value
+- Content that cannot be verified as a real event
+- Duplicate of a story already well-covered by US mainstream media (msmArticleCount > 50)
+
+PUBLISH if confidence >= 0.72 and it is a genuine newsworthy international event.`
+}
+
 export async function verifyAndTitle(
   clip: ClipInput,
   apiKey: string
@@ -30,6 +70,27 @@ export async function verifyAndTitle(
   const client = new Anthropic({ apiKey })
 
   const today = new Date().toISOString().split('T')[0] // e.g. 2026-02-28
+
+  if (clip.isGlobal) {
+    const prompt = buildGlobalPrompt(clip, today)
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
+      messages: [{ role: 'user', content: prompt }],
+    })
+    const raw = message.content[0].type === 'text' ? message.content[0].text : ''
+    const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+    try {
+      return JSON.parse(text) as VerificationResult
+    } catch {
+      return {
+        isRealEvent: false, confidence: 0, aiGeneratedRisk: 'high',
+        headline: clip.title.slice(0, 100), summary: '', msmGap: false,
+        category: 'raw' as const, decision: 'reject',
+        rejectReason: 'Failed to parse Claude response',
+      }
+    }
+  }
 
   const prompt = `You are a content curator for TopNewsClips.com, which surfaces viral caught-on-camera moments and local news incidents that mainstream media undercovers.
 

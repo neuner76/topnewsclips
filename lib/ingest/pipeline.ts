@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { fetchRedditClips, type RedditClip } from './reddit'
 import { fetchYouTubeTrending, resolveYouTubeChannelId, type YouTubeClip } from './youtube'
 import { fetchTikTokTrending, type TikTokClip } from './tiktok'
+import { fetchGlobalClips, type GlobalClip } from './global'
 import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
 
@@ -115,7 +116,7 @@ export async function runFetch(): Promise<FetchResult> {
     if (channelId) youtubeJournalists.push({ username: row.username, channelId })
   }
 
-  const [redditResult, youtubeResult, tiktokResult] = await Promise.all([
+  const [redditResult, youtubeResult, tiktokResult, globalResult] = await Promise.all([
     fetchRedditClips(),
     youtubeKey
       ? fetchYouTubeTrending(youtubeKey, youtubeJournalists)
@@ -123,9 +124,10 @@ export async function runFetch(): Promise<FetchResult> {
     apifyKey
       ? fetchTikTokTrending(apifyKey, journalistUsernames)
       : Promise.resolve({ clips: [], errors: [] }),
+    fetchGlobalClips(),
   ])
 
-  errors.push(...redditResult.errors, ...youtubeResult.errors, ...tiktokResult.errors)
+  errors.push(...redditResult.errors, ...youtubeResult.errors, ...tiktokResult.errors, ...globalResult.errors)
 
   const candidates = [
     ...redditResult.clips.map((c: RedditClip) => ({
@@ -157,6 +159,16 @@ export async function runFetch(): Promise<FetchResult> {
       source: `TikTok/@${c.authorName}`,
       thumbnailUrl: c.thumbnailUrl ?? null,
       journalistUsername: c.journalistUsername ?? null,
+    })),
+    ...globalResult.clips.map((c: GlobalClip) => ({
+      title: c.title,
+      videoUrl: c.videoUrl,
+      platform: c.platform as string,
+      videoId: c.videoId,
+      description: c.description,
+      viralScore: c.score,
+      source: c.source,
+      region: c.region,
     })),
   ]
 
@@ -221,6 +233,7 @@ export async function runFetch(): Promise<FetchResult> {
       source: c.source,
       thumbnail_url: (c as { thumbnailUrl?: string | null }).thumbnailUrl ?? null,
       journalist_username: (c as { journalistUsername?: string | null }).journalistUsername ?? null,
+      region: (c as { region?: string | null }).region ?? null,
     })
     if (!error) {
       added++
@@ -292,6 +305,8 @@ export async function runProcess(): Promise<PipelineResult> {
           msmArticleCount: msm.articleCount,
           msmGap: msm.msmGap,
           isJournalist: !!candidate.journalist_username,
+          isGlobal: !!candidate.region,
+          region: candidate.region ?? null,
         },
         anthropicKey
       )
@@ -344,6 +359,7 @@ export async function runProcess(): Promise<PipelineResult> {
         category: verification.category,
         thumbnail_url: candidate.thumbnail_url ?? null,
         journalist_username: candidate.journalist_username ?? null,
+        region: candidate.region ?? null,
       })
 
       if (error) {

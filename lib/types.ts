@@ -17,6 +17,7 @@ export interface Story {
   subcategory: string | null
   thumbnail_url: string | null
   journalist_username: string | null
+  region: string | null
   pinned: boolean
   created_at: string
   updated_at: string

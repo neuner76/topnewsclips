@@ -224,7 +224,7 @@ export default async function HomePage({
   const activeView = view === 'clips' ? 'clips' : (digest ? 'digest' : 'clips')
 
   function splitSection(category: 'raw' | 'reported' | 'analysis') {
-    const section = all.filter(s => s.category === category)
+    const section = all.filter(s => s.category === category && !s.region)
     return {
       pinned:  section.filter(s => s.pinned),
       voices:  section.filter(s => !s.pinned && !!s.journalist_username),
@@ -235,8 +235,16 @@ export default async function HomePage({
   const raw      = splitSection('raw')
   const reported = splitSection('reported')
   const analysis = splitSection('analysis')
-  const uncategorized = all.filter(s => !s.category)
-  const msmBlackout = all.filter(s => s.msm_gap)
+  const uncategorized = all.filter(s => !s.category && !s.region)
+  const msmBlackout = all.filter(s => s.msm_gap && !s.region)
+
+  // Global Lens — one top story per region
+  const globalStories = all.filter(s => !!s.region)
+  const globalByRegion = new Map<string, Story>()
+  for (const s of globalStories) {
+    if (!globalByRegion.has(s.region!)) globalByRegion.set(s.region!, s)
+  }
+  const globalLens = [...globalByRegion.values()]
 
   return (
     <>
@@ -314,6 +322,31 @@ export default async function HomePage({
                 </div>
                 <div>
                   {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} rank={0} />)}
+                </div>
+              </section>
+            )}
+            {globalLens.length > 0 && (
+              <section className="mb-12">
+                <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-[oklch(0.52_0.14_196)]">
+                    Global Lens
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">How the world is covering today&apos;s biggest stories</p>
+                </div>
+                <div>
+                  {globalLens.map(s => (
+                    <div key={s.id} className="group py-3 border-b border-border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold tracking-widest text-[oklch(0.52_0.14_196)] uppercase">{s.region}</span>
+                      </div>
+                      <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
+                        <h3 className="font-bold text-[15px] leading-snug group-hover/title:underline underline-offset-2">{s.title}</h3>
+                      </Link>
+                      {s.description && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </section>
             )}
