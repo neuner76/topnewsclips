@@ -188,7 +188,6 @@ interface SectionProps {
 
 function Section({ title, subtitle, pinned, voices, stories, accentClass }: SectionProps) {
   const isEmpty = pinned.length === 0 && voices.length === 0 && stories.length === 0
-  let rank = 1
   return (
     <section className="mb-12">
       <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
@@ -204,19 +203,19 @@ function Section({ title, subtitle, pinned, voices, stories, accentClass }: Sect
           {pinned.length > 0 && (
             <>
               <SubHeader label="Featured" />
-              {pinned.map(s => <StoryCard key={s.id} story={s} rank={rank++} />)}
+              {pinned.map(s => <StoryCard key={s.id} story={s} />)}
             </>
           )}
           {voices.length > 0 && (
             <>
               <SubHeader label="Independent Voices" />
-              {voices.map(s => <StoryCard key={s.id} story={s} rank={rank++} />)}
+              {voices.map(s => <StoryCard key={s.id} story={s} />)}
             </>
           )}
           {stories.length > 0 && (
             <>
               <SubHeader label="Trending" />
-              {stories.map(s => <StoryCard key={s.id} story={s} rank={rank++} />)}
+              {stories.map(s => <StoryCard key={s.id} story={s} />)}
             </>
           )}
         </div>
@@ -353,7 +352,7 @@ export default async function HomePage({
                   <p className="text-xs text-muted-foreground mt-0.5">Stories the mainstream media isn&apos;t covering</p>
                 </div>
                 <div>
-                  {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} rank={0} />)}
+                  {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} />)}
                 </div>
               </section>
             )}

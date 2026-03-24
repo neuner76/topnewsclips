@@ -8,7 +8,6 @@ import CategoryBadge from './CategoryBadge'
 
 interface StoryCardProps {
   story: Story
-  rank: number
 }
 
 function getYouTubeThumbnail(embedUrl: string): string | null {
@@ -16,7 +15,6 @@ function getYouTubeThumbnail(embedUrl: string): string | null {
   if (!m) return null
   return `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`
 }
-
 
 function formatPublishedDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -39,34 +37,7 @@ export default function StoryCard({ story }: StoryCardProps) {
 
   return (
     <article className="group py-3 border-b border-border">
-      {/* Thumbnail — full width on mobile, hidden on desktop (shown in row below) */}
-      {thumbnail && (
-        <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block sm:hidden w-full mb-2">
-          <Image
-            src={thumbnail}
-            alt=""
-            width={640}
-            height={360}
-            className="rounded object-cover w-full aspect-video opacity-90 group-hover:opacity-100 transition-opacity"
-            unoptimized
-          />
-        </a>
-      )}
-
       <div className="flex gap-3 items-start">
-        {/* Thumbnail — desktop only, left side */}
-        {thumbnail && (
-          <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 hidden sm:block">
-            <Image
-              src={thumbnail}
-              alt=""
-              width={120}
-              height={68}
-              className="rounded object-cover w-32 h-[72px] opacity-90 group-hover:opacity-100 transition-opacity"
-              unoptimized
-            />
-          </a>
-        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -111,8 +82,21 @@ export default function StoryCard({ story }: StoryCardProps) {
           </div>
         </div>
 
-      </div>
+        {/* Thumbnail — right side, always visible */}
+        {thumbnail && (
+          <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+            <Image
+              src={thumbnail}
+              alt=""
+              width={96}
+              height={56}
+              className="rounded object-cover w-24 h-14 opacity-90 group-hover:opacity-100 transition-opacity"
+              unoptimized
+            />
+          </a>
+        )}
 
+      </div>
     </article>
   )
 }
