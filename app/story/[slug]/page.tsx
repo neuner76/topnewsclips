@@ -76,10 +76,10 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Back */}
         <Link
-          href="/?view=clips"
+          href="/"
           className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
-          ← Back to Today&apos;s Clips
+          ← Back to Today&apos;s Digest
         </Link>
 
         {/* Badges */}
