@@ -22,7 +22,7 @@ const IN_THE_KNOW_CATEGORIES = [
 function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
   return (
     <article className="py-6 border-b border-border last:border-0">
-      <Link href={`/story/${item.slug}`} className="group block mb-3">
+      <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="group block mb-3">
         <h2 className="text-xl font-black tracking-tight leading-snug group-hover:underline underline-offset-2">
           {item.sectionTitle}
         </h2>
@@ -36,6 +36,8 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
       </div>
       <Link
         href={`/story/${item.slug}`}
+        target="_blank"
+        rel="noopener noreferrer"
         className="inline-block mt-4 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
       >
         Watch clip →
@@ -50,7 +52,7 @@ function InTheKnowBullet({ item }: { item: InTheKnowItem }) {
     <li className="flex gap-2 py-2.5 border-b border-border/50 last:border-0">
       <span className="text-muted-foreground shrink-0 mt-0.5">›</span>
       {item.slug ? (
-        <Link href={`/story/${item.slug}`} className="hover:underline underline-offset-2">
+        <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
           {inner}
         </Link>
       ) : inner}
