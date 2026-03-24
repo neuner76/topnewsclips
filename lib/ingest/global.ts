@@ -117,8 +117,11 @@ async function fetchGlobalReddit(
         if (seen.has(videoUrl)) continue
         seen.add(videoUrl)
 
+        const cleanedTitle = cleanTitle((post.title as string) ?? '')
+        if (isUSDomesticStory(cleanedTitle)) continue
+
         clips.push({
-          title: cleanTitle((post.title as string) ?? ''),
+          title: cleanedTitle,
           videoUrl,
           platform,
           score: (post.score as number) ?? 0,
@@ -137,6 +140,18 @@ async function fetchGlobalReddit(
 // Strip common channel name suffixes from YouTube titles e.g. "Story title | DW News" → "Story title"
 function cleanTitle(title: string): string {
   return title.replace(/\s*[|\-–—]\s*(DW News|Al Jazeera English|FRANCE 24 English|FRANCE 24|NHK World|NHK|Arirang News|Arirang)(\s+English)?\s*$/i, '').trim()
+}
+
+// Pre-filter: skip stories that are clearly about US domestic politics/news
+// These come from international outlets covering the US — not useful for Global Lens
+const US_DOMESTIC_TERMS = [
+  /\bICE\b/, /\bTrump\b/, /\bBiden\b/, /\bCongress\b/, /\bSenate\b/, /\bWhite House\b/i,
+  /\bDOGE\b/, /\bElon Musk\b/i, /\bDemocrat/i, /\bRepublican/i, /\bGOP\b/,
+  /\bSupreme Court\b/i, /\bWall Street\b/i, /\bFed(eral Reserve)?\b/,
+]
+
+function isUSDomesticStory(title: string): boolean {
+  return US_DOMESTIC_TERMS.some(re => re.test(title))
 }
 
 // Uses YouTube Data API playlistItems — 1 quota unit per channel, reliable from cloud IPs
@@ -174,9 +189,12 @@ async function fetchGlobalYouTubeAPI(
         const published: string = snippet?.publishedAt ?? ''
         if (published && published < cutoff) continue
 
+        const cleanedTitle = cleanTitle(snippet?.title ?? '').slice(0, 200)
+        if (isUSDomesticStory(cleanedTitle)) continue
+
         seen.add(videoId)
         clips.push({
-          title: cleanTitle(snippet?.title ?? '').slice(0, 200),
+          title: cleanedTitle,
           videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
           platform: 'youtube',
           score: 0, // playlistItems doesn't return view counts — MSM check will evaluate importance

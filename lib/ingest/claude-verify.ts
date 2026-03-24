@@ -84,7 +84,10 @@ export async function verifyAndTitle(
       messages: [{ role: 'user', content: prompt }],
     })
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
-    const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+    const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+    // Extract JSON object even if Haiku adds surrounding text
+    const jsonMatch = stripped.match(/\{[\s\S]*\}/)
+    const text = jsonMatch ? jsonMatch[0] : stripped
     try {
       return JSON.parse(text) as VerificationResult
     } catch {
