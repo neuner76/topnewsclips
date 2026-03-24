@@ -31,11 +31,11 @@ const GLOBAL_SUBREDDITS: { subreddit: string; region: string }[] = [
 
 // YouTube RSS channels for international outlets (quota-free)
 const GLOBAL_YOUTUBE_CHANNELS: { channelId: string; region: string; label: string }[] = [
-  { channelId: 'UCNye-wNBqNL5ZzHSJdpkDXA', region: 'Middle East', label: 'Al Jazeera English' },
+  { channelId: 'UCNye-wNBqNL5ZzHSJj3l8Bg', region: 'Middle East', label: 'Al Jazeera English' },
   { channelId: 'UCknLrEdhRCp1aegoMqRaCZg', region: 'Europe',      label: 'DW News' },
-  { channelId: 'UCQfwfsi5VrQ8yKZ-UWmAoBw', region: 'Europe',      label: 'France 24 English' },
-  { channelId: 'UCEDoUHH6o3yFlCxFd8tC9MQ', region: 'Japan',       label: 'NHK World News' },
-  { channelId: 'UClo3UNp51IFCom0WvbGmN4A', region: 'Korea',       label: 'Arirang News' },
+  { channelId: 'UCQfwfsi5VrQ8yKZ-UWmAEFg', region: 'Europe',      label: 'France 24 English' },
+  { channelId: 'UCip8ve30-AoX2y2OtAAmqFA', region: 'Japan',       label: 'NHK World News' },
+  { channelId: 'UCzznO4xSV8BKnUBPyswtCUw', region: 'Korea',       label: 'Arirang News' },
 ]
 
 function detectPlatform(url: string): 'youtube' | 'tiktok' | 'x' | null {

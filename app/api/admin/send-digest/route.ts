@@ -53,7 +53,21 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
   const etceteraHtml = content.etcetera.length > 0 ? `
     <div style="margin-top:28px;padding:20px 24px;background:#f9fafb;border-radius:8px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#6b7280;text-transform:uppercase;margin-bottom:12px;">ETCETERA</div>
-      ${content.etcetera.map(item => `<p style="margin:0 0-8px;font-size:13px;line-height:1.6;color:#6b7280;">• ${item}</p>`).join('')}
+      ${content.etcetera.map(item => `<p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#6b7280;">• ${item}</p>`).join('')}
+    </div>
+  ` : ''
+
+  const globalBlindspotHtml = content.globalBlindspots && content.globalBlindspots.length > 0 ? `
+    <div style="margin-top:28px;padding:20px 24px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">🌍 Global Blindspot</div>
+      <div style="font-size:11px;color:#78716c;margin-bottom:16px;">Stories the rest of the world is covering that US media is ignoring.</div>
+      ${content.globalBlindspots.map(item => `
+        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #fde68a;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">${item.region}</div>
+          <a href="${siteUrl}/story/${item.slug}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;display:block;margin-bottom:4px;">${item.title}</a>
+          <p style="margin:0;font-size:13px;line-height:1.5;color:#6b7280;">${item.summary}</p>
+        </div>
+      `).join('')}
     </div>
   ` : ''
 
@@ -89,6 +103,8 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
       </div>
 
       ${etceteraHtml}
+
+      ${globalBlindspotHtml}
 
     </div>
 
@@ -161,6 +177,21 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
       lines.push(`• ${item}`)
     }
     lines.push('')
+  }
+
+  // Global Blindspot
+  if (content.globalBlindspots && content.globalBlindspots.length > 0) {
+    lines.push('─'.repeat(60))
+    lines.push('')
+    lines.push('🌍 GLOBAL BLINDSPOT')
+    lines.push('Stories the rest of the world is covering that US media is ignoring.')
+    lines.push('')
+    for (const item of content.globalBlindspots) {
+      lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
+      lines.push(item.summary)
+      lines.push(`Watch: ${siteUrl}/story/${item.slug}`)
+      lines.push('')
+    }
   }
 
   lines.push('━'.repeat(60))

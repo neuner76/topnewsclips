@@ -11,6 +11,7 @@ import PlatformBadge from '@/components/PlatformBadge'
 import CategoryBadge from '@/components/CategoryBadge'
 import PressureScore from '@/components/PressureScore'
 import ShareButtons from '@/components/ShareButtons'
+import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 
 export const revalidate = 300
 
@@ -69,6 +70,33 @@ export default async function StoryPage({ params }: Props) {
 
   const s = story as Story
 
+  // World View — find related stories from other regions covering the same topic
+  const recentCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: relatedPool } = await supabase
+    .from('stories')
+    .select('id, title, slug, description, region, msm_gap')
+    .eq('published', true)
+    .gte('created_at', recentCutoff)
+    .not('region', 'is', s.region) // opposite track: global stories for US page, US for global page
+
+  function sigWords(title: string): Set<string> {
+    const stop = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','that','this','is','are','was','were','be','been','have','has','had','will','after','during','its','as','over','into'])
+    return new Set(
+      title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
+        .filter(w => w.length > 3 && !stop.has(w))
+    )
+  }
+
+  const storyWords = sigWords(s.title)
+  const worldView = (relatedPool ?? [])
+    .filter(r => {
+      const words = sigWords(r.title)
+      let overlap = 0
+      for (const w of storyWords) if (words.has(w)) overlap++
+      return overlap >= 2
+    })
+    .filter(r => r.region !== null || s.region !== null) // at least one must be international
+
   return (
     <>
       <Header />
@@ -115,6 +143,38 @@ export default async function StoryPage({ params }: Props) {
             <p className="text-sm text-foreground">
               This story has received little to no coverage from major mainstream outlets, despite significant social media engagement.
             </p>
+          </div>
+        )}
+
+        {/* World View */}
+        {worldView.length > 0 && (
+          <div className="mt-8 p-4 bg-[oklch(0.97_0.02_196)] border border-[oklch(0.88_0.06_196)] rounded-lg">
+            <p className="text-xs font-bold tracking-widest text-[oklch(0.52_0.14_196)] uppercase mb-3">
+              🌍 World View — How others are covering this
+            </p>
+            <div className="space-y-3">
+              {worldView.map(r => (
+                <div key={r.id} className="border-b border-[oklch(0.88_0.06_196)] last:border-0 pb-3 last:pb-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                      {r.region ?? 'US'}
+                    </span>
+                    {r.msm_gap && r.region && <GlobalBlindspotBadge />}
+                  </div>
+                  <Link
+                    href={`/story/${r.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-foreground hover:underline underline-offset-2 leading-snug block"
+                  >
+                    {r.title}
+                  </Link>
+                  {r.description && (
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

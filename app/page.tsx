@@ -116,7 +116,7 @@ function DigestView({ content, date }: { content: DigestContent; date: string })
 
       {/* Etcetera */}
       {content.etcetera?.length > 0 && (
-        <section>
+        <section className="mb-10">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 border-t border-border" />
             <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0">
@@ -128,6 +128,36 @@ function DigestView({ content, date }: { content: DigestContent; date: string })
             {content.etcetera.map((item, i) => (
               <li key={i} className="text-[15px] leading-relaxed text-muted-foreground">
                 {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Global Blindspot */}
+      {content.globalBlindspots && content.globalBlindspots.length > 0 && (
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex-1 border-t border-border" />
+            <span className="text-[10px] font-bold tracking-widest text-[oklch(0.52_0.14_55)] uppercase shrink-0">
+              🌍 Global Blindspot
+            </span>
+            <div className="flex-1 border-t border-border" />
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">Stories the rest of the world is covering that US media is ignoring.</p>
+          <ul className="space-y-4">
+            {content.globalBlindspots.map((item, i) => (
+              <li key={i} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block mb-1">{item.region}</span>
+                <Link
+                  href={`/story/${item.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[15px] font-semibold text-foreground hover:underline underline-offset-2 leading-snug block mb-1"
+                >
+                  {item.title}
+                </Link>
+                <p className="text-sm text-muted-foreground">{item.summary}</p>
               </li>
             ))}
           </ul>
