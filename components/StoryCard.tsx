@@ -132,23 +132,14 @@ export default function StoryCard({ story }: StoryCardProps) {
             <span className="text-xs text-muted-foreground">
               {formatPublishedDate(story.created_at)}
             </span>
-            {canEmbed ? (
-              <button
-                onClick={() => setShowEmbed(v => !v)}
-                className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto"
-              >
-                {showEmbed ? '▲ Close' : 'Watch →'}
-              </button>
-            ) : (
-              <a
-                href={story.embed_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto"
-              >
-                Watch ↗
-              </a>
-            )}
+            <a
+              href={`/story/${story.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto"
+            >
+              Watch →
+            </a>
           </div>
         </div>
 
