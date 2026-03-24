@@ -115,7 +115,7 @@ export default function StoryCard({ story }: StoryCardProps) {
           </div>
 
           {/* Title */}
-          <Link href={`/story/${story.slug}`} className="block group/title">
+          <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
             <h2 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2 decoration-foreground/30 line-clamp-2">
               {story.title}
             </h2>
