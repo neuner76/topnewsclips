@@ -104,17 +104,26 @@ export default async function StoryPage({ params }: Props) {
   const canonicalUrl = `https://www.topnewsclips.com/story/${s.slug}`
   const ogImage = s.platform === 'youtube' ? getYouTubeThumbnailUrl(s.embed_url) : s.thumbnail_url ?? null
 
+  const fullDescription = (s.description ?? '').trim()
+  const shortDescription = fullDescription.slice(0, 155)
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'NewsArticle',
         headline: s.title,
-        description: (s.description ?? '').slice(0, 155),
+        description: fullDescription || shortDescription,
+        articleBody: fullDescription || undefined,
         url: canonicalUrl,
         datePublished: s.created_at,
         dateModified: s.updated_at,
         image: ogImage ?? undefined,
+        author: {
+          '@type': 'Organization',
+          name: 'Top News Clips',
+          url: 'https://www.topnewsclips.com',
+        },
         publisher: {
           '@type': 'Organization',
           name: 'Top News Clips',
@@ -125,7 +134,7 @@ export default async function StoryPage({ params }: Props) {
       ...(s.platform === 'youtube' && s.embed_url ? [{
         '@type': 'VideoObject',
         name: s.title,
-        description: (s.description ?? '').slice(0, 155),
+        description: fullDescription || shortDescription,
         thumbnailUrl: ogImage ?? undefined,
         uploadDate: s.created_at,
         embedUrl: s.embed_url,
