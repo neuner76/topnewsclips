@@ -1,0 +1,2 @@
+UPDATE public.stories SET title = 'Use the Same Money 3 Times 🤯 #FYP #VIRAL #trending #infinitebanking #ownbank #WL #IUL #bank #invest #realestate #passiveincome #money #finance #smart ' WHERE slug = 'tiktok-7152158478038207790';
+UPDATE public.stories SET title = 'Click the red + if it works 🤯 #magic' WHERE slug = 'tiktok-7073228549389323562';
