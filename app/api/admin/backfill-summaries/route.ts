@@ -23,9 +23,8 @@ export async function GET(req: NextRequest) {
   const { data: stories, error } = await supabase
     .from('stories')
     .select('id, title, description, platform, region')
-    .lt('description.length', 200)  // short summaries only
     .order('created_at', { ascending: false })
-    .limit(20)
+    .limit(200)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
