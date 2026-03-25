@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendWelcomeSequence } from '@/lib/email/welcome'
 
 export async function POST(req: NextRequest) {
   const { email } = await req.json()
@@ -28,6 +29,9 @@ export async function POST(req: NextRequest) {
   if (error) {
     return NextResponse.json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 })
   }
+
+  // Fire welcome sequence — non-blocking, errors don't fail the subscribe
+  sendWelcomeSequence(email.toLowerCase().trim()).catch(() => {})
 
   return NextResponse.json({ message: 'Subscribed.' })
 }
