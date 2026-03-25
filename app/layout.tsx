@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
 
+const SITE_URL = 'https://www.topnewsclips.com'
+
 const geist = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -14,6 +16,9 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.topnewsclips.com'),
   alternates: {
     canonical: 'https://www.topnewsclips.com',
+    types: {
+      'application/rss+xml': `${SITE_URL}/rss.xml`,
+    },
   },
   openGraph: {
     title: 'Top News Clips — Independent News. No Agenda.',
