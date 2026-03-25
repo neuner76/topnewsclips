@@ -6,6 +6,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import StoryCard from '@/components/StoryCard'
 import EmailCapture from '@/components/EmailCapture'
+import EmailCaptureInline from '@/components/EmailCaptureInline'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import Link from 'next/link'
 
@@ -79,8 +80,15 @@ function DigestView({ content, date }: { content: DigestContent; date: string })
           Need To Know
         </p>
         <div className="divide-y divide-border">
-          {content.needToKnow.map((item) => (
-            <NeedToKnowStory key={item.slug} item={item} />
+          {content.needToKnow.map((item, i) => (
+            <>
+              <NeedToKnowStory key={item.slug} item={item} />
+              {i === 0 && content.needToKnow.length > 1 && (
+                <div key="subscribe-nudge" className="py-4">
+                  <EmailCaptureInline nudge />
+                </div>
+              )}
+            </>
           ))}
         </div>
       </section>
@@ -290,6 +298,7 @@ export default async function HomePage({
           <p className="text-sm text-muted-foreground mt-1">
             Independent news. No agenda.
           </p>
+          <EmailCaptureInline />
         </div>
 
         {/* Tab switcher */}
