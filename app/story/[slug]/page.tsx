@@ -37,7 +37,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) return {}
 
   const ogImage = data.platform === 'youtube' ? getYouTubeThumbnailUrl(data.embed_url) : null
-  const description = (data.description ?? '').slice(0, 155)
+  const rawDescription = (data.description ?? '').trim()
+  const description = rawDescription.length > 20
+    ? rawDescription.slice(0, 155)
+    : `Watch: ${data.title} — independent news and footage on Top News Clips.`
   const canonicalUrl = `https://www.topnewsclips.com/story/${slug}`
 
   return {

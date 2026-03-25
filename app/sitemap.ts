@@ -13,14 +13,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const { data: stories } = await supabase
     .from('stories')
-    .select('slug, updated_at')
-    .eq('published', true)
+    .select('slug, updated_at, published')
+    .or('published.eq.true,published.eq.false')
+    .not('slug', 'is', null)
 
   const storyUrls: MetadataRoute.Sitemap = (stories ?? []).map(s => ({
     url: `${SITE_URL}/story/${s.slug}`,
     lastModified: new Date(s.updated_at),
-    changeFrequency: 'daily',
-    priority: 0.8,
+    changeFrequency: s.published ? 'daily' : 'never',
+    priority: s.published ? 0.8 : 0.3,
   }))
 
   return [
