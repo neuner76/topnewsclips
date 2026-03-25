@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
+import { recheckMSMCoverage } from './ingest/msm-check'
 
 export interface NeedToKnowItem {
   sectionTitle: string   // short punchy label e.g. "Trump Boots Noem"
@@ -62,6 +63,9 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   if (error) throw new Error(`Failed to fetch stories: ${error.message}`)
   if (!stories || stories.length === 0) throw new Error('No published stories to digest')
+
+  // Re-check MSM coverage before building digest — badges reflect morning reality
+  await recheckMSMCoverage(supabase, stories.filter(s => !s.region)).catch(() => {})
 
   // Fetch global blindspot stories separately
   const { data: globalStories } = await supabase

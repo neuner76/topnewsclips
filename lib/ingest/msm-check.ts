@@ -10,6 +10,29 @@ export interface MSMCheckResult {
   topSources: string[]
 }
 
+export interface StoryForRecheck {
+  id: string
+  title: string
+  msm_gap: boolean
+}
+
+export async function recheckMSMCoverage(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  stories: StoryForRecheck[]
+): Promise<{ updated: number }> {
+  let updated = 0
+  for (const story of stories) {
+    const result = await checkMSMCoverage(story.title)
+    if (result.articleCount >= 0 && result.msmGap !== story.msm_gap) {
+      await supabase.from('stories').update({ msm_gap: result.msmGap }).eq('id', story.id)
+      updated++
+    }
+    await new Promise(r => setTimeout(r, 600))
+  }
+  return { updated }
+}
+
 export async function checkMSMCoverage(query: string): Promise<MSMCheckResult> {
   try {
     const encoded = encodeURIComponent(query.slice(0, 100))
