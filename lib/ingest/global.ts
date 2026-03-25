@@ -75,65 +75,73 @@ function decodeXML(s: string): string {
     .trim()
 }
 
+// Map subreddit name → region for batched responses
+const SUBREDDIT_TO_REGION: Record<string, string> = Object.fromEntries(
+  GLOBAL_SUBREDDITS.map(({ subreddit, region }) => [subreddit.toLowerCase(), region])
+)
+
 async function fetchGlobalReddit(
   clips: GlobalClip[],
   errors: string[],
   seen: Set<string>
 ) {
   const after = Math.floor((Date.now() - 48 * 60 * 60 * 1000) / 1000)
+  const allSubs = GLOBAL_SUBREDDITS.map(s => s.subreddit).join(',')
 
-  for (const { subreddit, region } of GLOBAL_SUBREDDITS) {
-    try {
-      const url = new URL('https://api.pullpush.io/reddit/search/submission/')
-      url.searchParams.set('subreddit', subreddit)
-      url.searchParams.set('sort', 'score')
-      url.searchParams.set('sort_type', 'desc')
-      url.searchParams.set('size', '15')
-      url.searchParams.set('after', String(after))
+  try {
+    const url = new URL('https://api.pullpush.io/reddit/search/submission/')
+    url.searchParams.set('subreddit', allSubs)
+    url.searchParams.set('sort', 'score')
+    url.searchParams.set('sort_type', 'desc')
+    url.searchParams.set('size', '50')
+    url.searchParams.set('after', String(after))
 
-      const res = await fetch(url.toString(), {
-        headers: { 'User-Agent': 'topnewsclips/1.0' },
-      })
+    const res = await fetch(url.toString(), {
+      headers: { 'User-Agent': 'topnewsclips/1.0' },
+      signal: AbortSignal.timeout(10000),
+    })
 
-      if (!res.ok) {
-        errors.push(`Global PullPush r/${subreddit}: HTTP ${res.status}`)
-        continue
-      }
-
-      const json = await res.json()
-      const posts: Record<string, unknown>[] = json?.data ?? []
-
-      for (const post of posts) {
-        if (!post?.url) continue
-        if ((post.score as number ?? 0) < MIN_SCORE) continue
-        if (post.over_18) continue
-
-        const videoUrl = post.url as string
-        if (!VIDEO_DOMAINS.some(d => videoUrl.includes(d))) continue
-
-        const platform = detectPlatform(videoUrl)
-        if (!platform) continue
-
-        if (seen.has(videoUrl)) continue
-        seen.add(videoUrl)
-
-        const cleanedTitle = cleanTitle((post.title as string) ?? '')
-        if (isUSDomesticStory(cleanedTitle)) continue
-
-        clips.push({
-          title: cleanedTitle,
-          videoUrl,
-          platform,
-          score: (post.score as number) ?? 0,
-          source: `r/${subreddit}`,
-          videoId: extractVideoId(videoUrl, platform),
-          region,
-          description: '',
-        })
-      }
-    } catch (err) {
-      errors.push(`Global PullPush r/${subreddit}: ${err instanceof Error ? err.message : String(err)}`)
+    if (!res.ok) {
+      errors.push(`Global PullPush batch: HTTP ${res.status}`)
+      return
     }
+
+    const json = await res.json()
+    const posts: Record<string, unknown>[] = json?.data ?? []
+
+    for (const post of posts) {
+      if (!post?.url) continue
+      if ((post.score as number ?? 0) < MIN_SCORE) continue
+      if (post.over_18) continue
+
+      const videoUrl = post.url as string
+      if (!VIDEO_DOMAINS.some(d => videoUrl.includes(d))) continue
+
+      const platform = detectPlatform(videoUrl)
+      if (!platform) continue
+
+      if (seen.has(videoUrl)) continue
+      seen.add(videoUrl)
+
+      const subreddit = (post.subreddit as string) ?? ''
+      const region = SUBREDDIT_TO_REGION[subreddit.toLowerCase()] ?? 'World'
+
+      const cleanedTitle = cleanTitle((post.title as string) ?? '')
+      if (isUSDomesticStory(cleanedTitle)) continue
+
+      clips.push({
+        title: cleanedTitle,
+        videoUrl,
+        platform,
+        score: (post.score as number) ?? 0,
+        source: `r/${subreddit}`,
+        videoId: extractVideoId(videoUrl, platform),
+        region,
+        description: '',
+      })
+    }
+  } catch (err) {
+    errors.push(`Global PullPush batch: ${err instanceof Error ? err.message : String(err)}`)
   }
 }
 

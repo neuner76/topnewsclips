@@ -1,5 +1,5 @@
 // PullPush.io — community Pushshift mirror that archives Reddit posts
-// Works from cloud IPs unlike reddit.com which blocks AWS/Vercel
+// Batches subreddits into grouped requests to avoid 429 rate limits
 
 export interface RedditClip {
   title: string
@@ -11,23 +11,12 @@ export interface RedditClip {
   videoId: string | null
 }
 
-const SUBREDDITS = [
+// Grouped into batches — each batch = one PullPush request
+const SUBREDDIT_BATCHES: string[][] = [
   // Incident footage
-  'PublicFreakout',
-  'bodycam',
-  'ActualPublicFreakouts',
-  'CaughtOnCamera',
-  // Raw footage variety
-  'Roadcam',
-  'AbruptChaos',
-  'tornado',
-  'nonononoyes',
-  // Science/tech (feeds Analysis + Etcetera)
-  'science',
-  'technology',
-  'Damnthatsinteresting',
-  'nextfuckinglevel',
-  'interestingasfuck',
+  ['PublicFreakout', 'bodycam', 'ActualPublicFreakouts', 'CaughtOnCamera'],
+  // Raw variety + science/tech
+  ['Roadcam', 'AbruptChaos', 'tornado', 'nonononoyes', 'science', 'technology', 'Damnthatsinteresting', 'nextfuckinglevel', 'interestingasfuck'],
 ]
 
 const MIN_SCORE = 100
@@ -56,29 +45,37 @@ function extractVideoId(url: string, platform: 'youtube' | 'tiktok' | 'x'): stri
   return null
 }
 
+function delay(ms: number) {
+  return new Promise(r => setTimeout(r, ms))
+}
+
 export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors: string[] }> {
   const clips: RedditClip[] = []
   const errors: string[] = []
   const seen = new Set<string>()
-
-  // 48 hours ago as Unix timestamp
   const after = Math.floor((Date.now() - 48 * 60 * 60 * 1000) / 1000)
 
-  for (const subreddit of SUBREDDITS) {
+  for (let i = 0; i < SUBREDDIT_BATCHES.length; i++) {
+    const batch = SUBREDDIT_BATCHES[i]
+    const batchLabel = batch.slice(0, 3).join(',') + (batch.length > 3 ? '…' : '')
+
+    if (i > 0) await delay(1500) // 1.5s between batches
+
     try {
       const url = new URL('https://api.pullpush.io/reddit/search/submission/')
-      url.searchParams.set('subreddit', subreddit)
+      url.searchParams.set('subreddit', batch.join(','))
       url.searchParams.set('sort', 'score')
       url.searchParams.set('sort_type', 'desc')
-      url.searchParams.set('size', '25')
+      url.searchParams.set('size', '50')
       url.searchParams.set('after', String(after))
 
       const res = await fetch(url.toString(), {
         headers: { 'User-Agent': 'topnewsclips/1.0' },
+        signal: AbortSignal.timeout(10000),
       })
 
       if (!res.ok) {
-        errors.push(`PullPush r/${subreddit}: HTTP ${res.status}`)
+        errors.push(`PullPush batch [${batchLabel}]: HTTP ${res.status}`)
         continue
       }
 
@@ -104,13 +101,13 @@ export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors:
           videoUrl,
           platform,
           redditScore: (post.score as number) ?? 0,
-          subreddit,
+          subreddit: (post.subreddit as string) ?? batch[0],
           redditPermalink: `https://reddit.com${post.permalink as string}`,
           videoId: extractVideoId(videoUrl, platform),
         })
       }
     } catch (err) {
-      errors.push(`PullPush r/${subreddit}: ${err instanceof Error ? err.message : String(err)}`)
+      errors.push(`PullPush batch [${batchLabel}]: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
 
