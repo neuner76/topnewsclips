@@ -11,10 +11,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  // display_order < 99 = ever-published stories (live + archived); 99 = draft/rejected
   const { data: stories } = await supabase
     .from('stories')
     .select('slug, updated_at, published')
-    .or('published.eq.true,published.eq.false')
+    .lt('display_order', 99)
     .not('slug', 'is', null)
 
   const storyUrls: MetadataRoute.Sitemap = (stories ?? []).map(s => ({
