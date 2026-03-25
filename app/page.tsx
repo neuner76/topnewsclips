@@ -8,6 +8,7 @@ import StoryCard from '@/components/StoryCard'
 import EmailCapture from '@/components/EmailCapture'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
+import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 
 export const revalidate = 300
@@ -296,7 +297,7 @@ export default async function HomePage({
             Today&apos;s Top Clips
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Independent news. No agenda.
+            What mainstream media misses. What the world is watching. In 5 minutes.
           </p>
           <EmailCaptureInline />
         </div>
@@ -356,9 +357,9 @@ export default async function HomePage({
               <section className="mb-12">
                 <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
                   <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-[oklch(0.52_0.14_196)]">
-                    MSM Blackout
+                    Limited Coverage
                   </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Stories the mainstream media isn&apos;t covering</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Stories receiving little attention from mainstream outlets</p>
                 </div>
                 <div>
                   {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} />)}

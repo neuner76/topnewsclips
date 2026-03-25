@@ -122,7 +122,7 @@ export default async function OGImage({
                   textTransform: 'uppercase',
                 }}
               >
-                MSM Blackout
+                Limited Coverage
               </div>
             )}
             {isGlobal && (

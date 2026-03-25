@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { track } from '@vercel/analytics'
 import type { Story } from '@/lib/types'
 import MSMBadge from './MSMBadge'
 import PlatformBadge from './PlatformBadge'
@@ -76,6 +79,7 @@ export default function StoryCard({ story }: StoryCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto"
+              onClick={() => track('story_watched', { slug: story.slug, platform: story.platform, category: story.category ?? 'unknown' })}
             >
               Watch →
             </a>

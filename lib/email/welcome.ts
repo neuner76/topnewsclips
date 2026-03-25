@@ -55,7 +55,13 @@ const cta = (text: string, href: string) =>
 function email1Html(email: string) {
   return wrap(`
     ${p("You just subscribed to something different.")}
-    ${p("No algorithm deciding what you should be angry about. No cable news narrative. Just the footage, investigations, and global stories that actually happened — verified, curated, and sent every morning.")}
+    ${p("Every morning, TopNewsClips does four things:")}
+    <ol style="margin:0 0 20px;padding-left:20px;font-size:15px;line-height:1.8;color:#374151;">
+      <li><strong>Surfaces what mainstream media is underreporting</strong> — verified stories fewer than 3 of the 15 major US outlets are covering.</li>
+      <li style="margin-top:8px;"><strong>Covers what the rest of the world is watching</strong> — major international events US outlets have skipped.</li>
+      <li style="margin-top:8px;"><strong>Shows how the world frames today's biggest stories</strong> — the same event looks different from Seoul, London, or Lagos.</li>
+      <li style="margin-top:8px;"><strong>Makes it digestible</strong> — one briefing, 5 minutes, and you're done. Informed, not anxious.</li>
+    </ol>
     ${p("Here's what's live right now:")}
     ${cta("Read today's stories →", SITE_URL)}
     ${p("Your first daily briefing arrives tomorrow morning.")}
@@ -66,7 +72,12 @@ function email1Html(email: string) {
 function email1Text(email: string) {
   return `You just subscribed to something different.
 
-No algorithm. No cable news narrative. Just the footage, investigations, and global stories that actually happened — verified, curated, sent every morning.
+Every morning, TopNewsClips does four things:
+
+1. Surfaces what mainstream media is underreporting — verified stories fewer than 3 of the 15 major US outlets are covering.
+2. Covers what the rest of the world is watching — major international events US outlets have skipped.
+3. Shows how the world frames today's biggest stories — the same event looks different from Seoul, London, or Lagos.
+4. Makes it digestible — one briefing, 5 minutes, and you're done. Informed, not anxious.
 
 Here's what's live right now:
 ${SITE_URL}
@@ -79,28 +90,28 @@ Your first daily briefing arrives tomorrow morning.
 Unsubscribe: ${unsubscribeLink(email)}`
 }
 
-// ─── Email 2: What MSM Blackout means (day 2) ────────────────────────────────
+// ─── Email 2: The two signals (day 2) ────────────────────────────────────────
 
 function email2Html(email: string) {
   return wrap(`
-    ${p("You'll notice some stories carry an <strong>MSM Blackout</strong> badge.")}
-    ${p("It means this: the story is verified and newsworthy, but fewer than 5 major mainstream outlets have covered it. Real event. Real footage. Corporate media just isn't touching it.")}
-    ${p("That's not a conspiracy theory — it's a coverage gap. Advertisers, editorial politics, and the 24-hour cycle all shape what gets airtime. TopNewsClips surfaces what falls through.")}
-    ${p("You'll also see <strong>Global Blindspot</strong> — international stories the world is covering that US media is ignoring.")}
-    ${cta("Read this morning's digest →", SITE_URL)}
+    ${p("You'll notice two badges on some stories. Here's what they mean.")}
+    ${p("<strong>Limited Coverage</strong> — the story is verified and newsworthy, but fewer than 3 of the 15 major US outlets we monitor had covered it at the time of publication. Real event. Corporate media just isn't on it yet — or isn't going to be.")}
+    ${p("<strong>Global Blindspot</strong> — an international story that the rest of the world considers major news, but US outlets have largely skipped. Not because it isn't significant. Because it doesn't fit the domestic news cycle.")}
+    ${p("Neither badge is a conspiracy claim. Both are a coverage measurement. You decide what to make of it.")}
+    ${cta("Read this morning's briefing →", SITE_URL)}
   `, email)
 }
 
 function email2Text(email: string) {
-  return `You'll notice some stories carry an MSM Blackout badge.
+  return `You'll notice two badges on some stories. Here's what they mean.
 
-It means this: the story is verified and newsworthy, but fewer than 5 major mainstream outlets have covered it. Real event. Real footage. Corporate media just isn't touching it.
+Limited Coverage — the story is verified and newsworthy, but fewer than 3 of the 15 major US outlets we monitor had covered it at the time of publication. Real event. Corporate media just isn't on it yet — or isn't going to be.
 
-That's not a conspiracy theory — it's a coverage gap. Advertisers, editorial politics, and the 24-hour cycle all shape what gets airtime. TopNewsClips surfaces what falls through.
+Global Blindspot — an international story that the rest of the world considers major news, but US outlets have largely skipped. Not because it isn't significant. Because it doesn't fit the domestic news cycle.
 
-You'll also see Global Blindspot — international stories the world is covering that US media is ignoring.
+Neither badge is a conspiracy claim. Both are a coverage measurement. You decide what to make of it.
 
-Read this morning's digest:
+Read this morning's briefing:
 ${SITE_URL}
 
 ---
@@ -162,7 +173,7 @@ export async function sendWelcomeSequence(email: string): Promise<void> {
     resend.emails.send({
       from: FROM,
       to: email,
-      subject: 'What "MSM Blackout" means (and why it matters)',
+      subject: 'Two badges, two signals — here\'s what they mean',
       html: email2Html(email),
       text: email2Text(email),
       headers: unsubHeaders,

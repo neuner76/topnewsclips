@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { track } from '@vercel/analytics'
 
 export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean }) {
   const [email, setEmail] = useState('')
@@ -16,7 +17,12 @@ export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
-      setStatus(res.ok ? 'success' : 'error')
+      if (res.ok) {
+        track('signup_completed', { placement: nudge ? 'nudge' : 'inline' })
+        setStatus('success')
+      } else {
+        setStatus('error')
+      }
     } catch {
       setStatus('error')
     }

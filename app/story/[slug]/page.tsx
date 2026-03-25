@@ -198,10 +198,10 @@ export default async function StoryPage({ params }: Props) {
         {s.msm_gap && (
           <div className="mt-6 p-4 bg-[oklch(0.96_0.03_24)] border border-[oklch(0.88_0.06_24)] rounded">
             <p className="text-xs font-semibold text-[oklch(0.45_0.22_24)] uppercase tracking-wide mb-1">
-              MSM Blackout
+              Limited Coverage
             </p>
             <p className="text-sm text-foreground">
-              This story has received little to no coverage from major mainstream outlets, despite significant social media engagement.
+              Fewer than 3 of the 15 major US news outlets we monitor have covered this story at the time of publication.
             </p>
           </div>
         )}

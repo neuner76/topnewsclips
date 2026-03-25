@@ -93,7 +93,7 @@ export default function AdminStoryRow({ story, isReview = false }: { story: Stor
             <span className="ml-2 font-semibold text-foreground">PINNED</span>
           )}
           {story.msm_gap && (
-            <span className="ml-2 text-[oklch(0.45_0.22_24)] font-medium">MSM Blackout</span>
+            <span className="ml-2 text-[oklch(0.45_0.22_24)] font-medium">Limited Coverage</span>
           )}
         </p>
       </div>

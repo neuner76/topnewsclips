@@ -230,9 +230,9 @@ export default function StoryForm({ story }: StoryFormProps) {
         <div className="space-y-3 p-4 bg-[oklch(0.97_0.01_24)] border border-[oklch(0.9_0.04_24)] rounded-md">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="msmGap" className="text-sm font-semibold">MSM Blackout</Label>
+              <Label htmlFor="msmGap" className="text-sm font-semibold">Limited Coverage</Label>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Toggle on if no major mainstream outlet has covered this story.
+                Toggle on if few major mainstream outlets have covered this story.
               </p>
             </div>
             <Switch

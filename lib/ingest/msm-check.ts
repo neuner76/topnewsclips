@@ -36,7 +36,7 @@ export async function checkMSMCoverage(query: string): Promise<MSMCheckResult> {
 
     return {
       articleCount: items,
-      msmGap: items < 5 || msmCoverage < 2,
+      msmGap: items < 5 || msmCoverage < 3,
       topSources: sources,
     }
   } catch {

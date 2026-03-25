@@ -15,8 +15,8 @@ const FAQ = [
     a: 'TopNewsClips is a daily news briefing that surfaces independent journalism, bodycam footage, and viral stories that mainstream US media undercovers. It is designed for non-partisan Americans who want factual reporting without a political agenda.',
   },
   {
-    q: 'What is an MSM Blackout?',
-    a: 'An MSM Blackout badge appears on stories that have fewer than 5 articles from major mainstream outlets, despite being credible and newsworthy. It signals that a story is genuinely underreported by corporate media, not that it is unverified.',
+    q: 'What does "Limited Coverage" mean?',
+    a: 'A Limited Coverage badge means fewer than 3 of the 15 major US news outlets we monitor (NYT, WaPo, CNN, BBC, AP, Reuters, Fox, NBC, ABC, CBS, WSJ, Politico, The Hill, USA Today) have covered this story at the time of publication. It signals the story is receiving little mainstream attention — not that it is unverified.',
   },
   {
     q: 'What is a Global Blindspot?',
@@ -24,7 +24,7 @@ const FAQ = [
   },
   {
     q: 'How does TopNewsClips verify stories?',
-    a: 'Every story goes through an automated verification pipeline. It cross-references mainstream media coverage to confirm the event is real, checks for AI-generated content risk, and assigns a confidence score. Stories with fewer than 5 major-outlet articles receive an MSM Blackout badge.',
+    a: 'Every story goes through an automated verification pipeline. It cross-references mainstream media coverage to confirm the event is real, checks for AI-generated content risk, and assigns a confidence score. Stories covered by fewer than 3 of our 15 monitored outlets receive a Limited Coverage badge.',
   },
   {
     q: 'Is TopNewsClips biased?',
@@ -59,45 +59,31 @@ export default function AboutPage() {
         <div className="mb-10 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">About</h1>
           <p className="text-sm text-muted-foreground">
-            Independent news. No agenda.
+            What mainstream media misses. What the world is watching. In 5 minutes.
           </p>
         </div>
 
         <div className="prose prose-sm max-w-none space-y-8 text-[15px] leading-relaxed">
 
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">The majority no one serves</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3">What we do</h2>
             <p>
-              More than half of Americans now identify as independent — not Republican, not Democrat.
-              They&apos;ve watched both parties get captured by donors, ideologues, and a win-at-all-costs
-              mentality that leaves ordinary citizens losing. So they left.
+              TopNewsClips is a daily briefing that keeps Americans genuinely informed — without
+              the noise, the outrage bait, or the partisan frame. We do four things:
             </p>
-            <p className="mt-3">
-              But leaving isn&apos;t enough if every news source still speaks to one tribe or the other.
-              Independents deserve information that helps them think — not content engineered to make
-              them angry at the other side.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">What TopNewsClips is</h2>
-            <p>
-              A daily briefing built for people who&apos;ve moved beyond the party divide. We surface
-              real footage and independent journalism that corporate media undercovers or ignores —
-              verified, curated, and presented without a partisan frame.
-            </p>
-            <ul className="mt-3 space-y-2 list-none pl-0">
+            <ul className="mt-4 space-y-4 list-none pl-0">
               {[
-                'Bodycam, dashcam, and bystander footage of real incidents',
-                'Investigative reporting from journalists not beholden to corporate advertisers',
-                'Accountability journalism — stories powerful institutions don\'t want covered',
-                'Science and technology breakthroughs before they go mainstream',
-                'Stories flagged MSM Blackout when major outlets haven\'t touched them',
-                'Global Blindspot — international stories the US press is ignoring',
-              ].map((item, i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="text-[oklch(0.52_0.14_196)] shrink-0">›</span>
-                  <span>{item}</span>
+                { label: 'Surface what mainstream media is underreporting', body: 'Credible, verified stories that fewer than 3 of the 15 major US outlets are covering. Real events. Just not getting airtime.' },
+                { label: 'Cover what the world is watching that US media ignores', body: 'International protests, crises, and events the rest of the world considers major news — and US outlets have skipped.' },
+                { label: 'Show how the world frames today\'s biggest stories', body: 'The same story looks different from Seoul, London, or Lagos. We surface those perspectives so you understand the full picture.' },
+                { label: 'Make the news digestible so you can get on with your day', body: 'One daily briefing. Verified. Curated. You read it in 5 minutes and you\'re done — informed, not anxious.' },
+              ].map(({ label, body }, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="text-[oklch(0.52_0.14_196)] shrink-0 font-black text-lg leading-snug">{i + 1}.</span>
+                  <div>
+                    <p className="font-semibold">{label}</p>
+                    <p className="text-muted-foreground text-sm mt-0.5">{body}</p>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -123,8 +109,8 @@ export default function AboutPage() {
               Every piece of content goes through an automated verification pipeline before it goes live.
               We cross-reference mainstream media coverage to confirm events are real, filter out
               entertainment and foreign news, and flag stories with an{' '}
-              <span className="font-semibold">MSM Blackout</span> badge when credible stories have
-              fewer than 5 major-outlet articles — meaning they&apos;re genuinely underreported.
+              <span className="font-semibold">Limited Coverage</span> badge when fewer than 3 of the
+              15 major outlets we monitor have covered a story — meaning it&apos;s receiving little mainstream attention.
             </p>
             <p className="mt-3">
               We&apos;re not perfect. If you see something that shouldn&apos;t be here, or something

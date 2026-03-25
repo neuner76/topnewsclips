@@ -45,7 +45,7 @@ export async function GET() {
     const categoryTags = [
       s.category ? `<category>${escapeXml(s.category)}</category>` : '',
       s.region ? `<category>${escapeXml(s.region)}</category>` : '',
-      s.msm_gap ? '<category>MSM Blackout</category>' : '',
+      s.msm_gap ? '<category>Limited Coverage</category>' : '',
     ].filter(Boolean).join('\n      ')
 
     const mediaTag = thumbnail
