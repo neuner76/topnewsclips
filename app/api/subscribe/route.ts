@@ -30,13 +30,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 })
   }
 
-  // Fire welcome sequence and surface any error for debugging
-  let welcomeError: string | null = null
-  try {
-    await sendWelcomeSequence(email.toLowerCase().trim())
-  } catch (err) {
-    welcomeError = err instanceof Error ? err.message : String(err)
-  }
+  // Fire welcome sequence — non-blocking, errors don't fail the subscribe
+  sendWelcomeSequence(email.toLowerCase().trim()).catch(() => {})
 
-  return NextResponse.json({ message: 'Subscribed.', welcomeError })
+  return NextResponse.json({ message: 'Subscribed.' })
 }

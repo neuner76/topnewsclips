@@ -25,7 +25,7 @@ export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean 
   if (status === 'success') {
     return (
       <p className="text-xs font-medium text-[oklch(0.52_0.14_196)] mt-3">
-        ✓ You&apos;re in — briefing arrives tomorrow morning.
+        ✓ You&apos;re in — check your inbox.
       </p>
     )
   }
