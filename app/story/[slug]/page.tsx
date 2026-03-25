@@ -36,7 +36,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!data) return {}
 
-  const ogImage = data.platform === 'youtube' ? getYouTubeThumbnailUrl(data.embed_url) : null
   const rawDescription = (data.description ?? '').trim()
   const description = rawDescription.length > 20
     ? rawDescription.slice(0, 155)
@@ -51,14 +50,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: data.title,
       description,
       url: canonicalUrl,
-      ...(ogImage && { images: [{ url: ogImage, width: 1280, height: 720 }] }),
     },
     twitter: {
-      card: ogImage ? 'summary_large_image' : 'summary',
+      card: 'summary_large_image',
       title: data.title,
       description,
       site: '@topnewsclips',
-      ...(ogImage && { images: [ogImage] }),
     },
   }
 }
