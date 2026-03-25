@@ -4,13 +4,55 @@ import EmailCapture from '@/components/EmailCapture'
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'About — TopNewsClips',
-  description: 'Independent news. No agenda.',
+  title: 'About TopNewsClips — Independent News. No Agenda.',
+  description: 'TopNewsClips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers. Daily briefing for non-partisan Americans who want facts, not spin.',
+  alternates: { canonical: 'https://www.topnewsclips.com/about' },
+}
+
+const FAQ = [
+  {
+    q: 'What is TopNewsClips?',
+    a: 'TopNewsClips is a daily news briefing that surfaces independent journalism, bodycam footage, and viral stories that mainstream US media undercovers. It is designed for non-partisan Americans who want factual reporting without a political agenda.',
+  },
+  {
+    q: 'What is an MSM Blackout?',
+    a: 'An MSM Blackout badge appears on stories that have fewer than 5 articles from major mainstream outlets, despite being credible and newsworthy. It signals that a story is genuinely underreported by corporate media, not that it is unverified.',
+  },
+  {
+    q: 'What is a Global Blindspot?',
+    a: 'A Global Blindspot is an international news story — a protest, political crisis, natural disaster, or major event outside the US — that the rest of the world is covering but US mainstream media is ignoring. TopNewsClips surfaces these via its Global Lens feature.',
+  },
+  {
+    q: 'How does TopNewsClips verify stories?',
+    a: 'Every story goes through an automated verification pipeline. It cross-references mainstream media coverage to confirm the event is real, checks for AI-generated content risk, and assigns a confidence score. Stories with fewer than 5 major-outlet articles receive an MSM Blackout badge.',
+  },
+  {
+    q: 'Is TopNewsClips biased?',
+    a: 'TopNewsClips does not take a political side. Stories are rejected if they only resonate with one partisan tribe. The editorial standard is: corporate corruption, government overreach, institutional failure, and police accountability are American issues — not left or right issues.',
+  },
+  {
+    q: 'What types of content does TopNewsClips publish?',
+    a: 'TopNewsClips publishes three content types: Raw (bodycam, dashcam, bystander, and security camera footage), Reported (investigative journalism from independent journalists), and Analysis (commentary and context from non-corporate voices). Each story is labeled so readers know what they are watching.',
+  },
+]
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ.map(({ q, a }) => ({
+    '@type': 'Question',
+    name: q,
+    acceptedAnswer: { '@type': 'Answer', text: a },
+  })),
 }
 
 export default function AboutPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
 
@@ -51,6 +93,7 @@ export default function AboutPage() {
                 'Accountability journalism — stories powerful institutions don\'t want covered',
                 'Science and technology breakthroughs before they go mainstream',
                 'Stories flagged MSM Blackout when major outlets haven\'t touched them',
+                'Global Blindspot — international stories the US press is ignoring',
               ].map((item, i) => (
                 <li key={i} className="flex gap-2">
                   <span className="text-[oklch(0.52_0.14_196)] shrink-0">›</span>
@@ -102,6 +145,19 @@ export default function AboutPage() {
             >
               Read today&apos;s digest →
             </Link>
+          </section>
+
+          {/* FAQ — structured for AI extraction */}
+          <section>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-6">Frequently asked questions</h2>
+            <dl className="space-y-6">
+              {FAQ.map(({ q, a }) => (
+                <div key={q} className="border-b border-border pb-6 last:border-0 last:pb-0">
+                  <dt className="font-bold text-[15px] mb-2">{q}</dt>
+                  <dd className="text-muted-foreground leading-relaxed">{a}</dd>
+                </div>
+              ))}
+            </dl>
           </section>
 
         </div>
