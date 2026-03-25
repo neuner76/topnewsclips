@@ -5,6 +5,7 @@ import { fetchTikTokTrending, type TikTokClip } from './tiktok'
 import { fetchGlobalClips, type GlobalClip } from './global'
 import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
+import { pingIndexNow } from './indexnow'
 
 export interface PipelineResult {
   inserted: number
@@ -270,6 +271,8 @@ export async function runProcess(): Promise<PipelineResult> {
     return result
   }
 
+  const publishedSlugs: string[] = []
+
   // Fetch today's published story titles for topic diversity enforcement
   const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const { data: todayPublished } = await supabase
@@ -371,6 +374,7 @@ export async function runProcess(): Promise<PipelineResult> {
         result.needsReview++
       } else {
         result.inserted++
+        publishedSlugs.push(candidate.slug)
       }
 
       // Add to in-memory published list so topic cap applies within this run too
@@ -381,6 +385,9 @@ export async function runProcess(): Promise<PipelineResult> {
       )
     }
   }
+
+  // Ping IndexNow with all newly published story URLs
+  await pingIndexNow(publishedSlugs)
 
   return result
 }
