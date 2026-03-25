@@ -15,6 +15,10 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+const DIGEST_UTM = 'utm_source=email&utm_medium=email&utm_campaign=digest'
+function storyUrl(siteUrl: string, slug: string) { return `${siteUrl}/story/${slug}?${DIGEST_UTM}` }
+function siteUrlUtm(siteUrl: string) { return `${siteUrl}?${DIGEST_UTM}` }
+
 function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): string {
   const inTheKnowCategories = [
     'Politics & World Affairs',
@@ -25,12 +29,12 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
 
   const needToKnowHtml = content.needToKnow.map(item => `
     <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid #e5e7eb;">
-      <a href="${siteUrl}/story/${item.slug}" style="text-decoration:none;">
+      <a href="${storyUrl(siteUrl, item.slug)}" style="text-decoration:none;">
         <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">NEED TO KNOW</div>
         <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
       </a>
       ${item.paragraphs.map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#374151;">${p}</p>`).join('')}
-      <a href="${siteUrl}/story/${item.slug}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;">Watch →</a>
+      <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;">Watch →</a>
     </div>
   `).join('')
 
@@ -42,7 +46,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
         <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6b7280;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;">${cat}</div>
         ${items.map(item => {
           const text = item.slug
-            ? `<a href="${siteUrl}/story/${item.slug}" target="_blank" rel="noopener noreferrer" style="color:#111827;text-decoration:none;">${item.text}</a>`
+            ? `<a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="color:#111827;text-decoration:none;">${item.text}</a>`
             : item.text
           return `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#374151;">• ${text}</p>`
         }).join('')}
@@ -64,7 +68,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
       ${content.globalBlindspots.map(item => `
         <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #fde68a;">
           <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">${item.region}</div>
-          <a href="${siteUrl}/story/${item.slug}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;display:block;margin-bottom:4px;">${item.title}</a>
+          <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;display:block;margin-bottom:4px;">${item.title}</a>
           <p style="margin:0;font-size:13px;line-height:1.5;color:#6b7280;">${item.summary}</p>
         </div>
       `).join('')}
@@ -83,9 +87,9 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
 
     <!-- Header -->
     <div style="background:#ffffff;border-bottom:3px solid #0e7490;padding:20px 32px;">
-      <a href="${siteUrl}" style="text-decoration:none;">
+      <a href="${siteUrlUtm(siteUrl)}" style="text-decoration:none;">
         <div style="font-size:22px;font-weight:900;letter-spacing:-0.03em;color:#111827;">TopNewsClips</div>
-        <div style="font-size:11px;color:#6b7280;margin-top:2px;">Independent news. No agenda.</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;">What mainstream media misses. What the world is watching.</div>
       </a>
       <div style="font-size:12px;color:#9ca3af;margin-top:6px;">${formatDate(date)}</div>
     </div>
@@ -110,7 +114,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
 
     <!-- Footer -->
     <div style="padding:24px 32px;border-top:1px solid #e5e7eb;text-align:center;">
-      <a href="${siteUrl}" style="font-size:13px;font-weight:700;color:#0e7490;text-decoration:none;">topnewsclips.com</a>
+      <a href="${siteUrlUtm(siteUrl)}" style="font-size:13px;font-weight:700;color:#0e7490;text-decoration:none;">topnewsclips.com</a>
       <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">
         You're receiving this because you subscribed at topnewsclips.com.<br>
         <a href="${siteUrl}/api/unsubscribe?email={{email}}" style="color:#9ca3af;">Unsubscribe</a>
@@ -147,7 +151,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
       lines.push(p)
       lines.push('')
     }
-    lines.push(`Watch: ${siteUrl}/story/${item.slug}`)
+    lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
     lines.push('')
     lines.push('─'.repeat(60))
     lines.push('')
@@ -161,7 +165,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     if (!items || items.length === 0) continue
     lines.push(cat.toUpperCase())
     for (const item of items) {
-      const link = item.slug ? ` ${siteUrl}/story/${item.slug}` : ''
+      const link = item.slug ? ` ${storyUrl(siteUrl, item.slug)}` : ''
       lines.push(`• ${item.text}${link}`)
     }
     lines.push('')
@@ -189,13 +193,13 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     for (const item of content.globalBlindspots) {
       lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
       lines.push(item.summary)
-      lines.push(`Watch: ${siteUrl}/story/${item.slug}`)
+      lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
       lines.push('')
     }
   }
 
   lines.push('━'.repeat(60))
-  lines.push(`${siteUrl}`)
+  lines.push(`${siteUrlUtm(siteUrl)}`)
   lines.push('You\'re receiving this because you subscribed at topnewsclips.com.')
   lines.push('Unsubscribe: {{unsubscribe}}')
 

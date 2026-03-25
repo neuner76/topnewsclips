@@ -1,6 +1,8 @@
 import { Resend } from 'resend'
 
 const SITE_URL = 'https://www.topnewsclips.com'
+const UTM = 'utm_source=email&utm_medium=email&utm_campaign=welcome'
+const SITE_URL_UTM = `${SITE_URL}?${UTM}`
 const FROM = 'TopNewsClips <digest@topnewsclips.com>'
 
 function unsubscribeLink(email: string) {
@@ -63,7 +65,7 @@ function email1Html(email: string) {
       <li style="margin-top:8px;"><strong>Makes it digestible</strong> — one briefing, 5 minutes, and you're done. Informed, not anxious.</li>
     </ol>
     ${p("Here's what's live right now:")}
-    ${cta("Read today's stories →", SITE_URL)}
+    ${cta("Read today's stories →", SITE_URL_UTM)}
     ${p("Your first daily briefing arrives tomorrow morning.")}
     <p style="margin:0;font-size:14px;color:#6b7280;">— TopNewsClips</p>
   `, email)
@@ -80,7 +82,7 @@ Every morning, TopNewsClips does four things:
 4. Makes it digestible — one briefing, 5 minutes, and you're done. Informed, not anxious.
 
 Here's what's live right now:
-${SITE_URL}
+${SITE_URL_UTM}
 
 Your first daily briefing arrives tomorrow morning.
 
@@ -98,7 +100,7 @@ function email2Html(email: string) {
     ${p("<strong>Limited Coverage</strong> — the story is verified and newsworthy, but fewer than 3 of the 15 major US outlets we monitor had covered it at the time of publication. Real event. Corporate media just isn't on it yet — or isn't going to be.")}
     ${p("<strong>Global Blindspot</strong> — an international story that the rest of the world considers major news, but US outlets have largely skipped. Not because it isn't significant. Because it doesn't fit the domestic news cycle.")}
     ${p("Neither badge is a conspiracy claim. Both are a coverage measurement. You decide what to make of it.")}
-    ${cta("Read this morning's briefing →", SITE_URL)}
+    ${cta("Read this morning's briefing →", SITE_URL_UTM)}
   `, email)
 }
 
@@ -112,7 +114,7 @@ Global Blindspot — an international story that the rest of the world considers
 Neither badge is a conspiracy claim. Both are a coverage measurement. You decide what to make of it.
 
 Read this morning's briefing:
-${SITE_URL}
+${SITE_URL_UTM}
 
 ---
 Unsubscribe: ${unsubscribeLink(email)}`
@@ -125,7 +127,7 @@ function email3Html(email: string) {
     ${p("Five days in. Hopefully you've seen a few stories that made you think <em>\"I hadn't heard about that.\"</em>")}
     ${p("That's the whole point.")}
     ${p("If TopNewsClips has been worth your morning minute, the one thing that helps most is telling one person — a friend, a group chat, anyone who'd want the same thing.")}
-    ${cta("Share TopNewsClips →", SITE_URL)}
+    ${cta("Share TopNewsClips →", SITE_URL_UTM)}
     ${p("That's it. See you tomorrow morning.")}
   `, email)
 }
@@ -137,7 +139,7 @@ That's the whole point.
 
 If TopNewsClips has been worth your morning minute, the one thing that helps most is telling one person — a friend, a group chat, anyone who'd want the same thing.
 
-Share: ${SITE_URL}
+Share: ${SITE_URL_UTM}
 
 That's it. See you tomorrow morning.
 

@@ -70,6 +70,7 @@ function DigestView({ content, date }: { content: DigestContent; date: string })
 
   return (
     <div>
+      <TrackEvent name="digest_read" />
       {/* Date */}
       <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-6">
         {formattedDate}
