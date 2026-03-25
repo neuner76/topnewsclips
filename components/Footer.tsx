@@ -8,7 +8,7 @@ export default function Footer() {
           <div>
             <p className="font-bold text-sm tracking-tight">TOP NEWS CLIPS</p>
             <p className="text-xs text-muted-foreground mt-1">
-              The stories social media is talking about — that mainstream outlets ignore.
+              What mainstream media misses. What the world is watching. In 5 minutes.
             </p>
           </div>
           <nav className="flex items-center gap-5 text-xs text-muted-foreground">
@@ -20,6 +20,9 @@ export default function Footer() {
             </Link>
             <Link href="/privacy" className="hover:text-foreground transition-colors">
               Privacy
+            </Link>
+            <Link href="/rss.xml" className="hover:text-foreground transition-colors">
+              RSS
             </Link>
           </nav>
         </div>

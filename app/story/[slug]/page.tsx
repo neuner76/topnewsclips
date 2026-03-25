@@ -107,6 +107,16 @@ export default async function StoryPage({ params }: Props) {
   const fullDescription = (s.description ?? '').trim()
   const shortDescription = fullDescription.slice(0, 155)
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.topnewsclips.com' },
+      { '@type': 'ListItem', position: 2, name: 'Clips', item: 'https://www.topnewsclips.com/?view=clips' },
+      ...(s.category ? [{ '@type': 'ListItem', position: 3, name: s.category.charAt(0).toUpperCase() + s.category.slice(1), item: canonicalUrl }] : []),
+    ],
+  }
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -147,18 +157,27 @@ export default async function StoryPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Header />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Back */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          ← Back to Today&apos;s Digest
-        </Link>
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+          <span>›</span>
+          <Link href="/?view=clips" className="hover:text-foreground transition-colors">Clips</Link>
+          {s.category && (
+            <>
+              <span>›</span>
+              <span className="capitalize">{s.category}</span>
+            </>
+          )}
+        </nav>
 
         {/* Archived banner */}
         {!s.published && (
