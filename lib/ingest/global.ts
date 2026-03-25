@@ -145,9 +145,18 @@ function cleanTitle(title: string): string {
 // Pre-filter: skip stories that are clearly about US domestic politics/news
 // These come from international outlets covering the US — not useful for Global Lens
 const US_DOMESTIC_TERMS = [
+  // US politics
   /\bICE\b/, /\bTrump\b/, /\bBiden\b/, /\bCongress\b/, /\bSenate\b/, /\bWhite House\b/i,
   /\bDOGE\b/, /\bElon Musk\b/i, /\bDemocrat/i, /\bRepublican/i, /\bGOP\b/,
   /\bSupreme Court\b/i, /\bWall Street\b/i, /\bFed(eral Reserve)?\b/,
+  // US cities and locations
+  /\bNew York\b/i, /\bLos Angeles\b/i, /\bChicago\b/i, /\bHouston\b/i,
+  /\bWashington D\.?C\.?\b/i, /\bLas Vegas\b/i, /\bMiami\b/i, /\bBoston\b/i,
+  /\bSan Francisco\b/i, /\bSeattle\b/i, /\bDallas\b/i, /\bAtlanta\b/i,
+  /\bLaGuardia\b/i, /\bJFK Airport\b/i, /\bO'Hare\b/i,
+  // US institutions
+  /\bFBI\b/, /\bCIA\b/, /\bNSA\b/, /\bDHS\b/, /\bDOJ\b/,
+  /\bPentagon\b/i, /\bU\.S\. Capitol\b/i,
 ]
 
 function isUSDomesticStory(title: string): boolean {
