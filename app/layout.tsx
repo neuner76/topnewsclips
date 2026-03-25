@@ -28,6 +28,9 @@ export const metadata: Metadata = {
     description: 'Independent news clips mainstream media undercovers.',
     site: '@topnewsclips',
   },
+  verification: {
+    other: { 'msvalidate.01': '08924073E1E743D11B79FA73E1244BB3' },
+  },
 }
 
 const websiteJsonLd = {
