@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
 
+export const revalidate = 300
+
 const SITE_URL = 'https://www.topnewsclips.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
