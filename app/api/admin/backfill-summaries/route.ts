@@ -7,12 +7,6 @@ import Anthropic from '@anthropic-ai/sdk'
 // GET /api/admin/backfill-summaries?secret=CRON_SECRET            → run (max 20 per call)
 
 export async function GET(req: NextRequest) {
-  const secret = req.nextUrl.searchParams.get('secret')
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && secret !== cronSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const dry = req.nextUrl.searchParams.get('dry') === 'true'
 
   const supabase = createClient(
