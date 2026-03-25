@@ -122,24 +122,35 @@ Unsubscribe: ${unsubscribeLink(email)}`
 
 // ─── Email 3: Refer a friend (day 5) ─────────────────────────────────────────
 
+const REFERRAL_UTM = 'utm_source=email&utm_medium=referral&utm_campaign=email3'
+const REFERRAL_URL = `${SITE_URL}?${REFERRAL_UTM}`
+const TWEET_TEXT = encodeURIComponent(`I've been reading TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that actually keeps you informed.\n\n${SITE_URL}?utm_source=twitter&utm_medium=referral&utm_campaign=email3`)
+
 function email3Html(email: string) {
   return wrap(`
-    ${p("Five days in. Hopefully you've seen a few stories that made you think <em>\"I hadn't heard about that.\"</em>")}
-    ${p("That's the whole point.")}
-    ${p("If TopNewsClips has been worth your morning minute, the one thing that helps most is telling one person — a friend, a group chat, anyone who'd want the same thing.")}
-    ${cta("Share TopNewsClips →", SITE_URL_UTM)}
+    ${p("Five days in. You've seen stories this week that didn't make the evening news.")}
+    ${p("That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.")}
+    ${p("If it's been worth your morning minute, the most valuable thing you can do is send it to one person who'd want the same thing. They get it free. You help build something independent.")}
+    <div style="margin:24px 0;">
+      <a href="https://twitter.com/intent/tweet?text=${TWEET_TEXT}" style="display:inline-block;background:#000000;color:#ffffff;font-size:14px;font-weight:700;padding:10px 20px;border-radius:6px;text-decoration:none;margin-right:10px;">Share on X</a>
+      <a href="${REFERRAL_URL}" style="display:inline-block;background:#0e7490;color:#ffffff;font-size:14px;font-weight:700;padding:10px 20px;border-radius:6px;text-decoration:none;">Send them the link</a>
+    </div>
     ${p("That's it. See you tomorrow morning.")}
   `, email)
 }
 
 function email3Text(email: string) {
-  return `Five days in. Hopefully you've seen a few stories that made you think "I hadn't heard about that."
+  return `Five days in. You've seen stories this week that didn't make the evening news.
 
-That's the whole point.
+That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.
 
-If TopNewsClips has been worth your morning minute, the one thing that helps most is telling one person — a friend, a group chat, anyone who'd want the same thing.
+If it's been worth your morning minute, send it to one person who'd want the same thing. They get it free.
 
-Share: ${SITE_URL_UTM}
+Share this link:
+${REFERRAL_URL}
+
+Or share on X:
+https://twitter.com/intent/tweet?text=${TWEET_TEXT}
 
 That's it. See you tomorrow morning.
 
@@ -184,7 +195,7 @@ export async function sendWelcomeSequence(email: string): Promise<void> {
     resend.emails.send({
       from: FROM,
       to: email,
-      subject: "If you've found this useful...",
+      subject: "Know someone who'd want this?",
       html: email3Html(email),
       text: email3Text(email),
       headers: unsubHeaders,

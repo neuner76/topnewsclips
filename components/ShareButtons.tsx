@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Share2, Check } from 'lucide-react'
+import { track } from '@vercel/analytics'
 
 interface ShareButtonsProps {
   title: string
@@ -11,13 +12,15 @@ interface ShareButtonsProps {
 export default function ShareButtons({ title, slug }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false)
 
-  const url = `https://topnewsclips.com/story/${slug}`
-  const tweetText = encodeURIComponent(`${title} — via @TopNewsClips\n${url}`)
+  const baseUrl = `https://www.topnewsclips.com/story/${slug}`
+  const shareUrl = `${baseUrl}?utm_source=social&utm_medium=share&utm_campaign=story`
+  const tweetText = encodeURIComponent(`${title}\n\nvia @TopNewsClips — stories mainstream media isn't covering\n${shareUrl}`)
 
   async function copyLink() {
-    await navigator.clipboard.writeText(url)
+    await navigator.clipboard.writeText(shareUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+    track('story_shared', { method: 'copy', slug })
   }
 
   return (
@@ -27,6 +30,7 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
         target="_blank"
         rel="noopener noreferrer"
         className="text-xs font-medium px-2.5 py-1.5 rounded border border-border hover:bg-muted transition-colors"
+        onClick={() => track('story_shared', { method: 'x', slug })}
       >
         Share on X
       </a>
