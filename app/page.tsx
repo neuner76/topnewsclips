@@ -285,14 +285,15 @@ export default async function HomePage({
   const uncategorized = all.filter(s => !s.category && !s.region)
   const msmBlackout = all.filter(s => s.msm_gap && !s.region)
 
-  // Global Lens — one top story per region
+  // Global Lens — one top story per region, excluding Blindspot stories
   const globalStories = all.filter(s => !!s.region)
+  const globalBlindspots = globalStories.filter(s => s.msm_gap)
+  const blindspotIds = new Set(globalBlindspots.map(s => s.id))
   const globalByRegion = new Map<string, Story>()
   for (const s of globalStories) {
-    if (!globalByRegion.has(s.region!)) globalByRegion.set(s.region!, s)
+    if (!blindspotIds.has(s.id) && !globalByRegion.has(s.region!)) globalByRegion.set(s.region!, s)
   }
   const globalLens = [...globalByRegion.values()]
-  const globalBlindspots = globalStories.filter(s => s.msm_gap)
 
   return (
     <>
