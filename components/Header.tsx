@@ -17,6 +17,9 @@ export default function Header() {
             <Link href="/?view=clips" className="hover:text-foreground transition-colors">
               Clips
             </Link>
+            <Link href="/stories" className="hover:text-foreground transition-colors hidden sm:block">
+              Archive
+            </Link>
             <Link href="/about" className="hover:text-foreground transition-colors hidden sm:block">
               About
             </Link>

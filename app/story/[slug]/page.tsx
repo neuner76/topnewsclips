@@ -258,12 +258,18 @@ export default async function StoryPage({ params }: Props) {
         )}
 
         {/* Back to feed */}
-        <div className="mt-10 pt-6 border-t border-border">
+        <div className="mt-10 pt-6 border-t border-border flex items-center justify-between">
           <Link
             href="/?view=clips"
             className="text-sm font-semibold text-foreground hover:underline underline-offset-2"
           >
-            ← See all of today&apos;s clips
+            ← Today&apos;s clips
+          </Link>
+          <Link
+            href="/stories"
+            className="text-sm font-semibold text-muted-foreground hover:text-foreground hover:underline underline-offset-2"
+          >
+            Browse all stories →
           </Link>
         </div>
 
