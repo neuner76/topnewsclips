@@ -358,7 +358,7 @@ export async function runProcess(): Promise<PipelineResult> {
         msm_gap: verification.msmGap,
         msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}`,
         published: verification.decision === 'publish' || verification.decision === 'needs_review',
-        display_order: verification.decision === 'publish' ? 50 : verification.decision === 'needs_review' ? 75 : 99,
+        display_order: verification.decision === 'publish' ? (verification.msmGap ? 30 : 50) : verification.decision === 'needs_review' ? 75 : 99,
         category: verification.category,
         thumbnail_url: candidate.thumbnail_url ?? null,
         journalist_username: candidate.journalist_username ?? null,

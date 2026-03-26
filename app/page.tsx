@@ -187,6 +187,8 @@ function SubHeader({ label }: { label: string }) {
   )
 }
 
+const SECTION_CAP = 6
+
 interface SectionProps {
   title: string
   subtitle: string
@@ -198,6 +200,11 @@ interface SectionProps {
 
 function Section({ title, subtitle, pinned, voices, stories, accentClass }: SectionProps) {
   const isEmpty = pinned.length === 0 && voices.length === 0 && stories.length === 0
+  // Cap total stories shown per section — pinned always show, cap applied to voices + stories
+  let voicesBudget = Math.max(0, SECTION_CAP - pinned.length)
+  const cappedVoices = voices.slice(0, voicesBudget)
+  voicesBudget = Math.max(0, voicesBudget - cappedVoices.length)
+  const cappedStories = stories.slice(0, voicesBudget)
   return (
     <section className="mb-12">
       <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
@@ -216,16 +223,16 @@ function Section({ title, subtitle, pinned, voices, stories, accentClass }: Sect
               {pinned.map(s => <StoryCard key={s.id} story={s} />)}
             </>
           )}
-          {voices.length > 0 && (
+          {cappedVoices.length > 0 && (
             <>
               <SubHeader label="Independent Voices" />
-              {voices.map(s => <StoryCard key={s.id} story={s} />)}
+              {cappedVoices.map(s => <StoryCard key={s.id} story={s} />)}
             </>
           )}
-          {stories.length > 0 && (
+          {cappedStories.length > 0 && (
             <>
               <SubHeader label="Trending" />
-              {stories.map(s => <StoryCard key={s.id} story={s} />)}
+              {cappedStories.map(s => <StoryCard key={s.id} story={s} />)}
             </>
           )}
         </div>
@@ -377,7 +384,7 @@ export default async function HomePage({
                   <p className="text-xs text-muted-foreground mt-0.5">Stories the rest of the world is covering that US media is ignoring</p>
                 </div>
                 <div>
-                  {globalBlindspots.map(s => (
+                  {globalBlindspots.slice(0, SECTION_CAP).map(s => (
                     <div key={s.id} className="group py-3 border-b border-border">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
@@ -403,7 +410,7 @@ export default async function HomePage({
                   <p className="text-xs text-muted-foreground mt-0.5">How the world is covering today&apos;s biggest stories</p>
                 </div>
                 <div>
-                  {globalLens.map(s => (
+                  {globalLens.slice(0, SECTION_CAP).map(s => (
                     <div key={s.id} className="group py-3 border-b border-border">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
