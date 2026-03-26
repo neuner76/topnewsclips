@@ -20,6 +20,9 @@ const SUBREDDITS = [
   'science',
   'technology',
   'Damnthatsinteresting',
+  'news',
+  'Bad_Cop_No_Donut',
+  'WorkersRights',
 ]
 
 const MIN_SCORE = 100

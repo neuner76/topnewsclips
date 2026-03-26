@@ -17,20 +17,27 @@ const MIN_SCORE = 50 // lower threshold for international content
 
 // Trimmed to highest-signal subreddits — fewer requests = fewer 429s
 const GLOBAL_SUBREDDITS: { subreddit: string; region: string }[] = [
-  { subreddit: 'worldnews',   region: 'World' },
-  { subreddit: 'korea',       region: 'Korea' },
-  { subreddit: 'middleeast',  region: 'Middle East' },
-  { subreddit: 'europe',      region: 'Europe' },
-  { subreddit: 'China',       region: 'China' },
+  { subreddit: 'worldnews',    region: 'World' },
+  { subreddit: 'korea',        region: 'Korea' },
+  { subreddit: 'middleeast',   region: 'Middle East' },
+  { subreddit: 'europe',       region: 'Europe' },
+  { subreddit: 'China',        region: 'China' },
+  { subreddit: 'africa',       region: 'Africa' },
+  { subreddit: 'LatinAmerica', region: 'Latin America' },
 ]
 
 // YouTube RSS channels for international outlets (quota-free)
 const GLOBAL_YOUTUBE_CHANNELS: { channelId: string; region: string; label: string }[] = [
-  { channelId: 'UCNye-wNBqNL5ZzHSJj3l8Bg', region: 'Middle East', label: 'Al Jazeera English' },
-  { channelId: 'UCknLrEdhRCp1aegoMqRaCZg', region: 'Europe',      label: 'DW News' },
-  { channelId: 'UCQfwfsi5VrQ8yKZ-UWmAEFg', region: 'Europe',      label: 'France 24 English' },
-  { channelId: 'UCip8ve30-AoX2y2OtAAmqFA', region: 'Japan',       label: 'NHK World News' },
-  { channelId: 'UCzznO4xSV8BKnUBPyswtCUw', region: 'Korea',       label: 'Arirang News' },
+  { channelId: 'UCNye-wNBqNL5ZzHSJj3l8Bg', region: 'Middle East',   label: 'Al Jazeera English' },
+  { channelId: 'UCknLrEdhRCp1aegoMqRaCZg', region: 'Europe',        label: 'DW News' },
+  { channelId: 'UCQfwfsi5VrQ8yKZ-UWmAEFg', region: 'Europe',        label: 'France 24 English' },
+  { channelId: 'UCip8ve30-AoX2y2OtAAmqFA', region: 'Japan',         label: 'NHK World News' },
+  { channelId: 'UCzznO4xSV8BKnUBPyswtCUw', region: 'Korea',         label: 'Arirang News' },
+  { channelId: 'UC7fWeaHhqgM4Ry-RMpM2YYw', region: 'Middle East',   label: 'TRT World' },
+  { channelId: 'UCVgO39Bk5sMo66-6o6Spn6Q', region: 'Australia',     label: 'ABC News Australia' },
+  { channelId: 'UCgrNz-aDmcr2uuto8_DL2jg', region: 'China',         label: 'CGTN' },
+  { channelId: 'UC_gUM8rL-Lrg6O3adPW9K1g', region: 'South Asia',   label: 'WION' },
+  { channelId: 'UCmuTmpLY35O3csvhyA6vrkg', region: 'Latin America', label: 'TeleSUR English' },
 ]
 
 function detectPlatform(url: string): 'youtube' | 'tiktok' | 'x' | null {
@@ -140,7 +147,7 @@ async function fetchGlobalReddit(
 
 // Strip common channel name suffixes from YouTube titles e.g. "Story title | DW News" → "Story title"
 function cleanTitle(title: string): string {
-  return title.replace(/\s*[|\-–—]\s*(DW News|Al Jazeera English|FRANCE 24 English|FRANCE 24|NHK World|NHK|Arirang News|Arirang)(\s+English)?\s*$/i, '').trim()
+  return title.replace(/\s*[|\-–—]\s*(DW News|Al Jazeera English|FRANCE 24 English|FRANCE 24|NHK World|NHK|Arirang News|Arirang|TRT World|ABC News Australia|ABC News|CGTN|WION|TeleSUR English|TeleSUR)(\s+English)?\s*$/i, '').trim()
 }
 
 // Pre-filter: skip stories that are clearly about US domestic politics/news

@@ -56,37 +56,43 @@ const cta = (text: string, href: string) =>
 
 function email1Html(email: string) {
   return wrap(`
-    ${p("You just subscribed to something different.")}
-    ${p("Every morning, TopNewsClips does four things:")}
-    <ol style="margin:0 0 20px;padding-left:20px;font-size:15px;line-height:1.8;color:#374151;">
-      <li><strong>Surfaces what mainstream media is underreporting</strong> — verified stories fewer than 3 of the 15 major US outlets are covering.</li>
-      <li style="margin-top:8px;"><strong>Covers what the rest of the world is watching</strong> — major international events US outlets have skipped.</li>
-      <li style="margin-top:8px;"><strong>Shows how the world frames today's biggest stories</strong> — the same event looks different from Seoul, London, or Lagos.</li>
-      <li style="margin-top:8px;"><strong>Makes it digestible</strong> — one briefing, 5 minutes, and you're done. Informed, not anxious.</li>
-    </ol>
+    ${p("Most Americans are making sense of the world with incomplete information.")}
+    ${p("US media covers about 5% of global news. Cable news is designed to maximize watch time through outrage and fear. And the stories that don't fit the cycle — bodycam footage, international events, independent investigations — just don't make it through.")}
+    ${p("Top News Clips closes that gap.")}
+    ${p("Every morning you'll get:")}
+    <ul style="margin:0 0 20px;padding-left:20px;font-size:15px;line-height:1.8;color:#374151;">
+      <li>Stories verified as real but underreported by mainstream outlets</li>
+      <li style="margin-top:6px;">What the rest of the world is watching that US media has skipped</li>
+      <li style="margin-top:6px;">How other countries are framing today's biggest stories</li>
+      <li style="margin-top:6px;">All of it in 5 minutes — so you can go on with your day informed, not anxious</li>
+    </ul>
     ${p("Here's what's live right now:")}
     ${cta("Read today's stories →", `${SITE_URL}/?view=clips&${UTM}`)}
     ${p("Your first daily briefing arrives tomorrow morning.")}
-    <p style="margin:0;font-size:14px;color:#6b7280;">— TopNewsClips</p>
+    <p style="margin:0;font-size:14px;color:#6b7280;">— Top News Clips</p>
   `, email)
 }
 
 function email1Text(email: string) {
-  return `You just subscribed to something different.
+  return `Most Americans are making sense of the world with incomplete information.
 
-Every morning, TopNewsClips does four things:
+US media covers about 5% of global news. Cable news is designed to maximize watch time through outrage and fear. And the stories that don't fit the cycle — bodycam footage, international events, independent investigations — just don't make it through.
 
-1. Surfaces what mainstream media is underreporting — verified stories fewer than 3 of the 15 major US outlets are covering.
-2. Covers what the rest of the world is watching — major international events US outlets have skipped.
-3. Shows how the world frames today's biggest stories — the same event looks different from Seoul, London, or Lagos.
-4. Makes it digestible — one briefing, 5 minutes, and you're done. Informed, not anxious.
+Top News Clips closes that gap.
+
+Every morning you'll get:
+
+- Stories verified as real but underreported by mainstream outlets
+- What the rest of the world is watching that US media has skipped
+- How other countries are framing today's biggest stories
+- All of it in 5 minutes — so you can go on with your day informed, not anxious
 
 Here's what's live right now:
-${SITE_URL_UTM}
+${SITE_URL}/?view=clips&${UTM}
 
 Your first daily briefing arrives tomorrow morning.
 
-— TopNewsClips
+— Top News Clips
 
 ---
 Unsubscribe: ${unsubscribeLink(email)}`
