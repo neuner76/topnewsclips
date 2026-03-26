@@ -69,7 +69,10 @@ export default async function StoriesPage({
   }
 
   function categoryUrl(c: string) {
-    return `/stories${c ? `?category=${c}` : ''}`
+    const params = new URLSearchParams()
+    if (c) params.set('category', c)
+    const qs = params.toString()
+    return `/stories${qs ? `?${qs}` : ''}`
   }
 
   return (
