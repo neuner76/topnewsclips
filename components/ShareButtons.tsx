@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Share2, Check } from 'lucide-react'
-import { track } from '@vercel/analytics'
+import { track } from '@/lib/analytics'
 
 interface ShareButtonsProps {
   title: string

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { track } from '@vercel/analytics'
+import { track } from '@/lib/analytics'
 
 export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean }) {
   const [email, setEmail] = useState('')

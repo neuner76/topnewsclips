@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { track } from '@vercel/analytics'
+import { track } from '@/lib/analytics'
 
 export default function TrackEvent({ name, properties }: { name: string; properties?: Record<string, string> }) {
   useEffect(() => {

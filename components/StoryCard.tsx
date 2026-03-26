@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { track } from '@vercel/analytics'
+import { track } from '@/lib/analytics'
 import type { Story } from '@/lib/types'
 import MSMBadge from './MSMBadge'
 import PlatformBadge from './PlatformBadge'
