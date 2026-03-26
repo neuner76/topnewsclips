@@ -300,6 +300,7 @@ export default async function HomePage({
           <p className="text-sm text-muted-foreground mt-1">
             What mainstream media misses. What the world is watching. In 5 minutes.
           </p>
+          <p className="text-xs text-muted-foreground mt-3">Free daily briefing — 5 minutes, no spin.</p>
           <EmailCaptureInline />
         </div>
 

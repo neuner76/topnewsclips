@@ -65,7 +65,7 @@ function email1Html(email: string) {
       <li style="margin-top:8px;"><strong>Makes it digestible</strong> — one briefing, 5 minutes, and you're done. Informed, not anxious.</li>
     </ol>
     ${p("Here's what's live right now:")}
-    ${cta("Read today's stories →", SITE_URL_UTM)}
+    ${cta("Read today's stories →", `${SITE_URL}/?view=clips&${UTM}`)}
     ${p("Your first daily briefing arrives tomorrow morning.")}
     <p style="margin:0;font-size:14px;color:#6b7280;">— TopNewsClips</p>
   `, email)
@@ -100,7 +100,8 @@ function email2Html(email: string) {
     ${p("<strong>Limited Coverage</strong> — the story is verified and newsworthy, but fewer than 3 of the 15 major US outlets we monitor had covered it at the time of publication. Real event. Corporate media just isn't on it yet — or isn't going to be.")}
     ${p("<strong>Global Blindspot</strong> — an international story that the rest of the world considers major news, but US outlets have largely skipped. Not because it isn't significant. Because it doesn't fit the domestic news cycle.")}
     ${p("Neither badge is a conspiracy claim. Both are a coverage measurement. You decide what to make of it.")}
-    ${cta("Read this morning's briefing →", SITE_URL_UTM)}
+    ${cta("Read this morning's briefing →", `${SITE_URL}/?view=clips&${UTM}`)}
+    ${p('Browse stories with the Limited Coverage badge: <a href="' + SITE_URL + '/stories?category=all&' + UTM + '" style="color:#0e7490;">See Limited Coverage stories →</a>')}
   `, email)
 }
 
@@ -120,7 +121,35 @@ ${SITE_URL_UTM}
 Unsubscribe: ${unsubscribeLink(email)}`
 }
 
-// ─── Email 3: Refer a friend (day 5) ─────────────────────────────────────────
+// ─── Email 2.5: Habit reinforcement (day 4) ──────────────────────────────────
+
+function email25Html(email: string) {
+  return wrap(`
+    ${p("Four days of briefings. Here's what that means in practice.")}
+    ${p("You've seen stories this week that didn't make the evening news — bodycam footage that went viral without cable coverage, international events US outlets skipped entirely, independent journalists reporting on things major newsrooms aren't touching.")}
+    ${p("That's every day. The pipeline runs overnight. By morning, the stories are curated, verified, and waiting.")}
+    ${p("Most people get their news from whatever their feed surfaces. You're now getting a second layer — the one the algorithm doesn't show you.")}
+    ${cta("This morning's stories →", `${SITE_URL}/?view=clips&${UTM}`)}
+  `, email)
+}
+
+function email25Text(email: string) {
+  return `Four days of briefings. Here's what that means in practice.
+
+You've seen stories this week that didn't make the evening news — bodycam footage that went viral without cable coverage, international events US outlets skipped entirely, independent journalists reporting on things major newsrooms aren't touching.
+
+That's every day. The pipeline runs overnight. By morning, the stories are curated, verified, and waiting.
+
+Most people get their news from whatever their feed surfaces. You're now getting a second layer — the one the algorithm doesn't show you.
+
+This morning's stories:
+${SITE_URL}/?view=clips&${UTM}
+
+---
+Unsubscribe: ${unsubscribeLink(email)}`
+}
+
+// ─── Email 3: Refer a friend (day 14) ────────────────────────────────────────
 
 const REFERRAL_UTM = 'utm_source=email&utm_medium=referral&utm_campaign=email3'
 const REFERRAL_URL = `${SITE_URL}?${REFERRAL_UTM}`
@@ -128,7 +157,7 @@ const TWEET_TEXT = encodeURIComponent(`I've been reading TopNewsClips every morn
 
 function email3Html(email: string) {
   return wrap(`
-    ${p("Five days in. You've seen stories this week that didn't make the evening news.")}
+    ${p("Two weeks in. You've now seen stories that didn't make the evening news — consistently, every morning.")}
     ${p("That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.")}
     ${p("If it's been worth your morning minute, the most valuable thing you can do is send it to one person who'd want the same thing. They get it free. You help build something independent.")}
     <div style="margin:24px 0;">
@@ -140,7 +169,7 @@ function email3Html(email: string) {
 }
 
 function email3Text(email: string) {
-  return `Five days in. You've seen stories this week that didn't make the evening news.
+  return `Two weeks in. You've now seen stories that didn't make the evening news — consistently, every morning.
 
 That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.
 
@@ -171,8 +200,9 @@ export async function sendWelcomeSequence(email: string): Promise<void> {
     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
   }
 
-  const day2 = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
-  const day5 = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+  const day2  = new Date(Date.now() +  2 * 24 * 60 * 60 * 1000).toISOString()
+  const day4  = new Date(Date.now() +  4 * 24 * 60 * 60 * 1000).toISOString()
+  const day14 = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
 
   await Promise.allSettled([
     resend.emails.send({
@@ -195,11 +225,20 @@ export async function sendWelcomeSequence(email: string): Promise<void> {
     resend.emails.send({
       from: FROM,
       to: email,
+      subject: "Four days in — here's what you've been getting",
+      html: email25Html(email),
+      text: email25Text(email),
+      headers: unsubHeaders,
+      scheduledAt: day4,
+    }),
+    resend.emails.send({
+      from: FROM,
+      to: email,
       subject: "Know someone who'd want this?",
       html: email3Html(email),
       text: email3Text(email),
       headers: unsubHeaders,
-      scheduledAt: day5,
+      scheduledAt: day14,
     }),
   ])
 }

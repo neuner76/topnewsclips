@@ -12,6 +12,7 @@ import CategoryBadge from '@/components/CategoryBadge'
 import PressureScore from '@/components/PressureScore'
 import ShareButtons from '@/components/ShareButtons'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
+import EmailCaptureInline from '@/components/EmailCaptureInline'
 
 export const revalidate = 300
 
@@ -259,6 +260,15 @@ export default async function StoryPage({ params }: Props) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Subscribe nudge */}
+        {s.published && (
+          <div className="mt-8 p-4 bg-muted/50 border border-border rounded-lg">
+            <p className="text-sm font-semibold text-foreground mb-1">Get stories like this every morning.</p>
+            <p className="text-xs text-muted-foreground mb-2">Free daily briefing — 5 minutes, no spin.</p>
+            <EmailCaptureInline nudge />
           </div>
         )}
 
