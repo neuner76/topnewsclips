@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Fetch
         run: |
-          curl -s --max-time 60 -X GET "${{ secrets.SITE_URL }}/api/ingest/fetch" \
+          curl -s --max-time 180 -X GET "${{ secrets.SITE_URL }}/api/ingest/fetch" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
       - name: Process (batch 1)

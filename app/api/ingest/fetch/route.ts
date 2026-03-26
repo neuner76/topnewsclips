@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { runFetch } from '@/lib/ingest/pipeline'
 
+export const maxDuration = 300 // 5 minutes — Vercel Pro/Enterprise only; Hobby cap is 60s
+
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET
   const authHeader = request.headers.get('Authorization')

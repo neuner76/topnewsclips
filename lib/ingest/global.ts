@@ -77,7 +77,57 @@ function decodeXML(s: string): string {
     .trim()
 }
 
-const GLOBAL_REQUEST_DELAY_MS = 1500
+
+async function fetchGlobalSubreddit(subreddit: string, region: string, after: number): Promise<{ clips: GlobalClip[]; error: string | null }> {
+  const clips: GlobalClip[] = []
+  try {
+    const url = new URL('https://api.pullpush.io/reddit/search/submission/')
+    url.searchParams.set('subreddit', subreddit)
+    url.searchParams.set('sort', 'score')
+    url.searchParams.set('sort_type', 'desc')
+    url.searchParams.set('size', '15')
+    url.searchParams.set('after', String(after))
+
+    const res = await fetch(url.toString(), {
+      headers: { 'User-Agent': 'topnewsclips/1.0' },
+      signal: AbortSignal.timeout(8000),
+    })
+
+    if (!res.ok) return { clips, error: `Global PullPush r/${subreddit}: HTTP ${res.status}` }
+
+    const json = await res.json()
+    const posts: Record<string, unknown>[] = json?.data ?? []
+
+    for (const post of posts) {
+      if (!post?.url) continue
+      if ((post.score as number ?? 0) < MIN_SCORE) continue
+      if (post.over_18) continue
+
+      const videoUrl = post.url as string
+      if (!VIDEO_DOMAINS.some(d => videoUrl.includes(d))) continue
+
+      const platform = detectPlatform(videoUrl)
+      if (!platform) continue
+
+      const cleanedTitle = cleanTitle((post.title as string) ?? '')
+      if (isUSDomesticStory(cleanedTitle)) continue
+
+      clips.push({
+        title: cleanedTitle,
+        videoUrl,
+        platform,
+        score: (post.score as number) ?? 0,
+        source: `r/${subreddit}`,
+        videoId: extractVideoId(videoUrl, platform),
+        region,
+        description: '',
+      })
+    }
+    return { clips, error: null }
+  } catch (err) {
+    return { clips, error: `Global PullPush r/${subreddit}: ${err instanceof Error ? err.message : String(err)}` }
+  }
+}
 
 async function fetchGlobalReddit(
   clips: GlobalClip[],
@@ -85,62 +135,14 @@ async function fetchGlobalReddit(
   seen: Set<string>
 ) {
   const after = Math.floor((Date.now() - 48 * 60 * 60 * 1000) / 1000)
+  const results = await Promise.all(GLOBAL_SUBREDDITS.map(({ subreddit, region }) => fetchGlobalSubreddit(subreddit, region, after)))
 
-  for (let i = 0; i < GLOBAL_SUBREDDITS.length; i++) {
-    const { subreddit, region } = GLOBAL_SUBREDDITS[i]
-    if (i > 0) await new Promise(r => setTimeout(r, GLOBAL_REQUEST_DELAY_MS))
-
-    try {
-      const url = new URL('https://api.pullpush.io/reddit/search/submission/')
-      url.searchParams.set('subreddit', subreddit)
-      url.searchParams.set('sort', 'score')
-      url.searchParams.set('sort_type', 'desc')
-      url.searchParams.set('size', '15')
-      url.searchParams.set('after', String(after))
-
-      const res = await fetch(url.toString(), {
-        headers: { 'User-Agent': 'topnewsclips/1.0' },
-        signal: AbortSignal.timeout(8000),
-      })
-
-      if (!res.ok) {
-        errors.push(`Global PullPush r/${subreddit}: HTTP ${res.status}`)
-        continue
-      }
-
-      const json = await res.json()
-      const posts: Record<string, unknown>[] = json?.data ?? []
-
-      for (const post of posts) {
-        if (!post?.url) continue
-        if ((post.score as number ?? 0) < MIN_SCORE) continue
-        if (post.over_18) continue
-
-        const videoUrl = post.url as string
-        if (!VIDEO_DOMAINS.some(d => videoUrl.includes(d))) continue
-
-        const platform = detectPlatform(videoUrl)
-        if (!platform) continue
-
-        if (seen.has(videoUrl)) continue
-        seen.add(videoUrl)
-
-        const cleanedTitle = cleanTitle((post.title as string) ?? '')
-        if (isUSDomesticStory(cleanedTitle)) continue
-
-        clips.push({
-          title: cleanedTitle,
-          videoUrl,
-          platform,
-          score: (post.score as number) ?? 0,
-          source: `r/${subreddit}`,
-          videoId: extractVideoId(videoUrl, platform),
-          region,
-          description: '',
-        })
-      }
-    } catch (err) {
-      errors.push(`Global PullPush r/${subreddit}: ${err instanceof Error ? err.message : String(err)}`)
+  for (const { clips: batch, error } of results) {
+    if (error) { errors.push(error); continue }
+    for (const clip of batch) {
+      if (seen.has(clip.videoUrl)) continue
+      seen.add(clip.videoUrl)
+      clips.push(clip)
     }
   }
 }
