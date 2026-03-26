@@ -29,6 +29,17 @@ export async function generateMetadata({
     title: `Stories${label !== 'All' ? ` — ${label}` : ''} — Top News Clips`,
     description: 'Browse all Top News Clips stories — independent news, bodycam footage, and global events mainstream media underreports.',
     alternates: { canonical: `https://www.topnewsclips.com/stories${category ? `?category=${category}` : ''}` },
+    openGraph: {
+      title: `Stories${label !== 'All' ? ` — ${label}` : ''} — Top News Clips`,
+      description: 'Browse all Top News Clips stories — independent news, bodycam footage, and global events mainstream media underreports.',
+      url: `https://www.topnewsclips.com/stories${category ? `?category=${category}` : ''}`,
+    },
+    twitter: {
+      card: 'summary' as const,
+      title: `Stories${label !== 'All' ? ` — ${label}` : ''} — Top News Clips`,
+      description: 'Browse all Top News Clips stories — independent news, bodycam footage, and global events mainstream media underreports.',
+      site: '@topnewsclips',
+    },
   }
 }
 

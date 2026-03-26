@@ -4,9 +4,20 @@ import EmailCapture from '@/components/EmailCapture'
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'About TopNewsClips — Independent News. No Agenda.',
-  description: 'TopNewsClips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers. Daily briefing for non-partisan Americans who want facts, not spin.',
+  title: 'About Top News Clips — Independent News. No Agenda.',
+  description: 'Top News Clips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers. Daily briefing for non-partisan Americans who want facts, not spin.',
   alternates: { canonical: 'https://www.topnewsclips.com/about' },
+  openGraph: {
+    title: 'About Top News Clips — Independent News. No Agenda.',
+    description: 'Top News Clips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers.',
+    url: 'https://www.topnewsclips.com/about',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'About Top News Clips — Independent News. No Agenda.',
+    description: 'Top News Clips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers.',
+    site: '@topnewsclips',
+  },
 }
 
 const FAQ = [

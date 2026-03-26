@@ -91,7 +91,7 @@ export default function StoryCard({ story }: StoryCardProps) {
           <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
             <Image
               src={thumbnail}
-              alt=""
+              alt={story.title}
               width={96}
               height={56}
               className="rounded object-cover w-24 h-14 opacity-90 group-hover:opacity-100 transition-opacity"

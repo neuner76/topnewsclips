@@ -5,8 +5,19 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Top News Clips',
-  description: 'How Top News Clips collects, uses, and protects your information.',
+  description: 'How Top News Clips collects, uses, and protects your information. We collect only your email address and never sell your data.',
   alternates: { canonical: 'https://www.topnewsclips.com/privacy' },
+  openGraph: {
+    title: 'Privacy Policy — Top News Clips',
+    description: 'How Top News Clips collects, uses, and protects your information.',
+    url: 'https://www.topnewsclips.com/privacy',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Privacy Policy — Top News Clips',
+    description: 'How Top News Clips collects, uses, and protects your information.',
+    site: '@topnewsclips',
+  },
 }
 
 export default function PrivacyPage() {

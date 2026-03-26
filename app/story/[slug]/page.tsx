@@ -50,6 +50,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: data.title,
       description,
       url: canonicalUrl,
+      images: data.embed_url ? (() => {
+        const m = data.embed_url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+        const thumb = m ? `https://img.youtube.com/vi/${m[1]}/maxresdefault.jpg` : null
+        return thumb ? [{ url: thumb }] : []
+      })() : [],
     },
     twitter: {
       card: 'summary_large_image',
