@@ -163,7 +163,7 @@ PUBLISH THRESHOLDS:
 - Trusted Journalist content: publish if confidence ≥ 0.78 and content is clearly on-topic independent reporting. These voices exist to inform, empower, and advocate — give them the benefit of the doubt. Do NOT use needs_review for trusted journalist content — either publish it or reject it.
 - Incident footage: publish if confidence >= 0.80 and clearly a genuine verifiable US news event
 - needs_review for incident footage only, when genuine but confidence falls below publish threshold
-- msmGap is true only if fewer than 5 major outlet articles AND the incident involves a powerful institution AND the viral score or view count suggests the story has broad public interest
+- msmGap is true only if fewer than 3 of the 15 major US outlets we monitor have covered this story AND the incident involves a powerful institution AND the viral score or view count suggests the story has broad public interest
 - Headlines for incident footage: must name the real city/state and the specific incident — no vague titles
 - Headlines for journalist content (category reported/analysis): name the journalist's topic and key claim — location optional`
 
