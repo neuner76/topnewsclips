@@ -13,6 +13,7 @@ import PressureScore from '@/components/PressureScore'
 import ShareButtons from '@/components/ShareButtons'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
+import SourceTypeBadge from '@/components/SourceTypeBadge'
 
 export const revalidate = 300
 
@@ -199,6 +200,7 @@ export default async function StoryPage({ params }: Props) {
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <PlatformBadge platform={s.platform} />
           <CategoryBadge category={s.category} />
+          <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
           {s.msm_gap && <MSMBadge notes={s.msm_notes} />}
         </div>
 

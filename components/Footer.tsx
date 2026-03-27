@@ -18,6 +18,9 @@ export default function Footer() {
             <Link href="/about" className="hover:text-foreground transition-colors">
               About
             </Link>
+            <Link href="/taxonomy" className="hover:text-foreground transition-colors">
+              Sources
+            </Link>
             <Link href="/contact" className="hover:text-foreground transition-colors">
               Contact
             </Link>

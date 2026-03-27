@@ -6,6 +6,7 @@ import { fetchGlobalClips, type GlobalClip } from './global'
 import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
 import { pingIndexNow } from './indexnow'
+import { getSourceTier } from './source-tier'
 
 export interface PipelineResult {
   inserted: number
@@ -356,6 +357,7 @@ export async function runProcess(): Promise<PipelineResult> {
         view_count: candidate.viral_score,
         share_count: 0,
         msm_gap: verification.msmGap,
+        source: candidate.source,
         msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}`,
         published: verification.decision === 'publish' || verification.decision === 'needs_review',
         display_order: verification.decision === 'publish' ? (verification.msmGap ? 30 : 50) : verification.decision === 'needs_review' ? 75 : 99,
@@ -363,6 +365,10 @@ export async function runProcess(): Promise<PipelineResult> {
         thumbnail_url: candidate.thumbnail_url ?? null,
         journalist_username: candidate.journalist_username ?? null,
         region: candidate.region ?? null,
+        ...(() => {
+          const { tier, sourceType } = getSourceTier(candidate.journalist_username ?? null, candidate.source, verification.category ?? null)
+          return { source_tier: tier, source_type: sourceType }
+        })(),
       })
 
       if (error) {

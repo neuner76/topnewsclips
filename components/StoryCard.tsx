@@ -8,6 +8,7 @@ import MSMBadge from './MSMBadge'
 import PlatformBadge from './PlatformBadge'
 import PressureScore from './PressureScore'
 import CategoryBadge from './CategoryBadge'
+import SourceTypeBadge from './SourceTypeBadge'
 
 interface StoryCardProps {
   story: Story
@@ -49,6 +50,7 @@ export default function StoryCard({ story }: StoryCardProps) {
             <PlatformBadge platform={story.platform} />
             <CategoryBadge category={story.category} />
             {story.msm_gap && <MSMBadge notes={story.msm_notes} size="sm" />}
+            <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />
             {story.journalist_username && (
               <span className="text-[10px] font-medium text-muted-foreground">
                 @{story.journalist_username}
