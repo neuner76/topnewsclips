@@ -42,7 +42,7 @@ const COMMERCIAL_JOURNALISTS = new Set([
 
 // Tier 7: Independent Commentary
 const COMMENTARY_JOURNALISTS = new Set([
-  'breakingpoints', 'caspianreport', 'polymatter', 'johnnyharis',
+  'breakingpoints', 'caspianreport', 'polymatter', 'johnnyharris',
   'kylescanlon', 'michaeltracey', 'tarapalmeri', 'wendoverproductions',
   'veritasium',
 ])

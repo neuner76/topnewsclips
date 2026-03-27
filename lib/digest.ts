@@ -77,7 +77,18 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     .order('view_count', { ascending: false })
     .limit(8)
 
-  const storiesForPrompt = stories
+  // Cap any single journalist/creator to 2 stories — prevents one source dominating the digest
+  const journalistCounts = new Map<string, number>()
+  const SOURCE_CAP = 2
+  const cappedStories = stories.filter(s => {
+    if (!s.journalist_username) return true
+    const count = journalistCounts.get(s.journalist_username) ?? 0
+    if (count >= SOURCE_CAP) return false
+    journalistCounts.set(s.journalist_username, count + 1)
+    return true
+  })
+
+  const storiesForPrompt = cappedStories
     .filter(s => !s.region)
     .map(s => ({
       slug: s.slug,
@@ -106,8 +117,10 @@ Produce a structured JSON digest from the stories below. Follow these rules exac
 
 NEED TO KNOW (3 stories max):
 - Pick the 3 most important/interesting stories from the US STORIES section
+- Prioritize source diversity — do not select multiple stories from the same creator or journalist
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague.
+- CRITICAL TONE RULE: Write as a reporter, not an advocate. Describe what the source reports, shows, or claims — do not editorialize beyond the source material. Use "reports that", "shows", "according to", "the video documents". Never state conclusions the source doesn't explicitly make. Wrong: "financial incentives override health standards". Right: "Harris reports that insurance reimbursement structures may incentivize more expensive procedures over watchful waiting."
 - Use the slug field from the input exactly as-is
 
 IN THE KNOW:

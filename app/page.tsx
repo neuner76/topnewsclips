@@ -8,6 +8,7 @@ import StoryCard from '@/components/StoryCard'
 import EmailCapture from '@/components/EmailCapture'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
+import SourceTypeBadge from '@/components/SourceTypeBadge'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 
@@ -22,9 +23,15 @@ const IN_THE_KNOW_CATEGORIES = [
 
 // ─── Digest components ───────────────────────────────────────────────────────
 
-function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
+function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: Map<string, Story> }) {
+  const story = storyMap.get(item.slug)
   return (
     <article className="py-6 border-b border-border last:border-0">
+      {story && (story.source_tier || story.source_type) && (
+        <div className="mb-2">
+          <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />
+        </div>
+      )}
       <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="group block mb-3">
         <h2 className="text-xl font-black tracking-tight leading-snug group-hover:underline underline-offset-2">
           {item.sectionTitle}
@@ -49,21 +56,27 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
   )
 }
 
-function InTheKnowBullet({ item }: { item: InTheKnowItem }) {
+function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Map<string, Story> }) {
+  const story = item.slug ? storyMap.get(item.slug) : null
   const inner = <span className="text-[15px] leading-relaxed">{item.text}</span>
   return (
     <li className="flex gap-2 py-2.5 border-b border-border/50 last:border-0">
       <span className="text-muted-foreground shrink-0 mt-0.5">›</span>
-      {item.slug ? (
-        <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
-          {inner}
-        </Link>
-      ) : inner}
+      <div className="flex flex-col gap-1">
+        {item.slug ? (
+          <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
+            {inner}
+          </Link>
+        ) : inner}
+        {story && (story.source_tier || story.source_type) && (
+          <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />
+        )}
+      </div>
     </li>
   )
 }
 
-function DigestView({ content, date }: { content: DigestContent; date: string }) {
+function DigestView({ content, date, storyMap }: { content: DigestContent; date: string; storyMap: Map<string, Story> }) {
   const formattedDate = new Date(date).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
@@ -84,7 +97,7 @@ function DigestView({ content, date }: { content: DigestContent; date: string })
         <div className="divide-y divide-border">
           {content.needToKnow.map((item, i) => (
             <>
-              <NeedToKnowStory key={item.slug} item={item} />
+              <NeedToKnowStory key={item.slug} item={item} storyMap={storyMap} />
               {i === 0 && content.needToKnow.length > 1 && (
                 <div key="subscribe-nudge" className="py-4">
                   <EmailCaptureInline nudge />
@@ -115,7 +128,7 @@ function DigestView({ content, date }: { content: DigestContent; date: string })
                 </p>
                 <ul>
                   {items.map((item, i) => (
-                    <InTheKnowBullet key={i} item={item} />
+                    <InTheKnowBullet key={i} item={item} storyMap={storyMap} />
                   ))}
                 </ul>
               </div>
@@ -276,6 +289,7 @@ export default async function HomePage({
   ])
 
   const all = (storiesResult.data as Story[]) ?? []
+  const storyMap = new Map(all.map(s => [s.slug, s]))
 
   // Default to digest view when one exists, unless user explicitly chose clips
   const activeView = view === 'clips' ? 'clips' : (digest ? 'digest' : 'clips')
@@ -350,7 +364,7 @@ export default async function HomePage({
 
         {/* Content */}
         {activeView === 'digest' && digest ? (
-          <DigestView content={digest.content} date={digest.date} />
+          <DigestView content={digest.content} date={digest.date} storyMap={storyMap} />
         ) : (
           <div>
             {/* Digest teaser — shown in clips view when a digest exists */}

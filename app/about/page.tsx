@@ -43,7 +43,7 @@ const FAQ = [
   },
   {
     q: 'What types of content does TopNewsClips publish?',
-    a: 'TopNewsClips publishes three content types: Raw (bodycam, dashcam, bystander, and security camera footage), Reported (investigative journalism from independent journalists), and Analysis (commentary and context from non-corporate voices). Each story is labeled so readers know what they are watching.',
+    a: 'TopNewsClips publishes three content types: Raw (bodycam, dashcam, bystander, and security camera footage), Reported (investigative journalism from independent journalists), and Analysis (commentary and context from non-corporate voices). Each story is labeled so readers know what they are watching. Every story also carries a Source Credibility badge — a 10-tier classification ranging from Nonprofit Investigative to Community Sourced — so readers can evaluate the source, not just the headline. See the full taxonomy at topnewsclips.com/taxonomy.',
   },
 ]
 
@@ -142,6 +142,29 @@ export default function AboutPage() {
             >
               Read today&apos;s digest →
             </Link>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3">How we&apos;re funded</h2>
+            <p>
+              TopNewsClips is independently operated and funded by its founder. We have no investors,
+              no advertisers, and no institutional backing. Revenue comes from voluntary email subscriptions.
+              That&apos;s it. No one is paying us to cover — or not cover — any story.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3">Corrections</h2>
+            <p>
+              We&apos;re not perfect. If a story is mislabeled, a summary overstates the source material,
+              or a tier badge is wrong, we want to know. Email us at{' '}
+              <Link href="/contact" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+                the contact page
+              </Link>{' '}
+              with the story URL and the specific issue. Confirmed corrections are applied within 24 hours.
+              We don&apos;t memory-hole mistakes — if a summary was editorially out of bounds, we&apos;ll
+              note it was updated.
+            </p>
           </section>
 
           {/* FAQ — structured for AI extraction */}
