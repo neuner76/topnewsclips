@@ -254,14 +254,16 @@ export default async function HomePage({
     getLatestDigest(),
     (async () => {
       const supabase = await createClient()
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       return supabase
         .from('stories')
         .select('*')
         .eq('published', true)
+        .gte('created_at', sevenDaysAgo)
         .order('pinned', { ascending: false })
         .order('display_order', { ascending: true })
         .order('view_count', { ascending: false })
-        .limit(60)
+        .limit(200)
     })(),
   ])
 
