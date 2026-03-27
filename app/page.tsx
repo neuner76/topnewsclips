@@ -271,7 +271,7 @@ export default async function HomePage({
   const activeView = view === 'clips' ? 'clips' : (digest ? 'digest' : 'clips')
 
   function splitSection(category: 'raw' | 'reported' | 'analysis') {
-    const section = all.filter(s => s.category === category && !s.region)
+    const section = all.filter(s => s.category === category && !s.region && !s.msm_gap)
     return {
       pinned:  section.filter(s => s.pinned),
       voices:  section.filter(s => !s.pinned && !!s.journalist_username),
