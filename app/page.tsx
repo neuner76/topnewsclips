@@ -192,13 +192,14 @@ const SECTION_CAP = 6
 interface SectionProps {
   title: string
   subtitle: string
+  categorySlug?: string
   pinned: Story[]
   voices: Story[]
   stories: Story[]
   accentClass: string
 }
 
-function Section({ title, subtitle, pinned, voices, stories, accentClass }: SectionProps) {
+function Section({ title, subtitle, categorySlug, pinned, voices, stories, accentClass }: SectionProps) {
   const isEmpty = pinned.length === 0 && voices.length === 0 && stories.length === 0
   // Cap total stories shown per section — pinned always show, cap applied to voices + stories
   let voicesBudget = Math.max(0, SECTION_CAP - pinned.length)
@@ -208,9 +209,16 @@ function Section({ title, subtitle, pinned, voices, stories, accentClass }: Sect
   return (
     <section className="mb-12">
       <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
-        <h2 className={`text-2xl sm:text-3xl font-black tracking-tight uppercase ${accentClass}`}>
-          {title}
-        </h2>
+        <div className="flex items-baseline gap-3">
+          <h2 className={`text-2xl sm:text-3xl font-black tracking-tight uppercase ${accentClass}`}>
+            {title}
+          </h2>
+          {categorySlug && (
+            <Link href={`/category/${categorySlug}`} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium">
+              See all →
+            </Link>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
       </div>
       {isEmpty ? (
@@ -433,6 +441,7 @@ export default async function HomePage({
             <Section
               title="Analysis"
               subtitle="Independent voices making sense of what's happening and why it matters"
+              categorySlug="analysis"
               pinned={analysis.pinned}
               voices={analysis.voices}
               stories={analysis.stories}
@@ -441,6 +450,7 @@ export default async function HomePage({
             <Section
               title="Reported"
               subtitle="Independent journalists investigating what institutions don't want you to see"
+              categorySlug="reported"
               pinned={reported.pinned}
               voices={reported.voices}
               stories={reported.stories}
@@ -449,6 +459,7 @@ export default async function HomePage({
             <Section
               title="Raw Footage"
               subtitle="Bodycam, dashcam, security cam, bystander video — unfiltered and unedited"
+              categorySlug="raw"
               pinned={raw.pinned}
               voices={raw.voices}
               stories={raw.stories}
