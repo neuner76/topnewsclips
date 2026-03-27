@@ -21,6 +21,8 @@ const PUBLIC_BROADCASTER_SOURCES = new Set([
   'YouTube/NHK World News',
   'YouTube/Arirang News',
   'YouTube/ABC News Australia',
+  'YouTube/TRT World',
+  'YouTube/WION',
 ])
 
 // Tier 4: Independent News Organization
