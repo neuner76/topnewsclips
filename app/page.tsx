@@ -58,7 +58,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
 
 function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Map<string, Story> }) {
   const story = item.slug ? storyMap.get(item.slug) : null
-  const inner = <span className="text-base leading-relaxed">{item.text}</span>
+  const inner = <span className="text-[1.05rem] leading-relaxed">{item.text}</span>
   return (
     <li className="flex gap-2 py-2.5 border-b border-border/50 last:border-0">
       <span className="text-muted-foreground shrink-0 mt-0.5">›</span>
@@ -85,13 +85,13 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
     <div>
       <TrackEvent name="digest_read" />
       {/* Date */}
-      <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-6">
+      <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-6">
         {formattedDate}
       </p>
 
       {/* Need To Know */}
       <section className="mb-10">
-        <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">
+        <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
           Need To Know
         </p>
         <div className="divide-y divide-border">
@@ -112,7 +112,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       <section className="mb-10">
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 border-t border-border" />
-          <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0">
+          <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase shrink-0">
             In The Know
           </span>
           <div className="flex-1 border-t border-border" />
@@ -123,7 +123,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             if (!items?.length) return null
             return (
               <div key={cat}>
-                <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+                <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-2">
                   {cat}
                 </p>
                 <ul>
@@ -142,7 +142,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
         <section className="mb-10">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 border-t border-border" />
-            <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0">
+            <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase shrink-0">
               Etcetera
             </span>
             <div className="flex-1 border-t border-border" />
@@ -171,7 +171,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           <ul className="space-y-4">
             {content.globalBlindspots.map((item, i) => (
               <li key={i} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block mb-1">{item.region}</span>
+                <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase block mb-1">{item.region}</span>
                 <Link
                   href={`/story/${item.slug}`}
                   target="_blank"
@@ -194,7 +194,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
 function SubHeader({ label }: { label: string }) {
   return (
-    <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mt-5 mb-1">
+    <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mt-5 mb-1">
       {label}
     </p>
   )
@@ -382,7 +382,7 @@ export default async function HomePage({
                 href="/"
                 className="block mb-8 p-4 rounded-lg border border-border bg-zinc-50 hover:bg-zinc-100 transition-colors group"
               >
-                <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">
+                <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
                   Today&apos;s Digest
                 </p>
                 <p className="text-base font-bold leading-snug group-hover:underline underline-offset-2 mb-1">
@@ -421,7 +421,7 @@ export default async function HomePage({
                   {globalBlindspots.slice(0, SECTION_CAP).map(s => (
                     <div key={s.id} className="group py-3 border-b border-border">
                       <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                        <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
+                        <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
                         <GlobalBlindspotBadge />
                         <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
                       </div>
@@ -448,7 +448,7 @@ export default async function HomePage({
                   {globalLens.slice(0, SECTION_CAP).map(s => (
                     <div key={s.id} className="group py-3 border-b border-border">
                       <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                        <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
+                        <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
                         {s.msm_gap && <GlobalBlindspotBadge />}
                         <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
                       </div>
