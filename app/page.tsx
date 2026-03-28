@@ -122,14 +122,14 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
         </p>
         <div className="divide-y divide-border">
           {content.needToKnow.map((item, i) => (
-            <>
-              <NeedToKnowStory key={item.slug} item={item} storyMap={storyMap} />
+            <div key={item.slug}>
+              <NeedToKnowStory item={item} storyMap={storyMap} />
               {i === 0 && content.needToKnow.length > 1 && (
-                <div key="subscribe-nudge" className="py-4">
+                <div className="py-4">
                   <EmailCaptureInline nudge />
                 </div>
               )}
-            </>
+            </div>
           ))}
         </div>
       </section>
@@ -541,7 +541,7 @@ export default async function HomePage({
               pinned={analysis.pinned}
               voices={analysis.voices}
               stories={analysis.stories}
-              accentClass="text-[oklch(0.45_0.22_24)]"
+              accentClass="text-[oklch(0.52_0.14_196)]"
             />
             <Section
               title="Reported"
