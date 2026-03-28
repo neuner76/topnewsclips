@@ -427,7 +427,7 @@ export default async function HomePage({
             {digest && (
               <Link
                 href="/"
-                className="block mb-8 p-4 rounded-lg border border-border bg-zinc-50 hover:bg-zinc-100 transition-colors group"
+                className="block mb-8 p-4 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors group"
               >
                 <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
                   Today&apos;s Digest
