@@ -29,7 +29,7 @@ export default function DigestAdminPage() {
         Regenerating will overwrite today&apos;s digest.
       </p>
 
-      <div className="p-5 border border-border rounded-md bg-white space-y-4">
+      <div className="p-5 border border-border rounded-md bg-card space-y-4">
         <Button
           onClick={handleGenerate}
           disabled={status === 'loading'}

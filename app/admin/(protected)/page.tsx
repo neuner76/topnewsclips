@@ -32,7 +32,7 @@ export default async function AdminDashboard() {
           { label: 'Review Queue', value: reviewQueue.length, highlight: reviewQueue.length > 0 },
           { label: 'Subscribers', value: subscriberCount ?? 0, highlight: false },
         ].map((stat) => (
-          <div key={stat.label} className={`bg-white rounded border p-4 ${stat.highlight ? 'border-amber-400 bg-amber-50' : 'border-border'}`}>
+          <div key={stat.label} className={`bg-card rounded border p-4 ${stat.highlight ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20' : 'border-border'}`}>
             <p className="text-2xl font-bold tabular-nums">{stat.value}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
           </div>
@@ -48,7 +48,7 @@ export default async function AdminDashboard() {
             </h2>
             <p className="text-xs text-muted-foreground">Promote to feature · Reject to remove</p>
           </div>
-          <div className="bg-white rounded border border-amber-300 divide-y divide-border">
+          <div className="bg-card rounded border border-amber-300 divide-y divide-border">
             {reviewQueue.map((story) => (
               <AdminStoryRow key={story.id} story={story} isReview />
             ))}
@@ -72,14 +72,14 @@ export default async function AdminDashboard() {
 
       {/* Story list */}
       {mainStories.length === 0 ? (
-        <div className="bg-white rounded border border-border py-16 text-center">
+        <div className="bg-card rounded border border-border py-16 text-center">
           <p className="text-sm text-muted-foreground mb-3">No stories yet.</p>
           <Link href="/admin/stories/new" className="text-sm font-semibold underline">
             Add your first story
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded border border-border divide-y divide-border">
+        <div className="bg-card rounded border border-border divide-y divide-border">
           {mainStories.map((story) => (
             <AdminStoryRow key={story.id} story={story} />
           ))}

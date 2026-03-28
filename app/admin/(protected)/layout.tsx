@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import DarkModeToggle from '@/components/DarkModeToggle'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -9,7 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect('/admin/login')
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-background">
       {/* Admin header */}
       <header className="bg-foreground text-background">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
@@ -31,6 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <DarkModeToggle />
             <Link href="/" className="text-xs text-background/60 hover:text-background transition-colors">
               View site →
             </Link>

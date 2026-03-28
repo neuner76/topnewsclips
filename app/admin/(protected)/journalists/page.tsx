@@ -78,7 +78,7 @@ export default function JournalistsPage() {
       </p>
 
       {/* Add form */}
-      <form onSubmit={handleAdd} className="space-y-4 p-5 border border-border rounded-md bg-white mb-8">
+      <form onSubmit={handleAdd} className="space-y-4 p-5 border border-border rounded-md bg-card mb-8">
         <h2 className="text-sm font-semibold">Add Journalist</h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
@@ -134,7 +134,7 @@ export default function JournalistsPage() {
       ) : journalists.length === 0 ? (
         <p className="text-sm text-muted-foreground">No featured journalists yet.</p>
       ) : (
-        <div className="divide-y divide-border border border-border rounded-md bg-white">
+        <div className="divide-y divide-border border border-border rounded-md bg-card">
           {journalists.map(j => (
             <div key={j.id} className="flex items-center gap-4 px-4 py-3">
               <div className="flex-1 min-w-0">
@@ -152,7 +152,7 @@ export default function JournalistsPage() {
                   className={`text-xs font-semibold px-2.5 py-1 rounded border transition-colors ${
                     j.active
                       ? 'bg-foreground text-background border-foreground'
-                      : 'bg-white text-muted-foreground border-border hover:border-foreground'
+                      : 'bg-card text-muted-foreground border-border hover:border-foreground'
                   }`}
                 >
                   {j.active ? 'Active' : 'Paused'}

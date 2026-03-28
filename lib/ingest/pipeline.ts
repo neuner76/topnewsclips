@@ -249,7 +249,7 @@ export async function runFetch(): Promise<FetchResult> {
   return { added, errors }
 }
 
-const TOPIC_DAILY_CAP = 2
+const TOPIC_DAILY_CAP = 4
 
 // Phase 2: process next 10 pending candidates from the queue through Claude
 export async function runProcess(): Promise<PipelineResult> {
