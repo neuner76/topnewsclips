@@ -296,10 +296,19 @@ export default async function HomePage({
 
   function splitSection(category: 'raw' | 'reported' | 'analysis') {
     const section = all.filter(s => s.category === category && !s.region && !s.msm_gap)
+    // Cap any single journalist/channel at 2 stories per section
+    const channelCounts = new Map<string, number>()
+    const capped = section.filter(s => {
+      if (!s.journalist_username) return true
+      const n = channelCounts.get(s.journalist_username) ?? 0
+      if (n >= 2) return false
+      channelCounts.set(s.journalist_username, n + 1)
+      return true
+    })
     return {
-      pinned:  section.filter(s => s.pinned),
-      voices:  section.filter(s => !s.pinned && !!s.journalist_username),
-      stories: section.filter(s => !s.pinned && !s.journalist_username),
+      pinned:  capped.filter(s => s.pinned),
+      voices:  capped.filter(s => !s.pinned && !!s.journalist_username),
+      stories: capped.filter(s => !s.pinned && !s.journalist_username),
     }
   }
 
