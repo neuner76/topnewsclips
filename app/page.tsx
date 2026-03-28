@@ -482,15 +482,10 @@ export default async function HomePage({
                           {s.description && (
                             <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
                           )}
-                          {thumb && (
-                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block sm:hidden mt-2">
-                              <Image src={thumb} alt={s.title} width={320} height={180} className="rounded object-cover w-full aspect-video opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
-                            </a>
-                          )}
                         </div>
                         {thumb && (
-                          <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="hidden sm:block flex-shrink-0">
-                            <Image src={thumb} alt={s.title} width={96} height={56} className="rounded object-cover w-24 h-14 opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                          <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                            <Image src={thumb} alt={s.title} width={96} height={56} className="rounded object-cover w-20 h-12 sm:w-24 sm:h-14 opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
                           </a>
                         )}
                       </div>
@@ -526,15 +521,10 @@ export default async function HomePage({
                           {s.description && (
                             <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
                           )}
-                          {thumb && (
-                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block sm:hidden mt-2">
-                              <Image src={thumb} alt={s.title} width={320} height={180} className="rounded object-cover w-full aspect-video opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
-                            </a>
-                          )}
                         </div>
                         {thumb && (
-                          <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="hidden sm:block flex-shrink-0">
-                            <Image src={thumb} alt={s.title} width={96} height={56} className="rounded object-cover w-24 h-14 opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                          <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                            <Image src={thumb} alt={s.title} width={96} height={56} className="rounded object-cover w-20 h-12 sm:w-24 sm:h-14 opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
                           </a>
                         )}
                       </div>
