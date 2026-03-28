@@ -7,7 +7,7 @@ export default function Header() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="font-bold text-base sm:text-xl tracking-tight text-foreground">
+            <span className="font-bold text-sm sm:text-xl tracking-tight text-foreground">
               TOP NEWS CLIPS
             </span>
           </Link>
