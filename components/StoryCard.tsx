@@ -41,6 +41,8 @@ export default function StoryCard({ story }: StoryCardProps) {
 
   return (
     <article className="group py-3 border-b border-border">
+
+      {/* sm+: side-by-side | mobile: stacked */}
       <div className="flex gap-3 items-start">
 
         {/* Content */}
@@ -70,6 +72,20 @@ export default function StoryCard({ story }: StoryCardProps) {
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{story.description}</p>
           )}
 
+          {/* Thumbnail — below text on mobile, hidden here on sm+ */}
+          {thumbnail && (
+            <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block sm:hidden mt-2">
+              <Image
+                src={thumbnail}
+                alt={story.title}
+                width={320}
+                height={180}
+                className="rounded object-cover w-full aspect-video opacity-90 group-hover:opacity-100 transition-opacity"
+                unoptimized
+              />
+            </a>
+          )}
+
           {/* Footer */}
           <div className="flex items-center gap-3 mt-2">
             <PressureScore viewCount={story.view_count} shareCount={story.share_count} />
@@ -88,9 +104,9 @@ export default function StoryCard({ story }: StoryCardProps) {
           </div>
         </div>
 
-        {/* Thumbnail — right side, always visible */}
+        {/* Thumbnail — right side on sm+, hidden on mobile */}
         {thumbnail && (
-          <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+          <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="hidden sm:block flex-shrink-0">
             <Image
               src={thumbnail}
               alt={story.title}
