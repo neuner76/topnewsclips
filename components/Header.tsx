@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import DarkModeToggle from './DarkModeToggle'
 
 export default function Header() {
   return (
@@ -23,6 +24,7 @@ export default function Header() {
             <Link href="/about" className="hover:text-foreground transition-colors hidden sm:block">
               About
             </Link>
+            <DarkModeToggle />
             <Link
               href="/search"
               aria-label="Search"
