@@ -29,14 +29,14 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
         href={`https://twitter.com/intent/tweet?text=${tweetText}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-xs font-medium px-2.5 py-1.5 rounded border border-border hover:bg-muted transition-colors"
+        className="text-xs font-medium px-3 py-2 rounded border border-border hover:bg-muted transition-colors"
         onClick={() => track('story_shared', { method: 'x', slug })}
       >
         Share on X
       </a>
       <button
         onClick={copyLink}
-        className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded border border-border hover:bg-muted transition-colors"
+        className="flex items-center gap-1 text-xs font-medium px-3 py-2 rounded border border-border hover:bg-muted transition-colors"
       >
         {copied ? (
           <>

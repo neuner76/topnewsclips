@@ -50,7 +50,7 @@ export default function EmailCapture() {
             {message}
           </p>
         ) : (
-          <form onSubmit={handleSubmit} className="flex gap-2 max-w-md mx-auto">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
             <Input
               type="email"
               placeholder="your@email.com"

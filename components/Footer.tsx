@@ -11,7 +11,7 @@ export default function Footer() {
               What mainstream media misses. What the world is watching. In 5 minutes.
             </p>
           </div>
-          <nav className="flex items-center gap-5 text-xs text-muted-foreground">
+          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
             <Link href="/stories" className="hover:text-foreground transition-colors">
               Archive
             </Link>

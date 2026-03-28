@@ -62,7 +62,7 @@ export default function EmbedPlayer({ embedUrl, platform, title }: EmbedPlayerPr
           className="tiktok-embed"
           cite={embedUrl}
           data-video-id={videoId}
-          style={{ maxWidth: 605, minWidth: 325 }}
+          style={{ maxWidth: 605, minWidth: 0, width: '100%' }}
         >
           <section />
         </blockquote>
