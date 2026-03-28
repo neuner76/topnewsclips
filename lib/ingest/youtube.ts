@@ -92,7 +92,7 @@ export async function fetchYouTubeTrending(
   // Run journalist RSS and search queries in parallel
   await Promise.all([
     journalists.length > 0
-      ? fetchJournalistChannelsViaRSS(journalists, clips, errors, seen)
+      ? fetchJournalistChannelsViaRSS(journalists, clips, errors, seen, apiKey)
       : Promise.resolve(),
     searchYouTubeNews(apiKey, clips, errors, seen),
   ])
@@ -232,22 +232,32 @@ async function searchYouTubeNews(
   }
 }
 
-// RSS feed returns the last 15 videos from a channel — no API key needed, no quota cost
+// RSS feed returns the last 15 videos from a channel — no API key needed, no quota cost.
+// Falls back to playlistItems.list (1 quota unit each) if RSS is blocked.
 async function fetchJournalistChannelsViaRSS(
   journalists: { username: string; channelId: string }[],
   clips: YouTubeClip[],
   errors: string[],
-  seen: Set<string>
+  seen: Set<string>,
+  apiKey: string
 ) {
   const cutoff = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()
+  const RSS_UA = 'Mozilla/5.0 (compatible; Feedfetcher-Google; +http://www.google.com/feedfetcher.html)'
+
+  // Track which channels need API fallback
+  const needsApiFallback: { username: string; channelId: string }[] = []
 
   for (const { username, channelId } of journalists) {
     try {
       const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
-      const res = await fetch(rssUrl, { signal: AbortSignal.timeout(5000) })
+      const res = await fetch(rssUrl, {
+        signal: AbortSignal.timeout(10000),
+        headers: { 'User-Agent': RSS_UA },
+      })
 
       if (!res.ok) {
         errors.push(`YouTube journalist @${username}: RSS HTTP ${res.status}`)
+        needsApiFallback.push({ username, channelId })
         continue
       }
 
@@ -256,7 +266,86 @@ async function fetchJournalistChannelsViaRSS(
       clips.push(...newClips)
     } catch (err) {
       errors.push(`YouTube journalist @${username}: ${err instanceof Error ? err.message : String(err)}`)
+      needsApiFallback.push({ username, channelId })
     }
+  }
+
+  // API fallback: playlistItems.list on the channel's uploads playlist (UCxxx → UUxxx)
+  // Costs 1 quota unit per channel, far cheaper than search (100 units).
+  if (needsApiFallback.length === 0) return
+
+  const fallbackVideoIds: { username: string; channelId: string; videoId: string; publishedAt: string }[] = []
+
+  await Promise.all(needsApiFallback.map(async ({ username, channelId }) => {
+    try {
+      const playlistId = channelId.startsWith('UC') ? 'UU' + channelId.slice(2) : channelId
+      const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems')
+      url.searchParams.set('part', 'snippet,contentDetails')
+      url.searchParams.set('playlistId', playlistId)
+      url.searchParams.set('maxResults', '10')
+      url.searchParams.set('key', apiKey)
+      const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10000) })
+      if (!res.ok) return // keep original RSS error
+      const json = await res.json()
+      for (const item of json.items ?? []) {
+        const videoId: string = item.contentDetails?.videoId ?? ''
+        if (!videoId || seen.has(videoId)) continue
+        const publishedAt: string = item.snippet?.publishedAt ?? item.contentDetails?.videoPublishedAt ?? ''
+        if (publishedAt && publishedAt < cutoff) continue
+        seen.add(videoId)
+        fallbackVideoIds.push({ username, channelId, videoId, publishedAt })
+        // Remove the RSS error for this channel since API fallback succeeded
+        const idx = errors.findIndex(e => e.includes(`@${username}: RSS`))
+        if (idx >= 0) errors.splice(idx, 1)
+      }
+    } catch {
+      // keep original RSS error
+    }
+  }))
+
+  if (fallbackVideoIds.length === 0) return
+
+  // Batch-fetch statistics + contentDetails for fallback clips
+  const ids = fallbackVideoIds.map(v => v.videoId)
+  const statMap = new Map<string, { viewCount: number; channelTitle: string; title: string; description: string; duration: string | null }>()
+  const chunks: string[][] = []
+  for (let i = 0; i < ids.length; i += 50) chunks.push(ids.slice(i, i + 50))
+
+  await Promise.all(chunks.map(async chunk => {
+    try {
+      const url = new URL('https://www.googleapis.com/youtube/v3/videos')
+      url.searchParams.set('part', 'snippet,statistics,contentDetails')
+      url.searchParams.set('id', chunk.join(','))
+      url.searchParams.set('key', apiKey)
+      const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10000) })
+      if (!res.ok) return
+      const json = await res.json()
+      for (const item of json.items ?? []) {
+        statMap.set(item.id, {
+          viewCount: parseInt(item.statistics?.viewCount ?? '0', 10),
+          channelTitle: item.snippet?.channelTitle ?? '',
+          title: item.snippet?.title ?? '',
+          description: (item.snippet?.description ?? '').slice(0, 500),
+          duration: item.contentDetails?.duration ?? null,
+        })
+      }
+    } catch { /* non-fatal */ }
+  }))
+
+  for (const { username, videoId, publishedAt } of fallbackVideoIds) {
+    const stat = statMap.get(videoId)
+    clips.push({
+      title: stat?.title ?? '',
+      videoId,
+      videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
+      platform: 'youtube',
+      viewCount: stat?.viewCount ?? 0,
+      channelTitle: stat?.channelTitle ?? username,
+      description: stat?.description ?? '',
+      publishedAt,
+      journalistUsername: username,
+      duration: stat?.duration ?? null,
+    })
   }
 }
 
