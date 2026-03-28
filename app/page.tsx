@@ -411,15 +411,16 @@ export default async function HomePage({
                 <div>
                   {globalBlindspots.slice(0, SECTION_CAP).map(s => (
                     <div key={s.id} className="group py-3 border-b border-border">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                         <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
                         <GlobalBlindspotBadge />
+                        <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
                       </div>
                       <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
-                        <h3 className="font-bold text-[15px] leading-snug group-hover/title:underline underline-offset-2">{s.title}</h3>
+                        <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
                       </Link>
                       {s.description && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
+                        <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
                       )}
                     </div>
                   ))}
@@ -437,15 +438,16 @@ export default async function HomePage({
                 <div>
                   {globalLens.slice(0, SECTION_CAP).map(s => (
                     <div key={s.id} className="group py-3 border-b border-border">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                         <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
                         {s.msm_gap && <GlobalBlindspotBadge />}
+                        <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
                       </div>
                       <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
-                        <h3 className="font-bold text-[15px] leading-snug group-hover/title:underline underline-offset-2">{s.title}</h3>
+                        <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
                       </Link>
                       {s.description && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
+                        <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
                       )}
                     </div>
                   ))}
