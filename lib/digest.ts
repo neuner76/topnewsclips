@@ -82,9 +82,9 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     .order('view_count', { ascending: false })
     .limit(8)
 
-  // Cap any single journalist/creator to 2 stories — prevents one source dominating the digest
+  // Cap any single journalist/creator to 1 story — prevents one voice dominating the digest
   const journalistCounts = new Map<string, number>()
-  const SOURCE_CAP = 2
+  const SOURCE_CAP = 1
   const cappedStories = stories.filter(s => {
     if (!s.journalist_username) return true
     const count = journalistCounts.get(s.journalist_username) ?? 0
@@ -113,7 +113,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   }))
 
   const response = await claude.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: 'claude-sonnet-4-6',
     max_tokens: 4096,
     messages: [{
       role: 'user',
@@ -123,22 +123,23 @@ Produce a structured JSON digest from the stories below. Follow these rules exac
 
 NEED TO KNOW (3 stories max):
 - Pick the 3 most important/interesting stories from the US STORIES section
-- Prioritize source diversity — do not select multiple stories from the same creator or journalist
+- STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague.
-- CRITICAL TONE RULE: Write as a reporter, not an advocate. Describe what the source reports, shows, or claims — do not editorialize beyond the source material. Use "reports that", "shows", "according to", "the video documents". Never state conclusions the source doesn't explicitly make. Wrong: "financial incentives override health standards". Right: "Harris reports that insurance reimbursement structures may incentivize more expensive procedures over watchful waiting."
+- TONE — REPORTER NOT ADVOCATE: Every sentence must describe what the source reports, shows, or claims. Required attribution phrases: "reports that", "shows", "according to", "documents", "alleges", "found that". FORBIDDEN phrases that editorialize: "corrosive", "perverse", "troubling", "alarming", "shocking", any phrase that implies a conclusion the source didn't explicitly state. Wrong: "financial engineering at its most corrosive." Right: "Harris reports that the financing structure created incentives that, according to the video, may prioritize revenue over care." Test every sentence: could a reader of any political affiliation find this sentence editorializing? If yes, rewrite it.
 - Use the slug field from the input exactly as-is
 
 IN THE KNOW:
 - Remaining US stories as 1-sentence bullets under the correct topic category
 - Each sentence should end with (More)
-- CRITICAL TONE RULE applies here too — describe what is reported, not your conclusions
+- TONE RULE applies here too — "reports", "shows", "according to", never editorialize
+- SOURCE DIVERSITY RULE applies — if a journalist is already in NeedToKnow, skip their other stories
 - "slug" should be the story's slug, or null if it doesn't fit
 - Assign each story to EXACTLY ONE category using these strict definitions:
   * "Politics & World Affairs": government, elections, military, geopolitics, law enforcement, police accountability, civil rights, international conflict — INCLUDING Hezbollah, Gaza, Russia, Ukraine, and any police/bodycam accountability story
   * "Science & Technology": research, medicine, space, climate science, AI, tech products, environment
   * "Business & Markets": economy, finance, companies, markets, labor, private equity, corporate news
-  * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics
+  * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs"
 
 ETCETERA:
 - 3-5 short, curious, or surprising one-liners from any remaining US stories that have a quirky/unexpected angle

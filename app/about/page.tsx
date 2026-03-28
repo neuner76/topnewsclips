@@ -43,7 +43,7 @@ const FAQ = [
   },
   {
     q: 'What types of content does TopNewsClips publish?',
-    a: 'TopNewsClips publishes three content types: Raw (bodycam, dashcam, bystander, and security camera footage), Reported (investigative journalism from independent journalists), and Analysis (commentary and context from non-corporate voices). Each story is labeled so readers know what they are watching. Every story also carries a Source Credibility badge — a 10-tier classification ranging from Nonprofit Investigative to Community Sourced — so readers can evaluate the source, not just the headline. See the full taxonomy at topnewsclips.com/taxonomy.',
+    a: 'Every story carries a Source Credibility badge — a 10-tier classification so readers can evaluate the source, not just the headline. Tier 1 is Nonprofit Investigative (ProPublica, Marshall Project), Tier 3 is Public Broadcaster (DW, Al Jazeera, PBS), Tier 7 is Independent Commentary (analysts and explainers), down to Tier 10 Community Sourced (Reddit footage). Stories are also labeled by content type: Raw (bodycam, dashcam, bystander footage), Reported (investigative journalism), or Analysis (context and commentary). See the full taxonomy at topnewsclips.com/taxonomy.',
   },
 ]
 
