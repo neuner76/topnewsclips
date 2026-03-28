@@ -11,8 +11,18 @@ import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import SourceTypeBadge from '@/components/SourceTypeBadge'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export const revalidate = 300
+
+function getYouTubeThumbnail(embedUrl: string): string | null {
+  const m = embedUrl?.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null
+}
+
+function storyThumbnail(s: Story): string | null {
+  return s.platform === 'youtube' ? getYouTubeThumbnail(s.embed_url) : s.thumbnail_url ?? null
+}
 
 const IN_THE_KNOW_CATEGORIES = [
   'Politics & World Affairs',
@@ -437,21 +447,38 @@ export default async function HomePage({
                   <p className="text-xs text-muted-foreground mt-0.5">Stories the rest of the world is covering that US media is ignoring</p>
                 </div>
                 <div>
-                  {globalBlindspots.slice(0, SECTION_CAP).map(s => (
+                  {globalBlindspots.slice(0, SECTION_CAP).map(s => {
+                    const thumb = storyThumbnail(s)
+                    return (
                     <div key={s.id} className="group py-3 border-b border-border">
-                      <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                        <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
-                        <GlobalBlindspotBadge />
-                        <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
+                      <div className="flex gap-3 items-start">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                            <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
+                            <GlobalBlindspotBadge />
+                            <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
+                          </div>
+                          <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
+                            <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
+                          </Link>
+                          {s.description && (
+                            <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
+                          )}
+                          {thumb && (
+                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block sm:hidden mt-2">
+                              <Image src={thumb} alt={s.title} width={320} height={180} className="rounded object-cover w-full aspect-video opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                            </a>
+                          )}
+                        </div>
+                        {thumb && (
+                          <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="hidden sm:block flex-shrink-0">
+                            <Image src={thumb} alt={s.title} width={96} height={56} className="rounded object-cover w-24 h-14 opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                          </a>
+                        )}
                       </div>
-                      <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
-                        <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
-                      </Link>
-                      {s.description && (
-                        <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
-                      )}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             )}
@@ -464,21 +491,38 @@ export default async function HomePage({
                   <p className="text-xs text-muted-foreground mt-0.5">How the world is covering today&apos;s biggest stories</p>
                 </div>
                 <div>
-                  {globalLens.slice(0, SECTION_CAP).map(s => (
+                  {globalLens.slice(0, SECTION_CAP).map(s => {
+                    const thumb = storyThumbnail(s)
+                    return (
                     <div key={s.id} className="group py-3 border-b border-border">
-                      <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                        <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
-                        {s.msm_gap && <GlobalBlindspotBadge />}
-                        <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
+                      <div className="flex gap-3 items-start">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                            <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
+                            {s.msm_gap && <GlobalBlindspotBadge />}
+                            <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
+                          </div>
+                          <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
+                            <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
+                          </Link>
+                          {s.description && (
+                            <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
+                          )}
+                          {thumb && (
+                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block sm:hidden mt-2">
+                              <Image src={thumb} alt={s.title} width={320} height={180} className="rounded object-cover w-full aspect-video opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                            </a>
+                          )}
+                        </div>
+                        {thumb && (
+                          <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="hidden sm:block flex-shrink-0">
+                            <Image src={thumb} alt={s.title} width={96} height={56} className="rounded object-cover w-24 h-14 opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                          </a>
+                        )}
                       </div>
-                      <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
-                        <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
-                      </Link>
-                      {s.description && (
-                        <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
-                      )}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             )}
