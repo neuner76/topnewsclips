@@ -59,7 +59,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   const { data: stories, error } = await supabase
     .from('stories')
-    .select('id, title, slug, description, category, journalist_username, msm_gap, region')
+    .select('id, title, slug, description, category, journalist_username, source, msm_gap, region')
     .eq('published', true)
     .order('pinned', { ascending: false })
     .order('display_order', { ascending: true })
@@ -100,6 +100,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       title: s.title,
       summary: s.description,
       category: s.category,
+      source: s.journalist_username ? `@${s.journalist_username}` : (s.source ?? null),
       isJournalist: !!s.journalist_username,
       msmGap: s.msm_gap,
     }))
@@ -131,8 +132,13 @@ NEED TO KNOW (3 stories max):
 IN THE KNOW:
 - Remaining US stories as 1-sentence bullets under the correct topic category
 - Each sentence should end with (More)
-- Assign each story to the best-fitting category
+- CRITICAL TONE RULE applies here too — describe what is reported, not your conclusions
 - "slug" should be the story's slug, or null if it doesn't fit
+- Assign each story to EXACTLY ONE category using these strict definitions:
+  * "Politics & World Affairs": government, elections, military, geopolitics, law enforcement, police accountability, civil rights, international conflict — INCLUDING Hezbollah, Gaza, Russia, Ukraine, and any police/bodycam accountability story
+  * "Science & Technology": research, medicine, space, climate science, AI, tech products, environment
+  * "Business & Markets": economy, finance, companies, markets, labor, private equity, corporate news
+  * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics
 
 ETCETERA:
 - 3-5 short, curious, or surprising one-liners from any remaining US stories that have a quirky/unexpected angle

@@ -12,6 +12,7 @@ import SourceTypeBadge from '@/components/SourceTypeBadge'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getSourceTier } from '@/lib/ingest/source-tier'
 
 export const revalidate = 300
 
@@ -33,13 +34,23 @@ const IN_THE_KNOW_CATEGORIES = [
 
 // ─── Digest components ───────────────────────────────────────────────────────
 
+/** Returns the best available source tier for a story — uses stored value or computes on-the-fly */
+function resolvedBadge(story: Story): { tier: number | null; sourceType: string | null } {
+  if (story.source_tier && story.source_type) return { tier: story.source_tier, sourceType: story.source_type }
+  return getSourceTier(story.journalist_username, story.source ?? '', story.category)
+}
+
 function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: Map<string, Story> }) {
   const story = storyMap.get(item.slug)
+  const badge = story ? resolvedBadge(story) : null
   return (
     <article className="py-6 border-b border-border last:border-0">
-      {story && (story.source_tier || story.source_type) && (
-        <div className="mb-2">
-          <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />
+      {badge && (badge.tier || badge.sourceType) && (
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />
+          {story?.journalist_username && (
+            <span className="text-xs text-muted-foreground">@{story.journalist_username}</span>
+          )}
         </div>
       )}
       <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="group block mb-3">
@@ -68,6 +79,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
 
 function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Map<string, Story> }) {
   const story = item.slug ? storyMap.get(item.slug) : null
+  const badge = story ? resolvedBadge(story) : null
   const inner = <span className="text-[1.05rem] leading-relaxed">{item.text}</span>
   return (
     <li className="flex gap-2 py-2.5 border-b border-border/50 last:border-0">
@@ -78,8 +90,13 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
             {inner}
           </Link>
         ) : inner}
-        {story && (story.source_tier || story.source_type) && (
-          <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />
+        {badge && (badge.tier || badge.sourceType) && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />
+            {story?.journalist_username && (
+              <span className="text-[10px] text-muted-foreground">@{story.journalist_username}</span>
+            )}
+          </div>
         )}
       </div>
     </li>
@@ -230,6 +247,7 @@ function SubHeader({ label }: { label: string }) {
 }
 
 const SECTION_CAP = 6
+const MIN_TRENDING_VIEWS = 1000
 
 interface SectionProps {
   title: string
@@ -337,7 +355,7 @@ export default async function HomePage({
     return {
       pinned:  capped.filter(s => s.pinned),
       voices:  capped.filter(s => !s.pinned && !!s.journalist_username),
-      stories: capped.filter(s => !s.pinned && !s.journalist_username),
+      stories: capped.filter(s => !s.pinned && !s.journalist_username && s.view_count >= MIN_TRENDING_VIEWS),
     }
   }
 
