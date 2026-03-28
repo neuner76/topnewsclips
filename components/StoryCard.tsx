@@ -69,7 +69,7 @@ export default function StoryCard({ story }: StoryCardProps) {
 
           {/* Description */}
           {story.description && (
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{story.description}</p>
+            <p className="text-base text-muted-foreground mt-1 line-clamp-2">{story.description}</p>
           )}
 
           {/* Thumbnail — below text on mobile, hidden here on sm+ */}

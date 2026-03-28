@@ -33,13 +33,13 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
         </div>
       )}
       <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="group block mb-3">
-        <h2 className="text-xl font-black tracking-tight leading-snug group-hover:underline underline-offset-2">
+        <h2 className="text-2xl font-black tracking-tight leading-snug group-hover:underline underline-offset-2">
           {item.sectionTitle}
         </h2>
       </Link>
       <div className="space-y-3">
         {item.paragraphs.map((p, i) => (
-          <p key={i} className="text-[15px] leading-relaxed text-foreground/90">
+          <p key={i} className="editorial-body text-foreground/90">
             {p}
           </p>
         ))}
@@ -58,7 +58,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
 
 function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Map<string, Story> }) {
   const story = item.slug ? storyMap.get(item.slug) : null
-  const inner = <span className="text-[15px] leading-relaxed">{item.text}</span>
+  const inner = <span className="text-base leading-relaxed">{item.text}</span>
   return (
     <li className="flex gap-2 py-2.5 border-b border-border/50 last:border-0">
       <span className="text-muted-foreground shrink-0 mt-0.5">›</span>

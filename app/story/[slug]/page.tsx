@@ -218,7 +218,7 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Description */}
         {s.description && (
-          <p className="editorial-body mt-6">{s.description}</p>
+          <p className="editorial-body mt-6 text-foreground/90">{s.description}</p>
         )}
 
         {/* MSM context */}
