@@ -35,9 +35,7 @@ const GLOBAL_YOUTUBE_CHANNELS: { channelId: string; region: string; label: strin
   { channelId: 'UCzznO4xSV8BKnUBPyswtCUw', region: 'Korea',         label: 'Arirang News' },
   { channelId: 'UC7fWeaHhqgM4Ry-RMpM2YYw', region: 'Middle East',   label: 'TRT World' },
   { channelId: 'UCVgO39Bk5sMo66-6o6Spn6Q', region: 'Australia',     label: 'ABC News Australia' },
-  { channelId: 'UCgrNz-aDmcr2uuto8_DL2jg', region: 'China',         label: 'CGTN' },
   { channelId: 'UC_gUM8rL-Lrg6O3adPW9K1g', region: 'South Asia',   label: 'WION' },
-  { channelId: 'UCmuTmpLY35O3csvhyA6vrkg', region: 'Latin America', label: 'TeleSUR English' },
 ]
 
 function detectPlatform(url: string): 'youtube' | 'tiktok' | 'x' | null {

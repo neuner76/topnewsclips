@@ -68,6 +68,11 @@ const BLOCKED_CHANNEL_TITLES = new Set([
   // Partisan commentary
   'Really American',
   'Ayyan',
+  // State media — blocked at source to save verification quota
+  'teleSUR English',
+  'teleSUR',
+  'TeleSUR English',
+  'CGTN',
   // Pseudoscience / clickbait / paranormal
   'FactFusion007',
   'Brain_Burst',
@@ -84,15 +89,16 @@ const BLOCKED_CHANNEL_TITLES = new Set([
 export async function fetchYouTubeTrending(
   apiKey: string,
   journalists: { username: string; channelId: string }[] = []
-): Promise<{ clips: YouTubeClip[]; errors: string[] }> {
+): Promise<{ clips: YouTubeClip[]; errors: string[]; staleChannels: string[] }> {
   const clips: YouTubeClip[] = []
   const errors: string[] = []
+  const staleChannels: string[] = []
   const seen = new Set<string>()
 
   // Run journalist RSS and search queries in parallel
   await Promise.all([
     journalists.length > 0
-      ? fetchJournalistChannelsViaRSS(journalists, clips, errors, seen, apiKey)
+      ? fetchJournalistChannelsViaRSS(journalists, clips, errors, staleChannels, seen, apiKey)
       : Promise.resolve(),
     searchYouTubeNews(apiKey, clips, errors, seen),
   ])
@@ -126,7 +132,7 @@ export async function fetchYouTubeTrending(
     }
   }
 
-  return { clips, errors }
+  return { clips, errors, staleChannels }
 }
 
 async function searchYouTubeNews(
@@ -238,6 +244,7 @@ async function fetchJournalistChannelsViaRSS(
   journalists: { username: string; channelId: string }[],
   clips: YouTubeClip[],
   errors: string[],
+  staleChannels: string[],
   seen: Set<string>,
   apiKey: string
 ) {
@@ -285,8 +292,13 @@ async function fetchJournalistChannelsViaRSS(
       url.searchParams.set('maxResults', '10')
       url.searchParams.set('key', apiKey)
       const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10000) })
-      if (!res.ok) return // keep original RSS error
+      if (!res.ok) {
+        // Both RSS and API failed — channel_id is likely stale
+        staleChannels.push(username)
+        return
+      }
       const json = await res.json()
+      let gotVideos = false
       for (const item of json.items ?? []) {
         const videoId: string = item.contentDetails?.videoId ?? ''
         if (!videoId || seen.has(videoId)) continue
@@ -294,12 +306,17 @@ async function fetchJournalistChannelsViaRSS(
         if (publishedAt && publishedAt < cutoff) continue
         seen.add(videoId)
         fallbackVideoIds.push({ username, channelId, videoId, publishedAt })
-        // Remove the RSS error for this channel since API fallback succeeded
+        gotVideos = true
+      }
+      if (gotVideos) {
+        // Remove the RSS error since API fallback succeeded
         const idx = errors.findIndex(e => e.includes(`@${username}: RSS`))
         if (idx >= 0) errors.splice(idx, 1)
+      } else {
+        staleChannels.push(username)
       }
     } catch {
-      // keep original RSS error
+      staleChannels.push(username)
     }
   }))
 

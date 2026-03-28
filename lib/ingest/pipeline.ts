@@ -122,7 +122,7 @@ export async function runFetch(): Promise<FetchResult> {
     fetchRedditClips(),
     youtubeKey
       ? fetchYouTubeTrending(youtubeKey, youtubeJournalists)
-      : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'] }),
+      : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'], staleChannels: [] }),
     apifyKey
       ? fetchTikTokTrending(apifyKey, journalistUsernames)
       : Promise.resolve({ clips: [], errors: [] }),
@@ -130,6 +130,14 @@ export async function runFetch(): Promise<FetchResult> {
   ])
 
   errors.push(...redditResult.errors, ...youtubeResult.errors, ...tiktokResult.errors, ...globalResult.errors)
+
+  // Clear stale channel_ids so they get re-resolved on the next run
+  if (youtubeResult.staleChannels.length > 0) {
+    await Promise.all(youtubeResult.staleChannels.map(username =>
+      supabase.from('featured_journalists').update({ channel_id: null }).eq('platform', 'youtube').eq('username', username)
+    ))
+    errors.push(`Cleared stale channel_ids for: ${youtubeResult.staleChannels.join(', ')}`)
+  }
 
   const candidates = [
     ...redditResult.clips.map((c: RedditClip) => ({
