@@ -163,6 +163,7 @@ function referralUrl(referralCode: string) {
 
 function email3Html(email: string, referralCode: string) {
   const refUrl = referralUrl(referralCode)
+  const dashboardUrl = `${SITE_URL}/referrals?code=${referralCode}`
   const tweetText = encodeURIComponent(`I've been reading TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that actually keeps you informed.\n\n${refUrl}`)
   return wrap(`
     ${p("Two weeks in. You've now seen stories that didn't make the evening news — consistently, every morning.")}
@@ -176,12 +177,14 @@ function email3Html(email: string, referralCode: string) {
         <a href="https://wa.me/?text=${encodeURIComponent(`Stories mainstream media isn't covering — free daily briefing:\n${refUrl}`)}" style="display:inline-block;background:#25d366;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Share on WhatsApp</a>
       </div>
     </div>
+    ${p(`Track how many people you've referred: <a href="${dashboardUrl}" style="color:#0e7490;font-weight:600;">View your referral dashboard →</a>`)}
     ${p("That's it. See you tomorrow morning.")}
   `, email)
 }
 
 function email3Text(email: string, referralCode: string) {
   const refUrl = referralUrl(referralCode)
+  const dashboardUrl = `${SITE_URL}/referrals?code=${referralCode}`
   return `Two weeks in. You've now seen stories that didn't make the evening news — consistently, every morning.
 
 That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.
@@ -190,6 +193,9 @@ If it's been worth your morning minute, send it to one person who'd want the sam
 
 Your personal referral link:
 ${refUrl}
+
+Track how many people you've referred:
+${dashboardUrl}
 
 That's it. See you tomorrow morning.
 

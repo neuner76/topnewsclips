@@ -1,5 +1,5 @@
 import { getLatestDigest } from '@/lib/digest'
-import type { NeedToKnowItem, InTheKnowItem } from '@/lib/digest'
+import type { NeedToKnowItem, InTheKnowItem, EtceteraItem } from '@/lib/digest'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import EmailCapture from '@/components/EmailCapture'
@@ -148,9 +148,13 @@ export default async function DigestPage() {
             <SectionDivider label="Etcetera" />
             <section>
               <ul className="space-y-2">
-                {content.etcetera.map((item, i) => (
+                {content.etcetera.map((item: EtceteraItem, i: number) => (
                   <li key={i} className="text-sm leading-relaxed text-muted-foreground">
-                    {item}
+                    {item.slug ? (
+                      <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
+                        {item.text}
+                      </Link>
+                    ) : item.text}
                   </li>
                 ))}
               </ul>

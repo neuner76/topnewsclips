@@ -20,6 +20,11 @@ export interface GlobalBlindspotItem {
   summary: string
 }
 
+export interface EtceteraItem {
+  text: string
+  slug: string | null
+}
+
 export interface DigestContent {
   needToKnow: NeedToKnowItem[]
   inTheKnow: {
@@ -28,7 +33,7 @@ export interface DigestContent {
     'Business & Markets': InTheKnowItem[]
     'Sports, Entertainment, & Culture': InTheKnowItem[]
   }
-  etcetera: string[]
+  etcetera: EtceteraItem[]
   globalBlindspots?: GlobalBlindspotItem[]
 }
 
@@ -131,7 +136,7 @@ IN THE KNOW:
 
 ETCETERA:
 - 3-5 short, curious, or surprising one-liners from any remaining US stories that have a quirky/unexpected angle
-- Plain strings, no slugs needed
+- Each item: { "text": "...", "slug": "..." } — include the story's slug so we can link to it
 
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
 - 1-sentence summary per global story explaining what's happening and why Americans should care
@@ -149,7 +154,7 @@ Return ONLY valid JSON in this exact structure:
     "Business & Markets": [{ "text": "...", "slug": "..." }],
     "Sports, Entertainment, & Culture": [{ "text": "...", "slug": "..." }]
   },
-  "etcetera": ["...", "..."],
+  "etcetera": [{ "text": "...", "slug": "..." }],
   "globalBlindspots": [
     { "region": "...", "title": "...", "slug": "...", "summary": "..." }
   ]

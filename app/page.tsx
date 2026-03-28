@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLatestDigest } from '@/lib/digest'
-import type { DigestContent, NeedToKnowItem, InTheKnowItem } from '@/lib/digest'
+import type { DigestContent, NeedToKnowItem, InTheKnowItem, EtceteraItem } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -148,11 +148,22 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             <div className="flex-1 border-t border-border" />
           </div>
           <ul className="space-y-3">
-            {content.etcetera.map((item, i) => (
-              <li key={i} className="text-base leading-relaxed text-muted-foreground">
-                {item}
-              </li>
-            ))}
+            {content.etcetera.map((item: EtceteraItem, i: number) => {
+              const story = item.slug ? storyMap.get(item.slug) : null
+              const text = <span className="text-base leading-relaxed text-muted-foreground">{item.text}</span>
+              return (
+                <li key={i} className="flex flex-col gap-1">
+                  {item.slug ? (
+                    <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
+                      {text}
+                    </Link>
+                  ) : text}
+                  {story && (story.source_tier || story.source_type) && (
+                    <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />
+                  )}
+                </li>
+              )
+            })}
           </ul>
         </section>
       )}
@@ -169,9 +180,15 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           </div>
           <p className="text-xs text-muted-foreground mb-4">Stories the rest of the world is covering that US media is ignoring.</p>
           <ul className="space-y-4">
-            {content.globalBlindspots.map((item, i) => (
+            {content.globalBlindspots.map((item, i) => {
+              const story = storyMap.get(item.slug)
+              return (
               <li key={i} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase block mb-1">{item.region}</span>
+                <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                  <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
+                  <GlobalBlindspotBadge />
+                  {story && <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />}
+                </div>
                 <Link
                   href={`/story/${item.slug}`}
                   target="_blank"
@@ -182,7 +199,8 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                 </Link>
                 <p className="text-base text-muted-foreground">{item.summary}</p>
               </li>
-            ))}
+              )
+            })}
           </ul>
         </section>
       )}
