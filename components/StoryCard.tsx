@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { track } from '@/lib/analytics'
 import type { Story } from '@/lib/types'
+import { getSourceTier } from '@/lib/ingest/source-tier'
 import MSMBadge from './MSMBadge'
 import PlatformBadge from './PlatformBadge'
 import PressureScore from './PressureScore'
@@ -38,6 +39,7 @@ export default function StoryCard({ story }: StoryCardProps) {
     story.platform === 'youtube'
       ? getYouTubeThumbnail(story.embed_url)
       : story.thumbnail_url ?? null
+  const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
 
   return (
     <article className="group py-3 border-b border-border">
@@ -52,7 +54,7 @@ export default function StoryCard({ story }: StoryCardProps) {
             <PlatformBadge platform={story.platform} />
             <CategoryBadge category={story.category} />
             {story.msm_gap && <MSMBadge notes={story.msm_notes} size="sm" />}
-            <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />
+            <SourceTypeBadge tier={tier} sourceType={sourceType} />
             {story.journalist_username && (
               <span className="text-[10px] font-medium text-muted-foreground">
                 @{story.journalist_username}

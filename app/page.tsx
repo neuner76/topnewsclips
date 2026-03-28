@@ -34,9 +34,8 @@ const IN_THE_KNOW_CATEGORIES = [
 
 // ─── Digest components ───────────────────────────────────────────────────────
 
-/** Returns the best available source tier for a story — uses stored value or computes on-the-fly */
+/** Always computes source tier fresh — ignores stale stored values from before the taxonomy was corrected */
 function resolvedBadge(story: Story): { tier: number | null; sourceType: string | null } {
-  if (story.source_tier && story.source_type) return { tier: story.source_tier, sourceType: story.source_type }
   return getSourceTier(story.journalist_username, story.source ?? '', story.category)
 }
 
@@ -186,8 +185,8 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                       {text}
                     </Link>
                   ) : text}
-                  {story && (story.source_tier || story.source_type) && (
-                    <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />
+                  {story && (
+                    <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />
                   )}
                 </li>
               )
@@ -215,7 +214,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                 <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                   <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
                   <GlobalBlindspotBadge />
-                  {story && <SourceTypeBadge tier={story.source_tier} sourceType={story.source_type} />}
+                  {story && <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />}
                 </div>
                 <Link
                   href={`/story/${item.slug}`}
@@ -467,6 +466,7 @@ export default async function HomePage({
                 <div>
                   {globalBlindspots.slice(0, SECTION_CAP).map(s => {
                     const thumb = storyThumbnail(s)
+                    const badge = getSourceTier(s.journalist_username, s.source ?? '', s.category)
                     return (
                     <div key={s.id} className="group py-3 border-b border-border">
                       <div className="flex gap-3 items-start">
@@ -474,7 +474,7 @@ export default async function HomePage({
                           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                             <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
                             <GlobalBlindspotBadge />
-                            <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
+                            <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />
                           </div>
                           <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
                             <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
@@ -513,7 +513,7 @@ export default async function HomePage({
                           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                             <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
                             {s.msm_gap && <GlobalBlindspotBadge />}
-                            <SourceTypeBadge tier={s.source_tier} sourceType={s.source_type} />
+                            <SourceTypeBadge tier={resolvedBadge(s).tier} sourceType={resolvedBadge(s).sourceType} />
                           </div>
                           <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
                             <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
