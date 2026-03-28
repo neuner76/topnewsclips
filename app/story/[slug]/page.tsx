@@ -161,6 +161,7 @@ export default async function StoryPage({ params }: Props) {
           embedUrl: s.embed_url,
           contentUrl: `https://www.youtube.com/watch?v=${m[1]}`,
           url: canonicalUrl,
+          ...(s.duration ? { duration: s.duration } : {}),
         }]
       })() : []),
     ],

@@ -97,6 +97,35 @@ export async function fetchYouTubeTrending(
     searchYouTubeNews(apiKey, clips, errors, seen),
   ])
 
+  // Batch-fetch durations for journalist RSS clips (search clips already have duration)
+  const needsDuration = clips.filter(c => c.duration === null)
+  if (needsDuration.length > 0) {
+    const ids = needsDuration.map(c => c.videoId)
+    const chunks: string[][] = []
+    for (let i = 0; i < ids.length; i += 50) chunks.push(ids.slice(i, i + 50))
+    const durationMap = new Map<string, string>()
+    for (const chunk of chunks) {
+      try {
+        const url = new URL('https://www.googleapis.com/youtube/v3/videos')
+        url.searchParams.set('part', 'contentDetails')
+        url.searchParams.set('id', chunk.join(','))
+        url.searchParams.set('key', apiKey)
+        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8000) })
+        if (res.ok) {
+          const json = await res.json()
+          for (const item of json.items ?? []) {
+            if (item.contentDetails?.duration) durationMap.set(item.id, item.contentDetails.duration)
+          }
+        }
+      } catch {
+        // non-fatal — duration stays null
+      }
+    }
+    for (const clip of needsDuration) {
+      clip.duration = durationMap.get(clip.videoId) ?? null
+    }
+  }
+
   return { clips, errors }
 }
 
@@ -268,6 +297,7 @@ function parseRSSEntries(
       description: decodeXML(stripCDATA(rawDesc)).slice(0, 500),
       publishedAt: published,
       journalistUsername,
+      duration: null,
     })
   }
 

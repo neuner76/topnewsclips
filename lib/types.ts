@@ -22,6 +22,7 @@ export interface Story {
   source_tier: number | null
   source_type: string | null
   pinned: boolean
+  duration: string | null
   created_at: string
   updated_at: string
 }

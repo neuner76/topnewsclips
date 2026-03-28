@@ -150,6 +150,7 @@ export async function runFetch(): Promise<FetchResult> {
       viralScore: c.viewCount,
       source: `YouTube/${c.channelTitle}`,
       journalistUsername: c.journalistUsername ?? null,
+      duration: c.duration ?? null,
     })),
     ...tiktokResult.clips.map((c: TikTokClip) => ({
       title: c.title,
@@ -236,6 +237,7 @@ export async function runFetch(): Promise<FetchResult> {
       thumbnail_url: (c as { thumbnailUrl?: string | null }).thumbnailUrl ?? null,
       journalist_username: (c as { journalistUsername?: string | null }).journalistUsername ?? null,
       region: (c as { region?: string | null }).region ?? null,
+      duration: (c as { duration?: string | null }).duration ?? null,
     })
     if (!error) {
       added++
@@ -365,6 +367,7 @@ export async function runProcess(): Promise<PipelineResult> {
         thumbnail_url: candidate.thumbnail_url ?? null,
         journalist_username: candidate.journalist_username ?? null,
         region: candidate.region ?? null,
+        duration: candidate.duration ?? null,
         ...(() => {
           const { tier, sourceType } = getSourceTier(candidate.journalist_username ?? null, candidate.source, verification.category ?? null)
           return { source_tier: tier, source_type: sourceType }
