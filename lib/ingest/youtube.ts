@@ -8,6 +8,7 @@ export interface YouTubeClip {
   description: string
   publishedAt: string
   journalistUsername: string | null
+  duration: string | null
 }
 
 
@@ -167,7 +168,7 @@ async function searchYouTubeNews(
   for (const chunk of chunks) {
     try {
       const statsUrl = new URL('https://www.googleapis.com/youtube/v3/videos')
-      statsUrl.searchParams.set('part', 'statistics')
+      statsUrl.searchParams.set('part', 'statistics,contentDetails')
       statsUrl.searchParams.set('id', chunk.join(','))
       statsUrl.searchParams.set('key', apiKey)
 
@@ -193,6 +194,7 @@ async function searchYouTubeNews(
           description: snippet.description,
           publishedAt: snippet.publishedAt,
           journalistUsername: null,
+          duration: item.contentDetails?.duration ?? null,
         })
       }
     } catch (err) {
