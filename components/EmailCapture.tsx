@@ -15,10 +15,11 @@ export default function EmailCapture() {
     setStatus('loading')
 
     try {
+      const ref = new URLSearchParams(window.location.search).get('ref')
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, ...(ref ? { ref } : {}) }),
       })
       const data = await res.json()
       if (res.ok) {

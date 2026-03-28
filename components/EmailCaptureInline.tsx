@@ -12,10 +12,11 @@ export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean 
     if (!email) return
     setStatus('loading')
     try {
+      const ref = new URLSearchParams(window.location.search).get('ref')
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, ...(ref ? { ref } : {}) }),
       })
       if (res.ok) {
         track('signup_completed', { placement: nudge ? 'nudge' : 'inline' })

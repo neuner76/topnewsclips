@@ -157,35 +157,39 @@ Unsubscribe: ${unsubscribeLink(email)}`
 
 // ─── Email 3: Refer a friend (day 14) ────────────────────────────────────────
 
-const REFERRAL_UTM = 'utm_source=email&utm_medium=referral&utm_campaign=email3'
-const REFERRAL_URL = `${SITE_URL}?${REFERRAL_UTM}`
-const TWEET_TEXT = encodeURIComponent(`I've been reading TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that actually keeps you informed.\n\n${SITE_URL}?utm_source=twitter&utm_medium=referral&utm_campaign=email3`)
+function referralUrl(referralCode: string) {
+  return `${SITE_URL}?ref=${referralCode}&utm_source=email&utm_medium=referral&utm_campaign=email3`
+}
 
-function email3Html(email: string) {
+function email3Html(email: string, referralCode: string) {
+  const refUrl = referralUrl(referralCode)
+  const tweetText = encodeURIComponent(`I've been reading TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that actually keeps you informed.\n\n${refUrl}`)
   return wrap(`
     ${p("Two weeks in. You've now seen stories that didn't make the evening news — consistently, every morning.")}
     ${p("That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.")}
     ${p("If it's been worth your morning minute, the most valuable thing you can do is send it to one person who'd want the same thing. They get it free. You help build something independent.")}
-    <div style="margin:24px 0;">
-      <a href="https://twitter.com/intent/tweet?text=${TWEET_TEXT}" style="display:inline-block;background:#000000;color:#ffffff;font-size:14px;font-weight:700;padding:10px 20px;border-radius:6px;text-decoration:none;margin-right:10px;">Share on X</a>
-      <a href="${REFERRAL_URL}" style="display:inline-block;background:#0e7490;color:#ffffff;font-size:14px;font-weight:700;padding:10px 20px;border-radius:6px;text-decoration:none;">Send them the link</a>
+    <div style="margin:24px 0;padding:20px;background:#f0fdfc;border:1px solid #99f6e4;border-radius:8px;">
+      <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#0e7490;letter-spacing:0.08em;text-transform:uppercase;">Your personal referral link</p>
+      <p style="margin:0 0 16px;font-size:14px;color:#374151;word-break:break-all;">${refUrl}</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="https://twitter.com/intent/tweet?text=${tweetText}" style="display:inline-block;background:#000000;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Share on X</a>
+        <a href="https://wa.me/?text=${encodeURIComponent(`Stories mainstream media isn't covering — free daily briefing:\n${refUrl}`)}" style="display:inline-block;background:#25d366;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Share on WhatsApp</a>
+      </div>
     </div>
     ${p("That's it. See you tomorrow morning.")}
   `, email)
 }
 
-function email3Text(email: string) {
+function email3Text(email: string, referralCode: string) {
+  const refUrl = referralUrl(referralCode)
   return `Two weeks in. You've now seen stories that didn't make the evening news — consistently, every morning.
 
 That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.
 
 If it's been worth your morning minute, send it to one person who'd want the same thing. They get it free.
 
-Share this link:
-${REFERRAL_URL}
-
-Or share on X:
-https://twitter.com/intent/tweet?text=${TWEET_TEXT}
+Your personal referral link:
+${refUrl}
 
 That's it. See you tomorrow morning.
 
@@ -195,7 +199,7 @@ Unsubscribe: ${unsubscribeLink(email)}`
 
 // ─── Trigger all three ────────────────────────────────────────────────────────
 
-export async function sendWelcomeSequence(email: string): Promise<void> {
+export async function sendWelcomeSequence(email: string, referralCode: string): Promise<void> {
   const resendKey = process.env.RESEND_API_KEY
   if (!resendKey) return
 
@@ -241,8 +245,8 @@ export async function sendWelcomeSequence(email: string): Promise<void> {
       from: FROM,
       to: email,
       subject: "Know someone who'd want this?",
-      html: email3Html(email),
-      text: email3Text(email),
+      html: email3Html(email, referralCode),
+      text: email3Text(email, referralCode),
       headers: unsubHeaders,
       scheduledAt: day14,
     }),
