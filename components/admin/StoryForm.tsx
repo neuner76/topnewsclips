@@ -46,6 +46,8 @@ export default function StoryForm({ story }: StoryFormProps) {
   const [pinned, setPinned] = useState(story?.pinned ?? false)
   const [published, setPublished] = useState(story?.published ?? false)
   const [displayOrder, setDisplayOrder] = useState(String(story?.display_order ?? '99'))
+  const [sourceTier, setSourceTier] = useState<string>(String(story?.source_tier ?? ''))
+  const [sourceType, setSourceType] = useState(story?.source_type ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -79,6 +81,8 @@ export default function StoryForm({ story }: StoryFormProps) {
       pinned,
       published,
       display_order: parseInt(displayOrder) || 99,
+      source_tier: sourceTier ? parseInt(sourceTier) : null,
+      source_type: sourceType.trim() || null,
     }
 
     let err
@@ -253,6 +257,43 @@ export default function StoryForm({ story }: StoryFormProps) {
               />
             </div>
           )}
+        </div>
+
+        {/* Source credibility */}
+        <div className="space-y-3 p-4 bg-zinc-50 border border-border rounded-md">
+          <p className="text-sm font-semibold">Source Credibility</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="sourceTier">Tier (1–10)</Label>
+              <select
+                id="sourceTier"
+                value={sourceTier}
+                onChange={e => setSourceTier(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">— auto —</option>
+                <option value="1">1 — Nonprofit Investigative</option>
+                <option value="2">2 — OSINT</option>
+                <option value="3">3 — Public Broadcaster</option>
+                <option value="4">4 — Independent News</option>
+                <option value="5">5 — Wire Service</option>
+                <option value="6">6 — Commercial / Explainer</option>
+                <option value="7">7 — Independent Commentary</option>
+                <option value="8">8 — State Media</option>
+                <option value="9">9 — Raw Footage</option>
+                <option value="10">10 — Community Sourced</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="sourceType">Badge Label</Label>
+              <Input
+                id="sourceType"
+                placeholder="e.g. Public Broadcaster"
+                value={sourceType}
+                onChange={e => setSourceType(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Journalist credit (read-only) */}

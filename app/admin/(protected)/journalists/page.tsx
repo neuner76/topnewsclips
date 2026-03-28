@@ -22,6 +22,7 @@ export default function JournalistsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const [platform, setPlatform] = useState<'youtube' | 'tiktok'>('youtube')
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
@@ -45,7 +46,7 @@ export default function JournalistsPage() {
     setSaving(true)
     const clean = username.replace(/^@/, '').trim().toLowerCase()
     const { error: err } = await supabase.from('featured_journalists').insert({
-      platform: 'tiktok',
+      platform,
       username: clean,
       display_name: displayName.trim() || null,
       bio: bio.trim() || null,
@@ -81,7 +82,19 @@ export default function JournalistsPage() {
         <h2 className="text-sm font-semibold">Add Journalist</h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="username">TikTok @username *</Label>
+            <Label htmlFor="platform">Platform</Label>
+            <select
+              id="platform"
+              value={platform}
+              onChange={e => setPlatform(e.target.value as 'youtube' | 'tiktok')}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+            >
+              <option value="youtube">YouTube</option>
+              <option value="tiktok">TikTok</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="username">@username *</Label>
             <Input
               id="username"
               placeholder="e.g. johndoe or @johndoe"

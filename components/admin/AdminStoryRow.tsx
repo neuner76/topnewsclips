@@ -13,6 +13,7 @@ const platformLabel: Record<string, string> = {
 
 export default function AdminStoryRow({ story, isReview = false }: { story: Story; isReview?: boolean }) {
   const [published, setPublished] = useState(story.published)
+  const [pinned, setPinned] = useState(story.pinned)
   const [saving, setSaving] = useState(false)
   const [deleted, setDeleted] = useState(false)
   const [title, setTitle] = useState(story.title)
@@ -38,6 +39,14 @@ export default function AdminStoryRow({ story, isReview = false }: { story: Stor
     const supabase = createClient()
     await supabase.from('stories').update({ published: !published }).eq('id', story.id)
     setPublished(!published)
+    setSaving(false)
+  }
+
+  async function togglePinned() {
+    setSaving(true)
+    const supabase = createClient()
+    await supabase.from('stories').update({ pinned: !pinned }).eq('id', story.id)
+    setPinned(!pinned)
     setSaving(false)
   }
 
@@ -137,6 +146,18 @@ export default function AdminStoryRow({ story, isReview = false }: { story: Stor
               }`}
             >
               {saving ? '...' : published ? 'Live' : 'Draft'}
+            </button>
+            <button
+              onClick={togglePinned}
+              disabled={saving}
+              className={`text-xs font-semibold px-2.5 py-1 rounded border transition-colors ${
+                pinned
+                  ? 'bg-amber-100 text-amber-700 border-amber-300'
+                  : 'bg-white text-muted-foreground border-border hover:border-amber-300'
+              }`}
+              title="Pin to top of section"
+            >
+              {pinned ? '📌 Pinned' : 'Pin'}
             </button>
             <a
               href={story.embed_url}

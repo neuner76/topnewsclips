@@ -12,7 +12,8 @@ export default async function AdminDashboard() {
       .from('stories')
       .select('*')
       .order('display_order', { ascending: true })
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(200),
     supabase.from('subscribers').select('*', { count: 'exact', head: true }),
   ])
 
