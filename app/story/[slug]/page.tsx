@@ -44,19 +44,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : `Watch: ${data.title} — independent news and footage on Top News Clips.`
   const canonicalUrl = `https://www.topnewsclips.com/story/${slug}`
 
+  const ytMatch = data.embed_url?.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  const thumb = ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg` : null
+
   return {
     title: `${data.title} — Top News Clips`,
     description,
+    robots: data.published ? undefined : { index: false, follow: false },
     alternates: { canonical: canonicalUrl },
     openGraph: {
       title: data.title,
       description,
       url: canonicalUrl,
-      images: data.embed_url ? (() => {
-        const m = data.embed_url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-        const thumb = m ? `https://img.youtube.com/vi/${m[1]}/maxresdefault.jpg` : null
-        return thumb ? [{ url: thumb }] : []
-      })() : [],
+      type: 'article',
+      images: thumb ? [{ url: thumb }] : [],
     },
     twitter: {
       card: 'summary_large_image',
@@ -148,15 +149,20 @@ export default async function StoryPage({ params }: Props) {
         },
         mainEntityOfPage: canonicalUrl,
       },
-      ...(s.platform === 'youtube' && s.embed_url ? [{
-        '@type': 'VideoObject',
-        name: s.title,
-        description: fullDescription || shortDescription,
-        thumbnailUrl: ogImage ?? undefined,
-        uploadDate: s.created_at,
-        embedUrl: s.embed_url,
-        url: canonicalUrl,
-      }] : []),
+      ...(s.platform === 'youtube' && s.embed_url ? (() => {
+        const m = s.embed_url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+        if (!m) return []
+        return [{
+          '@type': 'VideoObject',
+          name: s.title,
+          description: fullDescription || shortDescription,
+          thumbnailUrl: ogImage ?? undefined,
+          uploadDate: s.created_at,
+          embedUrl: s.embed_url,
+          contentUrl: `https://www.youtube.com/watch?v=${m[1]}`,
+          url: canonicalUrl,
+        }]
+      })() : []),
     ],
   }
 
