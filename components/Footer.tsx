@@ -12,6 +12,9 @@ export default function Footer() {
             </p>
           </div>
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+            <Link href="/search" className="hover:text-foreground transition-colors">
+              Search
+            </Link>
             <Link href="/stories" className="hover:text-foreground transition-colors">
               Archive
             </Link>
