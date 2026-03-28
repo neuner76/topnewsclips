@@ -42,11 +42,12 @@ function resolvedBadge(story: Story): { tier: number | null; sourceType: string 
 function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: Map<string, Story> }) {
   const story = storyMap.get(item.slug)
   const badge = story ? resolvedBadge(story) : null
+  const hasAttribution = badge?.tier || badge?.sourceType || story?.journalist_username
   return (
     <article className="py-6 border-b border-border last:border-0">
-      {badge && (badge.tier || badge.sourceType) && (
+      {hasAttribution && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />
+          {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />}
           {story?.journalist_username && (
             <span className="text-xs text-muted-foreground">@{story.journalist_username}</span>
           )}
@@ -89,9 +90,9 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
             {inner}
           </Link>
         ) : inner}
-        {badge && (badge.tier || badge.sourceType) && (
+        {(badge?.tier || badge?.sourceType || story?.journalist_username) && (
           <div className="flex flex-wrap items-center gap-1.5">
-            <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />
+            {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge!.tier} sourceType={badge!.sourceType} />}
             {story?.journalist_username && (
               <span className="text-[10px] text-muted-foreground">@{story.journalist_username}</span>
             )}
@@ -335,6 +336,22 @@ export default async function HomePage({
 
   const all = (storiesResult.data as Story[]) ?? []
   const storyMap = new Map(all.map(s => [s.slug, s]))
+
+  // Supplement storyMap with any digest-referenced stories not in the 7-day window
+  if (digest) {
+    const digestSlugs: string[] = [
+      ...digest.content.needToKnow.map(i => i.slug),
+      ...Object.values(digest.content.inTheKnow).flatMap(items => items.map(i => i.slug).filter(Boolean) as string[]),
+      ...(digest.content.etcetera ?? []).map(i => typeof i === 'string' ? null : i.slug).filter(Boolean) as string[],
+      ...(digest.content.globalBlindspots ?? []).map(i => i.slug),
+    ]
+    const missingSlugs = [...new Set(digestSlugs)].filter(slug => !storyMap.has(slug))
+    if (missingSlugs.length > 0) {
+      const supabase = await createClient()
+      const { data: extra } = await supabase.from('stories').select('*').in('slug', missingSlugs)
+      for (const s of (extra ?? []) as Story[]) storyMap.set(s.slug, s)
+    }
+  }
 
   // Default to digest view when one exists, unless user explicitly chose clips
   const activeView = view === 'clips' ? 'clips' : (digest ? 'digest' : 'clips')

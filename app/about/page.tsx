@@ -3,6 +3,8 @@ import Footer from '@/components/Footer'
 import EmailCapture from '@/components/EmailCapture'
 import Link from 'next/link'
 
+export const revalidate = 3600
+
 export const metadata = {
   title: 'About Top News Clips — Independent News. No Agenda.',
   description: 'Top News Clips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers. Daily briefing for non-partisan Americans who want facts, not spin.',

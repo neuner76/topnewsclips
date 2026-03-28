@@ -15,6 +15,16 @@ const OSINT_JOURNALISTS = new Set([
   'bellingcat',
 ])
 
+// Tier 3: Public Broadcaster — journalist handles for DW/Al Jazeera/PBS sub-channels
+const PUBLIC_BROADCASTER_JOURNALISTS = new Set([
+  'dwplaneta', 'dwdocumentary', 'dwnews', 'dwenglish',
+  'aljazeeraenglish', 'aljazeera',
+  'pbsnewshour', 'frontlinepbs',
+  'france24english', 'france24',
+  'nhkworldjapan', 'nhkworld',
+  'arirangnews', 'trtworld', 'wion',
+])
+
 // Tier 4: Independent News Organization
 const INDEPENDENT_NEWS_JOURNALISTS = new Set([
   'theintercept', 'bureau', 'dropsitenews', 'vicenews', 'moreperfectunion',
@@ -105,6 +115,9 @@ export function getSourceTier(
 
   if (NONPROFIT_JOURNALISTS.has(u))
     return { tier: 1, sourceType: 'Nonprofit Investigative' }
+
+  if (PUBLIC_BROADCASTER_JOURNALISTS.has(u))
+    return { tier: 3, sourceType: 'Public Broadcaster' }
 
   if (INDEPENDENT_NEWS_JOURNALISTS.has(u))
     return { tier: 4, sourceType: 'Independent News' }
