@@ -148,13 +148,14 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             <div className="flex-1 border-t border-border" />
           </div>
           <ul className="space-y-3">
-            {content.etcetera.map((item: EtceteraItem, i: number) => {
-              const story = item.slug ? storyMap.get(item.slug) : null
-              const text = <span className="text-base leading-relaxed text-muted-foreground">{item.text}</span>
+            {content.etcetera.map((item: EtceteraItem | string, i: number) => {
+              const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
+              const story = etc.slug ? storyMap.get(etc.slug) : null
+              const text = <span className="text-base leading-relaxed text-muted-foreground">{etc.text}</span>
               return (
                 <li key={i} className="flex flex-col gap-1">
-                  {item.slug ? (
-                    <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
+                  {etc.slug ? (
+                    <Link href={`/story/${etc.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
                       {text}
                     </Link>
                   ) : text}

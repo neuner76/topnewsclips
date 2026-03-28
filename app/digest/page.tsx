@@ -148,15 +148,18 @@ export default async function DigestPage() {
             <SectionDivider label="Etcetera" />
             <section>
               <ul className="space-y-2">
-                {content.etcetera.map((item: EtceteraItem, i: number) => (
-                  <li key={i} className="text-sm leading-relaxed text-muted-foreground">
-                    {item.slug ? (
-                      <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
-                        {item.text}
-                      </Link>
-                    ) : item.text}
-                  </li>
-                ))}
+                {content.etcetera.map((item: EtceteraItem | string, i: number) => {
+                  const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
+                  return (
+                    <li key={i} className="text-sm leading-relaxed text-muted-foreground">
+                      {etc.slug ? (
+                        <Link href={`/story/${etc.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
+                          {etc.text}
+                        </Link>
+                      ) : etc.text}
+                    </li>
+                  )
+                })}
               </ul>
             </section>
           </>
