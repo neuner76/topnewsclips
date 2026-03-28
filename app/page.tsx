@@ -213,7 +213,6 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               <li key={i} className="border-b border-border pb-4 last:border-0 last:pb-0">
                 <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                   <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
-                  <GlobalBlindspotBadge />
                   {story && <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />}
                 </div>
                 <Link
