@@ -8,6 +8,7 @@ export interface SourceTierResult {
 // Tier 1: Nonprofit Investigative
 const NONPROFIT_JOURNALISTS = new Set([
   'propublica', 'marshall', 'texastribune', 'calmatters', 'frontlinepbs',
+  'revealnews', 'themarkup',
 ])
 
 // Tier 2: OSINT
@@ -23,6 +24,7 @@ const PUBLIC_BROADCASTER_JOURNALISTS = new Set([
   'france24english', 'france24',
   'nhkworldjapan', 'nhkworld',
   'arirangnews', 'trtworld', 'wion',
+  'africanews',
 ])
 
 // Tier 4: Independent News Organization
@@ -38,8 +40,9 @@ const COMMERCIAL_JOURNALISTS = new Set([
 // Tier 7: Independent Commentary
 const COMMENTARY_JOURNALISTS = new Set([
   'breakingpoints', 'caspianreport', 'polymatter', 'johnnyharris',
-  'kylescanlon', 'michaeltracey', 'tarapalmeri', 'wendoverproductions',
-  'veritasium', 'audittheaudit',
+  'kylescanlon', 'kylascanlon', 'michaeltracey', 'tarapalmeri', 'wendoverproductions',
+  'veritasium', 'audittheaudit', 'ggreenwald', 'geohussar', 'iancarrollshow',
+  'whitneywebb', 'jamesfreeman', 'undecidedtechnology', 'tanglenews', 'patrickboyleonfinance',
 ])
 
 // ── Source-string lookups (for YouTube search results with no journalist username) ──
@@ -50,6 +53,8 @@ const NONPROFIT_SOURCES = new Set([
   'YouTube/Frontline PBS',
   'YouTube/The Marshall Project',
   'YouTube/Texas Tribune',
+  'YouTube/Reveal',
+  'YouTube/The Markup',
 ])
 
 // Tier 3: Public Broadcaster — prefix match handles all sub-channels (DW Planet A, DW Documentary, etc.)
@@ -64,6 +69,7 @@ const PUBLIC_BROADCASTER_PREFIXES = [
   'YouTube/ABC News Australia',
   'YouTube/PBS NewsHour',
   'YouTube/PBS Frontline',
+  'YouTube/Africanews',
 ]
 
 // Tier 4: Independent News Org
@@ -77,6 +83,7 @@ const INDEPENDENT_NEWS_SOURCES = new Set([
 // Tier 5: Wire Service
 const WIRE_SERVICE_SOURCES = new Set([
   'YouTube/Reuters', 'YouTube/Associated Press', 'YouTube/AP',
+  'YouTube/AP Archive', 'YouTube/News2Share', 'YouTube/Storyful News',
 ])
 
 // Tier 7: Independent Commentary
@@ -97,9 +104,19 @@ const STATE_MEDIA_SOURCES = new Set([
   'YouTube/CGTN', 'YouTube/TeleSUR English',
 ])
 
+// Tier 5: Wire Service journalists
+const WIRE_SERVICE_JOURNALISTS = new Set([
+  'news2share', 'storyfulnews', 'aparchive',
+])
+
 // Raw footage subreddits
 const RAW_FOOTAGE_SUBREDDITS = new Set([
   'r/bodycam', 'r/CaughtOnCamera', 'r/Roadcam', 'r/Dashcam',
+])
+
+// Tier 9: Raw footage journalist channels
+const RAW_FOOTAGE_JOURNALISTS = new Set([
+  'policeactivity', 'weathernation', 'viralhog',
 ])
 
 export function getSourceTier(
@@ -122,11 +139,17 @@ export function getSourceTier(
   if (INDEPENDENT_NEWS_JOURNALISTS.has(u))
     return { tier: 4, sourceType: 'Independent News' }
 
+  if (WIRE_SERVICE_JOURNALISTS.has(u))
+    return { tier: 5, sourceType: 'Wire Service' }
+
   if (COMMERCIAL_JOURNALISTS.has(u))
     return { tier: 6, sourceType: 'Commercial / Explainer' }
 
   if (COMMENTARY_JOURNALISTS.has(u))
     return { tier: 7, sourceType: 'Independent Commentary' }
+
+  if (RAW_FOOTAGE_JOURNALISTS.has(u))
+    return { tier: 9, sourceType: 'Raw Footage' }
 
   // Any other known journalist handle → Independent Commentary by default
   if (journalistUsername)

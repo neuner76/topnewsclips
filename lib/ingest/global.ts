@@ -36,6 +36,7 @@ const GLOBAL_YOUTUBE_CHANNELS: { channelId: string; region: string; label: strin
   { channelId: 'UC7fWeaHhqgM4Ry-RMpM2YYw', region: 'Middle East',   label: 'TRT World' },
   { channelId: 'UCVgO39Bk5sMo66-6o6Spn6Q', region: 'Australia',     label: 'ABC News Australia' },
   { channelId: 'UC_gUM8rL-Lrg6O3adPW9K1g', region: 'South Asia',   label: 'WION' },
+  { channelId: 'UC1_E8NeF5QHY2dtdLRBCCLA', region: 'Africa',       label: 'Africanews' },
 ]
 
 function detectPlatform(url: string): 'youtube' | 'tiktok' | 'x' | null {
