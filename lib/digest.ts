@@ -181,11 +181,12 @@ GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
 - "summary" must end with a concrete US relevance hook — connect to American wallets, security, rights, or foreign policy. Wrong: "a story Americans should follow." Right: "...a chokepoint that controls 20% of global oil supply, meaning price spikes at the pump could follow within weeks."
 
 HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
-- For each NeedToKnow story, scan INTERNATIONAL PERSPECTIVES for any story covering the same topic from a non-US angle
-- If 1-3 matches exist, add a "howWorldSeesIt" array to that NeedToKnow item
+- For each NeedToKnow story, scan INTERNATIONAL PERSPECTIVES for stories that are DIRECTLY about the same event, policy, or entity
+- Only add "howWorldSeesIt" if the international story is unambiguously about the same topic — not loosely related, not analogous, not thematically similar. The slug must point to a story actually covering the same subject.
+- If 1-3 direct matches exist, add a "howWorldSeesIt" array to that NeedToKnow item
 - Each entry: { "region": "...", "slug": "...", "summary": "..." }
-- "summary" = one sentence describing how that region/outlet frames the story differently than the US angle — focus on what's distinct about their perspective
-- If no genuine topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array
+- "summary" = one sentence describing how that region/outlet frames the story differently than the US angle
+- If no DIRECT topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array, do NOT force a connection
 - Never reuse a slug already used in globalBlindspots
 
 Return ONLY valid JSON in this exact structure:
