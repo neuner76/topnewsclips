@@ -129,8 +129,9 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     return true
   })
 
+  // yesterdaySlugs are excluded from NeedToKnow only — still available for InTheKnow/Etcetera
   const storiesForPrompt = cappedStories
-    .filter(s => !s.region && !yesterdaySlugs.has(s.slug))
+    .filter(s => !s.region)
     .map(s => ({
       slug: s.slug,
       title: s.title,
@@ -139,6 +140,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       source: s.journalist_username ? `@${s.journalist_username}` : (s.source ?? null),
       isJournalist: !!s.journalist_username,
       msmGap: s.msm_gap,
+      featuredYesterday: yesterdaySlugs.has(s.slug),
     }))
 
   const globalForPrompt = (globalStories ?? []).map(s => ({
@@ -169,6 +171,7 @@ Produce a structured JSON digest from the stories below. Follow these rules exac
 
 NEED TO KNOW (3 stories max):
 - Pick the 3 most important/interesting stories from the US STORIES section
+- YESTERDAY EXCLUSION: Any story with "featuredYesterday": true must NOT appear in NeedToKnow — it was already featured. It may still appear in InTheKnow or Etcetera.
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague. The final paragraph must include a "Why this matters to you" sentence connecting the story to something tangible in an American's daily life — their wallet, their rights, their community, or their family. Make it specific and concrete, not generic. Wrong: "This could affect Americans." Right: "If you've driven past a license plate reader this week, your vehicle's location may already be in ICE's database." or "If you have a 401(k), the private equity fees documented here are likely embedded in funds you already own."
