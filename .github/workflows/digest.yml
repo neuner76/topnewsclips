@@ -1,0 +1,32 @@
+name: Daily Digest & Email
+
+on:
+  schedule:
+    - cron: '30 12 * * *'   # 12:30pm UTC = 5:30am PDT — generate digest
+  workflow_dispatch:         # manual trigger from GitHub UI
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Digest
+        run: npx tsx scripts/generate-digest.ts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Send Digest Email
+        run: |
+          curl -s --fail-with-body --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/send-digest" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

@@ -1,12 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/admin/digest",
-      "schedule": "30 13 * * *"
-    },
-    {
-      "path": "/api/admin/send-digest",
-      "schedule": "0 14 * * *"
-    }
-  ]
-}
+{}

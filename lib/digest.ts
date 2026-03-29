@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
-import { recheckMSMCoverage } from './ingest/msm-check'
 
 export interface HowWorldSeesItItem {
   region: string
@@ -93,8 +92,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   if (error) throw new Error(`Failed to fetch stories: ${error.message}`)
   if (!stories || stories.length === 0) throw new Error('No published stories to digest')
 
-  // Re-check MSM coverage before building digest — badges reflect morning reality
-  await recheckMSMCoverage(supabase, stories.filter(s => !s.region)).catch(() => {})
+  // MSM recheck runs in the ingest pipeline — skip here to avoid function timeout
 
   // Fetch global blindspot stories separately
   const { data: globalStories } = await supabase
@@ -277,7 +275,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   // Upsert by date — regenerating today's digest overwrites the previous one
   const { data: digest, error: insertError } = await supabase
     .from('digests')
-    .upsert({ date: today, content }, { onConflict: 'date' })
+    .upsert({ date: today, content, generated_at: new Date().toISOString() }, { onConflict: 'date' })
     .select()
     .single()
 
