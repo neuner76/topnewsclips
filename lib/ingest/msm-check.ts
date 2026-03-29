@@ -8,6 +8,8 @@ export interface MSMCheckResult {
   articleCount: number
   msmGap: boolean
   topSources: string[]
+  coveredBy: string[]
+  notCoveredBy: string[]
 }
 
 export interface StoryForRecheck {
@@ -25,7 +27,10 @@ export async function recheckMSMCoverage(
   for (const story of stories) {
     const result = await checkMSMCoverage(story.title)
     if (result.articleCount >= 0 && result.msmGap !== story.msm_gap) {
-      await supabase.from('stories').update({ msm_gap: result.msmGap }).eq('id', story.id)
+      await supabase.from('stories').update({
+        msm_gap: result.msmGap,
+        msm_outlet_coverage: { covered: result.coveredBy, notCovered: result.notCoveredBy },
+      }).eq('id', story.id)
       updated++
     }
     await new Promise(r => setTimeout(r, 600))
@@ -52,17 +57,23 @@ export async function checkMSMCoverage(query: string): Promise<MSMCheckResult> {
     const sourceMatches = [...xml.matchAll(/<source[^>]*>([^<]+)<\/source>/g)]
     const sources = sourceMatches.map(m => m[1]).slice(0, 5)
 
-    // Check if MSM outlets are covering it
-    const msmCoverage = MSM_OUTLETS.filter(outlet =>
-      xml.toLowerCase().includes(outlet)
-    ).length
+    // Check which MSM outlets are covering it
+    const xmlLower = xml.toLowerCase()
+    const coveredBy = MSM_OUTLETS.filter(outlet => xmlLower.includes(outlet))
+    const notCoveredBy = MSM_OUTLETS.filter(outlet => !xmlLower.includes(outlet))
+
+    // Dedupe BBC — bbc.com and bbc.co.uk count as one outlet
+    const coveredDeduped = [...new Set(coveredBy.map(o => o === 'bbc.co.uk' ? 'bbc.com' : o))]
+    const notCoveredDeduped = notCoveredBy.filter(o => !(o === 'bbc.co.uk' && coveredBy.includes('bbc.com')))
 
     return {
       articleCount: items,
-      msmGap: items < 5 || msmCoverage < 3,
+      msmGap: items < 5 || coveredDeduped.length < 3,
       topSources: sources,
+      coveredBy: coveredDeduped,
+      notCoveredBy: notCoveredDeduped,
     }
   } catch {
-    return { articleCount: -1, msmGap: false, topSources: [] }
+    return { articleCount: -1, msmGap: false, topSources: [], coveredBy: [], notCoveredBy: [] }
   }
 }

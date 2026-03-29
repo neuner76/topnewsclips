@@ -11,6 +11,7 @@ export interface Story {
   share_count: number
   msm_gap: boolean
   msm_notes: string | null
+  msm_outlet_coverage: { covered: string[]; notCovered: string[] } | null
   published: boolean
   display_order: number
   category: 'raw' | 'reported' | 'analysis' | null

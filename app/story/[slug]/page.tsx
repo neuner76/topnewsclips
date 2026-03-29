@@ -1,3 +1,21 @@
+const OUTLET_LABELS: Record<string, string> = {
+  'nytimes.com': 'NYT',
+  'washingtonpost.com': 'WaPo',
+  'cnn.com': 'CNN',
+  'bbc.com': 'BBC',
+  'bbc.co.uk': 'BBC',
+  'nbcnews.com': 'NBC',
+  'abcnews.go.com': 'ABC',
+  'cbsnews.com': 'CBS',
+  'foxnews.com': 'Fox',
+  'apnews.com': 'AP',
+  'reuters.com': 'Reuters',
+  'politico.com': 'Politico',
+  'thehill.com': 'The Hill',
+  'usatoday.com': 'USA Today',
+  'wsj.com': 'WSJ',
+}
+
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -232,12 +250,29 @@ export default async function StoryPage({ params }: Props) {
         {/* MSM context */}
         {s.msm_gap && (
           <div className="mt-6 p-4 bg-[oklch(0.96_0.03_24)] border border-[oklch(0.88_0.06_24)] rounded">
-            <p className="text-xs font-semibold text-[oklch(0.45_0.22_24)] uppercase tracking-wide mb-1">
+            <p className="text-xs font-semibold text-[oklch(0.45_0.22_24)] uppercase tracking-wide mb-2">
               Limited Coverage
             </p>
-            <p className="text-sm text-foreground">
-              Fewer than 3 of the 15 major US news outlets we monitor have covered this story at the time of publication.
-            </p>
+            {s.msm_outlet_coverage ? (
+              <div className="space-y-1.5">
+                {s.msm_outlet_coverage.covered.length > 0 && (
+                  <p className="text-sm text-foreground">
+                    <span className="font-semibold">Covered by: </span>
+                    {s.msm_outlet_coverage.covered.map(o => OUTLET_LABELS[o] ?? o).join(', ')}
+                  </p>
+                )}
+                {s.msm_outlet_coverage.notCovered.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold">Not covered by: </span>
+                    {s.msm_outlet_coverage.notCovered.map(o => OUTLET_LABELS[o] ?? o).join(', ')}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-foreground">
+                Fewer than 3 of the 15 major US news outlets we monitor have covered this story at the time of publication.
+              </p>
+            )}
           </div>
         )}
 

@@ -367,6 +367,7 @@ export async function runProcess(): Promise<PipelineResult> {
         view_count: candidate.viral_score,
         share_count: 0,
         msm_gap: verification.msmGap,
+        msm_outlet_coverage: { covered: msm.coveredBy, notCovered: msm.notCoveredBy },
         source: candidate.source,
         msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}`,
         published: verification.decision === 'publish' || verification.decision === 'needs_review',
