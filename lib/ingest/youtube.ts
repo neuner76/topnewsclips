@@ -297,8 +297,11 @@ async function fetchJournalistChannelsViaRSS(
         staleChannels.push(username)
         return
       }
+      // API succeeded — channel_id is valid. Remove the RSS error regardless of recent content.
+      const idx = errors.findIndex(e => e.includes(`@${username}: RSS`))
+      if (idx >= 0) errors.splice(idx, 1)
+
       const json = await res.json()
-      let gotVideos = false
       for (const item of json.items ?? []) {
         const videoId: string = item.contentDetails?.videoId ?? ''
         if (!videoId || seen.has(videoId)) continue
@@ -306,14 +309,6 @@ async function fetchJournalistChannelsViaRSS(
         if (publishedAt && publishedAt < cutoff) continue
         seen.add(videoId)
         fallbackVideoIds.push({ username, channelId, videoId, publishedAt })
-        gotVideos = true
-      }
-      if (gotVideos) {
-        // Remove the RSS error since API fallback succeeded
-        const idx = errors.findIndex(e => e.includes(`@${username}: RSS`))
-        if (idx >= 0) errors.splice(idx, 1)
-      } else {
-        staleChannels.push(username)
       }
     } catch {
       staleChannels.push(username)
