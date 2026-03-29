@@ -342,7 +342,7 @@ export default async function HomePage({
         .gte('created_at', sevenDaysAgo)
         .order('pinned', { ascending: false })
         .order('display_order', { ascending: true })
-        .order('view_count', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(200)
     })(),
   ])
