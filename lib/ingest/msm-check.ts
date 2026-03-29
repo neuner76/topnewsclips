@@ -46,7 +46,7 @@ export async function checkMSMCoverage(query: string): Promise<MSMCheckResult> {
     const res = await fetch(rssUrl, {
       headers: { 'User-Agent': 'TopNewsClips/1.0' },
     })
-    if (!res.ok) return { articleCount: -1, msmGap: false, topSources: [] }
+    if (!res.ok) return { articleCount: -1, msmGap: false, topSources: [], coveredBy: [], notCoveredBy: [] }
 
     const xml = await res.text()
 
