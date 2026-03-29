@@ -228,6 +228,37 @@ async function fetchGlobalYouTubeAPI(
   }
 }
 
+async function backfillViewCounts(clips: GlobalClip[], apiKey: string): Promise<void> {
+  const youtubeClips = clips.filter(c => c.platform === 'youtube' && c.videoId && c.score === 0)
+  if (youtubeClips.length === 0) return
+
+  const ids = youtubeClips.map(c => c.videoId!)
+  const chunks: string[][] = []
+  for (let i = 0; i < ids.length; i += 50) chunks.push(ids.slice(i, i + 50))
+
+  const viewMap = new Map<string, number>()
+  await Promise.all(chunks.map(async chunk => {
+    try {
+      const url = new URL('https://www.googleapis.com/youtube/v3/videos')
+      url.searchParams.set('part', 'statistics')
+      url.searchParams.set('id', chunk.join(','))
+      url.searchParams.set('key', apiKey)
+      const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8000) })
+      if (!res.ok) return
+      const json = await res.json()
+      for (const item of json.items ?? []) {
+        viewMap.set(item.id, parseInt(item.statistics?.viewCount ?? '0', 10))
+      }
+    } catch { /* non-fatal */ }
+  }))
+
+  for (const clip of youtubeClips) {
+    if (clip.videoId && viewMap.has(clip.videoId)) {
+      clip.score = viewMap.get(clip.videoId)!
+    }
+  }
+}
+
 export async function fetchGlobalClips(apiKey?: string): Promise<{ clips: GlobalClip[]; errors: string[] }> {
   const clips: GlobalClip[] = []
   const errors: string[] = []
@@ -239,6 +270,9 @@ export async function fetchGlobalClips(apiKey?: string): Promise<{ clips: Global
       ? fetchGlobalYouTubeAPI(apiKey, clips, errors, seen)
       : Promise.resolve(errors.push('YOUTUBE_API_KEY not set — skipping global YouTube channels')),
   ])
+
+  // Backfill view counts for YouTube clips (playlistItems doesn't return statistics)
+  if (apiKey) await backfillViewCounts(clips, apiKey)
 
   return { clips, errors }
 }
