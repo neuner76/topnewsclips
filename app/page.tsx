@@ -223,35 +223,25 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           <ul className="space-y-4">
             {content.globalBlindspots.map((item, i) => {
               const story = storyMap.get(item.slug)
-              const thumb = story ? storyThumbnail(story) : null
               return (
               <li key={i} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                <div className="flex gap-3 items-start">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                      <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
-                      {story && <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />}
-                    </div>
-                    <Link
-                      href={`/story/${item.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-base font-semibold text-foreground hover:underline underline-offset-2 leading-snug block mb-1"
-                    >
-                      {item.title}
-                    </Link>
-                    <p className="text-base text-muted-foreground mb-2">{item.summary}</p>
-                    <div className="flex items-center gap-3">
-                      {story && <PressureScore viewCount={story.view_count} shareCount={story.share_count} />}
-                      {story && <span className="text-xs text-muted-foreground">{formatDate(story.created_at)}</span>}
-                      <a href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto">Watch →</a>
-                    </div>
-                  </div>
-                  {thumb && (
-                    <a href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                      <Image src={thumb} alt={item.title} width={96} height={56} className="rounded object-cover w-20 h-12 sm:w-24 sm:h-14 opacity-90 hover:opacity-100 transition-opacity" unoptimized />
-                    </a>
-                  )}
+                <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                  <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
+                  {story && <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />}
+                </div>
+                <Link
+                  href={`/story/${item.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base font-semibold text-foreground hover:underline underline-offset-2 leading-snug block mb-1"
+                >
+                  {item.title}
+                </Link>
+                <p className="text-base text-muted-foreground mb-2">{item.summary}</p>
+                <div className="flex items-center gap-3">
+                  {story && <PressureScore viewCount={story.view_count} shareCount={story.share_count} />}
+                  {story && <span className="text-xs text-muted-foreground">{formatDate(story.created_at)}</span>}
+                  <a href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto">Watch →</a>
                 </div>
               </li>
               )

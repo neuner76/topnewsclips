@@ -189,6 +189,33 @@ ${globalForPrompt.length > 0 ? `\nGLOBAL STORIES (US media is not covering these
     throw new Error(`Claude returned invalid JSON: ${text.slice(0, 200)}`)
   }
 
+  // Programmatic deduplication — Claude occasionally repeats slugs or journalists across sections
+  const usedSlugs = new Set<string>()
+
+  // NeedToKnow slugs are authoritative — registered first
+  for (const item of content.needToKnow) {
+    usedSlugs.add(item.slug)
+  }
+
+  // InTheKnow: register slugs, skip any already used
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => {
+      if (!item.slug) return true
+      if (usedSlugs.has(item.slug)) return false
+      usedSlugs.add(item.slug)
+      return true
+    })
+  }
+
+  // Etcetera: drop any slug already seen in NeedToKnow or InTheKnow
+  content.etcetera = content.etcetera.filter(item => {
+    const etc = typeof item === 'string' ? { text: item, slug: null } : item
+    if (!etc.slug) return true
+    if (usedSlugs.has(etc.slug)) return false
+    usedSlugs.add(etc.slug)
+    return true
+  }) as EtceteraItem[]
+
   // Upsert by date — regenerating today's digest overwrites the previous one
   const { data: digest, error: insertError } = await supabase
     .from('digests')
