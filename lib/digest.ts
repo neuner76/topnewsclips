@@ -64,10 +64,12 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   const today = new Date().toISOString().split('T')[0]
 
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
   const { data: stories, error } = await supabase
     .from('stories')
     .select('id, title, slug, description, category, journalist_username, source, msm_gap, region')
     .eq('published', true)
+    .gte('created_at', fortyEightHoursAgo)
     .order('pinned', { ascending: false })
     .order('display_order', { ascending: true })
     .order('view_count', { ascending: false })
