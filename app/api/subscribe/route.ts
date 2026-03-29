@@ -49,8 +49,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 })
   }
 
-  // Fire welcome sequence — non-blocking
-  sendWelcomeSequence(normalizedEmail, referralCode).catch(() => {})
+  await sendWelcomeSequence(normalizedEmail, referralCode).catch(() => {})
 
   return NextResponse.json({ message: 'Subscribed.' })
 }
