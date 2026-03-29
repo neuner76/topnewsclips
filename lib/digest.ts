@@ -159,7 +159,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   const response = await claude.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     messages: [{
       role: 'user',
       content: `You are writing a daily newsletter digest for TopNewsClips — a site that surfaces independent journalism, viral news footage, and global stories that mainstream US media undercovers.
@@ -168,7 +168,7 @@ Produce a structured JSON digest from the stories below. Follow these rules exac
 
 NEED TO KNOW (3 stories max):
 - Pick the 3 most important/interesting stories from the US STORIES section
-- YESTERDAY EXCLUSION: Any story with "featuredYesterday": true must NOT appear in NeedToKnow — it was already featured. It may still appear in InTheKnow or Etcetera.
+- YESTERDAY EXCLUSION: Any story with "featuredYesterday": true must NOT be chosen for NeedToKnow. These stories are still eligible and SHOULD be used in InTheKnow and Etcetera.
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague. The final paragraph must include a "Why this matters to you" sentence connecting the story to something tangible in an American's daily life — their wallet, their rights, their community, or their family. Make it specific and concrete, not generic. Wrong: "This could affect Americans." Right: "If you've driven past a license plate reader this week, your vehicle's location may already be in ICE's database." or "If you have a 401(k), the private equity fees documented here are likely embedded in funds you already own."
