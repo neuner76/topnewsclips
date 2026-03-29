@@ -57,7 +57,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
   const etceteraHtml = content.etcetera.length > 0 ? `
     <div style="margin-top:28px;padding:20px 24px;background:#f9fafb;border-radius:8px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#6b7280;text-transform:uppercase;margin-bottom:12px;">ETCETERA</div>
-      ${content.etcetera.map(item => `<p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#6b7280;">• ${item}</p>`).join('')}
+      ${content.etcetera.map(item => { const etc = typeof item === 'string' ? { text: item, slug: null } : item; return `<p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#6b7280;">• ${etc.text}</p>` }).join('')}
     </div>
   ` : ''
 
@@ -178,7 +178,8 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push('ETCETERA')
     lines.push('')
     for (const item of content.etcetera) {
-      lines.push(`• ${item}`)
+      const etc = typeof item === 'string' ? { text: item, slug: null } : item
+      lines.push(`• ${etc.text}`)
     }
     lines.push('')
   }
