@@ -2,10 +2,17 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { recheckMSMCoverage } from './ingest/msm-check'
 
+export interface HowWorldSeesItItem {
+  region: string
+  slug: string
+  summary: string  // one sentence: how this region frames the story differently
+}
+
 export interface NeedToKnowItem {
   sectionTitle: string   // short punchy label e.g. "Trump Boots Noem"
   slug: string           // links to /story/[slug]
   paragraphs: string[]   // 2-4 full paragraphs
+  howWorldSeesIt?: HowWorldSeesItItem[]  // 0-3 international framings, omitted if no match
 }
 
 export interface InTheKnowItem {
@@ -82,6 +89,15 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     .order('view_count', { ascending: false })
     .limit(8)
 
+  // Fetch all regional stories as matching pool for "How the World Sees It"
+  const { data: worldViewStories } = await supabase
+    .from('stories')
+    .select('slug, title, description, region')
+    .eq('published', true)
+    .not('region', 'is', null)
+    .order('view_count', { ascending: false })
+    .limit(20)
+
   // Cap any single journalist/creator to 1 story — prevents one voice dominating the digest
   const journalistCounts = new Map<string, number>()
   const SOURCE_CAP = 1
@@ -111,6 +127,16 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     summary: s.description,
     region: s.region,
   }))
+
+  const blindspotSlugs = new Set((globalStories ?? []).map(s => s.slug))
+  const worldViewForPrompt = (worldViewStories ?? [])
+    .filter(s => !blindspotSlugs.has(s.slug))
+    .map(s => ({
+      slug: s.slug,
+      title: s.title,
+      summary: s.description,
+      region: s.region,
+    }))
 
   const response = await claude.messages.create({
     model: 'claude-sonnet-4-6',
@@ -154,10 +180,19 @@ GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
 - Use the slug and region fields from the input exactly as-is
 - "summary" must end with a concrete US relevance hook — connect to American wallets, security, rights, or foreign policy. Wrong: "a story Americans should follow." Right: "...a chokepoint that controls 20% of global oil supply, meaning price spikes at the pump could follow within weeks."
 
+HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
+- For each NeedToKnow story, scan INTERNATIONAL PERSPECTIVES for any story covering the same topic from a non-US angle
+- If 1-3 matches exist, add a "howWorldSeesIt" array to that NeedToKnow item
+- Each entry: { "region": "...", "slug": "...", "summary": "..." }
+- "summary" = one sentence describing how that region/outlet frames the story differently than the US angle — focus on what's distinct about their perspective
+- If no genuine topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array
+- Never reuse a slug already used in globalBlindspots
+
 Return ONLY valid JSON in this exact structure:
 {
   "needToKnow": [
-    { "sectionTitle": "...", "slug": "...", "paragraphs": ["...", "..."] }
+    { "sectionTitle": "...", "slug": "...", "paragraphs": ["...", "..."],
+      "howWorldSeesIt": [{ "region": "...", "slug": "...", "summary": "..." }] }
   ],
   "inTheKnow": {
     "Politics & World Affairs": [{ "text": "...", "slug": "..." }],
@@ -172,10 +207,12 @@ Return ONLY valid JSON in this exact structure:
 }
 
 If there are no global stories, return "globalBlindspots": [].
+If there are no international perspective matches for a NeedToKnow story, omit "howWorldSeesIt" for that entry.
 
 US STORIES:
 ${JSON.stringify(storiesForPrompt, null, 2)}
-${globalForPrompt.length > 0 ? `\nGLOBAL STORIES (US media is not covering these):\n${JSON.stringify(globalForPrompt, null, 2)}` : ''}`
+${globalForPrompt.length > 0 ? `\nGLOBAL STORIES (US media is not covering these):\n${JSON.stringify(globalForPrompt, null, 2)}` : ''}
+${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outlets cover today's US stories):\n${JSON.stringify(worldViewForPrompt, null, 2)}` : ''}`
     }]
   })
 

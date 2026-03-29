@@ -208,7 +208,9 @@ async function fetchGlobalYouTubeAPI(
         if (published && published < cutoff) continue
 
         const cleanedTitle = cleanTitle(snippet?.title ?? '').slice(0, 200)
-        if (isUSDomesticStory(cleanedTitle)) continue
+        // Do NOT filter US-topic coverage from public broadcaster YouTube channels —
+        // international outlets covering US events are exactly what "How the World Sees It" needs.
+        // (Reddit posts still get filtered via fetchGlobalSubreddit to reduce noise.)
 
         seen.add(videoId)
         clips.push({

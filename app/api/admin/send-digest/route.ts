@@ -34,7 +34,18 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
         <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
       </a>
       ${item.paragraphs.map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#374151;">${p}</p>`).join('')}
-      <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;">Watch →</a>
+      ${item.howWorldSeesIt && item.howWorldSeesIt.length > 0 ? `
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;">How the world sees it</div>
+          ${item.howWorldSeesIt.map(w => `
+            <div style="display:flex;gap:12px;margin-bottom:6px;">
+              <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#9ca3af;text-transform:uppercase;flex-shrink:0;width:72px;">${w.region}</span>
+              <a href="${storyUrl(siteUrl, w.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;color:#6b7280;text-decoration:none;line-height:1.5;">${w.summary}</a>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;display:inline-block;margin-top:12px;">Watch →</a>
     </div>
   `).join('')
 
@@ -149,6 +160,13 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push('')
     for (const p of item.paragraphs) {
       lines.push(p)
+      lines.push('')
+    }
+    if (item.howWorldSeesIt && item.howWorldSeesIt.length > 0) {
+      lines.push('HOW THE WORLD SEES IT')
+      for (const w of item.howWorldSeesIt) {
+        lines.push(`[${w.region.toUpperCase()}] ${w.summary}  ${storyUrl(siteUrl, w.slug)}`)
+      }
       lines.push('')
     }
     lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)

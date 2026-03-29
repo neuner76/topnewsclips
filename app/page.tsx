@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLatestDigest } from '@/lib/digest'
-import type { DigestContent, NeedToKnowItem, InTheKnowItem, EtceteraItem } from '@/lib/digest'
+import type { DigestContent, NeedToKnowItem, InTheKnowItem, EtceteraItem, HowWorldSeesItItem } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -86,6 +86,30 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
       >
         Watch →
       </Link>
+      {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-border/50">
+          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-3">
+            How the world sees it
+          </p>
+          <div className="space-y-2">
+            {item.howWorldSeesIt.map((w: HowWorldSeesItItem, i: number) => (
+              <div key={i} className="flex gap-2.5 items-start">
+                <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 pt-0.5 w-20">
+                  {w.region}
+                </span>
+                <Link
+                  href={`/story/${w.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors leading-snug"
+                >
+                  {w.summary}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </article>
   )
 }
