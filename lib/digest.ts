@@ -125,7 +125,7 @@ NEED TO KNOW (3 stories max):
 - Pick the 3 most important/interesting stories from the US STORIES section
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
-- "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague.
+- "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague. The final paragraph must include a "Why this matters to you" sentence connecting the story to something tangible in an American's daily life — their wallet, their rights, their community, or their family. Make it specific and concrete, not generic. Wrong: "This could affect Americans." Right: "If you've driven past a license plate reader this week, your vehicle's location may already be in ICE's database." or "If you have a 401(k), the private equity fees documented here are likely embedded in funds you already own."
 - TONE — REPORTER NOT ADVOCATE: Every sentence must describe what the source reports, shows, or claims. Use varied attribution language — do not repeat the same phrase more than once per paragraph. Attribution vocabulary: "reports that", "shows", "according to", "documents", "alleges", "found that", "the video shows", "the analysis finds", "per the report", "the investigation documents", "the explainer notes". FORBIDDEN phrases: "corrosive", "perverse", "troubling", "alarming", "shocking", "raises questions about", "sparks concerns", "drawing attention to", "highlights the need for", "underscores", "exposes" (use "documents" instead), any phrase that implies a conclusion the source didn't explicitly state. Wrong: "financial engineering at its most corrosive." Wrong: "raising questions about institutional transparency." Right: "Harris reports that the financing structure created incentives that, per the video, may prioritize revenue over care." Test every sentence: could a reader of any political affiliation find this sentence editorializing? If yes, rewrite it.
 - ETCETERA entries must be specific and concrete — name the place, person, number, or finding. Never write vague one-liners like "raises questions about" or "operates with minimal oversight" without stating what the specific finding is.
 - Use the slug field from the input exactly as-is
@@ -133,6 +133,7 @@ NEED TO KNOW (3 stories max):
 IN THE KNOW:
 - Remaining US stories as 1-sentence bullets under the correct topic category
 - Each sentence should end with (More)
+- Where natural, work in a brief personal relevance hook — one or two words connecting to the reader's life (e.g. "...affecting millions of workers' retirement accounts" or "...a tactic now used in 40 states including yours")
 - TONE RULE applies here too — "reports", "shows", "according to", never editorialize
 - SOURCE DIVERSITY RULE applies — if a journalist is already in NeedToKnow, skip their other stories
 - "slug" should be the story's slug, or null if it doesn't fit
@@ -151,7 +152,7 @@ ETCETERA:
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
 - 1-sentence summary per global story explaining what's happening and why Americans should care
 - Use the slug and region fields from the input exactly as-is
-- "summary" should be one punchy sentence — what happened and why it matters globally
+- "summary" must end with a concrete US relevance hook — connect to American wallets, security, rights, or foreign policy. Wrong: "a story Americans should follow." Right: "...a chokepoint that controls 20% of global oil supply, meaning price spikes at the pump could follow within weeks."
 
 Return ONLY valid JSON in this exact structure:
 {
