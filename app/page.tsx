@@ -13,6 +13,19 @@ import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getSourceTier } from '@/lib/ingest/source-tier'
+import PressureScore from '@/components/PressureScore'
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffHours < 1) return 'Just now'
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
 
 export const revalidate = 300
 
@@ -498,6 +511,11 @@ export default async function HomePage({
                           {s.description && (
                             <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
                           )}
+                          <div className="flex items-center gap-3 mt-2">
+                            <PressureScore viewCount={s.view_count} shareCount={s.share_count} />
+                            <span className="text-xs text-muted-foreground">{formatDate(s.created_at)}</span>
+                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1">Watch →</a>
+                          </div>
                         </div>
                         {thumb && (
                           <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
@@ -537,6 +555,11 @@ export default async function HomePage({
                           {s.description && (
                             <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
                           )}
+                          <div className="flex items-center gap-3 mt-2">
+                            <PressureScore viewCount={s.view_count} shareCount={s.share_count} />
+                            <span className="text-xs text-muted-foreground">{formatDate(s.created_at)}</span>
+                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1">Watch →</a>
+                          </div>
                         </div>
                         {thumb && (
                           <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
