@@ -63,23 +63,20 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
   const today = new Date().toISOString().split('T')[0]
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-  // Fetch yesterday's digest to exclude its slugs — prevents same stories appearing two days running
-  const { data: yesterdayDigest } = await supabase
+  // Fetch the most recent prior digest (not today's) to exclude its NeedToKnow slugs
+  const { data: priorDigest } = await supabase
     .from('digests')
     .select('content')
-    .eq('date', yesterday)
+    .lt('date', today)
+    .order('date', { ascending: false })
+    .limit(1)
     .single()
 
   const yesterdaySlugs = new Set<string>()
-  if (yesterdayDigest?.content) {
-    const yc = yesterdayDigest.content as DigestContent
+  if (priorDigest?.content) {
+    const yc = priorDigest.content as DigestContent
     for (const item of yc.needToKnow ?? []) yesterdaySlugs.add(item.slug)
-    for (const items of Object.values(yc.inTheKnow ?? {})) {
-      for (const item of items as InTheKnowItem[]) { if (item.slug) yesterdaySlugs.add(item.slug) }
-    }
-    for (const item of yc.etcetera ?? []) { if (typeof item !== 'string' && item.slug) yesterdaySlugs.add(item.slug) }
   }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
