@@ -126,7 +126,8 @@ NEED TO KNOW (3 stories max):
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague.
-- TONE — REPORTER NOT ADVOCATE: Every sentence must describe what the source reports, shows, or claims. Required attribution phrases: "reports that", "shows", "according to", "documents", "alleges", "found that". FORBIDDEN phrases that editorialize: "corrosive", "perverse", "troubling", "alarming", "shocking", any phrase that implies a conclusion the source didn't explicitly state. Wrong: "financial engineering at its most corrosive." Right: "Harris reports that the financing structure created incentives that, according to the video, may prioritize revenue over care." Test every sentence: could a reader of any political affiliation find this sentence editorializing? If yes, rewrite it.
+- TONE — REPORTER NOT ADVOCATE: Every sentence must describe what the source reports, shows, or claims. Required attribution phrases: "reports that", "shows", "according to", "documents", "alleges", "found that". FORBIDDEN phrases: "corrosive", "perverse", "troubling", "alarming", "shocking", "raises questions about", "sparks concerns", "drawing attention to", "highlights the need for", "underscores", "exposes" (use "documents" instead), any phrase that implies a conclusion the source didn't explicitly state. Wrong: "financial engineering at its most corrosive." Wrong: "raising questions about institutional transparency." Right: "Harris reports that the financing structure created incentives that, according to the video, may prioritize revenue over care." Test every sentence: could a reader of any political affiliation find this sentence editorializing? If yes, rewrite it.
+- ETCETERA entries must be specific and concrete — name the place, person, number, or finding. Never write vague one-liners like "raises questions about" or "operates with minimal oversight" without stating what the specific finding is.
 - Use the slug field from the input exactly as-is
 
 IN THE KNOW:
@@ -143,6 +144,8 @@ IN THE KNOW:
 
 ETCETERA:
 - 3-5 short, curious, or surprising one-liners from any remaining US stories that have a quirky/unexpected angle
+- DEDUPLICATION: Never use a story that already appears in NeedToKnow or InTheKnow — each story slug must appear at most once across the entire digest
+- Each entry must be concrete: name the specific fact, number, place, or finding. Never vague.
 - Each item: { "text": "...", "slug": "..." } — include the story's slug so we can link to it
 
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
