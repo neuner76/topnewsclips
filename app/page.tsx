@@ -261,12 +261,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                 >
                   {item.title}
                 </Link>
-                <p className="text-base text-muted-foreground mb-2">{item.summary}</p>
-                <div className="flex items-center gap-3">
-                  {story && <PressureScore viewCount={story.view_count} shareCount={story.share_count} />}
-                  {story && <span className="text-xs text-muted-foreground">{formatDate(story.created_at)}</span>}
-                  <a href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto">Watch →</a>
-                </div>
+                <p className="text-base text-muted-foreground">{item.summary}</p>
               </li>
               )
             })}
