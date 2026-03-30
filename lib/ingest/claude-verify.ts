@@ -68,11 +68,17 @@ REJECT if:
 PUBLISH if confidence >= 0.72 and it is a genuine newsworthy international event.`
 }
 
+// Remove unpaired Unicode surrogates that cause JSON parse failures
+function sanitize(s: string): string {
+  return s.replace(/[\uD800-\uDFFF]/g, '')
+}
+
 export async function verifyAndTitle(
   clip: ClipInput,
   apiKey: string
 ): Promise<VerificationResult> {
   const client = new Anthropic({ apiKey })
+  clip = { ...clip, title: sanitize(clip.title), description: sanitize(clip.description) }
 
   const today = new Date().toISOString().split('T')[0] // e.g. 2026-02-28
 

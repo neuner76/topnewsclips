@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-const GITHUB_OWNER = 'ericneuner'
+const GITHUB_OWNER = 'neuner76'
 const GITHUB_REPO = 'topnewsclips'
 const WORKFLOW_FILE = 'digest.yml'
 

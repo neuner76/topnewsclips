@@ -32,7 +32,7 @@ export default function DigestAdminPage() {
       <p className="text-sm text-muted-foreground mb-8">
         Triggers the GitHub Actions digest workflow. Takes ~2 minutes to complete — check{' '}
         <a
-          href={`https://github.com/ericneuner/topnewsclips/actions/workflows/digest.yml`}
+          href={`https://github.com/neuner76/topnewsclips/actions/workflows/digest.yml`}
           target="_blank"
           rel="noopener noreferrer"
           className="underline"
@@ -69,7 +69,7 @@ export default function DigestAdminPage() {
 
         {status === 'done' && (
           <a
-            href="https://github.com/ericneuner/topnewsclips/actions/workflows/digest.yml"
+            href="https://github.com/neuner76/topnewsclips/actions/workflows/digest.yml"
             target="_blank"
             rel="noopener noreferrer"
             className="block text-sm font-medium underline text-foreground"
