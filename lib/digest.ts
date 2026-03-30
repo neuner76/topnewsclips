@@ -138,10 +138,23 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // Build two lists: fresh stories (NeedToKnow eligible) and all stories (InTheKnow/Etcetera)
   // Hard-exclude yesterday's NeedToKnow slugs from the NeedToKnow pool — don't rely on Claude to honor a flag
 
+  // Tier 7 commentary journalists — have a journalist_username but produce opinion/explainer content
+  const COMMENTARY_HANDLES = new Set([
+    'breakingpoints', 'ggreenwald', 'audittheaudit', 'caspianreport',
+    'johnnyharris', 'polymatter', 'kylescanlon', 'kylascanlon',
+    'michaeltracey', 'tarapalmeri', 'wendoverproductions', 'veritasium',
+    'whitneywebb', 'jamesfreeman', 'tanglenews', 'patrickboyleonfinance',
+    'geohussar', 'iancarrollshow',
+  ])
+
   function getContentType(s: typeof cappedStories[0]): string {
     if (s.category === 'raw') return 'footage'           // bodycam, dashcam, bystander video
     if (s.category === 'analysis') return 'commentary'   // talking head, explainer, opinion
-    if (s.journalist_username) return 'investigation'    // reported story from a known journalist
+    if (s.journalist_username) {
+      const u = s.journalist_username.toLowerCase()
+      if (COMMENTARY_HANDLES.has(u)) return 'commentary' // known opinion/explainer channel
+      return 'investigation'                              // nonprofit, OSINT, independent news
+    }
     return 'report'                                       // wire, press, institutional report
   }
 
