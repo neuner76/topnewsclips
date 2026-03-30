@@ -318,6 +318,37 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     return true
   }) as EtceteraItem[]
 
+  // Collect all slugs used in globalBlindspots and globalLens so we can repair hallucinated titles
+  const titledSlugs = new Set<string>()
+  for (const item of content.globalBlindspots ?? []) titledSlugs.add(item.slug)
+  for (const item of content.globalLens ?? []) titledSlugs.add(item.slug)
+
+  // Fetch actual titles from DB and overwrite whatever Claude produced
+  if (titledSlugs.size > 0) {
+    const { data: dbStories } = await supabase
+      .from('stories')
+      .select('slug, title')
+      .in('slug', [...titledSlugs])
+
+    const titleMap = new Map((dbStories ?? []).map((s: { slug: string; title: string }) => [s.slug, s.title]))
+
+    // Fix globalBlindspots — drop entries where slug doesn't exist in DB or summary is empty
+    content.globalBlindspots = (content.globalBlindspots ?? []).filter(item => {
+      if (!titleMap.has(item.slug)) return false
+      if (!item.summary?.trim()) return false
+      item.title = titleMap.get(item.slug)!
+      return true
+    })
+
+    // Fix globalLens — same: drop unknowns and restore real titles
+    content.globalLens = (content.globalLens ?? []).filter(item => {
+      if (!titleMap.has(item.slug)) return false
+      if (!item.summary?.trim()) return false
+      item.title = titleMap.get(item.slug)!
+      return true
+    })
+  }
+
   // Upsert by date — regenerating today's digest overwrites the previous one
   const { data: digest, error: insertError } = await supabase
     .from('digests')
