@@ -175,10 +175,11 @@ NEED TO KNOW (3 stories max):
 - Pick the 3 most important/interesting stories from the NEED TO KNOW CANDIDATES section
 - InTheKnow and Etcetera must use stories from the ALL US STORIES section (which includes all candidates)
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
+- MIX RULE: Do not pick 3 commentary/explainer stories. NeedToKnow should reflect a mix of content types — ideally at least 1 breaking news or raw footage story alongside commentary. If no breaking news is available, vary the topics so all 3 don't come from the same institutional-critique angle.
+- POLITICAL BALANCE: Before finalizing your 3 picks, ask: would a reader of any political affiliation — conservative, liberal, libertarian, independent — find at least one of these stories directly relevant to their life? If all 3 picks would feel one-sided to a politically diverse readership, swap one for a story with broader cross-partisan relevance (economy, health, safety, local accountability).
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague. The final paragraph must include a "Why this matters to you" sentence connecting the story to something tangible in an American's daily life — their wallet, their rights, their community, or their family. Make it specific and concrete, not generic. Wrong: "This could affect Americans." Right: "If you've driven past a license plate reader this week, your vehicle's location may already be in ICE's database." or "If you have a 401(k), the private equity fees documented here are likely embedded in funds you already own."
 - TONE — REPORTER NOT ADVOCATE: Every sentence must describe what the source reports, shows, or claims. Use varied attribution language — do not repeat the same phrase more than once per paragraph. Attribution vocabulary: "reports that", "shows", "according to", "documents", "alleges", "found that", "the video shows", "the analysis finds", "per the report", "the investigation documents", "the explainer notes". FORBIDDEN phrases: "corrosive", "perverse", "troubling", "alarming", "shocking", "raises questions about", "sparks concerns", "drawing attention to", "highlights the need for", "underscores", "exposes" (use "documents" instead), any phrase that implies a conclusion the source didn't explicitly state. Wrong: "financial engineering at its most corrosive." Wrong: "raising questions about institutional transparency." Right: "Harris reports that the financing structure created incentives that, per the video, may prioritize revenue over care." Test every sentence: could a reader of any political affiliation find this sentence editorializing? If yes, rewrite it.
-- ETCETERA entries must be specific and concrete — name the place, person, number, or finding. Never write vague one-liners like "raises questions about" or "operates with minimal oversight" without stating what the specific finding is.
 - Use the slug field from the input exactly as-is
 
 IN THE KNOW:
@@ -195,14 +196,15 @@ IN THE KNOW:
   * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs"
 
 ETCETERA:
-- 3-5 short, curious, or surprising one-liners from any remaining US stories that have a quirky/unexpected angle
+- MINIMUM 3, maximum 5 — you must include at least 3 entries. If fewer than 3 quirky stories exist, use the most surprising or unexpected remaining facts from any US story not yet used.
+- Short, curious, or surprising one-liners from any remaining US stories
 - DEDUPLICATION: Never use a story that already appears in NeedToKnow or InTheKnow — each story slug must appear at most once across the entire digest
 - Each entry must be concrete: name the specific fact, number, place, or finding. Never vague.
 - Each item: { "text": "...", "slug": "..." } — include the story's slug so we can link to it
 
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
 - 1-sentence summary per global story explaining what's happening and why Americans should care
-- Use the slug and region fields from the input exactly as-is
+- Use the slug, region, AND title fields from the input exactly as-is — do NOT rewrite or invent a title
 - "summary" must end with a concrete US relevance hook — connect to American wallets, security, rights, or foreign policy. Wrong: "a story Americans should follow." Right: "...a chokepoint that controls 20% of global oil supply, meaning price spikes at the pump could follow within weeks."
 
 HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
