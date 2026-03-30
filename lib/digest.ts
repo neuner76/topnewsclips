@@ -169,6 +169,8 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       role: 'user',
       content: `You are writing a daily newsletter digest for TopNewsClips — a site that surfaces independent journalism, viral news footage, and global stories that mainstream US media undercovers.
 
+IMPORTANT: Respond with valid JSON only. Do not include any reasoning, explanation, or text before or after the JSON object.
+
 Produce a structured JSON digest from the stories below. Follow these rules exactly:
 
 NEED TO KNOW (3 stories max):
@@ -248,13 +250,15 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   })
 
   const raw = response.content[0].type === 'text' ? response.content[0].text : ''
-  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+  // Extract the JSON object — Claude sometimes prepends reasoning text before the JSON
+  const jsonMatch = raw.match(/\{[\s\S]*\}/)
+  const text = jsonMatch ? jsonMatch[0] : raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
 
   let content: DigestContent
   try {
     content = JSON.parse(text)
   } catch {
-    throw new Error(`Claude returned invalid JSON: ${text.slice(0, 200)}`)
+    throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
   }
 
   // Programmatic deduplication — Claude occasionally repeats slugs or journalists across sections
