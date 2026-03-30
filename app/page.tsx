@@ -379,24 +379,35 @@ export default async function HomePage({
 }) {
   const { view } = await searchParams
 
-  const [digest, storiesResult] = await Promise.all([
+  const supabase = await createClient()
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  const [digest, usResult, regionalResult] = await Promise.all([
     getLatestDigest(),
-    (async () => {
-      const supabase = await createClient()
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      return supabase
-        .from('stories')
-        .select('*')
-        .eq('published', true)
-        .gte('created_at', sevenDaysAgo)
-        .order('pinned', { ascending: false })
-        .order('display_order', { ascending: true })
-        .order('created_at', { ascending: false })
-        .limit(200)
-    })(),
+    supabase
+      .from('stories')
+      .select('*')
+      .eq('published', true)
+      .is('region', null)
+      .gte('created_at', sevenDaysAgo)
+      .order('pinned', { ascending: false })
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false })
+      .limit(150),
+    supabase
+      .from('stories')
+      .select('*')
+      .eq('published', true)
+      .not('region', 'is', null)
+      .gte('created_at', sevenDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(100),
   ])
 
-  const all = (storiesResult.data as Story[]) ?? []
+  const all = [
+    ...((usResult.data as Story[]) ?? []),
+    ...((regionalResult.data as Story[]) ?? []),
+  ]
   const storyMap = new Map(all.map(s => [s.slug, s]))
 
   // Supplement storyMap with any digest-referenced stories not in the 7-day window
@@ -409,7 +420,6 @@ export default async function HomePage({
     ]
     const missingSlugs = [...new Set(digestSlugs)].filter(slug => !storyMap.has(slug))
     if (missingSlugs.length > 0) {
-      const supabase = await createClient()
       const { data: extra } = await supabase.from('stories').select('*').in('slug', missingSlugs)
       for (const s of (extra ?? []) as Story[]) storyMap.set(s.slug, s)
     }
