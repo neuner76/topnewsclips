@@ -92,7 +92,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const [{ data: usStories, error }, { data: globalStories }, { data: worldViewStories }] = await Promise.all([
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region')
+      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier')
       .eq('published', true)
       .is('region', null)
       .gte('created_at', sevenDaysAgo)
@@ -167,7 +167,14 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     msmGap: s.msm_gap,
   })
 
-  const freshCandidates = cappedStories.filter(s => !yesterdaySlugs.has(s.slug))
+  const freshCandidates = cappedStories
+    .filter(s => !yesterdaySlugs.has(s.slug))
+    // Sort by source quality: pinned first, then tier 1–4 before tier 5+, nulls last
+    .sort((a, b) => {
+      const ta = a.source_tier ?? 99
+      const tb = b.source_tier ?? 99
+      return ta - tb
+    })
   const needToKnowCandidates = freshCandidates.map(toPromptItem)
   const storiesForPrompt = cappedStories.map(toPromptItem)
 
