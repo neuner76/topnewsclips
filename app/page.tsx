@@ -285,6 +285,20 @@ function SubHeader({ label }: { label: string }) {
   )
 }
 
+function FreshnessLabel({ label }: { label: string }) {
+  return (
+    <p className="text-[10px] font-bold tracking-widest text-muted-foreground/60 uppercase mt-4 mb-1 first:mt-0">
+      {label}
+    </p>
+  )
+}
+
+function isToday(dateStr: string): boolean {
+  const date = new Date(dateStr)
+  const now = new Date()
+  return (now.getTime() - date.getTime()) < 24 * 60 * 60 * 1000
+}
+
 const SECTION_CAP = 6
 const MIN_TRENDING_VIEWS = 1000
 
@@ -305,6 +319,12 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories, accen
   const cappedVoices = voices.slice(0, voicesBudget)
   voicesBudget = Math.max(0, voicesBudget - cappedVoices.length)
   const cappedStories = stories.slice(0, voicesBudget)
+
+  // Split voices + stories into today vs earlier for freshness labels
+  const allCapped = [...cappedVoices, ...cappedStories]
+  const todayItems = allCapped.filter(s => isToday(s.created_at))
+  const earlierItems = allCapped.filter(s => !isToday(s.created_at))
+  const showFreshnessLabels = todayItems.length > 0 && earlierItems.length > 0
   return (
     <section className="mb-12">
       <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
@@ -330,16 +350,18 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories, accen
               {pinned.map(s => <StoryCard key={s.id} story={s} />)}
             </>
           )}
-          {cappedVoices.length > 0 && (
+          {allCapped.length > 0 && (
             <>
-              <SubHeader label="Independent Voices" />
-              {cappedVoices.map(s => <StoryCard key={s.id} story={s} />)}
-            </>
-          )}
-          {cappedStories.length > 0 && (
-            <>
-              <SubHeader label="Trending" />
-              {cappedStories.map(s => <StoryCard key={s.id} story={s} />)}
+              {showFreshnessLabels ? (
+                <>
+                  <FreshnessLabel label="Today" />
+                  {todayItems.map(s => <StoryCard key={s.id} story={s} />)}
+                  <FreshnessLabel label="Earlier this week" />
+                  {earlierItems.map(s => <StoryCard key={s.id} story={s} />)}
+                </>
+              ) : (
+                allCapped.map(s => <StoryCard key={s.id} story={s} />)
+              )}
             </>
           )}
         </div>
