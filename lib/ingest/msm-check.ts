@@ -26,7 +26,7 @@ export async function recheckMSMCoverage(
   let updated = 0
   for (const story of stories) {
     const result = await checkMSMCoverage(story.title)
-    if (result.articleCount >= 0 && result.msmGap !== story.msm_gap) {
+    if (result.articleCount >= 0) {
       await supabase.from('stories').update({
         msm_gap: result.msmGap,
         msm_outlet_coverage: { covered: result.coveredBy, notCovered: result.notCoveredBy },

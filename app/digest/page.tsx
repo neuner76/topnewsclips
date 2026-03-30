@@ -48,6 +48,21 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
           </p>
         ))}
       </div>
+      {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
+        <div className="mt-4 pl-3 border-l-2 border-border space-y-2">
+          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+            How the world sees it
+          </p>
+          {item.howWorldSeesIt.map((w, i) => (
+            <div key={i}>
+              <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mr-2">
+                {w.region}
+              </span>
+              <span className="text-xs text-foreground/80">{w.summary}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <Link
         href={`/story/${item.slug}`}
         className="inline-block mt-3 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
