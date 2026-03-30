@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: '30 12 * * *'   # 12:30pm UTC = 5:30am PDT — generate digest
   workflow_dispatch:         # manual trigger from GitHub UI
+    inputs:
+      send_email:
+        description: 'Send digest email to subscribers?'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
 
 jobs:
   digest:
@@ -27,6 +34,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Send Digest Email
+        if: github.event_name == 'schedule' || github.event.inputs.send_email == 'true'
         run: |
           curl -s --fail-with-body --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/send-digest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
