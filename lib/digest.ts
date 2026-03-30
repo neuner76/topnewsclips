@@ -154,11 +154,12 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     msmGap: s.msm_gap,
   })
 
-  const needToKnowCandidates = cappedStories
-    .filter(s => !yesterdaySlugs.has(s.slug))
-    .map(toPromptItem)
-
+  const freshCandidates = cappedStories.filter(s => !yesterdaySlugs.has(s.slug))
+  const needToKnowCandidates = freshCandidates.map(toPromptItem)
   const storiesForPrompt = cappedStories.map(toPromptItem)
+
+  // Slug → contentType map for post-generation enforcement
+  const candidateContentType = new Map(freshCandidates.map(s => [s.slug, getContentType(s)]))
 
   const globalForPrompt = (globalStories ?? []).map(s => ({
     slug: s.slug,
@@ -289,6 +290,43 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content = JSON.parse(text)
   } catch {
     throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
+  }
+
+  // Enforce NeedToKnow mix: max 1 commentary — swap extras for best non-commentary candidate
+  const MAX_COMMENTARY = 1
+  const ntkSlugs = new Set(content.needToKnow.map(i => i.slug))
+  const commentaryItems = content.needToKnow.filter(i => candidateContentType.get(i.slug) === 'commentary')
+
+  if (commentaryItems.length > MAX_COMMENTARY) {
+    // Find best non-commentary candidate not already in NeedToKnow
+    const replacement = freshCandidates.find(s =>
+      getContentType(s) !== 'commentary' && !ntkSlugs.has(s.slug)
+    )
+    if (replacement) {
+      // Drop the last (weakest) excess commentary item and add the replacement
+      const toRemove = commentaryItems[commentaryItems.length - 1]
+      content.needToKnow = content.needToKnow.filter(i => i.slug !== toRemove.slug)
+      content.needToKnow.push({
+        sectionTitle: replacement.title.slice(0, 60),
+        slug: replacement.slug,
+        paragraphs: [replacement.summary ?? ''],
+      })
+    }
+  }
+
+  // Enforce Etcetera minimum: pad with unused candidates if Claude returned fewer than 3
+  const MIN_ETCETERA = 3
+  if (content.etcetera.length < MIN_ETCETERA) {
+    const etcSlugs = new Set(content.etcetera.map(i => typeof i === 'string' ? null : i.slug).filter(Boolean))
+    const ntkAndItkSlugs = new Set([
+      ...content.needToKnow.map(i => i.slug),
+      ...Object.values(content.inTheKnow).flatMap(items => items.map(i => i.slug).filter(Boolean) as string[]),
+    ])
+    for (const s of cappedStories) {
+      if (content.etcetera.length >= MIN_ETCETERA) break
+      if (etcSlugs.has(s.slug) || ntkAndItkSlugs.has(s.slug) || !s.description) continue
+      content.etcetera.push({ text: s.description.slice(0, 180), slug: s.slug })
+    }
   }
 
   // Programmatic deduplication — Claude occasionally repeats slugs or journalists across sections
