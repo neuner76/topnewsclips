@@ -56,36 +56,46 @@ const cta = (text: string, href: string) =>
 
 function email1Html(email: string) {
   return wrap(`
-    ${p("Most Americans are making sense of the world with incomplete information.")}
-    ${p("US media covers about 5% of global news. Cable news is designed to maximize watch time through outrage and fear. And the stories that don't fit the cycle — bodycam footage, international events, independent investigations — just don't make it through.")}
-    ${p("Top News Clips closes that gap.")}
-    ${p("Every morning you'll get:")}
-    <ul style="margin:0 0 20px;padding-left:20px;font-size:15px;line-height:1.8;color:#374151;">
-      <li>Stories verified as real but underreported by mainstream outlets</li>
-      <li style="margin-top:6px;">What the rest of the world is watching that US media has skipped</li>
-      <li style="margin-top:6px;">How other countries are framing today's biggest stories</li>
-      <li style="margin-top:6px;">All of it in 5 minutes — so you can go on with your day informed, not anxious</li>
+    ${p("You just did something most Americans haven't: you opted out of the algorithm and into a daily briefing built for citizens, not clicks.")}
+    ${p("Here's why that matters.")}
+    ${p("US mainstream media consistently covers fewer than 5% of global news stories. Cable networks are engineered to maximize watch time through outrage and fear. And the stories that don't fit that model — bodycam footage, independent investigations, international crises the rest of the world considers urgent — simply don't make it through.")}
+    ${p("That's the gap Top News Clips exists to close.")}
+    ${p("Every morning, your briefing includes:")}
+    <ul style="margin:0 0 20px;padding-left:0;list-style:none;font-size:15px;line-height:1.8;color:#374151;">
+      <li style="margin-bottom:10px;">→ Stories verified as real but underreported by US outlets — flagged when fewer than 3 of the 15 major newsrooms we monitor have covered them</li>
+      <li style="margin-bottom:10px;">→ <strong>Global Blindspots</strong> — international events the rest of the world is watching that American media has skipped entirely</li>
+      <li style="margin-bottom:10px;">→ <strong>Global Lens</strong> — how journalists in Seoul, Berlin, and Lagos are framing the same stories US outlets are covering, so you see the full picture</li>
+      <li style="margin-bottom:10px;">→ Every source labeled with a credibility tier so you always know whether you're reading from a Pulitzer-winning nonprofit, a public broadcaster, or an independent commentator</li>
     </ul>
+    ${p("All of it in 5 minutes. No spin. No outrage bait. Just what happened, who it affects, and why it matters to your life.")}
     ${p("Here's what's live right now:")}
     ${cta("Read today's stories →", `${SITE_URL}/?view=clips&${UTM}`)}
     ${p("Your first daily briefing arrives tomorrow morning.")}
-    <p style="margin:0;font-size:14px;color:#6b7280;">— Top News Clips</p>
+    <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
+    <p style="margin:24px 0 0;font-size:13px;color:#9ca3af;padding-top:16px;border-top:1px solid #f3f4f6;">P.S. Every source on the site is classified using our 10-tier Source Credibility Taxonomy — so you never have to wonder who's behind what you're reading. <a href="${SITE_URL}/taxonomy?${UTM}" style="color:#0e7490;">See how it works →</a></p>
   `, email)
 }
 
 function email1Text(email: string) {
-  return `Most Americans are making sense of the world with incomplete information.
+  return `You just did something most Americans haven't: you opted out of the algorithm and into a daily briefing built for citizens, not clicks.
 
-US media covers about 5% of global news. Cable news is designed to maximize watch time through outrage and fear. And the stories that don't fit the cycle — bodycam footage, international events, independent investigations — just don't make it through.
+Here's why that matters.
 
-Top News Clips closes that gap.
+US mainstream media consistently covers fewer than 5% of global news stories. Cable networks are engineered to maximize watch time through outrage and fear. And the stories that don't fit that model — bodycam footage, independent investigations, international crises the rest of the world considers urgent — simply don't make it through.
 
-Every morning you'll get:
+That's the gap Top News Clips exists to close.
 
-- Stories verified as real but underreported by mainstream outlets
-- What the rest of the world is watching that US media has skipped
-- How other countries are framing today's biggest stories
-- All of it in 5 minutes — so you can go on with your day informed, not anxious
+Every morning, your briefing includes:
+
+→ Stories verified as real but underreported by US outlets — flagged when fewer than 3 of the 15 major newsrooms we monitor have covered them
+
+→ Global Blindspots — international events the rest of the world is watching that American media has skipped entirely
+
+→ Global Lens — how journalists in Seoul, Berlin, and Lagos are framing the same stories US outlets are covering, so you see the full picture
+
+→ Every source labeled with a credibility tier so you always know whether you're reading from a Pulitzer-winning nonprofit, a public broadcaster, or an independent commentator
+
+All of it in 5 minutes. No spin. No outrage bait. Just what happened, who it affects, and why it matters to your life.
 
 Here's what's live right now:
 ${SITE_URL}/?view=clips&${UTM}
@@ -93,6 +103,9 @@ ${SITE_URL}/?view=clips&${UTM}
 Your first daily briefing arrives tomorrow morning.
 
 — Top News Clips
+Independent News. No Agenda.
+
+P.S. Every source on the site is classified using our 10-tier Source Credibility Taxonomy — so you never have to wonder who's behind what you're reading. See how it works: ${SITE_URL}/taxonomy?${UTM}
 
 ---
 Unsubscribe: ${unsubscribeLink(email)}`
