@@ -6,15 +6,20 @@ import { Button } from '@/components/ui/button'
 export default function DigestAdminPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [sendEmail, setSendEmail] = useState(false)
 
   async function handleGenerate() {
     setStatus('loading')
     setMessage('')
-    const res = await fetch('/api/admin/digest', { method: 'POST' })
+    const res = await fetch('/api/admin/digest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sendEmail }),
+    })
     const json = await res.json()
     if (res.ok) {
       setStatus('done')
-      setMessage(`Digest generated for ${json.date}. View it at /digest`)
+      setMessage(json.message)
     } else {
       setStatus('error')
       setMessage(json.error ?? 'Unknown error')
@@ -25,17 +30,35 @@ export default function DigestAdminPage() {
     <div className="max-w-lg">
       <h1 className="text-2xl font-black tracking-tight mb-1">Daily Digest</h1>
       <p className="text-sm text-muted-foreground mb-8">
-        Generate today&apos;s digest from all published stories. This calls Claude and takes ~10 seconds.
-        Regenerating will overwrite today&apos;s digest.
+        Triggers the GitHub Actions digest workflow. Takes ~2 minutes to complete — check{' '}
+        <a
+          href={`https://github.com/ericneuner/topnewsclips/actions/workflows/digest.yml`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          GitHub Actions
+        </a>{' '}
+        for progress.
       </p>
 
       <div className="p-5 border border-border rounded-md bg-card space-y-4">
+        <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={sendEmail}
+            onChange={e => setSendEmail(e.target.checked)}
+            className="rounded"
+          />
+          Send email to subscribers after generating
+        </label>
+
         <Button
           onClick={handleGenerate}
           disabled={status === 'loading'}
           className="font-semibold"
         >
-          {status === 'loading' ? 'Generating…' : 'Generate Digest'}
+          {status === 'loading' ? 'Triggering…' : 'Generate Digest'}
         </Button>
 
         {message && (
@@ -46,11 +69,12 @@ export default function DigestAdminPage() {
 
         {status === 'done' && (
           <a
-            href="/digest"
+            href="https://github.com/ericneuner/topnewsclips/actions/workflows/digest.yml"
             target="_blank"
+            rel="noopener noreferrer"
             className="block text-sm font-medium underline text-foreground"
           >
-            Open digest →
+            View workflow run →
           </a>
         )}
       </div>
