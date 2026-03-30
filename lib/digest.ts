@@ -145,6 +145,8 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     'michaeltracey', 'tarapalmeri', 'wendoverproductions', 'veritasium',
     'whitneywebb', 'jamesfreeman', 'tanglenews', 'patrickboyleonfinance',
     'geohussar', 'iancarrollshow',
+    // Tier 6 commercial/explainer — not investigative journalism
+    'vox', 'journeymanpictures',
   ])
 
   function getContentType(s: typeof cappedStories[0]): string {
@@ -329,7 +331,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       content.needToKnow.push({
         sectionTitle: replacement.title.slice(0, 60),
         slug: replacement.slug,
-        paragraphs: [replacement.summary ?? ''],
+        paragraphs: [replacement.description ?? ''],
       })
     }
   }
