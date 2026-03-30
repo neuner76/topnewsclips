@@ -14,6 +14,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import PressureScore from '@/components/PressureScore'
+import MSMBadge from '@/components/MSMBadge'
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -58,12 +59,13 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
   const hasAttribution = badge?.tier || badge?.sourceType || story?.journalist_username
   return (
     <article className="py-6 border-b border-border last:border-0">
-      {hasAttribution && (
+      {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />}
           {story?.journalist_username && (
             <span className="text-xs text-muted-foreground">@{story.journalist_username}</span>
           )}
+          {story?.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
         </div>
       )}
       <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="group block mb-3">
@@ -127,12 +129,13 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
             {inner}
           </Link>
         ) : inner}
-        {(badge?.tier || badge?.sourceType || story?.journalist_username) && (
+        {(badge?.tier || badge?.sourceType || story?.journalist_username || story?.msm_gap) && (
           <div className="flex flex-wrap items-center gap-1.5">
             {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge!.tier} sourceType={badge!.sourceType} />}
             {story?.journalist_username && (
               <span className="text-[10px] text-muted-foreground">@{story.journalist_username}</span>
             )}
+            {story?.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
           </div>
         )}
       </div>
