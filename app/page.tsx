@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLatestDigest } from '@/lib/digest'
-import type { DigestContent, NeedToKnowItem, InTheKnowItem, EtceteraItem, HowWorldSeesItItem } from '@/lib/digest'
+import type { DigestContent, NeedToKnowItem, InTheKnowItem, EtceteraItem, HowWorldSeesItItem, GlobalLensItem } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -269,6 +269,38 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               )
             })}
           </ul>
+        </section>
+      )}
+
+      {/* Global Lens */}
+      {content.globalLens && content.globalLens.length > 0 && (
+        <section className="mt-10">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex-1 border-t border-border" />
+            <span className="text-xs font-bold tracking-widest text-[oklch(0.52_0.14_196)] uppercase shrink-0">
+              🌍 Global Lens
+            </span>
+            <div className="flex-1 border-t border-border" />
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">How international outlets are covering today&apos;s stories — perspectives US media isn&apos;t amplifying.</p>
+          <div className="space-y-4">
+            {content.globalLens.map((item: GlobalLensItem) => (
+              <div key={item.slug} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                  <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
+                </div>
+                <Link
+                  href={`/story/${item.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base font-semibold text-foreground hover:underline underline-offset-2 leading-snug block mb-1"
+                >
+                  {item.title}
+                </Link>
+                <p className="text-sm text-muted-foreground">{item.summary}</p>
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </div>

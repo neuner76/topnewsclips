@@ -26,6 +26,13 @@ export interface GlobalBlindspotItem {
   summary: string
 }
 
+export interface GlobalLensItem {
+  region: string
+  slug: string
+  title: string
+  summary: string  // one sentence: how this region frames the story differently from US coverage
+}
+
 export interface EtceteraItem {
   text: string
   slug: string | null
@@ -41,6 +48,7 @@ export interface DigestContent {
   }
   etcetera: EtceteraItem[]
   globalBlindspots?: GlobalBlindspotItem[]
+  globalLens?: GlobalLensItem[]
 }
 
 export interface Digest {
@@ -228,6 +236,15 @@ HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
 - If no DIRECT topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array, do NOT force a connection
 - Never reuse a slug already used in globalBlindspots
 
+GLOBAL LENS (only if INTERNATIONAL PERSPECTIVES are provided):
+- Pick 3-5 international stories from INTERNATIONAL PERSPECTIVES that are NOT already in globalBlindspots and NOT already used in "howWorldSeesIt"
+- These are international outlets covering stories that overlap with today's US news — showing how the same events look from abroad
+- Each entry: { "region": "...", "slug": "...", "title": "...", "summary": "..." }
+- Use the slug, region, and title fields from the input exactly as-is
+- "summary" = one sentence describing the international angle and why it adds perspective for American readers
+- If fewer than 3 unused international stories exist, omit "globalLens" entirely
+- Never reuse a slug already used in globalBlindspots or howWorldSeesIt
+
 Return ONLY valid JSON in this exact structure:
 {
   "needToKnow": [
@@ -243,10 +260,13 @@ Return ONLY valid JSON in this exact structure:
   "etcetera": [{ "text": "...", "slug": "..." }],
   "globalBlindspots": [
     { "region": "...", "title": "...", "slug": "...", "summary": "..." }
+  ],
+  "globalLens": [
+    { "region": "...", "slug": "...", "title": "...", "summary": "..." }
   ]
 }
 
-If there are no global stories, return "globalBlindspots": [].
+If there are no global stories, return "globalBlindspots": [] and omit "globalLens".
 If there are no international perspective matches for a NeedToKnow story, omit "howWorldSeesIt" for that entry.
 
 NEED TO KNOW CANDIDATES (choose NeedToKnow only from this list):

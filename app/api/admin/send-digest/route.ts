@@ -86,6 +86,20 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
     </div>
   ` : ''
 
+  const globalLensHtml = content.globalLens && content.globalLens.length > 0 ? `
+    <div style="margin-top:28px;padding:20px 24px;background:#f0fdfc;border:1px solid #99f6e4;border-radius:8px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">🌍 Global Lens</div>
+      <div style="font-size:11px;color:#6b7280;margin-bottom:16px;">How international outlets are covering today's stories — perspectives US media isn't amplifying.</div>
+      ${content.globalLens.map(item => `
+        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #99f6e4;last-child:border-bottom:none;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">${item.region}</div>
+          <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;display:block;margin-bottom:4px;">${item.title}</a>
+          <p style="margin:0;font-size:13px;line-height:1.5;color:#6b7280;">${item.summary}</p>
+        </div>
+      `).join('')}
+    </div>
+  ` : ''
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,6 +134,8 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
       ${etceteraHtml}
 
       ${globalBlindspotHtml}
+
+      ${globalLensHtml}
 
     </div>
 
@@ -210,6 +226,21 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push('Stories the rest of the world is covering that US media is ignoring.')
     lines.push('')
     for (const item of content.globalBlindspots) {
+      lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
+      lines.push(item.summary)
+      lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
+      lines.push('')
+    }
+  }
+
+  // Global Lens
+  if (content.globalLens && content.globalLens.length > 0) {
+    lines.push('─'.repeat(60))
+    lines.push('')
+    lines.push('🌍 GLOBAL LENS')
+    lines.push("How international outlets are covering today's stories — perspectives US media isn't amplifying.")
+    lines.push('')
+    for (const item of content.globalLens) {
       lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
       lines.push(item.summary)
       lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)

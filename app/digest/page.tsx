@@ -1,5 +1,5 @@
 import { getLatestDigest } from '@/lib/digest'
-import type { NeedToKnowItem, InTheKnowItem, EtceteraItem } from '@/lib/digest'
+import type { NeedToKnowItem, InTheKnowItem, EtceteraItem, GlobalLensItem } from '@/lib/digest'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import EmailCapture from '@/components/EmailCapture'
@@ -162,6 +162,38 @@ export default async function DigestPage() {
                   )
                 })}
               </ul>
+            </section>
+          </>
+        )}
+
+        {/* Global Lens */}
+        {content.globalLens && content.globalLens.length > 0 && (
+          <>
+            <SectionDivider label="🌍 Global Lens" />
+            <section>
+              <p className="text-xs text-muted-foreground mb-4">
+                How international outlets are covering today&apos;s stories — perspectives US media isn&apos;t amplifying.
+              </p>
+              <div className="space-y-4">
+                {content.globalLens.map((item: GlobalLensItem) => (
+                  <div key={item.slug} className="border-b border-border/50 pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                        {item.region}
+                      </span>
+                    </div>
+                    <Link
+                      href={`/story/${item.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-semibold text-foreground hover:underline underline-offset-2 leading-snug block mb-1"
+                    >
+                      {item.title}
+                    </Link>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.summary}</p>
+                  </div>
+                ))}
+              </div>
             </section>
           </>
         )}
