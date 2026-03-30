@@ -31,6 +31,7 @@ export async function GET() {
     .from('stories')
     .select('slug, title, description, embed_url, platform, thumbnail_url, category, region, msm_gap, created_at')
     .eq('published', true)
+    .is('region', null)
     .order('created_at', { ascending: false })
     .limit(50)
 
