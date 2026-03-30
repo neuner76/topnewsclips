@@ -127,18 +127,23 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     return true
   })
 
-  // yesterdaySlugs are excluded from NeedToKnow only — still available for InTheKnow/Etcetera
-  const storiesForPrompt = cappedStories
-    .map(s => ({
-      slug: s.slug,
-      title: s.title,
-      summary: s.description,
-      category: s.category,
-      source: s.journalist_username ? `@${s.journalist_username}` : (s.source ?? null),
-      isJournalist: !!s.journalist_username,
-      msmGap: s.msm_gap,
-      featuredYesterday: yesterdaySlugs.has(s.slug),
-    }))
+  // Build two lists: fresh stories (NeedToKnow eligible) and all stories (InTheKnow/Etcetera)
+  // Hard-exclude yesterday's NeedToKnow slugs from the NeedToKnow pool — don't rely on Claude to honor a flag
+  const toPromptItem = (s: typeof cappedStories[0]) => ({
+    slug: s.slug,
+    title: s.title,
+    summary: s.description,
+    category: s.category,
+    source: s.journalist_username ? `@${s.journalist_username}` : (s.source ?? null),
+    isJournalist: !!s.journalist_username,
+    msmGap: s.msm_gap,
+  })
+
+  const needToKnowCandidates = cappedStories
+    .filter(s => !yesterdaySlugs.has(s.slug))
+    .map(toPromptItem)
+
+  const storiesForPrompt = cappedStories.map(toPromptItem)
 
   const globalForPrompt = (globalStories ?? []).map(s => ({
     slug: s.slug,
@@ -167,8 +172,8 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 Produce a structured JSON digest from the stories below. Follow these rules exactly:
 
 NEED TO KNOW (3 stories max):
-- Pick the 3 most important/interesting stories from the US STORIES section
-- YESTERDAY EXCLUSION: Any story with "featuredYesterday": true must NOT be chosen for NeedToKnow. These stories are still eligible and SHOULD be used in InTheKnow and Etcetera.
+- Pick the 3 most important/interesting stories from the NEED TO KNOW CANDIDATES section
+- InTheKnow and Etcetera must use stories from the ALL US STORIES section (which includes all candidates)
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague. The final paragraph must include a "Why this matters to you" sentence connecting the story to something tangible in an American's daily life — their wallet, their rights, their community, or their family. Make it specific and concrete, not generic. Wrong: "This could affect Americans." Right: "If you've driven past a license plate reader this week, your vehicle's location may already be in ICE's database." or "If you have a 401(k), the private equity fees documented here are likely embedded in funds you already own."
@@ -230,7 +235,10 @@ Return ONLY valid JSON in this exact structure:
 If there are no global stories, return "globalBlindspots": [].
 If there are no international perspective matches for a NeedToKnow story, omit "howWorldSeesIt" for that entry.
 
-US STORIES:
+NEED TO KNOW CANDIDATES (choose NeedToKnow only from this list):
+${JSON.stringify(needToKnowCandidates, null, 2)}
+
+ALL US STORIES (use for InTheKnow and Etcetera — includes the candidates above plus yesterday's featured stories):
 ${JSON.stringify(storiesForPrompt, null, 2)}
 ${globalForPrompt.length > 0 ? `\nGLOBAL STORIES (US media is not covering these):\n${JSON.stringify(globalForPrompt, null, 2)}` : ''}
 ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outlets cover today's US stories):\n${JSON.stringify(worldViewForPrompt, null, 2)}` : ''}`

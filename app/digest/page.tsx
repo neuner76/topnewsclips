@@ -15,7 +15,8 @@ const IN_THE_KNOW_CATEGORIES = [
 ] as const
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
+  // Append T12:00:00 to avoid UTC midnight rolling back one day in US timezones
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
 }
