@@ -397,7 +397,7 @@ export default async function HomePage({
   const activeView = view === 'clips' ? 'clips' : (digest ? 'digest' : 'clips')
 
   function splitSection(category: 'raw' | 'reported' | 'analysis') {
-    const section = all.filter(s => s.category === category && !s.region && !s.msm_gap)
+    const section = all.filter(s => s.category === category && !s.region)
     // Cap any single journalist/channel at 2 stories per section
     const channelCounts = new Map<string, number>()
     const capped = section.filter(s => {
