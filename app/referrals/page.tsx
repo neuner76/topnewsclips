@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import CopyButton from './CopyButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -172,22 +173,3 @@ export default async function ReferralsPage({
   )
 }
 
-// Small client component just for the copy button
-function CopyButton({ url }: { url: string }) {
-  'use client'
-  // Rendered server-side, hydrated client-side via inline script trick
-  return (
-    <button
-      onClick={async () => {
-        await navigator.clipboard.writeText(url)
-        const btn = document.activeElement as HTMLButtonElement
-        const orig = btn.textContent
-        btn.textContent = 'Copied!'
-        setTimeout(() => { btn.textContent = orig }, 2000)
-      }}
-      className="text-xs font-semibold px-3 py-2 rounded border border-border hover:bg-muted transition-colors"
-    >
-      Copy link
-    </button>
-  )
-}
