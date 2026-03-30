@@ -129,13 +129,20 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   // Build two lists: fresh stories (NeedToKnow eligible) and all stories (InTheKnow/Etcetera)
   // Hard-exclude yesterday's NeedToKnow slugs from the NeedToKnow pool — don't rely on Claude to honor a flag
+
+  function getContentType(s: typeof cappedStories[0]): string {
+    if (s.category === 'raw') return 'footage'           // bodycam, dashcam, bystander video
+    if (s.category === 'analysis') return 'commentary'   // talking head, explainer, opinion
+    if (s.journalist_username) return 'investigation'    // reported story from a known journalist
+    return 'report'                                       // wire, press, institutional report
+  }
+
   const toPromptItem = (s: typeof cappedStories[0]) => ({
     slug: s.slug,
     title: s.title,
     summary: s.description,
-    category: s.category,
+    contentType: getContentType(s),  // "footage" | "commentary" | "investigation" | "report"
     source: s.journalist_username ? `@${s.journalist_username}` : (s.source ?? null),
-    isJournalist: !!s.journalist_username,
     msmGap: s.msm_gap,
   })
 
@@ -177,7 +184,7 @@ NEED TO KNOW (3 stories max):
 - Pick the 3 most important/interesting stories from the NEED TO KNOW CANDIDATES section
 - InTheKnow and Etcetera must use stories from the ALL US STORIES section (which includes all candidates)
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
-- MIX RULE — HARD CONSTRAINT: You MUST NOT pick 3 stories where all 3 have "isJournalist": true or all 3 are commentary/explainer videos. Check the "isJournalist" and "category" fields. If all your top 3 picks are journalist commentary, you MUST replace at least one with the highest-ranked non-journalist story (raw footage, wire report, or reported investigation) even if it seems less important. A digest of 3 talking-head videos fails the reader.
+- MIX RULE — HARD CONSTRAINT: Each story has a "contentType" field: "footage", "commentary", "investigation", or "report". You MUST NOT pick 3 stories that are all "commentary". Count your picks before finalizing: if all 3 are "commentary", replace the weakest commentary pick with the highest-impact "footage", "investigation", or "report" story in the candidates list — even if it seems less important. A digest of 3 talking-head videos fails the reader.
 - TOPIC DIVERSITY: All 3 NeedToKnow stories must cover different topics. Do not pick 3 stories that all critique the same type of institution (e.g. 3 stories about government overreach, or 3 stories about corporate exploitation). Vary across: government/policy, health/science, economy/business, local accountability, foreign affairs.
 - POLITICAL BALANCE — HARD CONSTRAINT: Before finalizing, label each pick as primarily appealing to: (A) left-leaning readers, (B) right-leaning readers, or (C) cross-partisan. You MUST have at least one (C) pick. Cross-partisan stories include: health costs, food prices, local crime/safety, natural disasters, scientific breakthroughs, personal finance. If all 3 are (A) or all 3 are (B), replace the weakest pick with the most cross-partisan story available in the candidates list.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
