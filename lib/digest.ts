@@ -79,39 +79,42 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const { data: stories, error } = await supabase
-    .from('stories')
-    .select('id, title, slug, description, category, journalist_username, source, msm_gap, region')
-    .eq('published', true)
-    .gte('created_at', sevenDaysAgo)
-    .order('pinned', { ascending: false })
-    .order('display_order', { ascending: true })
-    .order('created_at', { ascending: false })
-    .limit(40)
+
+  // Fetch US and regional stories separately to prevent regional volume crowding out US stories
+  const [{ data: usStories, error }, { data: globalStories }, { data: worldViewStories }] = await Promise.all([
+    supabase
+      .from('stories')
+      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region')
+      .eq('published', true)
+      .is('region', null)
+      .gte('created_at', sevenDaysAgo)
+      .order('pinned', { ascending: false })
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false })
+      .limit(40),
+    // Global blindspot stories
+    supabase
+      .from('stories')
+      .select('slug, title, description, region')
+      .eq('published', true)
+      .eq('msm_gap', true)
+      .not('region', 'is', null)
+      .order('view_count', { ascending: false })
+      .limit(8),
+    // All regional stories as matching pool for "How the World Sees It"
+    supabase
+      .from('stories')
+      .select('slug, title, description, region')
+      .eq('published', true)
+      .not('region', 'is', null)
+      .order('view_count', { ascending: false })
+      .limit(20),
+  ])
+
+  const stories = usStories
 
   if (error) throw new Error(`Failed to fetch stories: ${error.message}`)
   if (!stories || stories.length === 0) throw new Error('No published stories to digest')
-
-  // MSM recheck runs in the ingest pipeline — skip here to avoid function timeout
-
-  // Fetch global blindspot stories separately
-  const { data: globalStories } = await supabase
-    .from('stories')
-    .select('slug, title, description, region')
-    .eq('published', true)
-    .eq('msm_gap', true)
-    .not('region', 'is', null)
-    .order('view_count', { ascending: false })
-    .limit(8)
-
-  // Fetch all regional stories as matching pool for "How the World Sees It"
-  const { data: worldViewStories } = await supabase
-    .from('stories')
-    .select('slug, title, description, region')
-    .eq('published', true)
-    .not('region', 'is', null)
-    .order('view_count', { ascending: false })
-    .limit(20)
 
   // Cap any single journalist/creator to 1 story — prevents one voice dominating the digest
   const journalistCounts = new Map<string, number>()
@@ -126,7 +129,6 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   // yesterdaySlugs are excluded from NeedToKnow only — still available for InTheKnow/Etcetera
   const storiesForPrompt = cappedStories
-    .filter(s => !s.region)
     .map(s => ({
       slug: s.slug,
       title: s.title,
