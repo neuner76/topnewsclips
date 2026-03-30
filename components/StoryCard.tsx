@@ -53,7 +53,7 @@ export default function StoryCard({ story }: StoryCardProps) {
           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
             <PlatformBadge platform={story.platform} />
             <CategoryBadge category={story.category} />
-            {story.msm_gap && <MSMBadge notes={story.msm_notes} size="sm" />}
+            {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
             <SourceTypeBadge tier={tier} sourceType={sourceType} />
             {story.journalist_username && (
               <span className="text-[10px] font-medium text-muted-foreground">

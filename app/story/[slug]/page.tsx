@@ -227,7 +227,7 @@ export default async function StoryPage({ params }: Props) {
           <PlatformBadge platform={s.platform} />
           <CategoryBadge category={s.category} />
           <SourceTypeBadge {...getSourceTier(s.journalist_username, s.source ?? '', s.category)} />
-          {s.msm_gap && <MSMBadge notes={s.msm_notes} />}
+          {s.msm_gap && <MSMBadge notes={s.msm_notes} coverage={s.msm_outlet_coverage} />}
         </div>
 
         {/* Title */}
