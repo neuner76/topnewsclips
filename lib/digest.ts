@@ -431,38 +431,18 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     }
   }
 
-  // Enforce Etcetera minimum: pad with unused candidates if Claude returned fewer than 3
   const PROMO_TERMS = ['portal', 'handbook', 'subscribe', 'patreon', 'merchandise', 'join us', 'sign up', 'newsletter', 'submission']
-  const MIN_ETCETERA = 3
-  if (content.etcetera.length < MIN_ETCETERA) {
-    const etcSlugs = new Set(content.etcetera.map(i => typeof i === 'string' ? null : i.slug).filter(Boolean))
-    const ntkAndItkSlugs = new Set([
-      ...content.needToKnow.map(i => i.slug),
-      ...Object.values(content.inTheKnow).flatMap(items => items.map(i => i.slug).filter(Boolean) as string[]),
-    ])
-    for (const s of cappedStories) {
-      if (content.etcetera.length >= MIN_ETCETERA) break
-      if (etcSlugs.has(s.slug) || ntkAndItkSlugs.has(s.slug) || !s.description) continue
-      if (PROMO_TERMS.some(t => s.description.toLowerCase().includes(t))) continue
-      content.etcetera.push({ text: s.description.slice(0, 180), slug: s.slug })
-    }
-  }
 
-  // Also filter promo terms from existing Etcetera entries Claude produced
+  // Step 1: filter promo terms from Claude's Etcetera entries
   content.etcetera = content.etcetera.filter(item => {
     const text = (typeof item === 'string' ? item : item.text).toLowerCase()
     return !PROMO_TERMS.some(t => text.includes(t))
   })
 
-  // Programmatic deduplication — Claude occasionally repeats slugs or journalists across sections
+  // Step 2: deduplication — NeedToKnow and InTheKnow slugs take priority
   const usedSlugs = new Set<string>()
+  for (const item of content.needToKnow) usedSlugs.add(item.slug)
 
-  // NeedToKnow slugs are authoritative — registered first
-  for (const item of content.needToKnow) {
-    usedSlugs.add(item.slug)
-  }
-
-  // InTheKnow: register slugs, skip any already used
   for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
     content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => {
       if (!item.slug) return true
@@ -472,7 +452,6 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     })
   }
 
-  // Etcetera: drop any slug already seen in NeedToKnow or InTheKnow
   content.etcetera = content.etcetera.filter(item => {
     const etc = typeof item === 'string' ? { text: item, slug: null } : item
     if (!etc.slug) return true
@@ -480,6 +459,18 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     usedSlugs.add(etc.slug)
     return true
   }) as EtceteraItem[]
+
+  // Step 3: pad Etcetera AFTER deduplication and promo filtering so the count is accurate
+  const MIN_ETCETERA = 3
+  if (content.etcetera.length < MIN_ETCETERA) {
+    for (const s of cappedStories) {
+      if (content.etcetera.length >= MIN_ETCETERA) break
+      if (usedSlugs.has(s.slug) || !s.description) continue
+      if (PROMO_TERMS.some(t => s.description.toLowerCase().includes(t))) continue
+      content.etcetera.push({ text: s.description.slice(0, 180), slug: s.slug })
+      usedSlugs.add(s.slug)
+    }
+  }
 
   // Collect all slugs used in globalBlindspots and globalLens so we can repair hallucinated titles
   const titledSlugs = new Set<string>()
