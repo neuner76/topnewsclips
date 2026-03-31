@@ -95,13 +95,17 @@ async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
         )
         if (!res.ok) return null
         const xml = await res.text()
-        const firstItem = xml.split('<item>')[1]
-        if (!firstItem) return null
-        const titleRaw = firstItem.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
-        // Google News search titles are "Headline - Source Name" — strip the trailing source
-        const headline = decodeHtml(titleRaw.replace(/\s*-\s*[^-]+$/, ''))
-        if (!headline) return null
-        return { headline, source: label, descriptor }
+        const items = xml.split('<item>').slice(1, 6) // try up to 5 items to skip opinions
+        for (const item of items) {
+          const titleRaw = item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
+          // Google News search titles are "Headline - Source Name" — strip the trailing source
+          const headline = decodeHtml(titleRaw.replace(/\s*-\s*[^-]+$/, ''))
+          if (!headline) continue
+          // Skip opinion, editorial, and letter pieces — not news leads
+          if (/^(Opinion|Editorial|Letters?|Commentary)\s*[|:]/i.test(headline)) continue
+          return { headline, source: label, descriptor }
+        }
+        return null
       } catch {
         return null
       }
@@ -383,6 +387,8 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
   }
 
+  const PROMO_TERMS = ['portal', 'handbook', 'subscribe', 'patreon', 'merchandise', 'join us', 'sign up', 'newsletter', 'submission']
+
   // Enforce NeedToKnow mix: max 1 commentary — swap extras for best non-commentary candidate
   const MAX_COMMENTARY = 1
   const ntkSlugs = new Set(content.needToKnow.map(i => i.slug))
@@ -390,8 +396,12 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   if (commentaryItems.length > MAX_COMMENTARY) {
     // Find best non-commentary candidate not already in NeedToKnow
+    // Require a real story description (≥80 chars) — reject channel descriptions and promo text
     const replacement = freshCandidates.find(s =>
-      getContentType(s) !== 'commentary' && !ntkSlugs.has(s.slug)
+      getContentType(s) !== 'commentary' &&
+      !ntkSlugs.has(s.slug) &&
+      (s.description?.length ?? 0) >= 80 &&
+      !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
     )
     if (replacement) {
       // Drop the last (weakest) excess commentary item and add the replacement
@@ -403,6 +413,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
         paragraphs: [replacement.description ?? ''],
       })
     }
+    // If no suitable replacement exists, just drop down to 2 NeedToKnow stories rather than inserting garbage
   }
 
   // Enforce cross-partisan balance: at least 1 NeedToKnow story must be cross-partisan
@@ -445,8 +456,6 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       })
     }
   }
-
-  const PROMO_TERMS = ['portal', 'handbook', 'subscribe', 'patreon', 'merchandise', 'join us', 'sign up', 'newsletter', 'submission']
 
   // Step 1: filter promo terms from Claude's Etcetera entries
   content.etcetera = content.etcetera.filter(item => {

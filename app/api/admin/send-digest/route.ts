@@ -16,6 +16,12 @@ function formatDate(dateStr: string): string {
 }
 
 const DIGEST_UTM = 'utm_source=email&utm_medium=email&utm_campaign=digest'
+
+// Split at the first sentence boundary, skipping periods inside abbreviations like "U.S." or "Dr."
+function firstSentence(text: string): string {
+  const match = text.match(/^.*?(?<!\b[A-Z])\.(?=\s+[A-Z]|$)/)
+  return match ? match[0] : text
+}
 function storyUrl(siteUrl: string, slug: string) { return `${siteUrl}/story/${slug}?${DIGEST_UTM}` }
 function siteUrlUtm(siteUrl: string) { return `${siteUrl}?${DIGEST_UTM}` }
 
@@ -257,7 +263,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push('Stories the rest of the world is covering that US media is ignoring.')
     lines.push('')
     for (const item of content.globalBlindspots) {
-      const sentence = item.summary.split('.')[0] + '.'
+      const sentence = firstSentence(item.summary)
       lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
       lines.push(sentence)
       lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
@@ -273,7 +279,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push("How international outlets are covering today's stories — perspectives US media isn't amplifying.")
     lines.push('')
     for (const item of content.globalLens) {
-      const sentence = item.summary.split('.')[0] + '.'
+      const sentence = firstSentence(item.summary)
       lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
       lines.push(sentence)
       lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
