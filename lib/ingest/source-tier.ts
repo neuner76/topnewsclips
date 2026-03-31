@@ -8,12 +8,12 @@ export interface SourceTierResult {
 // Tier 1: Nonprofit Investigative
 const NONPROFIT_JOURNALISTS = new Set([
   'propublica', 'marshall', 'texastribune', 'calmatters', 'frontlinepbs',
-  'revealnews', 'themarkup',
+  'revealnews', 'icijorg',
 ])
 
 // Tier 2: OSINT
 const OSINT_JOURNALISTS = new Set([
-  'bellingcat',
+  'bellingcat', 'forensicarchitecture1967',
 ])
 
 // Tier 3: Public Broadcaster — journalist handles for DW/Al Jazeera/PBS sub-channels
@@ -29,7 +29,8 @@ const PUBLIC_BROADCASTER_JOURNALISTS = new Set([
 
 // Tier 4: Independent News Organization
 const INDEPENDENT_NEWS_JOURNALISTS = new Set([
-  'theintercept', 'bureau', 'dropsitenews', 'vicenews', 'moreperfectunion',
+  'theintercept', 'investigativejournalismbureau', 'dropsitenews', 'vicenews', 'moreperfectunion',
+  'democracynow', 'theguardian',
 ])
 
 // Tier 6: Commercial / Explainer
@@ -54,7 +55,8 @@ const NONPROFIT_SOURCES = new Set([
   'YouTube/The Marshall Project',
   'YouTube/Texas Tribune',
   'YouTube/Reveal',
-  'YouTube/The Markup',
+  'YouTube/ICIJ',
+  'YouTube/International Consortium of Investigative Journalists',
 ])
 
 // Tier 3: Public Broadcaster — prefix match handles all sub-channels (DW Planet A, DW Documentary, etc.)
@@ -78,6 +80,8 @@ const INDEPENDENT_NEWS_SOURCES = new Set([
   'YouTube/The Intercept',
   'YouTube/Drop Site News',
   'YouTube/The Bureau of Investigative Journalism',
+  'YouTube/Bureau of Investigative Journalism',
+  'YouTube/The Guardian',
 ])
 
 // Tier 5: Wire Service
