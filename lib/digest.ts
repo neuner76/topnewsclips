@@ -125,7 +125,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const [{ data: usStories, error }, { data: globalStories }, { data: worldViewStories }, mainstreamPulse] = await Promise.all([
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier')
+      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, created_at, view_count')
       .eq('published', true)
       .is('region', null)
       .gte('created_at', sevenDaysAgo)
@@ -201,15 +201,30 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     contentType: getContentType(s),  // "footage" | "commentary" | "investigation" | "report"
     source: s.journalist_username ? `@${s.journalist_username}` : (s.source ?? null),
     msmGap: s.msm_gap,
+    daysAgo: Math.floor((Date.now() - new Date(s.created_at).getTime()) / 86400000),
+    viewCount: s.view_count ?? 0,
   })
+
+  const NEEDTOKNOW_MAX_AGE_DAYS = 5
+
+  function storyAgeDays(s: typeof cappedStories[0]): number {
+    return Math.floor((Date.now() - new Date(s.created_at).getTime()) / 86400000)
+  }
 
   const freshCandidates = cappedStories
     .filter(s => !yesterdaySlugs.has(s.slug))
-    // Sort by source quality: pinned first, then tier 1–4 before tier 5+, nulls last
+    // Hard age cap: stories older than 5 days are not NeedToKnow material
+    .filter(s => storyAgeDays(s) <= NEEDTOKNOW_MAX_AGE_DAYS)
+    // Sort by tier + recency composite: recent Tier 4 beats stale Tier 3
     .sort((a, b) => {
-      const ta = a.source_tier ?? 99
-      const tb = b.source_tier ?? 99
-      return ta - tb
+      const tierA = a.source_tier ?? 99
+      const tierB = b.source_tier ?? 99
+      const ageA = storyAgeDays(a)
+      const ageB = storyAgeDays(b)
+      // Each day over 2 adds 2 penalty points to effective tier score
+      const scoreA = tierA + Math.max(0, ageA - 2) * 2
+      const scoreB = tierB + Math.max(0, ageB - 2) * 2
+      return scoreA - scoreB
     })
   const needToKnowCandidates = freshCandidates.map(toPromptItem)
   const storiesForPrompt = cappedStories.map(toPromptItem)
@@ -249,6 +264,8 @@ NEED TO KNOW (3 stories max):
 - Pick the 3 most important/interesting stories from the NEED TO KNOW CANDIDATES section
 - InTheKnow and Etcetera must use stories from the ALL US STORIES section (which includes all candidates)
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
+- RECENCY — HARD CONSTRAINT: Each story has a "daysAgo" field. Strongly prefer stories with daysAgo ≤ 2. Do NOT pick a story with daysAgo > 3 unless there are genuinely no stories with daysAgo ≤ 3 available. A 7-day-old minor incident is never NeedToKnow material. A 4-day-old story is only acceptable if it is exceptionally high-impact (major ongoing conflict, landmark ruling, breaking investigation).
+- IMPACT SIGNAL: Each story has a "viewCount" field. All else equal, prefer higher viewCount — it is a signal that the story has real-world resonance.
 - MIX RULE — HARD CONSTRAINT: Each story has a "contentType" field: "footage", "commentary", "investigation", or "report". You MUST NOT pick 3 stories that are all "commentary". Count your picks before finalizing: if all 3 are "commentary", replace the weakest commentary pick with the highest-impact "footage", "investigation", or "report" story in the candidates list — even if it seems less important. A digest of 3 talking-head videos fails the reader.
 - TOPIC DIVERSITY: All 3 NeedToKnow stories must cover different topics. Do not pick 3 stories that all critique the same type of institution (e.g. 3 stories about government overreach, or 3 stories about corporate exploitation). Vary across: government/policy, health/science, economy/business, local accountability, foreign affairs.
 - POLITICAL BALANCE — HARD CONSTRAINT: Before finalizing, label each pick as primarily appealing to: (A) left-leaning readers, (B) right-leaning readers, or (C) cross-partisan. You MUST have at least one (C) pick. Cross-partisan stories include: health costs, food prices, local crime/safety, natural disasters, scientific breakthroughs, personal finance. If all 3 are (A) or all 3 are (B), replace the weakest pick with the most cross-partisan story available in the candidates list.
@@ -370,7 +387,49 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     }
   }
 
+  // Enforce cross-partisan balance: at least 1 NeedToKnow story must be cross-partisan
+  const CROSS_PARTISAN_HANDLES = new Set([
+    'policeactivity', 'weathernation', 'revealnews', 'propublica', 'marshall',
+    'calmatters', 'texastribune', 'frontlinepbs', 'icijorg', 'forensicarchitecture1967',
+  ])
+  const CROSS_PARTISAN_KEYWORDS = [
+    'police', 'bodycam', 'weather', 'health', 'food price', 'recall',
+    'earthquake', 'flood', 'fire', 'crash', 'accident', 'safety',
+  ]
+
+  function isCrossPartisan(s: typeof cappedStories[0]): boolean {
+    if (s.category === 'raw') return true
+    const u = (s.journalist_username ?? '').toLowerCase()
+    if (CROSS_PARTISAN_HANDLES.has(u)) return true
+    const t = s.title.toLowerCase()
+    return CROSS_PARTISAN_KEYWORDS.some(k => t.includes(k))
+  }
+
+  const ntkHasCrossPartisan = content.needToKnow.some(i => {
+    const s = freshCandidates.find(c => c.slug === i.slug)
+    return s ? isCrossPartisan(s) : false
+  })
+
+  if (!ntkHasCrossPartisan) {
+    const ntkSlugsSet = new Set(content.needToKnow.map(i => i.slug))
+    const replacement = freshCandidates.find(s =>
+      isCrossPartisan(s) && !ntkSlugsSet.has(s.slug)
+    )
+    if (replacement) {
+      // Remove the weakest pick: prefer removing commentary, otherwise remove last item
+      const weakest = content.needToKnow.find(i => candidateContentType.get(i.slug) === 'commentary')
+        ?? content.needToKnow[content.needToKnow.length - 1]
+      content.needToKnow = content.needToKnow.filter(i => i.slug !== weakest.slug)
+      content.needToKnow.push({
+        sectionTitle: replacement.title.slice(0, 60),
+        slug: replacement.slug,
+        paragraphs: [replacement.description ?? ''],
+      })
+    }
+  }
+
   // Enforce Etcetera minimum: pad with unused candidates if Claude returned fewer than 3
+  const PROMO_TERMS = ['portal', 'handbook', 'subscribe', 'patreon', 'merchandise', 'join us', 'sign up', 'newsletter', 'submission']
   const MIN_ETCETERA = 3
   if (content.etcetera.length < MIN_ETCETERA) {
     const etcSlugs = new Set(content.etcetera.map(i => typeof i === 'string' ? null : i.slug).filter(Boolean))
@@ -381,9 +440,16 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     for (const s of cappedStories) {
       if (content.etcetera.length >= MIN_ETCETERA) break
       if (etcSlugs.has(s.slug) || ntkAndItkSlugs.has(s.slug) || !s.description) continue
+      if (PROMO_TERMS.some(t => s.description.toLowerCase().includes(t))) continue
       content.etcetera.push({ text: s.description.slice(0, 180), slug: s.slug })
     }
   }
+
+  // Also filter promo terms from existing Etcetera entries Claude produced
+  content.etcetera = content.etcetera.filter(item => {
+    const text = (typeof item === 'string' ? item : item.text).toLowerCase()
+    return !PROMO_TERMS.some(t => text.includes(t))
+  })
 
   // Programmatic deduplication — Claude occasionally repeats slugs or journalists across sections
   const usedSlugs = new Set<string>()
