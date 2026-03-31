@@ -529,9 +529,11 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
 export async function getLatestDigest(): Promise<Digest | null> {
   const supabase = getSupabase()
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
   const { data } = await supabase
     .from('digests')
     .select('*')
+    .lte('date', today)
     .order('date', { ascending: false })
     .limit(1)
     .single()
