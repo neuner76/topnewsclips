@@ -79,7 +79,7 @@ const PULSE_OUTLETS = [
   { domain: 'reuters.com',  label: 'Reuters',   descriptor: 'global wire' },
   { domain: 'wsj.com',      label: 'WSJ',       descriptor: 'business' },
   { domain: 'foxnews.com',  label: 'Fox News',  descriptor: 'conservative' },
-] as const
+]
 
 async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
   function decodeHtml(s: string) {
