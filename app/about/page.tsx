@@ -45,7 +45,7 @@ const FAQ = [
   },
   {
     q: 'What types of content does TopNewsClips publish?',
-    a: 'Every story carries a Source Credibility badge — a 10-tier classification so readers can evaluate the source, not just the headline. Tier 1 is Nonprofit Investigative (ProPublica, Marshall Project), Tier 3 is Public Broadcaster (DW, Al Jazeera, PBS), Tier 7 is Independent Commentary (analysts and explainers), down to Tier 10 Community Sourced (Reddit footage). Stories are also labeled by content type: Raw (bodycam, dashcam, bystander footage), Reported (investigative journalism), or Analysis (context and commentary). See the full taxonomy at topnewsclips.com/taxonomy.',
+    a: 'Every story carries a Source Credibility badge — a 10-tier classification so readers can evaluate the source, not just the headline. Tier 1 is Nonprofit Investigative (ProPublica, Marshall Project), Tier 3 is Public Broadcaster (DW, Al Jazeera, PBS), Tier 7 is Independent Commentary (analysts and explainers), down to Tier 10 Community Sourced (Reddit footage). Stories are also labeled by content type: Footage (bodycam, dashcam, bystander video), Investigation (reported journalism from known journalists), Report (wire, press, institutional), or Commentary (analysis, explainers, opinion). See the full taxonomy at topnewsclips.com/taxonomy.',
   },
 ]
 
