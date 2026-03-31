@@ -100,7 +100,9 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const supabase = getSupabase()
   const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
-  const today = new Date().toISOString().split('T')[0]
+  // Use US Eastern time for the date — GitHub Actions runs in UTC, which rolls over
+  // to the next day at 7pm ET, causing digests generated in the evening to show tomorrow's date.
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
 
   // Fetch the most recent prior digest (not today's) to exclude its NeedToKnow slugs
   const { data: priorDigest } = await supabase
