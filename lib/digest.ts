@@ -38,6 +38,11 @@ export interface EtceteraItem {
   slug: string | null
 }
 
+export interface MainstreamPulseItem {
+  headline: string
+  source: string
+}
+
 export interface DigestContent {
   needToKnow: NeedToKnowItem[]
   inTheKnow: {
@@ -47,6 +52,7 @@ export interface DigestContent {
     'Sports, Entertainment, & Culture': InTheKnowItem[]
   }
   etcetera: EtceteraItem[]
+  mainstreamPulse?: MainstreamPulseItem[]
   globalBlindspots?: GlobalBlindspotItem[]
   globalLens?: GlobalLensItem[]
 }
@@ -63,6 +69,31 @@ function getSupabase() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
+}
+
+async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
+  try {
+    const res = await fetch(
+      'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
+      { headers: { 'User-Agent': 'TopNewsClips/1.0' }, signal: AbortSignal.timeout(8000) }
+    )
+    if (!res.ok) return []
+    const xml = await res.text()
+    const items = xml.split('<item>').slice(1, 6) // top 5, pick best 3 below
+    const results: MainstreamPulseItem[] = []
+    for (const item of items) {
+      const titleRaw = item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
+      const sourceRaw = item.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] ?? ''
+      // Google News titles are "Headline - Source Name" — strip the source suffix
+      const headline = titleRaw.replace(/\s*-\s*[^-]+$/, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim()
+      const source = sourceRaw.replace(/&amp;/g, '&').trim()
+      if (headline && source) results.push({ headline, source })
+      if (results.length >= 3) break
+    }
+    return results
+  } catch {
+    return []
+  }
 }
 
 export async function generateAndStoreDigest(): Promise<Digest> {
@@ -89,7 +120,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   // Fetch US and regional stories separately to prevent regional volume crowding out US stories
-  const [{ data: usStories, error }, { data: globalStories }, { data: worldViewStories }] = await Promise.all([
+  const [{ data: usStories, error }, { data: globalStories }, { data: worldViewStories }, mainstreamPulse] = await Promise.all([
     supabase
       .from('stories')
       .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier')
@@ -117,6 +148,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .not('region', 'is', null)
       .order('view_count', { ascending: false })
       .limit(20),
+    fetchMainstreamPulse(),
   ])
 
   const stories = usStories
@@ -408,6 +440,9 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       return true
     })
   }
+
+  // Attach mainstream pulse (fetched independently, not via Claude)
+  if (mainstreamPulse.length > 0) content.mainstreamPulse = mainstreamPulse
 
   // Upsert by date — regenerating today's digest overwrites the previous one
   const { data: digest, error: insertError } = await supabase

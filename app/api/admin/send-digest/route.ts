@@ -72,6 +72,19 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
     </div>
   ` : ''
 
+  const mainstreamPulseHtml = content.mainstreamPulse && content.mainstreamPulse.length > 0 ? `
+    <div style="margin-top:28px;padding:20px 24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#64748b;text-transform:uppercase;margin-bottom:4px;">Mainstream Pulse</div>
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:14px;">What the major outlets are leading with today.</div>
+      ${content.mainstreamPulse.map(item => `
+        <div style="display:flex;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">
+          <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#94a3b8;text-transform:uppercase;flex-shrink:0;width:72px;padding-top:2px;">${item.source}</span>
+          <span style="font-size:13px;color:#374151;line-height:1.5;">${item.headline}</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : ''
+
   const globalBlindspotHtml = content.globalBlindspots && content.globalBlindspots.length > 0 ? `
     <div style="margin-top:28px;padding:20px 24px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">🌍 Global Blindspot</div>
@@ -132,6 +145,8 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
       </div>
 
       ${etceteraHtml}
+
+      ${mainstreamPulseHtml}
 
       ${globalBlindspotHtml}
 
@@ -214,6 +229,19 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     for (const item of content.etcetera) {
       const etc = typeof item === 'string' ? { text: item, slug: null } : item
       lines.push(`• ${etc.text}`)
+    }
+    lines.push('')
+  }
+
+  // Mainstream Pulse
+  if (content.mainstreamPulse && content.mainstreamPulse.length > 0) {
+    lines.push('─'.repeat(60))
+    lines.push('')
+    lines.push('MAINSTREAM PULSE')
+    lines.push("What the major outlets are leading with today.")
+    lines.push('')
+    for (const item of content.mainstreamPulse) {
+      lines.push(`[${item.source.toUpperCase()}] ${item.headline}`)
     }
     lines.push('')
   }

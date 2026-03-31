@@ -1,5 +1,5 @@
 import { getLatestDigest } from '@/lib/digest'
-import type { NeedToKnowItem, InTheKnowItem, EtceteraItem, GlobalLensItem } from '@/lib/digest'
+import type { NeedToKnowItem, InTheKnowItem, EtceteraItem, GlobalLensItem, MainstreamPulseItem } from '@/lib/digest'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import EmailCapture from '@/components/EmailCapture'
@@ -176,6 +176,26 @@ export default async function DigestPage() {
                     </li>
                   )
                 })}
+              </ul>
+            </section>
+          </>
+        )}
+
+        {/* Mainstream Pulse */}
+        {content.mainstreamPulse && content.mainstreamPulse.length > 0 && (
+          <>
+            <SectionDivider label="Mainstream Pulse" />
+            <section>
+              <p className="text-xs text-muted-foreground mb-4">
+                What the major outlets are leading with today.
+              </p>
+              <ul className="space-y-2">
+                {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => (
+                  <li key={i} className="flex gap-3 items-baseline py-1.5 border-b border-border/50 last:border-0">
+                    <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 w-24">{item.source}</span>
+                    <span className="text-sm leading-relaxed">{item.headline}</span>
+                  </li>
+                ))}
               </ul>
             </section>
           </>

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLatestDigest } from '@/lib/digest'
-import type { DigestContent, NeedToKnowItem, InTheKnowItem, EtceteraItem, HowWorldSeesItItem, GlobalLensItem } from '@/lib/digest'
+import type { DigestContent, NeedToKnowItem, InTheKnowItem, EtceteraItem, HowWorldSeesItItem, GlobalLensItem, MainstreamPulseItem } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -232,6 +232,28 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                 </li>
               )
             })}
+          </ul>
+        </section>
+      )}
+
+      {/* Mainstream Pulse */}
+      {content.mainstreamPulse && content.mainstreamPulse.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 border-t border-border" />
+            <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase shrink-0">
+              Mainstream Pulse
+            </span>
+            <div className="flex-1 border-t border-border" />
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">What the major outlets are leading with today.</p>
+          <ul className="space-y-2">
+            {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => (
+              <li key={i} className="flex gap-3 items-baseline py-1.5 border-b border-border/50 last:border-0">
+                <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 w-24">{item.source}</span>
+                <span className="text-sm leading-relaxed">{item.headline}</span>
+              </li>
+            ))}
           </ul>
         </section>
       )}
