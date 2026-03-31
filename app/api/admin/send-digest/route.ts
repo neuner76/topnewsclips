@@ -33,7 +33,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
         <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">NEED TO KNOW</div>
         <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
       </a>
-      ${item.paragraphs.map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#374151;">${p}</p>`).join('')}
+      ${item.paragraphs.slice(0, 2).map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#374151;">${p}</p>`).join('')}
       ${item.howWorldSeesIt && item.howWorldSeesIt.length > 0 ? `
         <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;">
           <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;">How the world sees it</div>
@@ -90,10 +90,10 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">🌍 Global Blindspot</div>
       <div style="font-size:11px;color:#78716c;margin-bottom:16px;">Stories the rest of the world is covering that US media is ignoring.</div>
       ${content.globalBlindspots.map(item => `
-        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #fde68a;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">${item.region}</div>
-          <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;display:block;margin-bottom:4px;">${item.title}</a>
-          <p style="margin:0;font-size:13px;line-height:1.5;color:#6b7280;">${item.summary}</p>
+        <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #fde68a;last-child:border-bottom:none;">
+          <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#92400e;text-transform:uppercase;margin-right:6px;">${item.region}</span>
+          <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
+          <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#78716c;">${item.summary.split('.')[0]}.</p>
         </div>
       `).join('')}
     </div>
@@ -104,10 +104,10 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">🌍 Global Lens</div>
       <div style="font-size:11px;color:#6b7280;margin-bottom:16px;">How international outlets are covering today's stories — perspectives US media isn't amplifying.</div>
       ${content.globalLens.map(item => `
-        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #99f6e4;last-child:border-bottom:none;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">${item.region}</div>
-          <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;display:block;margin-bottom:4px;">${item.title}</a>
-          <p style="margin:0;font-size:13px;line-height:1.5;color:#6b7280;">${item.summary}</p>
+        <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #99f6e4;last-child:border-bottom:none;">
+          <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#0e7490;text-transform:uppercase;margin-right:6px;">${item.region}</span>
+          <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
+          <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#6b7280;">${item.summary.split('.')[0]}.</p>
         </div>
       `).join('')}
     </div>
@@ -189,7 +189,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push('NEED TO KNOW')
     lines.push(item.sectionTitle.toUpperCase())
     lines.push('')
-    for (const p of item.paragraphs) {
+    for (const p of item.paragraphs.slice(0, 2)) {
       lines.push(p)
       lines.push('')
     }
@@ -254,8 +254,9 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push('Stories the rest of the world is covering that US media is ignoring.')
     lines.push('')
     for (const item of content.globalBlindspots) {
+      const sentence = item.summary.split('.')[0] + '.'
       lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
-      lines.push(item.summary)
+      lines.push(sentence)
       lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
       lines.push('')
     }
@@ -269,8 +270,9 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push("How international outlets are covering today's stories — perspectives US media isn't amplifying.")
     lines.push('')
     for (const item of content.globalLens) {
+      const sentence = item.summary.split('.')[0] + '.'
       lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
-      lines.push(item.summary)
+      lines.push(sentence)
       lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
       lines.push('')
     }
@@ -300,8 +302,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'No digest found' }, { status: 404 })
   }
 
-  // Only send today's digest
-  const today = new Date().toISOString().split('T')[0]
+  // Only send today's digest (anchored to ET, same as digest date)
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
   if (digest.date !== today) {
     return NextResponse.json({ error: `Digest is from ${digest.date}, not today (${today})` }, { status: 400 })
   }
