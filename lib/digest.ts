@@ -211,12 +211,8 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     return (Date.now() - new Date(s.created_at).getTime()) / 3600000
   }
 
-  const freshCandidates = cappedStories
-    .filter(s => !yesterdaySlugs.has(s.slug))
-    // Hard age cap: only stories from the last 12 hours are NeedToKnow eligible
-    .filter(s => storyAgeHours(s) <= NEEDTOKNOW_MAX_AGE_HOURS)
-    // Sort by tier + recency composite: recent Tier 4 beats stale Tier 3
-    .sort((a, b) => {
+  function sortByTierAndRecency<T extends typeof cappedStories[0]>(stories: T[]): T[] {
+    return [...stories].sort((a, b) => {
       const tierA = a.source_tier ?? 99
       const tierB = b.source_tier ?? 99
       const ageA = storyAgeHours(a)
@@ -226,6 +222,13 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       const scoreB = tierB + Math.max(0, ageB - 4) * 0.5
       return scoreA - scoreB
     })
+  }
+
+  const nonYesterday = cappedStories.filter(s => !yesterdaySlugs.has(s.slug))
+  const withinWindow = nonYesterday.filter(s => storyAgeHours(s) <= NEEDTOKNOW_MAX_AGE_HOURS)
+
+  // If ingest hasn't run recently and no stories fall within the window, fall back to all non-yesterday stories
+  const freshCandidates = sortByTierAndRecency(withinWindow.length >= 3 ? withinWindow : nonYesterday)
   const needToKnowCandidates = freshCandidates.map(toPromptItem)
   const storiesForPrompt = cappedStories.map(toPromptItem)
 
