@@ -192,7 +192,10 @@ export default async function DigestPage() {
               <ul className="space-y-2">
                 {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => (
                   <li key={i} className="flex gap-3 items-baseline py-1.5 border-b border-border/50 last:border-0">
-                    <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 w-24">{item.source}</span>
+                    <div className="shrink-0 w-24">
+                      <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block">{item.source}</span>
+                      <span className="text-[9px] text-muted-foreground/60 leading-none">{item.descriptor}</span>
+                    </div>
                     <span className="text-sm leading-relaxed">{item.headline}</span>
                   </li>
                 ))}

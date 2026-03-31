@@ -41,6 +41,7 @@ export interface EtceteraItem {
 export interface MainstreamPulseItem {
   headline: string
   source: string
+  descriptor: string
 }
 
 export interface DigestContent {
@@ -71,29 +72,43 @@ function getSupabase() {
   )
 }
 
+const PULSE_OUTLETS = [
+  { domain: 'npr.org',      label: 'NPR',      descriptor: 'public media' },
+  { domain: 'nytimes.com',  label: 'NYT',      descriptor: 'center-left' },
+  { domain: 'apnews.com',   label: 'AP',        descriptor: 'wire' },
+  { domain: 'reuters.com',  label: 'Reuters',   descriptor: 'global wire' },
+  { domain: 'wsj.com',      label: 'WSJ',       descriptor: 'business' },
+  { domain: 'foxnews.com',  label: 'Fox News',  descriptor: 'conservative' },
+] as const
+
 async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
-  try {
-    const res = await fetch(
-      'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
-      { headers: { 'User-Agent': 'TopNewsClips/1.0' }, signal: AbortSignal.timeout(8000) }
-    )
-    if (!res.ok) return []
-    const xml = await res.text()
-    const items = xml.split('<item>').slice(1, 6) // top 5, pick best 3 below
-    const results: MainstreamPulseItem[] = []
-    for (const item of items) {
-      const titleRaw = item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
-      const sourceRaw = item.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] ?? ''
-      // Google News titles are "Headline - Source Name" — strip the source suffix
-      const headline = titleRaw.replace(/\s*-\s*[^-]+$/, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim()
-      const source = sourceRaw.replace(/&amp;/g, '&').trim()
-      if (headline && source) results.push({ headline, source })
-      if (results.length >= 3) break
-    }
-    return results
-  } catch {
-    return []
+  function decodeHtml(s: string) {
+    return s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim()
   }
+
+  const results = await Promise.all(
+    PULSE_OUTLETS.map(async ({ domain, label, descriptor }) => {
+      try {
+        const res = await fetch(
+          `https://news.google.com/rss/search?q=site:${domain}&hl=en-US&gl=US&ceid=US:en`,
+          { headers: { 'User-Agent': 'TopNewsClips/1.0' }, signal: AbortSignal.timeout(8000) }
+        )
+        if (!res.ok) return null
+        const xml = await res.text()
+        const firstItem = xml.split('<item>')[1]
+        if (!firstItem) return null
+        const titleRaw = firstItem.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
+        // Google News search titles are "Headline - Source Name" — strip the trailing source
+        const headline = decodeHtml(titleRaw.replace(/\s*-\s*[^-]+$/, ''))
+        if (!headline) return null
+        return { headline, source: label, descriptor }
+      } catch {
+        return null
+      }
+    })
+  )
+
+  return results.filter((r): r is MainstreamPulseItem => r !== null)
 }
 
 export async function generateAndStoreDigest(): Promise<Digest> {

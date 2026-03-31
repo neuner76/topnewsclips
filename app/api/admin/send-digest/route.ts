@@ -78,7 +78,10 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
       <div style="font-size:11px;color:#94a3b8;margin-bottom:14px;">What the major outlets are leading with today.</div>
       ${content.mainstreamPulse.map(item => `
         <div style="display:flex;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">
-          <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#94a3b8;text-transform:uppercase;flex-shrink:0;width:72px;padding-top:2px;">${item.source}</span>
+          <div style="flex-shrink:0;width:72px;padding-top:2px;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#94a3b8;text-transform:uppercase;">${item.source}</div>
+            <div style="font-size:8px;color:#cbd5e1;margin-top:1px;">${item.descriptor}</div>
+          </div>
           <span style="font-size:13px;color:#374151;line-height:1.5;">${item.headline}</span>
         </div>
       `).join('')}
@@ -241,7 +244,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push("What the major outlets are leading with today.")
     lines.push('')
     for (const item of content.mainstreamPulse) {
-      lines.push(`[${item.source.toUpperCase()}] ${item.headline}`)
+      lines.push(`[${item.source.toUpperCase()} · ${item.descriptor}] ${item.headline}`)
     }
     lines.push('')
   }
