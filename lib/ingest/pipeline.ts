@@ -209,7 +209,7 @@ export async function runFetch(): Promise<FetchResult> {
   const filteredCandidates = candidates.filter(c => {
     const username = ((c as { journalistUsername?: string | null }).journalistUsername ?? '').toLowerCase()
     const source = (c.source ?? '').toLowerCase()
-    return !EMBED_BLOCKED_SOURCES.has(username) && !EMBED_BLOCKED_SOURCES.some(s => source.includes(s))
+    return !EMBED_BLOCKED_SOURCES.has(username) && ![...EMBED_BLOCKED_SOURCES].some(s => source.includes(s))
   })
 
   // Deduplicate across sources — same incident covered by multiple channels keeps highest view count
