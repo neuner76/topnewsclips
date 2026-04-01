@@ -281,10 +281,10 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     }))
 
   // Retry on 529 overloaded with exponential backoff
-  async function createWithRetry(params: Parameters<typeof claude.messages.create>[0], maxAttempts = 4) {
+  async function createWithRetry(params: Parameters<typeof claude.messages.create>[0], maxAttempts = 4): Promise<Anthropic.Message> {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        return await claude.messages.create(params)
+        return await claude.messages.create(params) as Anthropic.Message
       } catch (err: unknown) {
         const isOverloaded = err instanceof Error && (err.message.includes('529') || err.message.toLowerCase().includes('overloaded'))
         if (!isOverloaded || attempt === maxAttempts) throw err
