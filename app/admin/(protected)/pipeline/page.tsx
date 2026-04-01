@@ -1,4 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +20,7 @@ function Badge({ label, color }: { label: string; color: 'green' | 'amber' | 're
 }
 
 export default async function PipelinePage() {
-  const supabase = await createClient()
+  const supabase = getSupabase()
   const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   // Candidates may have been fetched slightly before the 24h window — use 36h to catch today's run
   const candidateCutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString()
