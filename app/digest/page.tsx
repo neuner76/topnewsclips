@@ -42,7 +42,7 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
         </h2>
       </Link>
       <div className="space-y-3">
-        {item.paragraphs.map((p, i) => (
+        {item.paragraphs.slice(0, 2).map((p, i) => (
           <p key={i} className="text-sm leading-relaxed text-foreground/90">
             {p}
           </p>
@@ -58,15 +58,12 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
               <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 pt-0.5 w-20">
                 {w.region}
               </span>
-              <div>
-                <a
-                  href={`/story/${w.slug}`}
-                  className="text-sm font-semibold text-foreground hover:underline leading-snug block"
-                >
-                  {w.title ?? w.slug}
-                </a>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{w.summary}</p>
-              </div>
+              <a
+                href={`/story/${w.slug}`}
+                className="text-sm text-foreground/80 hover:text-foreground transition-colors leading-snug"
+              >
+                {w.summary}
+              </a>
             </div>
           ))}
         </div>
