@@ -202,8 +202,18 @@ export async function runFetch(): Promise<FetchResult> {
     return { added, errors }
   }
 
+  // Block sources that always produce embed-blocked videos — no point queuing them
+  const EMBED_BLOCKED_SOURCES = new Set([
+    'storyfulnews', 'storyfulmanagedlicensing', 'storyfulsports',
+  ])
+  const filteredCandidates = candidates.filter(c => {
+    const username = ((c as { journalistUsername?: string | null }).journalistUsername ?? '').toLowerCase()
+    const source = (c.source ?? '').toLowerCase()
+    return !EMBED_BLOCKED_SOURCES.has(username) && !EMBED_BLOCKED_SOURCES.some(s => source.includes(s))
+  })
+
   // Deduplicate across sources — same incident covered by multiple channels keeps highest view count
-  const titleDeduped = deduplicateByTitle(candidates)
+  const titleDeduped = deduplicateByTitle(filteredCandidates)
 
   // Cross-platform journalist dedup — if a journalist appears on both YouTube and Reddit,
   // keep only the highest viral score version across all platforms
