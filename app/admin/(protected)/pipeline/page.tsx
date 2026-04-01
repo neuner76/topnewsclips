@@ -15,6 +15,8 @@ function Badge({ label, color }: { label: string; color: 'green' | 'amber' | 're
 export default async function PipelinePage() {
   const supabase = await createClient()
   const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  // Candidates may have been fetched slightly before the 24h window — use 36h to catch today's run
+  const candidateCutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString()
 
   const [
     { data: candidates },
@@ -24,13 +26,13 @@ export default async function PipelinePage() {
     supabase
       .from('candidates')
       .select('slug, title, platform, source, journalist_username, viral_score, processed, fetched_at, region')
-      .gte('fetched_at', todayCutoff)
+      .gte('fetched_at', candidateCutoff)
       .order('fetched_at', { ascending: false })
       .limit(200),
     supabase
       .from('rejected_slugs')
       .select('slug, reason, created_at')
-      .gte('created_at', todayCutoff)
+      .gte('created_at', candidateCutoff)
       .order('created_at', { ascending: false })
       .limit(200),
     supabase
@@ -54,10 +56,13 @@ export default async function PipelinePage() {
     return 'pending'
   }
 
+  const candidateSlugSet = new Set((candidates ?? []).map(c => c.slug))
+  const publishedFromCandidates = (publishedToday ?? []).filter(s => candidateSlugSet.has(s.slug))
+
   const stats = {
     fetched: candidates?.length ?? 0,
-    published: (publishedToday ?? []).filter(s => s.display_order !== 75).length,
-    review: (publishedToday ?? []).filter(s => s.display_order === 75).length,
+    published: publishedFromCandidates.filter(s => s.display_order !== 75).length,
+    review: publishedFromCandidates.filter(s => s.display_order === 75).length,
     rejected: rejected?.length ?? 0,
     pending: (candidates ?? []).filter(c => !c.processed).length,
   }
