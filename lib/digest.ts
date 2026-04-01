@@ -133,13 +133,21 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     .limit(1)
     .single()
 
+  // Exclude all slugs that appeared anywhere in yesterday's digest — not just NeedToKnow
   const yesterdaySlugs = new Set<string>()
   if (priorDigest?.content) {
     const yc = priorDigest.content as DigestContent
     for (const item of yc.needToKnow ?? []) yesterdaySlugs.add(item.slug)
+    for (const cat of Object.values(yc.inTheKnow ?? {})) {
+      for (const item of cat) if (item.slug) yesterdaySlugs.add(item.slug)
+    }
+    for (const item of yc.etcetera ?? []) {
+      const etc = typeof item === 'string' ? null : item.slug
+      if (etc) yesterdaySlugs.add(etc)
+    }
   }
 
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
 
   // Fetch US and regional stories separately to prevent regional volume crowding out US stories
   const [{ data: usStories, error }, { data: globalStories }, { data: worldViewStories }, mainstreamPulse] = await Promise.all([
@@ -148,7 +156,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, created_at, view_count')
       .eq('published', true)
       .is('region', null)
-      .gte('created_at', sevenDaysAgo)
+      .gte('created_at', twoDaysAgo)
       .order('pinned', { ascending: false })
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: false })
@@ -258,7 +266,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const needToKnowCandidates = freshCandidates
     .filter(s => (s.description?.length ?? 0) >= 80 && !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)))
     .map(toPromptItem)
-  const storiesForPrompt = cappedStories.map(toPromptItem)
+  const storiesForPrompt = cappedStories.filter(s => !yesterdaySlugs.has(s.slug)).map(toPromptItem)
 
   // Slug → contentType map for post-generation enforcement
   const candidateContentType = new Map(freshCandidates.map(s => [s.slug, getContentType(s)]))
@@ -322,6 +330,7 @@ NEED TO KNOW (3 stories max):
 - Use the slug field from the input exactly as-is
 
 IN THE KNOW:
+- RECENCY: Stories have a "hoursAgo" field. Strongly prefer stories under 24 hours old. Only include older stories if they are genuinely significant and not already widely known.
 - Remaining US stories as 1-sentence bullets under the correct topic category
 - Each sentence should end with (More)
 - Each bullet must state a specific fact — name the person, place, number, or finding. Never write a vague bullet like "X documented how Y operates with minimal oversight" — instead say what specifically was found. Wrong: "drew prominent figures to publicly protest a political cause." Right: "Robert De Niro and Al Sharpton led an estimated 15,000-person march in Manhattan opposing [specific policy]."
