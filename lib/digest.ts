@@ -209,6 +209,8 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     'geohussar', 'iancarrollshow',
     // Tier 6 commercial/explainer — not investigative journalism
     'vox', 'journeymanpictures',
+    // Wire/syndication services — footage aggregators, not original journalism
+    'storyfulmanagedlicensing', 'storyfulnews', 'storyfulsports',
   ])
 
   function getContentType(s: typeof cappedStories[0]): string {
@@ -343,7 +345,7 @@ IN THE KNOW:
   * "Politics & World Affairs": government, elections, military, geopolitics, law enforcement, police accountability, civil rights, international conflict — INCLUDING Hezbollah, Gaza, Russia, Ukraine, and any police/bodycam accountability story
   * "Science & Technology": research, medicine, space, climate science, AI, tech products, environment
   * "Business & Markets": economy, finance, companies, markets, labor, private equity, corporate news
-  * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs"
+  * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category.
 
 ETCETERA:
 - MINIMUM 3, maximum 5 — you must include at least 3 entries. If fewer than 3 quirky stories exist, use the most surprising or unexpected remaining facts from any US story not yet used.
@@ -362,15 +364,17 @@ HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
 - Only add "howWorldSeesIt" if the international story is unambiguously about the same topic — not loosely related, not analogous, not thematically similar. The slug must point to a story actually covering the same subject.
 - If 1-3 direct matches exist, add a "howWorldSeesIt" array to that NeedToKnow item
 - Each entry: { "region": "...", "slug": "...", "summary": "..." }
-- "summary" = one sentence describing how that region/outlet frames the story differently than the US angle
+- "region" = the specific outlet name (e.g. "Al Jazeera", "BBC Arabic", "DW", "France 24", "ABC Australia", "TRT World", "CGTN") — NOT a geographic label like "Middle East" or "Europe". Use the source field from the input story to determine the outlet name.
+- "summary" = one sentence describing how that outlet frames the story differently than the US angle
 - If no DIRECT topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array, do NOT force a connection
 - Never reuse a slug already used in globalBlindspots
 
 GLOBAL LENS (only if INTERNATIONAL PERSPECTIVES are provided):
-- Pick 3-5 international stories from INTERNATIONAL PERSPECTIVES that are NOT already in globalBlindspots and NOT already used in "howWorldSeesIt"
+- Pick EXACTLY 3 international stories from INTERNATIONAL PERSPECTIVES that are NOT already in globalBlindspots and NOT already used in "howWorldSeesIt"
 - These are international outlets covering stories that overlap with today's US news — showing how the same events look from abroad
 - Each entry: { "region": "...", "slug": "...", "title": "...", "summary": "..." }
 - Use the slug, region, and title fields from the input exactly as-is
+- "region" = the specific outlet name (e.g. "Al Jazeera", "DW", "France 24") — NOT a geographic label
 - "summary" = one sentence describing the international angle and why it adds perspective for American readers
 - If fewer than 3 unused international stories exist, omit "globalLens" entirely
 - Never reuse a slug already used in globalBlindspots or howWorldSeesIt
@@ -568,13 +572,13 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       return true
     })
 
-    // Fix globalLens — same: drop unknowns and restore real titles
+    // Fix globalLens — drop unknowns, restore real titles, cap at 3
     content.globalLens = (content.globalLens ?? []).filter(item => {
       if (!titleMap.has(item.slug)) return false
       if (!item.summary?.trim()) return false
       item.title = titleMap.get(item.slug)!
       return true
-    })
+    }).slice(0, 3)
 
     // Populate howWorldSeesIt titles from DB
     for (const ntk of content.needToKnow) {
