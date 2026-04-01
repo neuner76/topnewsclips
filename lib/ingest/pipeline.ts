@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js'
-import { fetchRedditClips, type RedditClip } from './reddit'
 import { fetchYouTubeTrending, resolveYouTubeChannelId, type YouTubeClip } from './youtube'
 import { fetchTikTokTrending, type TikTokClip } from './tiktok'
 import { fetchGlobalClips, type GlobalClip } from './global'
@@ -132,8 +131,7 @@ export async function runFetch(): Promise<FetchResult> {
     if (channelId) youtubeJournalists.push({ username: row.username, channelId })
   }
 
-  const [redditResult, youtubeResult, tiktokResult, globalResult] = await Promise.all([
-    fetchRedditClips(),
+  const [youtubeResult, tiktokResult, globalResult] = await Promise.all([
     youtubeKey
       ? fetchYouTubeTrending(youtubeKey, youtubeJournalists)
       : Promise.resolve({ clips: [], errors: ['YOUTUBE_API_KEY not set'], staleChannels: [] }),
@@ -143,7 +141,7 @@ export async function runFetch(): Promise<FetchResult> {
     fetchGlobalClips(youtubeKey),
   ])
 
-  errors.push(...redditResult.errors, ...youtubeResult.errors, ...tiktokResult.errors, ...globalResult.errors)
+  errors.push(...youtubeResult.errors, ...tiktokResult.errors, ...globalResult.errors)
 
   // Clear stale channel_ids so they get re-resolved on the next run
   if (youtubeResult.staleChannels.length > 0) {
@@ -154,15 +152,6 @@ export async function runFetch(): Promise<FetchResult> {
   }
 
   const candidates = [
-    ...redditResult.clips.map((c: RedditClip) => ({
-      title: c.title,
-      videoUrl: c.videoUrl,
-      platform: c.platform as string,
-      videoId: c.videoId,
-      description: '',
-      viralScore: c.redditScore,
-      source: `r/${c.subreddit}`,
-    })),
     ...youtubeResult.clips.map((c: YouTubeClip) => ({
       title: c.title,
       videoUrl: c.videoUrl,

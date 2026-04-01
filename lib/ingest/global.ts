@@ -260,12 +260,9 @@ export async function fetchGlobalClips(apiKey?: string): Promise<{ clips: Global
   const errors: string[] = []
   const seen = new Set<string>()
 
-  await Promise.all([
-    fetchGlobalReddit(clips, errors, seen),
-    apiKey
-      ? fetchGlobalYouTubeAPI(apiKey, clips, errors, seen)
-      : Promise.resolve(errors.push('YOUTUBE_API_KEY not set — skipping global YouTube channels')),
-  ])
+  await (apiKey
+    ? fetchGlobalYouTubeAPI(apiKey, clips, errors, seen)
+    : Promise.resolve(errors.push('YOUTUBE_API_KEY not set — skipping global YouTube channels')))
 
   // Backfill view counts for YouTube clips (playlistItems doesn't return statistics)
   if (apiKey) await backfillViewCounts(clips, apiKey)
