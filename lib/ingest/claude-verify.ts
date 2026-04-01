@@ -59,10 +59,12 @@ msmGap rules:
 - Set to true if US Mainstream Media Articles Found < 8 AND the story is genuinely significant (major protests, government action, economic crisis, natural disaster, military conflict). This means the US media is ignoring something the rest of the world considers important — a Global Blindspot.
 - Set to false if the story is already well-covered by US media or is minor news.
 
+VERIFICATION RULE: If US Mainstream Media Articles Found ≥ 20, the event is CONFIRMED REAL. Do not reject as unverifiable — 20+ independent US newsrooms do not fabricate the same story. Your training data has a cutoff; April 2026 events are current news, not future speculation. Trust the MSM article count as ground truth for whether an event happened.
+
 REJECT if:
 - Celebrity gossip, entertainment, sports scores with no broader significance
-- Clearly propaganda or state media with no factual news value
-- Content that cannot be verified as a real event
+- Clearly state propaganda with no factual news value
+- Content that cannot be verified as a real event AND has fewer than 20 MSM articles
 - Pure animal/nature content with no policy or news dimension
 
 PUBLISH if confidence >= 0.72 and it is a genuine newsworthy international event.`
