@@ -203,7 +203,21 @@ export async function runFetch(): Promise<FetchResult> {
   }
 
   // Deduplicate across sources — same incident covered by multiple channels keeps highest view count
-  const dedupedCandidates = deduplicateByTitle(candidates)
+  const titleDeduped = deduplicateByTitle(candidates)
+
+  // Cross-platform journalist dedup — if a journalist appears on both YouTube and Reddit,
+  // keep only the highest viral score version across all platforms
+  const journalistBest = new Map<string, typeof titleDeduped[0]>()
+  const noJournalist: typeof titleDeduped = []
+  for (const c of titleDeduped) {
+    const username = (c as { journalistUsername?: string | null }).journalistUsername
+    if (!username) { noJournalist.push(c); continue }
+    const existing = journalistBest.get(username)
+    if (!existing || (c.viralScore ?? 0) > (existing.viralScore ?? 0)) {
+      journalistBest.set(username, c)
+    }
+  }
+  const dedupedCandidates = [...noJournalist, ...journalistBest.values()]
 
   const slugsToCheck = dedupedCandidates.map(c => makeSlug(c.platform, c.videoId, c.title))
 
