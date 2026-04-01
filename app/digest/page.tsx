@@ -54,11 +54,19 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
             How the world sees it
           </p>
           {item.howWorldSeesIt.map((w, i) => (
-            <div key={i}>
-              <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mr-2">
+            <div key={i} className="flex gap-2.5 items-start">
+              <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 pt-0.5 w-20">
                 {w.region}
               </span>
-              <span className="text-xs text-foreground/80">{w.summary}</span>
+              <div>
+                <a
+                  href={`/story/${w.slug}`}
+                  className="text-sm font-semibold text-foreground hover:underline leading-snug block"
+                >
+                  {w.title ?? w.slug}
+                </a>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{w.summary}</p>
+              </div>
             </div>
           ))}
         </div>

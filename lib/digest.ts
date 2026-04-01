@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 export interface HowWorldSeesItItem {
   region: string
   slug: string
+  title?: string   // story headline — populated post-generation from DB
   summary: string  // one sentence: how this region frames the story differently
 }
 
@@ -225,6 +226,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   })
 
   const NEEDTOKNOW_MAX_AGE_HOURS = 18
+  const PROMO_TERMS = ['portal', 'handbook', 'subscribe', 'patreon', 'merchandise', 'join us', 'sign up', 'newsletter', 'submission']
 
   function storyAgeHours(s: typeof cappedStories[0]): number {
     return (Date.now() - new Date(s.created_at).getTime()) / 3600000
@@ -243,12 +245,19 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     })
   }
 
+  const NEEDTOKNOW_FALLBACK_HOURS = 48  // fallback cap — never pull stories older than 2 days into NeedToKnow
+
   const nonYesterday = cappedStories.filter(s => !yesterdaySlugs.has(s.slug))
   const withinWindow = nonYesterday.filter(s => storyAgeHours(s) <= NEEDTOKNOW_MAX_AGE_HOURS)
+  const withinFallback = nonYesterday.filter(s => storyAgeHours(s) <= NEEDTOKNOW_FALLBACK_HOURS)
 
-  // If ingest hasn't run recently and no stories fall within the window, fall back to all non-yesterday stories
-  const freshCandidates = sortByTierAndRecency(withinWindow.length >= 3 ? withinWindow : nonYesterday)
-  const needToKnowCandidates = freshCandidates.map(toPromptItem)
+  // If ingest hasn't run recently and no stories fall within the window, fall back to last 48 hours (not full 7 days)
+  const freshCandidates = sortByTierAndRecency(withinWindow.length >= 3 ? withinWindow : withinFallback)
+
+  // Filter promo-term stories from NeedToKnow candidates — channel descriptions and self-promos shouldn't be NeedToKnow
+  const needToKnowCandidates = freshCandidates
+    .filter(s => (s.description?.length ?? 0) >= 80 && !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)))
+    .map(toPromptItem)
   const storiesForPrompt = cappedStories.map(toPromptItem)
 
   // Slug → contentType map for post-generation enforcement
@@ -271,7 +280,23 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       region: s.region,
     }))
 
-  const response = await claude.messages.create({
+  // Retry on 529 overloaded with exponential backoff
+  async function createWithRetry(params: Parameters<typeof claude.messages.create>[0], maxAttempts = 4) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await claude.messages.create(params)
+      } catch (err: unknown) {
+        const isOverloaded = err instanceof Error && (err.message.includes('529') || err.message.toLowerCase().includes('overloaded'))
+        if (!isOverloaded || attempt === maxAttempts) throw err
+        const delay = Math.min(15000 * attempt, 60000) // 15s, 30s, 45s, cap 60s
+        console.warn(`Claude overloaded (attempt ${attempt}/${maxAttempts}), retrying in ${delay / 1000}s...`)
+        await new Promise(r => setTimeout(r, delay))
+      }
+    }
+    throw new Error('Unreachable')
+  }
+
+  const response = await createWithRetry({
     model: 'claude-sonnet-4-6',
     max_tokens: 8192,
     messages: [{
@@ -387,8 +412,6 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
   }
 
-  const PROMO_TERMS = ['portal', 'handbook', 'subscribe', 'patreon', 'merchandise', 'join us', 'sign up', 'newsletter', 'submission']
-
   // Enforce NeedToKnow mix: max 1 commentary — swap extras for best non-commentary candidate
   const MAX_COMMENTARY = 1
   const ntkSlugs = new Set(content.needToKnow.map(i => i.slug))
@@ -496,10 +519,13 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     }
   }
 
-  // Collect all slugs used in globalBlindspots and globalLens so we can repair hallucinated titles
+  // Collect all slugs used in globalBlindspots, globalLens, and howWorldSeesIt so we can repair hallucinated titles
   const titledSlugs = new Set<string>()
   for (const item of content.globalBlindspots ?? []) titledSlugs.add(item.slug)
   for (const item of content.globalLens ?? []) titledSlugs.add(item.slug)
+  for (const ntk of content.needToKnow) {
+    for (const w of ntk.howWorldSeesIt ?? []) titledSlugs.add(w.slug)
+  }
 
   // Fetch actual titles from DB and overwrite whatever Claude produced
   if (titledSlugs.size > 0) {
@@ -525,6 +551,17 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       item.title = titleMap.get(item.slug)!
       return true
     })
+
+    // Populate howWorldSeesIt titles from DB
+    for (const ntk of content.needToKnow) {
+      if (!ntk.howWorldSeesIt) continue
+      ntk.howWorldSeesIt = ntk.howWorldSeesIt.filter(w => {
+        if (!titleMap.has(w.slug)) return false
+        w.title = titleMap.get(w.slug)!
+        return true
+      })
+      if (ntk.howWorldSeesIt.length === 0) delete ntk.howWorldSeesIt
+    }
   }
 
   // Attach mainstream pulse (fetched independently, not via Claude)

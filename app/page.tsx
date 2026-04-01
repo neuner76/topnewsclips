@@ -99,14 +99,17 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
                 <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 pt-0.5 w-20">
                   {w.region}
                 </span>
-                <Link
-                  href={`/story/${w.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors leading-snug"
-                >
-                  {w.summary}
-                </Link>
+                <div>
+                  <Link
+                    href={`/story/${w.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-foreground hover:underline leading-snug block"
+                  >
+                    {w.title ?? w.slug}
+                  </Link>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{w.summary}</p>
+                </div>
               </div>
             ))}
           </div>
