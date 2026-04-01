@@ -518,12 +518,27 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   // Step 3: pad Etcetera AFTER deduplication and promo filtering so the count is accurate
   const MIN_ETCETERA = 3
+  const ETCETERA_MIN_VIEWS = 1000  // don't pad with zero-traction stories
+
+  // Truncate to last complete sentence within a character limit
+  function toEtceteraText(desc: string, limit = 200): string {
+    if (desc.length <= limit) return desc
+    const truncated = desc.slice(0, limit)
+    // Find last sentence boundary (. ! ?) before the limit
+    const lastBoundary = Math.max(truncated.lastIndexOf('. '), truncated.lastIndexOf('! '), truncated.lastIndexOf('? '))
+    if (lastBoundary > 80) return truncated.slice(0, lastBoundary + 1).trim()
+    // Fall back to last word boundary
+    const lastSpace = truncated.lastIndexOf(' ')
+    return (lastSpace > 80 ? truncated.slice(0, lastSpace) : truncated).trim() + '…'
+  }
+
   if (content.etcetera.length < MIN_ETCETERA) {
     for (const s of cappedStories) {
       if (content.etcetera.length >= MIN_ETCETERA) break
       if (usedSlugs.has(s.slug) || !s.description) continue
+      if ((s.view_count ?? 0) < ETCETERA_MIN_VIEWS) continue
       if (PROMO_TERMS.some(t => s.description.toLowerCase().includes(t))) continue
-      content.etcetera.push({ text: s.description.slice(0, 180), slug: s.slug })
+      content.etcetera.push({ text: toEtceteraText(s.description), slug: s.slug })
       usedSlugs.add(s.slug)
     }
   }
