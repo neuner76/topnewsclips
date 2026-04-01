@@ -38,6 +38,20 @@ function delay(ms: number) {
   return new Promise(r => setTimeout(r, ms))
 }
 
+// Returns false if YouTube has blocked this video from third-party embedding
+async function isYouTubeEmbeddable(videoUrl: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(videoUrl)}&format=json`,
+      { signal: AbortSignal.timeout(5000) }
+    )
+    // 401 = embedding disabled, 403 = blocked by rights holder, 404 = not found
+    return res.ok
+  } catch {
+    return true // assume embeddable on timeout/network error — don't block on uncertainty
+  }
+}
+
 // Returns the significant words from a title (strips stop words and short tokens)
 function sigWords(title: string): Set<string> {
   const stop = new Set([
@@ -344,6 +358,21 @@ export async function runProcess(): Promise<PipelineResult> {
           .from('rejected_slugs')
           .upsert({ slug: candidate.slug, reason: verification.rejectReason ?? '' })
         continue
+      }
+
+      // YouTube embed check — reject videos blocked from third-party embedding
+      if (candidate.platform === 'youtube') {
+        const embeddable = await isYouTubeEmbeddable(candidate.video_url)
+        if (!embeddable) {
+          result.rejected++
+          result.errors.push(
+            `Embed blocked: "${candidate.title.slice(0, 50)}" — YouTube embed disabled by rights holder`
+          )
+          await supabase
+            .from('rejected_slugs')
+            .upsert({ slug: candidate.slug, reason: 'youtube_embed_blocked' })
+          continue
+        }
       }
 
       // Topic diversity cap — skip if this topic already has TOPIC_DAILY_CAP stories published today
