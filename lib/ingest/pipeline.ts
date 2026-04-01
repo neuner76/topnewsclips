@@ -192,13 +192,24 @@ export async function runFetch(): Promise<FetchResult> {
   }
 
   // Block sources that always produce embed-blocked videos — no point queuing them
-  const EMBED_BLOCKED_SOURCES = new Set([
-    'storyfulnews', 'storyfulmanagedlicensing', 'storyfulsports',
-  ])
+  // Match on source string containing "storyful" (case-insensitive) to catch all Storyful channel variants
+  const GAMING_TERMS = ['gta', 'grand theft auto', 'minecraft', 'roblox', 'fortnite', 'call of duty', 'gameplay', "let's play", 'video game', 'gaming', 'twitch stream', 'esport']
   const filteredCandidates = candidates.filter(c => {
     const username = ((c as { journalistUsername?: string | null }).journalistUsername ?? '').toLowerCase()
     const source = (c.source ?? '').toLowerCase()
-    return !EMBED_BLOCKED_SOURCES.has(username) && ![...EMBED_BLOCKED_SOURCES].some(s => source.includes(s))
+    const titleLower = c.title.toLowerCase()
+
+    // Block Storyful (always embed-blocked)
+    if (username.includes('storyful') || source.includes('storyful')) return false
+
+    // Block gaming/entertainment content
+    if (GAMING_TERMS.some(t => titleLower.includes(t))) return false
+
+    // Block non-English (Japanese/Chinese/Korean/Arabic characters) from non-journalist sources
+    if (!c.title.match(/[\u3000-\u9fff\uac00-\ud7ff\u0600-\u06ff]/)) return true
+    // If non-Latin script detected, only allow if it's a journalist source
+    const isJournalist = !!((c as { journalistUsername?: string | null }).journalistUsername)
+    return isJournalist
   })
 
   // Deduplicate across sources — same incident covered by multiple channels keeps highest view count

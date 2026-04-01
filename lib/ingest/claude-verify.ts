@@ -63,7 +63,7 @@ REJECT if:
 - Celebrity gossip, entertainment, sports scores with no broader significance
 - Clearly propaganda or state media with no factual news value
 - Content that cannot be verified as a real event
-- Duplicate of a story already well-covered by US mainstream media (US Mainstream Media Articles Found > 50)
+- Pure animal/nature content with no policy or news dimension
 
 PUBLISH if confidence >= 0.72 and it is a genuine newsworthy international event.`
 }
@@ -156,8 +156,7 @@ REJECT (hard rules — no exceptions):
   * pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip)
   * compilation of multiple clips ("top 10", "best of", "50 biggest", "dash cam compilation")
   * non-English content or stories from outside the United States — this includes UK (England, Scotland, Wales, Northern Ireland), Canada, Australia, India, Pakistan, Bangladesh, and all other non-US countries. Specific tell-tale signs: UK locations (London, Sheffield, Manchester, Birmingham, Leeds, Bristol, Liverpool, Glasgow, Edinburgh, Cardiff, any mention of "Road" suffixed UK street names like "London Road"), references to police as "officers" responding under UK forces, NHS, etc.
-  * any international military conflict, missile strike, drone attack, or war footage — EXCEPTION: if "Trusted Journalist: YES" AND Mainstream Media Articles Found ≥ 30, the journalist's analysis or reporting on the verified geopolitical event IS publishable as category "analysis". The MSM article count confirms the event is real; the journalist's perspective is the story.
-  * geopolitical claims (country attacks military base, assassination, nuclear event) with fewer than 20 mainstream articles — absence of coverage = event did not happen. This applies to non-journalist sources; trusted journalists may still report on verified events.
+  * geopolitical claims (country attacks military base, assassination, nuclear event) with fewer than 10 mainstream articles — absence of coverage = event likely did not happen or is unverified. This applies to non-journalist sources; trusted journalists may still report on verified events.
   * cute animal stories with no news angle — this includes wildlife rescues, pet stories, zoo events, and nature curiosities with no institutional or policy dimension
   * educational or explainer content NOT directly tied to a current news event — reject science explainers, history lessons, physics demonstrations, "how things work" videos, and general interest educational content unless the explainer is specifically analyzing an ongoing news story (e.g. "how does this weapon system work" during an active conflict is OK; "how does the Casimir Effect work" is not)
   * policy announcements or press conferences with no incident footage (exception: technology demonstrations showing real breakthroughs in clean energy, food, water, or environmental innovation)

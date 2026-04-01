@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import IngestButton from '@/components/admin/IngestButton'
 
 function getSupabase() {
   return createClient(
@@ -76,7 +77,10 @@ export default async function PipelinePage() {
 
   return (
     <div>
-      <h1 className="text-lg font-bold mb-6">Pipeline — Last 24 Hours</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-lg font-bold">Pipeline — Last 24 Hours</h1>
+        <IngestButton />
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-5 gap-3 mb-8">
