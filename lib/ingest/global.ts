@@ -77,25 +77,20 @@ function decodeXML(s: string): string {
 }
 
 
-async function fetchGlobalSubreddit(subreddit: string, region: string, after: number): Promise<{ clips: GlobalClip[]; error: string | null }> {
+async function fetchGlobalSubreddit(subreddit: string, region: string): Promise<{ clips: GlobalClip[]; error: string | null }> {
   const clips: GlobalClip[] = []
   try {
-    const url = new URL('https://api.pullpush.io/reddit/search/submission/')
-    url.searchParams.set('subreddit', subreddit)
-    url.searchParams.set('sort', 'score')
-    url.searchParams.set('sort_type', 'desc')
-    url.searchParams.set('size', '15')
-    url.searchParams.set('after', String(after))
-
-    const res = await fetch(url.toString(), {
-      headers: { 'User-Agent': 'topnewsclips/1.0' },
-      signal: AbortSignal.timeout(8000),
+    // Use Reddit's own public JSON API — more reliable than PullPush
+    const url = `https://www.reddit.com/r/${subreddit}/top.json?t=day&limit=25`
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'topnewsclips/1.0 (news aggregator)' },
+      signal: AbortSignal.timeout(12000),
     })
 
-    if (!res.ok) return { clips, error: `Global PullPush r/${subreddit}: HTTP ${res.status}` }
+    if (!res.ok) return { clips, error: `Global Reddit r/${subreddit}: HTTP ${res.status}` }
 
     const json = await res.json()
-    const posts: Record<string, unknown>[] = json?.data ?? []
+    const posts: Record<string, unknown>[] = (json?.data?.children ?? []).map((c: Record<string, unknown>) => c.data as Record<string, unknown>)
 
     for (const post of posts) {
       if (!post?.url) continue
@@ -124,7 +119,7 @@ async function fetchGlobalSubreddit(subreddit: string, region: string, after: nu
     }
     return { clips, error: null }
   } catch (err) {
-    return { clips, error: `Global PullPush r/${subreddit}: ${err instanceof Error ? err.message : String(err)}` }
+    return { clips, error: `Global Reddit r/${subreddit}: ${err instanceof Error ? err.message : String(err)}` }
   }
 }
 
@@ -133,8 +128,7 @@ async function fetchGlobalReddit(
   errors: string[],
   seen: Set<string>
 ) {
-  const after = Math.floor((Date.now() - 48 * 60 * 60 * 1000) / 1000)
-  const results = await Promise.all(GLOBAL_SUBREDDITS.map(({ subreddit, region }) => fetchGlobalSubreddit(subreddit, region, after)))
+  const results = await Promise.all(GLOBAL_SUBREDDITS.map(({ subreddit, region }) => fetchGlobalSubreddit(subreddit, region)))
 
   for (const { clips: batch, error } of results) {
     if (error) { errors.push(error); continue }

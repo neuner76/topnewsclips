@@ -52,25 +52,20 @@ function extractVideoId(url: string, platform: 'youtube' | 'tiktok' | 'x'): stri
 }
 
 
-async function fetchSubreddit(subreddit: string, after: number): Promise<{ clips: RedditClip[]; error: string | null }> {
+async function fetchSubreddit(subreddit: string): Promise<{ clips: RedditClip[]; error: string | null }> {
   const clips: RedditClip[] = []
   try {
-    const url = new URL('https://api.pullpush.io/reddit/search/submission/')
-    url.searchParams.set('subreddit', subreddit)
-    url.searchParams.set('sort', 'score')
-    url.searchParams.set('sort_type', 'desc')
-    url.searchParams.set('size', '25')
-    url.searchParams.set('after', String(after))
-
-    const res = await fetch(url.toString(), {
-      headers: { 'User-Agent': 'topnewsclips/1.0' },
-      signal: AbortSignal.timeout(8000),
+    // Use Reddit's own public JSON API — more reliable than PullPush
+    const url = `https://www.reddit.com/r/${subreddit}/top.json?t=day&limit=25`
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'topnewsclips/1.0 (news aggregator)' },
+      signal: AbortSignal.timeout(12000),
     })
 
-    if (!res.ok) return { clips, error: `PullPush r/${subreddit}: HTTP ${res.status}` }
+    if (!res.ok) return { clips, error: `Reddit r/${subreddit}: HTTP ${res.status}` }
 
     const json = await res.json()
-    const posts: Record<string, unknown>[] = json?.data ?? []
+    const posts: Record<string, unknown>[] = (json?.data?.children ?? []).map((c: Record<string, unknown>) => c.data as Record<string, unknown>)
 
     for (const post of posts) {
       if (!post?.url) continue
@@ -89,20 +84,18 @@ async function fetchSubreddit(subreddit: string, after: number): Promise<{ clips
         platform,
         redditScore: (post.score as number) ?? 0,
         subreddit,
-        redditPermalink: `https://reddit.com${post.permalink as string}`,
+        redditPermalink: `https://reddit.com${post.permalink as string ?? ''}`,
         videoId: extractVideoId(videoUrl, platform),
       })
     }
     return { clips, error: null }
   } catch (err) {
-    return { clips, error: `PullPush r/${subreddit}: ${err instanceof Error ? err.message : String(err)}` }
+    return { clips, error: `Reddit r/${subreddit}: ${err instanceof Error ? err.message : String(err)}` }
   }
 }
 
 export async function fetchRedditClips(): Promise<{ clips: RedditClip[]; errors: string[] }> {
-  const after = Math.floor((Date.now() - 48 * 60 * 60 * 1000) / 1000)
-
-  const results = await Promise.all(SUBREDDITS.map(s => fetchSubreddit(s, after)))
+  const results = await Promise.all(SUBREDDITS.map(s => fetchSubreddit(s)))
 
   const seen = new Set<string>()
   const clips: RedditClip[] = []
