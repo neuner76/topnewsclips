@@ -6,9 +6,12 @@ export interface SourceTierResult {
 // ── Journalist-username lookups (for featured journalists with known handles) ──
 
 // Tier 1: Nonprofit Investigative
+// Includes nonprofit newsrooms and nonpartisan research institutions with published methodologies
+// (e.g. ProPublica, The Marshall Project, CSIS, RAND)
 const NONPROFIT_JOURNALISTS = new Set([
   'propublica', 'marshall', 'texastribune', 'calmatters', 'frontlinepbs',
   'revealnews', 'icijorg',
+  'csis', 'csisonline', // Center for Strategic and International Studies
 ])
 
 // Tier 2: OSINT
@@ -31,6 +34,7 @@ const PUBLIC_BROADCASTER_JOURNALISTS = new Set([
 const INDEPENDENT_NEWS_JOURNALISTS = new Set([
   'theintercept', 'investigativejournalismbureau', 'dropsitenews', 'vicenews', 'moreperfectunion',
   'democracynow', 'theguardian',
+  'taskandpurpose', // Military news and veteran affairs
 ])
 
 // Tier 6: Commercial / Explainer
@@ -40,7 +44,7 @@ const COMMERCIAL_JOURNALISTS = new Set([
 
 // Tier 7: Independent Commentary
 const COMMENTARY_JOURNALISTS = new Set([
-  'breakingpoints', 'caspianreport', 'polymatter', 'johnnyharris',
+  'breakingpoints', 'caspianreport', 'polymatter', 'johnnyharris', 'perunau',
   'kylescanlon', 'kylascanlon', 'michaeltracey', 'tarapalmeri', 'wendoverproductions',
   'veritasium', 'audittheaudit', 'ggreenwald', 'geohussar', 'iancarrollshow',
   'whitneywebb', 'jamesfreeman', 'undecidedtechnology', 'tanglenews', 'patrickboyleonfinance',
