@@ -293,8 +293,9 @@ async function fetchJournalistChannelsViaRSS(
       url.searchParams.set('key', apiKey)
       const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10000) })
       if (!res.ok) {
-        // Both RSS and API failed — channel_id is likely stale
-        staleChannels.push(username)
+        // Only treat 404 as a stale channel_id — other errors (403 quota, 5xx) are transient
+        if (res.status === 404) staleChannels.push(username)
+        else errors.push(`YouTube journalist @${username}: API HTTP ${res.status}`)
         return
       }
       // API succeeded — channel_id is valid. Remove the RSS error regardless of recent content.
@@ -310,8 +311,8 @@ async function fetchJournalistChannelsViaRSS(
         seen.add(videoId)
         fallbackVideoIds.push({ username, channelId, videoId, publishedAt })
       }
-    } catch {
-      staleChannels.push(username)
+    } catch (err) {
+      errors.push(`YouTube journalist @${username}: ${err instanceof Error ? err.message : String(err)}`)
     }
   }))
 
