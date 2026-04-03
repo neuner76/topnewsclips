@@ -209,8 +209,14 @@ export async function runFetch(): Promise<FetchResult> {
     // Block paranormal/horror/kids-science noise
     if (NOISE_TERMS.some(t => titleLower.includes(t))) return false
 
-    // Block LIVE streams — unfinished broadcasts, not packaged stories
-    if (/\bLIVE\b[:\s]|[|\s]LIVE\s*$/i.test(c.title)) return false
+    // Block LIVE streams and BREAKING duplicates — unfinished broadcasts
+    if (/\bLIVE\b[:\s]|\|\s*LIVE\s*$|\bBREAKING\b/i.test(c.title)) return false
+
+    // Block Arirang broadcast formats — full shows, weather segments, news specials
+    if (/^\[(FULL|LIVE|Weather|NEWS SPECIAL)\]|new day at arirang|arirang news$/i.test(c.title)) return false
+
+    // Block daily headline compilations — these are always multi-story roundups
+    if (/top u\.s\. & world headlines|top headlines|daily headlines|morning headlines/i.test(c.title)) return false
 
     // Block non-Latin script (Japanese/Chinese/Korean/Arabic/Cyrillic) from non-journalist sources
     if (!c.title.match(/[\u0400-\u04ff\u3000-\u9fff\uac00-\ud7ff\u0600-\u06ff]/)) return true
