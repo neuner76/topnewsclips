@@ -145,7 +145,7 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
 }
 
 function DigestView({ content, date, storyMap }: { content: DigestContent; date: string; storyMap: Map<string, Story> }) {
-  const formattedDate = new Date(date).toLocaleDateString('en-US', {
+  const formattedDate = new Date(`${date}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     timeZone: 'America/New_York',
   })
