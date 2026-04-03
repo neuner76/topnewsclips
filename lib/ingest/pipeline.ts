@@ -334,7 +334,9 @@ export async function runProcess(): Promise<PipelineResult> {
 
   // Count topic clusters already published today — used to enforce TOPIC_DAILY_CAP
   // Each published title may be representative of a topic cluster; we track overlap counts
-  function topicAlreadyCapped(candidateTitle: string): boolean {
+  // Breaking news override: if MSM article count > 30, the story is verified major news — skip cap
+  function topicAlreadyCapped(candidateTitle: string, msmArticleCount: number): boolean {
+    if (msmArticleCount > 30) return false // major breaking news bypasses topic cap
     let overlap = 0
     for (const published of publishedTitles) {
       if (isSameIncident(candidateTitle, published, 2)) overlap++
@@ -400,7 +402,7 @@ export async function runProcess(): Promise<PipelineResult> {
       }
 
       // Topic diversity cap — skip if this topic already has TOPIC_DAILY_CAP stories published today
-      if (topicAlreadyCapped(verification.headline)) {
+      if (topicAlreadyCapped(verification.headline, msm.articleCount)) {
         result.rejected++
         result.errors.push(
           `Topic cap: "${verification.headline.slice(0, 50)}" — too many similar stories today`

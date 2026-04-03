@@ -268,8 +268,9 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const freshCandidates = sortByTierAndRecency(withinWindow.length >= 3 ? withinWindow : withinFallback)
 
   // Filter promo-term stories from NeedToKnow candidates — channel descriptions and self-promos shouldn't be NeedToKnow
+  // Minimum 150 chars ensures enough source material for Claude to write a real paragraph
   const needToKnowCandidates = freshCandidates
-    .filter(s => (s.description?.length ?? 0) >= 80 && !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)))
+    .filter(s => (s.description?.length ?? 0) >= 150 && !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)))
     .map(toPromptItem)
   const storiesForPrompt = cappedStories.filter(s => !yesterdaySlugs.has(s.slug)).map(toPromptItem)
 
@@ -498,11 +499,20 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     }
   }
 
-  // Step 1: filter promo terms from Claude's Etcetera entries
+  // Step 1: filter promo terms and Storyful-sourced stories from Claude's output
+  // Storyful videos are always embed-blocked — no point surfacing them in the digest
+  const storyfulSlugs = new Set(
+    cappedStories.filter(s => (s.source ?? '').toLowerCase().includes('storyful')).map(s => s.slug)
+  )
   content.etcetera = content.etcetera.filter(item => {
+    const etc = typeof item === 'string' ? { text: item, slug: null } : item
+    if (etc.slug && storyfulSlugs.has(etc.slug)) return false
     const text = (typeof item === 'string' ? item : item.text).toLowerCase()
     return !PROMO_TERMS.some(t => text.includes(t))
   })
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => !item.slug || !storyfulSlugs.has(item.slug))
+  }
 
   // Step 2: deduplication — NeedToKnow and InTheKnow slugs take priority
   const usedSlugs = new Set<string>()

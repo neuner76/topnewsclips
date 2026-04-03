@@ -16,9 +16,10 @@ const IN_THE_KNOW_CATEGORIES = [
 ] as const
 
 function formatDate(iso: string) {
-  // Append T12:00:00 to avoid UTC midnight rolling back one day in US timezones
+  // Display the date as it appears in Eastern Time to match when the digest was generated
   return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    timeZone: 'America/New_York',
   })
 }
 

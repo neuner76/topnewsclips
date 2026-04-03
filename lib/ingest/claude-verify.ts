@@ -118,7 +118,7 @@ Analyze this video/story and respond with valid JSON only (no markdown, no expla
 
 CLIP DATA:
 Title: ${clip.title}
-Description: ${clip.description.slice(0, 400)}
+Description: ${clip.description.slice(0, clip.isJournalist ? 800 : 400)}
 Platform: ${clip.platform}
 Source: ${clip.source}
 Viral Score: ${clip.viralScore}
