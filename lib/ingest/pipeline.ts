@@ -194,6 +194,7 @@ export async function runFetch(): Promise<FetchResult> {
   // Block sources that always produce embed-blocked videos — no point queuing them
   // Match on source string containing "storyful" (case-insensitive) to catch all Storyful channel variants
   const GAMING_TERMS = ['gta', 'grand theft auto', 'minecraft', 'roblox', 'fortnite', 'call of duty', 'gameplay', "let's play", 'video game', 'gaming', 'twitch stream', 'esport']
+  const NOISE_TERMS = ['#scary', 'skinwalker', '#paranormal', '#horror', '#learnontiktok', '#scienceexperiments', 'science activity for kids', 'fun science activity']
   const filteredCandidates = candidates.filter(c => {
     const username = ((c as { journalistUsername?: string | null }).journalistUsername ?? '').toLowerCase()
     const source = (c.source ?? '').toLowerCase()
@@ -202,12 +203,17 @@ export async function runFetch(): Promise<FetchResult> {
     // Block Storyful (always embed-blocked)
     if (username.includes('storyful') || source.includes('storyful')) return false
 
-    // Block gaming/entertainment content
+    // Block gaming/entertainment noise
     if (GAMING_TERMS.some(t => titleLower.includes(t))) return false
 
-    // Block non-English (Japanese/Chinese/Korean/Arabic characters) from non-journalist sources
-    if (!c.title.match(/[\u3000-\u9fff\uac00-\ud7ff\u0600-\u06ff]/)) return true
-    // If non-Latin script detected, only allow if it's a journalist source
+    // Block paranormal/horror/kids-science noise
+    if (NOISE_TERMS.some(t => titleLower.includes(t))) return false
+
+    // Block LIVE streams — unfinished broadcasts, not packaged stories
+    if (/\bLIVE\b[:\s]|[|\s]LIVE\s*$/i.test(c.title)) return false
+
+    // Block non-Latin script (Japanese/Chinese/Korean/Arabic/Cyrillic) from non-journalist sources
+    if (!c.title.match(/[\u0400-\u04ff\u3000-\u9fff\uac00-\ud7ff\u0600-\u06ff]/)) return true
     const isJournalist = !!((c as { journalistUsername?: string | null }).journalistUsername)
     return isJournalist
   })
@@ -308,7 +314,7 @@ export async function runProcess(): Promise<PipelineResult> {
     .select('*')
     .eq('processed', false)
     .order('fetched_at', { ascending: true })
-    .limit(12)
+    .limit(20)
 
   if (fetchError) {
     result.errors.push(`Failed to fetch candidates queue: ${fetchError.message}`)
