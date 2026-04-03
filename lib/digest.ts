@@ -52,6 +52,7 @@ export interface DigestContent {
     'Science & Technology': InTheKnowItem[]
     'Business & Markets': InTheKnowItem[]
     'Sports, Entertainment, & Culture': InTheKnowItem[]
+    'Comedy & Satire': InTheKnowItem[]
   }
   etcetera: EtceteraItem[]
   mainstreamPulse?: MainstreamPulseItem[]
@@ -209,6 +210,8 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     'geohussar', 'iancarrollshow',
     // Tier 6 commercial/explainer — not investigative journalism
     'vox', 'journeymanpictures',
+    // Satire/comedy channels — commentary content, not news
+    'thedailyshow', 'lastweektonight', 'joshjohnsoncomedy', 'smn', 'thejuicemedia', 'jonathanpie',
     // Wire/syndication services — footage aggregators, not original journalism
     'storyfulmanagedlicensing', 'storyfulnews', 'storyfulsports',
   ])
@@ -346,6 +349,7 @@ IN THE KNOW:
   * "Science & Technology": research, medicine, space, climate science, AI, tech products, environment
   * "Business & Markets": economy, finance, companies, markets, labor, private equity, corporate news
   * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category.
+  * "Comedy & Satire": satirical takes on current events, political comedy, late-night-style analysis, and humorous commentary on news stories (e.g. The Daily Show, Last Week Tonight, Jonathan Pie, Some More News, Josh Johnson). Assign here ONLY if the PRIMARY value of the content is comedic or satirical framing — not if comedy is incidental to a news report.
 
 ETCETERA:
 - MINIMUM 3, maximum 5 — you must include at least 3 entries. If fewer than 3 quirky stories exist, use the most surprising or unexpected remaining facts from any US story not yet used.
@@ -389,7 +393,8 @@ Return ONLY valid JSON in this exact structure:
     "Politics & World Affairs": [{ "text": "...", "slug": "..." }],
     "Science & Technology": [{ "text": "...", "slug": "..." }],
     "Business & Markets": [{ "text": "...", "slug": "..." }],
-    "Sports, Entertainment, & Culture": [{ "text": "...", "slug": "..." }]
+    "Sports, Entertainment, & Culture": [{ "text": "...", "slug": "..." }],
+    "Comedy & Satire": [{ "text": "...", "slug": "..." }]
   },
   "etcetera": [{ "text": "...", "slug": "..." }],
   "globalBlindspots": [

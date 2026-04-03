@@ -12,6 +12,7 @@ const IN_THE_KNOW_CATEGORIES = [
   'Science & Technology',
   'Business & Markets',
   'Sports, Entertainment, & Culture',
+  'Comedy & Satire',
 ] as const
 
 function formatDate(iso: string) {

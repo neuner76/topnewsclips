@@ -42,6 +42,20 @@ const COMMERCIAL_JOURNALISTS = new Set([
   'vox', 'journeymanpictures',
 ])
 
+// Tier 6: Commercial / Explainer (Satire) — institutional backing (Paramount, HBO)
+const SATIRE_COMMERCIAL_JOURNALISTS = new Set([
+  'thedailyshow',
+  'lastweektonight',
+])
+
+// Tier 7: Independent Commentary (Satire) — creator-driven
+const SATIRE_COMMENTARY_JOURNALISTS = new Set([
+  'joshjohnsoncomedy',
+  'smn',           // Some More News
+  'thejuicemedia', // Honest Government Ads
+  'jonathanpie',
+])
+
 // Tier 7: Independent Commentary
 const COMMENTARY_JOURNALISTS = new Set([
   'breakingpoints', 'caspianreport', 'polymatter', 'johnnyharris', 'perunau',
@@ -105,6 +119,13 @@ const COMMENTARY_SOURCES = new Set([
   'YouTube/Wendover Productions',
   'YouTube/Veritasium',
   'YouTube/Kyle Scanlon',
+  // Satire channels (arrive via search without journalist_username)
+  'YouTube/The Daily Show',
+  'YouTube/Last Week Tonight with John Oliver',
+  'YouTube/Some More News',
+  'YouTube/Jonathan Pie',
+  'YouTube/Josh Johnson',
+  'YouTube/honest government ads',
 ])
 
 // Tier 8: State Media
@@ -152,6 +173,12 @@ export function getSourceTier(
 
   if (COMMERCIAL_JOURNALISTS.has(u))
     return { tier: 6, sourceType: 'Commercial / Explainer' }
+
+  if (SATIRE_COMMERCIAL_JOURNALISTS.has(u))
+    return { tier: 6, sourceType: 'Commercial / Explainer (Satire)' }
+
+  if (SATIRE_COMMENTARY_JOURNALISTS.has(u))
+    return { tier: 7, sourceType: 'Independent Commentary (Satire)' }
 
   if (COMMENTARY_JOURNALISTS.has(u))
     return { tier: 7, sourceType: 'Independent Commentary' }
