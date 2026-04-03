@@ -105,6 +105,9 @@ async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
           if (!headline) continue
           // Skip opinion, editorial, and letter pieces — not news leads
           if (/^(Opinion|Editorial|Letters?|Commentary)\s*[|:]/i.test(headline)) continue
+          // Skip navigation/print pages — WSJ and others sometimes return site UI as headlines
+          if (headline.length < 25) continue
+          if (/print edition|wall street journal|subscribe|log in/i.test(headline)) continue
           return { headline, source: label, descriptor }
         }
         return null
