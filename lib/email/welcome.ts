@@ -2,7 +2,7 @@ import { Resend } from 'resend'
 
 const SITE_URL = 'https://www.topnewsclips.com'
 const UTM = 'utm_source=email&utm_medium=email&utm_campaign=welcome'
-const SITE_URL_UTM = `${SITE_URL}?${UTM}`
+
 const FROM = 'TopNewsClips <digest@topnewsclips.com>'
 
 function unsubscribeLink(email: string) {
@@ -56,119 +56,143 @@ const cta = (text: string, href: string) =>
 
 function email1Html(email: string) {
   return wrap(`
-    ${p("You just did something most Americans haven't: you opted out of the algorithm and into a daily briefing built for citizens, not clicks.")}
-    ${p("Here's why that matters.")}
-    ${p("US mainstream media consistently covers fewer than 5% of global news stories. Cable networks are engineered to maximize watch time through outrage and fear. And the stories that don't fit that model — bodycam footage, independent investigations, international crises the rest of the world considers urgent — simply don't make it through.")}
-    ${p("That's the gap Top News Clips exists to close.")}
-    ${p("Every morning, your briefing includes:")}
+    ${p("Welcome to Top News Clips.")}
+    ${p("You just joined a daily briefing that does something simple but surprisingly rare: it shows you what's actually happening.")}
+    ${p("US mainstream media covers fewer than 5% of global news stories. Cable networks are built to keep you watching, not keep you informed. And the stories that don't fit — independent investigations, international crises, bodycam footage, institutional accountability reporting — just don't make it through.")}
+    ${p("Starting tomorrow morning, they will.")}
+    ${p("Here's what your briefing includes:")}
     <ul style="margin:0 0 20px;padding-left:0;list-style:none;font-size:15px;line-height:1.8;color:#374151;">
-      <li style="margin-bottom:10px;">→ Stories verified as real but underreported by US outlets — flagged when fewer than 3 of the 15 major newsrooms we monitor have covered them</li>
-      <li style="margin-bottom:10px;">→ <strong>Global Blindspots</strong> — international events the rest of the world is watching that American media has skipped entirely</li>
-      <li style="margin-bottom:10px;">→ <strong>Global Lens</strong> — how journalists in Seoul, Berlin, and Lagos are framing the same stories US outlets are covering, so you see the full picture</li>
-      <li style="margin-bottom:10px;">→ Every source labeled with a credibility tier so you always know whether you're reading from a Pulitzer-winning nonprofit, a public broadcaster, or an independent commentator</li>
+      <li style="margin-bottom:10px;">→ <strong>Underreported stories</strong> — verified as real, flagged when fewer than 3 of the 15 major US newsrooms we track have covered them. You'll see the exact count.</li>
+      <li style="margin-bottom:10px;">→ <strong>Global Blindspots</strong> — international events the rest of the world considers urgent that American media has skipped entirely.</li>
+      <li style="margin-bottom:10px;">→ <strong>Global Lens</strong> — how journalists in Seoul, Berlin, Doha, and Lagos are framing the same stories US outlets are covering, so you see what one newsroom can't show you.</li>
+      <li style="margin-bottom:10px;">→ <strong>Mainstream Pulse</strong> — what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with today, side by side, so you can see the full spectrum in ten seconds.</li>
+      <li style="margin-bottom:10px;">→ <strong>Every source labeled by credibility tier</strong> — from Pulitzer-winning nonprofits like ProPublica to public broadcasters like DW News to independent commentators. You always know who's behind what you're reading.</li>
     </ul>
-    ${p("All of it in 5 minutes. No spin. No outrage bait. Just what happened, who it affects, and why it matters to your life.")}
-    ${p("Here's what's live right now:")}
-    ${cta("Read today's stories →", `${SITE_URL}/?view=clips&${UTM}`)}
+    ${p("All of it in 5 minutes. No spin. No outrage. Just what happened, who it affects, and why it matters to your life.")}
+    ${cta("Read today's stories →", `${SITE_URL}/?${UTM}`)}
     ${p("Your first daily briefing arrives tomorrow morning.")}
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
-    <p style="margin:24px 0 0;font-size:13px;color:#9ca3af;padding-top:16px;border-top:1px solid #f3f4f6;">P.S. Every source on the site is classified using our 10-tier Source Credibility Taxonomy — so you never have to wonder who's behind what you're reading. <a href="${SITE_URL}/taxonomy?${UTM}" style="color:#0e7490;">See how it works →</a></p>
+    <p style="margin:24px 0 0;font-size:13px;color:#9ca3af;padding-top:16px;border-top:1px solid #f3f4f6;">P.S. Curious how we classify our sources? We publish a 10-tier Source Credibility Taxonomy so you never have to guess. <a href="${SITE_URL}/taxonomy?${UTM}" style="color:#0e7490;">See how it works →</a></p>
   `, email)
 }
 
 function email1Text(email: string) {
-  return `You just did something most Americans haven't: you opted out of the algorithm and into a daily briefing built for citizens, not clicks.
+  return `Welcome to Top News Clips.
 
-Here's why that matters.
+You just joined a daily briefing that does something simple but surprisingly rare: it shows you what's actually happening.
 
-US mainstream media consistently covers fewer than 5% of global news stories. Cable networks are engineered to maximize watch time through outrage and fear. And the stories that don't fit that model — bodycam footage, independent investigations, international crises the rest of the world considers urgent — simply don't make it through.
+US mainstream media covers fewer than 5% of global news stories. Cable networks are built to keep you watching, not keep you informed. And the stories that don't fit — independent investigations, international crises, bodycam footage, institutional accountability reporting — just don't make it through.
 
-That's the gap Top News Clips exists to close.
+Starting tomorrow morning, they will.
 
-Every morning, your briefing includes:
+Here's what your briefing includes:
 
-→ Stories verified as real but underreported by US outlets — flagged when fewer than 3 of the 15 major newsrooms we monitor have covered them
+→ Underreported stories — verified as real, flagged when fewer than 3 of the 15 major US newsrooms we track have covered them. You'll see the exact count.
 
-→ Global Blindspots — international events the rest of the world is watching that American media has skipped entirely
+→ Global Blindspots — international events the rest of the world considers urgent that American media has skipped entirely.
 
-→ Global Lens — how journalists in Seoul, Berlin, and Lagos are framing the same stories US outlets are covering, so you see the full picture
+→ Global Lens — how journalists in Seoul, Berlin, Doha, and Lagos are framing the same stories US outlets are covering, so you see what one newsroom can't show you.
 
-→ Every source labeled with a credibility tier so you always know whether you're reading from a Pulitzer-winning nonprofit, a public broadcaster, or an independent commentator
+→ Mainstream Pulse — what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with today, side by side, so you can see the full spectrum in ten seconds.
 
-All of it in 5 minutes. No spin. No outrage bait. Just what happened, who it affects, and why it matters to your life.
+→ Every source labeled by credibility tier — from Pulitzer-winning nonprofits like ProPublica to public broadcasters like DW News to independent commentators. You always know who's behind what you're reading.
 
-Here's what's live right now:
-${SITE_URL}/?view=clips&${UTM}
+All of it in 5 minutes. No spin. No outrage. Just what happened, who it affects, and why it matters to your life.
+
+Read today's stories:
+${SITE_URL}/?${UTM}
 
 Your first daily briefing arrives tomorrow morning.
 
 — Top News Clips
 Independent News. No Agenda.
 
-P.S. Every source on the site is classified using our 10-tier Source Credibility Taxonomy — so you never have to wonder who's behind what you're reading. See how it works: ${SITE_URL}/taxonomy?${UTM}
+P.S. Curious how we classify our sources? We publish a 10-tier Source Credibility Taxonomy so you never have to guess. See how it works: ${SITE_URL}/taxonomy?${UTM}
 
 ---
 Unsubscribe: ${unsubscribeLink(email)}`
 }
 
-// ─── Email 2: The two signals (day 2) ────────────────────────────────────────
+// ─── Email 2: How to read your briefing (day 2) ──────────────────────────────
 
 function email2Html(email: string) {
   return wrap(`
-    ${p("You'll notice two badges on some stories. Here's what they mean.")}
-    ${p("<strong>Limited Coverage</strong> — the story is verified and newsworthy, but fewer than 3 of the 15 major US outlets we monitor had covered it at the time of publication. Real event. Corporate media just isn't on it yet — or isn't going to be.")}
-    ${p("<strong>Global Blindspot</strong> — an international story that the rest of the world considers major news, but US outlets have largely skipped. Not because it isn't significant. Because it doesn't fit the domestic news cycle.")}
-    ${p("Neither badge is a conspiracy claim. Both are a coverage measurement. You decide what to make of it.")}
-    ${cta("Read this morning's briefing →", `${SITE_URL}/?view=clips&${UTM}`)}
-    ${p('Browse stories with the Limited Coverage badge: <a href="' + SITE_URL + '/stories?category=all&' + UTM + '" style="color:#0e7490;">See Limited Coverage stories →</a>')}
+    ${p("Quick guide to reading Top News Clips — takes 60 seconds.")}
+    ${p("<strong>Source tier badges</strong> tell you who produced the story and what kind of outlet they are. A story from ProPublica carries a \"Nonprofit Investigative\" badge. A story from DW News carries \"Public Broadcaster.\" A story from Johnny Harris carries \"Independent Commentary.\" You're never guessing where the information comes from.")}
+    ${p("<strong>Limited Coverage</strong> means the story is verified and newsworthy, but fewer than 3 of the 15 major US outlets we monitor had covered it at publication time. You'll often see the exact count — \"0 of 15 outlets\" or \"2 of 15 outlets.\" This isn't a conspiracy claim. It's a coverage measurement. You decide what to make of it.")}
+    ${p("<strong>Global Blindspot</strong> means the rest of the world considers this story significant, but US media has largely skipped it. Not because it isn't important — because it doesn't fit the domestic news cycle.")}
+    ${p("<strong>Global Lens</strong> shows you how international journalists are framing the same stories US outlets are covering. Same event, different perspective. This is where you see what one country's media can't show you.")}
+    ${p("<strong>Mainstream Pulse</strong> shows you what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with — left to right, side by side. Ten seconds to see the full mainstream spectrum.")}
+    ${p("That's it. Now you know how to read every section.")}
+    ${cta("Read this morning's briefing →", `${SITE_URL}/?${UTM}`)}
+    <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
   `, email)
 }
 
 function email2Text(email: string) {
-  return `You'll notice two badges on some stories. Here's what they mean.
+  return `Quick guide to reading Top News Clips — takes 60 seconds.
 
-Limited Coverage — the story is verified and newsworthy, but fewer than 3 of the 15 major US outlets we monitor had covered it at the time of publication. Real event. Corporate media just isn't on it yet — or isn't going to be.
+Source tier badges tell you who produced the story and what kind of outlet they are. A story from ProPublica carries a "Nonprofit Investigative" badge. A story from DW News carries "Public Broadcaster." A story from Johnny Harris carries "Independent Commentary." You're never guessing where the information comes from.
 
-Global Blindspot — an international story that the rest of the world considers major news, but US outlets have largely skipped. Not because it isn't significant. Because it doesn't fit the domestic news cycle.
+Limited Coverage means the story is verified and newsworthy, but fewer than 3 of the 15 major US outlets we monitor had covered it at publication time. You'll often see the exact count — "0 of 15 outlets" or "2 of 15 outlets." This isn't a conspiracy claim. It's a coverage measurement. You decide what to make of it.
 
-Neither badge is a conspiracy claim. Both are a coverage measurement. You decide what to make of it.
+Global Blindspot means the rest of the world considers this story significant, but US media has largely skipped it. Not because it isn't important — because it doesn't fit the domestic news cycle.
+
+Global Lens shows you how international journalists are framing the same stories US outlets are covering. Same event, different perspective. This is where you see what one country's media can't show you.
+
+Mainstream Pulse shows you what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with — left to right, side by side. Ten seconds to see the full mainstream spectrum.
+
+That's it. Now you know how to read every section.
 
 Read this morning's briefing:
-${SITE_URL_UTM}
+${SITE_URL}/?${UTM}
+
+— Top News Clips
+Independent News. No Agenda.
 
 ---
 Unsubscribe: ${unsubscribeLink(email)}`
 }
 
-// ─── Email 2.5: Habit reinforcement (day 4) ──────────────────────────────────
+// ─── Email 2.5: Four days in (day 4) ─────────────────────────────────────────
 
 function email25Html(email: string) {
   return wrap(`
-    ${p("Four days of briefings. Here's what that means in practice.")}
-    ${p("You've seen stories this week that didn't make the evening news — bodycam footage that went viral without cable coverage, international events US outlets skipped entirely, independent journalists reporting on things major newsrooms aren't touching.")}
-    ${p("That's every day. The pipeline runs overnight. By morning, the stories are curated, verified, and waiting.")}
-    ${p("Most people get their news from whatever their feed surfaces. You're now getting a second layer — the one the algorithm doesn't show you.")}
-    ${cta("This morning's stories →", `${SITE_URL}/?view=clips&${UTM}`)}
+    ${p("Four days in. Here's what just happened.")}
+    ${p("This week your briefing included stories from ProPublica, Bellingcat, Al Jazeera, DW News, The Intercept, Drop Site News, the Associated Press, and a dozen independent journalists — all labeled by credibility tier so you knew exactly what you were reading.")}
+    ${p("You saw what NPR, the New York Times, AP, Reuters, the Wall Street Journal, and Fox News were each leading with — side by side — and then you saw what none of them were covering.")}
+    ${p("You read stories flagged \"0 of 15 outlets\" that later showed up in mainstream coverage days later. You saw international events through the eyes of journalists in Doha, Seoul, Berlin, and Nairobi — perspectives that never made it into a US broadcast.")}
+    ${p("That's every day. Here's what that actually involves. Overnight, the pipeline pulls from hundreds of RSS feeds and two dozen YouTube channels, deduplicates ~300 candidates, and runs each one through a pre-filter that quietly rejects LIVE streams, gaming videos, Cyrillic-only text, broadcast segments that are just an anchor reading bullet points, and anything a Brazilian tabloid would be proud of. What survives gets sent to an AI that checks whether it's a genuine news story or a press release wearing a trench coat — estimating how many of the 15 major newsrooms covered it, assigning a credibility tier from Tier 1 wire services down to independent commentary, and flagging the ones that look important but that nobody seems to be touching yet. Stories clustering around the same incident get capped so one slow news day at the State Department doesn't colonize the entire briefing. Everything that clears all of that goes to a second, more expensive AI, which reads the survivors and actually writes what you got this morning — deciding what belongs in Need To Know versus In The Know, synthesizing the international perspectives into a coherent global picture, and determining what counts as genuinely overlooked versus just unpopular. Then it gets reviewed, filtered one more time for noise that slipped through, and published. By morning, it's waiting. No algorithm optimizing for your outrage. No editor deciding what plays well in an election year. Just the pipeline, doing its thing.")}
+    ${p("Most people get their news from whatever the algorithm surfaces. You're now getting the layer underneath — the one built for citizens who want the full picture, not the profitable picture.")}
+    ${cta("This morning's briefing →", `${SITE_URL}/?${UTM}`)}
+    <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
   `, email)
 }
 
 function email25Text(email: string) {
-  return `Four days of briefings. Here's what that means in practice.
+  return `Four days in. Here's what just happened.
 
-You've seen stories this week that didn't make the evening news — bodycam footage that went viral without cable coverage, international events US outlets skipped entirely, independent journalists reporting on things major newsrooms aren't touching.
+This week your briefing included stories from ProPublica, Bellingcat, Al Jazeera, DW News, The Intercept, Drop Site News, the Associated Press, and a dozen independent journalists — all labeled by credibility tier so you knew exactly what you were reading.
 
-That's every day. The pipeline runs overnight. By morning, the stories are curated, verified, and waiting.
+You saw what NPR, the New York Times, AP, Reuters, the Wall Street Journal, and Fox News were each leading with — side by side — and then you saw what none of them were covering.
 
-Most people get their news from whatever their feed surfaces. You're now getting a second layer — the one the algorithm doesn't show you.
+You read stories flagged "0 of 15 outlets" that later showed up in mainstream coverage days later. You saw international events through the eyes of journalists in Doha, Seoul, Berlin, and Nairobi — perspectives that never made it into a US broadcast.
 
-This morning's stories:
-${SITE_URL}/?view=clips&${UTM}
+That's every day. Here's what that actually involves. Overnight, the pipeline pulls from hundreds of RSS feeds and two dozen YouTube channels, deduplicates ~300 candidates, and runs each one through a pre-filter that quietly rejects LIVE streams, gaming videos, Cyrillic-only text, broadcast segments that are just an anchor reading bullet points, and anything a Brazilian tabloid would be proud of. What survives gets sent to an AI that checks whether it's a genuine news story or a press release wearing a trench coat — estimating how many of the 15 major newsrooms covered it, assigning a credibility tier from Tier 1 wire services down to independent commentary, and flagging the ones that look important but that nobody seems to be touching yet. Stories clustering around the same incident get capped so one slow news day at the State Department doesn't colonize the entire briefing. Everything that clears all of that goes to a second, more expensive AI, which reads the survivors and actually writes what you got this morning — deciding what belongs in Need To Know versus In The Know, synthesizing the international perspectives into a coherent global picture, and determining what counts as genuinely overlooked versus just unpopular. Then it gets reviewed, filtered one more time for noise that slipped through, and published. By morning, it's waiting. No algorithm optimizing for your outrage. No editor deciding what plays well in an election year. Just the pipeline, doing its thing.
+
+Most people get their news from whatever the algorithm surfaces. You're now getting the layer underneath — the one built for citizens who want the full picture, not the profitable picture.
+
+This morning's briefing:
+${SITE_URL}/?${UTM}
+
+— Top News Clips
+Independent News. No Agenda.
 
 ---
 Unsubscribe: ${unsubscribeLink(email)}`
 }
 
-// ─── Email 3: Refer a friend (day 14) ────────────────────────────────────────
+// ─── Email 3: One ask (day 5) ─────────────────────────────────────────────────
 
 function referralUrl(referralCode: string) {
   return `${SITE_URL}?ref=${referralCode}&utm_source=email&utm_medium=referral&utm_campaign=email3`
@@ -176,41 +200,49 @@ function referralUrl(referralCode: string) {
 
 function email3Html(email: string, referralCode: string) {
   const refUrl = referralUrl(referralCode)
-  const dashboardUrl = `${SITE_URL}/referrals?code=${referralCode}`
   const tweetText = encodeURIComponent(`I've been reading TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that actually keeps you informed.\n\n${refUrl}`)
   return wrap(`
-    ${p("Two weeks in. You've now seen stories that didn't make the evening news — consistently, every morning.")}
-    ${p("That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.")}
-    ${p("If it's been worth your morning minute, the most valuable thing you can do is send it to one person who'd want the same thing. They get it free. You help build something independent.")}
-    <div style="margin:24px 0;padding:20px;background:#f0fdfc;border:1px solid #99f6e4;border-radius:8px;">
-      <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#0e7490;letter-spacing:0.08em;text-transform:uppercase;">Your personal referral link</p>
-      <p style="margin:0 0 16px;font-size:14px;color:#374151;word-break:break-all;">${refUrl}</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a href="https://twitter.com/intent/tweet?text=${tweetText}" style="display:inline-block;background:#000000;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Share on X</a>
-        <a href="https://wa.me/?text=${encodeURIComponent(`Stories mainstream media isn't covering — free daily briefing:\n${refUrl}`)}" style="display:inline-block;background:#25d366;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Share on WhatsApp</a>
-      </div>
+    ${p("Five days in.")}
+    ${p("By now you've probably had at least one moment this week where you read something and thought: \"How did I not know about this?\"")}
+    ${p("That's the gap this exists to close.")}
+    ${p("TopNewsClips is independently operated and funded by its founder. No investors. No advertisers. No institutional backing. Revenue comes from voluntary subscriptions. That's it. No one is paying us to cover — or not cover — any story.")}
+    ${p("That means growth comes from one place: people like you telling one other person.")}
+    ${p("If this week's briefings have been worth your morning five minutes, the single most valuable thing you can do is send TopNewsClips to someone who'd want the same thing. A friend. A group chat. A colleague who's tired of the algorithm.")}
+    ${p("They get it free. You help build something that doesn't exist anywhere else — a daily briefing where every source is labeled, every blind spot is surfaced, and no one's selling you outrage.")}
+    <div style="margin:24px 0;display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="https://twitter.com/intent/tweet?text=${tweetText}" style="display:inline-block;background:#000000;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Share on X →</a>
+      <a href="${refUrl}" style="display:inline-block;background:#0e7490;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Send them the link →</a>
     </div>
-    ${p(`Track how many people you've referred: <a href="${dashboardUrl}" style="color:#0e7490;font-weight:600;">View your referral dashboard →</a>`)}
     ${p("That's it. See you tomorrow morning.")}
+    <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
   `, email)
 }
 
 function email3Text(email: string, referralCode: string) {
   const refUrl = referralUrl(referralCode)
-  const dashboardUrl = `${SITE_URL}/referrals?code=${referralCode}`
-  return `Two weeks in. You've now seen stories that didn't make the evening news — consistently, every morning.
+  const tweetText = encodeURIComponent(`I've been reading TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that actually keeps you informed.\n\n${refUrl}`)
+  return `Five days in.
 
-That's not an accident — it's the point. TopNewsClips surfaces what mainstream media underreports, what the world is watching that US outlets ignore, and packages it so you're done in 5 minutes.
+By now you've probably had at least one moment this week where you read something and thought: "How did I not know about this?"
 
-If it's been worth your morning minute, send it to one person who'd want the same thing. They get it free.
+That's the gap this exists to close.
 
-Your personal referral link:
-${refUrl}
+TopNewsClips is independently operated and funded by its founder. No investors. No advertisers. No institutional backing. Revenue comes from voluntary subscriptions. That's it. No one is paying us to cover — or not cover — any story.
 
-Track how many people you've referred:
-${dashboardUrl}
+That means growth comes from one place: people like you telling one other person.
+
+If this week's briefings have been worth your morning five minutes, the single most valuable thing you can do is send TopNewsClips to someone who'd want the same thing. A friend. A group chat. A colleague who's tired of the algorithm.
+
+They get it free. You help build something that doesn't exist anywhere else — a daily briefing where every source is labeled, every blind spot is surfaced, and no one's selling you outrage.
+
+Share on X: https://twitter.com/intent/tweet?text=${tweetText}
+
+Send them the link: ${refUrl}
 
 That's it. See you tomorrow morning.
+
+— Top News Clips
+Independent News. No Agenda.
 
 ---
 Unsubscribe: ${unsubscribeLink(email)}`
@@ -231,13 +263,13 @@ export async function sendWelcomeSequence(email: string, referralCode: string): 
 
   const day2  = new Date(Date.now() +  2 * 24 * 60 * 60 * 1000).toISOString()
   const day4  = new Date(Date.now() +  4 * 24 * 60 * 60 * 1000).toISOString()
-  const day14 = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+  const day5  = new Date(Date.now() +  5 * 24 * 60 * 60 * 1000).toISOString()
 
   await Promise.allSettled([
     resend.emails.send({
       from: FROM,
       to: email,
-      subject: "You're in. Here's today's briefing.",
+      subject: "You're in — here's what changes tomorrow morning",
       html: email1Html(email),
       text: email1Text(email),
       headers: unsubHeaders,
@@ -245,7 +277,7 @@ export async function sendWelcomeSequence(email: string, referralCode: string): 
     resend.emails.send({
       from: FROM,
       to: email,
-      subject: 'Two badges, two signals — here\'s what they mean',
+      subject: '60 seconds: how to read your briefing',
       html: email2Html(email),
       text: email2Text(email),
       headers: unsubHeaders,
@@ -254,7 +286,7 @@ export async function sendWelcomeSequence(email: string, referralCode: string): 
     resend.emails.send({
       from: FROM,
       to: email,
-      subject: "Four days in — here's what you've been getting",
+      subject: "Four days of briefings. Here's what that looks like.",
       html: email25Html(email),
       text: email25Text(email),
       headers: unsubHeaders,
@@ -263,11 +295,11 @@ export async function sendWelcomeSequence(email: string, referralCode: string): 
     resend.emails.send({
       from: FROM,
       to: email,
-      subject: "Know someone who'd want this?",
+      subject: 'One ask after five days',
       html: email3Html(email, referralCode),
       text: email3Text(email, referralCode),
       headers: unsubHeaders,
-      scheduledAt: day14,
+      scheduledAt: day5,
     }),
   ])
 }

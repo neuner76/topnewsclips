@@ -372,7 +372,7 @@ HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
 - Only add "howWorldSeesIt" if the international story is unambiguously about the same topic — not loosely related, not analogous, not thematically similar. The slug must point to a story actually covering the same subject.
 - If 1-3 direct matches exist, add a "howWorldSeesIt" array to that NeedToKnow item
 - Each entry: { "region": "...", "slug": "...", "summary": "..." }
-- "region" = the specific outlet name (e.g. "Al Jazeera", "BBC Arabic", "DW", "France 24", "ABC Australia", "TRT World", "CGTN") — NOT a geographic label like "Middle East" or "Europe". Use the source field from the input story to determine the outlet name.
+- "region" MUST be the specific outlet name from the input's "source" field (e.g. "Al Jazeera", "DW", "France 24", "TRT World", "ABC Australia") — NEVER a geographic label like "Middle East", "Europe", or "Australia". Extract the outlet name from the source field: "YouTube/DW News" → "DW News", "YouTube/Al Jazeera English" → "Al Jazeera".
 - "summary" = one sentence describing how that outlet frames the story differently than the US angle
 - If no DIRECT topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array, do NOT force a connection
 - Never reuse a slug already used in globalBlindspots
@@ -382,7 +382,7 @@ GLOBAL LENS (only if INTERNATIONAL PERSPECTIVES are provided):
 - These are international outlets covering stories that overlap with today's US news — showing how the same events look from abroad
 - Each entry: { "region": "...", "slug": "...", "title": "...", "summary": "..." }
 - Use the slug, region, and title fields from the input exactly as-is
-- "region" = the specific outlet name (e.g. "Al Jazeera", "DW", "France 24") — NOT a geographic label
+- "region" MUST be the specific outlet name from the input's "source" field (e.g. "Al Jazeera", "DW", "France 24", "TRT World", "ABC Australia"). NEVER use a geographic label like "Europe", "Middle East", "Australia" — always use the outlet name. If the source is "YouTube/DW News", write "DW News". If "YouTube/Al Jazeera English", write "Al Jazeera".
 - "summary" = one sentence describing the international angle and why it adds perspective for American readers
 - If fewer than 3 unused international stories exist, omit "globalLens" entirely
 - Never reuse a slug already used in globalBlindspots or howWorldSeesIt
@@ -532,7 +532,8 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   content.etcetera = content.etcetera.filter(item => {
     const etc = typeof item === 'string' ? { text: item, slug: null } : item
-    if (!etc.slug) return true
+    // Drop slugless Etcetera items — Claude uses these for meta-commentary rather than real facts
+    if (!etc.slug) return false
     if (usedSlugs.has(etc.slug)) return false
     usedSlugs.add(etc.slug)
     return true
@@ -543,7 +544,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const ETCETERA_MIN_VIEWS = 1000  // don't pad with zero-traction stories
 
   // Truncate to last complete sentence within a character limit
-  function toEtceteraText(desc: string, limit = 200): string {
+  function toEtceteraText(desc: string, limit = 280): string {
     if (desc.length <= limit) return desc
     const truncated = desc.slice(0, limit)
     // Find last sentence boundary (. ! ?) before the limit
