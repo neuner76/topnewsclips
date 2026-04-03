@@ -529,12 +529,12 @@ export default async function HomePage({
         {/* Masthead */}
         <div className="mb-6">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-            Today&apos;s Top Clips
+            Top News Clips
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            What mainstream media misses. What the world is watching. In 5 minutes.
+            The full picture, not the profitable picture.
           </p>
-          <p className="text-xs text-muted-foreground mt-3">Free daily briefing — 5 minutes, no spin.</p>
+          <p className="text-xs text-muted-foreground mt-3">A daily briefing where every source is labeled, every blind spot is surfaced, and no one&apos;s selling you outrage. Free.</p>
           <EmailCaptureInline />
         </div>
 

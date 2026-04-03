@@ -7,179 +7,161 @@ export const revalidate = 3600
 
 export const metadata = {
   title: 'About Top News Clips — Independent News. No Agenda.',
-  description: 'Top News Clips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers. Daily briefing for non-partisan Americans who want facts, not spin.',
+  description: 'Top News Clips is an independent daily news briefing founded by Eric Neuner — built for Americans who want to understand what\'s actually happening, not just what the algorithm wants them to see.',
   alternates: { canonical: 'https://www.topnewsclips.com/about' },
   openGraph: {
     title: 'About Top News Clips — Independent News. No Agenda.',
-    description: 'Top News Clips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers.',
+    description: 'Top News Clips surfaces verified stories mainstream media is underreporting, shows how the rest of the world covers today\'s events, and labels every source by credibility tier.',
     url: 'https://www.topnewsclips.com/about',
   },
   twitter: {
     card: 'summary',
     title: 'About Top News Clips — Independent News. No Agenda.',
-    description: 'Top News Clips surfaces independent journalism, bodycam footage, and stories mainstream media undercovers.',
+    description: 'Top News Clips surfaces verified stories mainstream media is underreporting, shows how the rest of the world covers today\'s events, and labels every source by credibility tier.',
     site: '@topnewsclips',
   },
-}
-
-const FAQ = [
-  {
-    q: 'What is TopNewsClips?',
-    a: 'TopNewsClips is a daily news briefing that surfaces independent journalism, bodycam footage, and viral stories that mainstream US media undercovers. It is designed for non-partisan Americans who want factual reporting without a political agenda.',
-  },
-  {
-    q: 'What does "Limited Coverage" mean?',
-    a: 'A Limited Coverage badge means fewer than 3 of the 15 major US news outlets we monitor (NYT, WaPo, CNN, BBC, AP, Reuters, Fox, NBC, ABC, CBS, WSJ, Politico, The Hill, USA Today) have covered this story at the time of publication. It signals the story is receiving little mainstream attention — not that it is unverified.',
-  },
-  {
-    q: 'What is a Global Blindspot?',
-    a: 'A Global Blindspot is an international news story — a protest, political crisis, natural disaster, or major event outside the US — that the rest of the world is covering but US mainstream media is ignoring. TopNewsClips surfaces these via its Global Lens feature.',
-  },
-  {
-    q: 'How does TopNewsClips verify stories?',
-    a: 'Every story goes through an automated verification pipeline. It cross-references mainstream media coverage to confirm the event is real, checks for AI-generated content risk, and assigns a confidence score. Stories covered by fewer than 3 of our 15 monitored outlets receive a Limited Coverage badge.',
-  },
-  {
-    q: 'Is TopNewsClips biased?',
-    a: 'TopNewsClips does not take a political side. Stories are rejected if they only resonate with one partisan tribe. The editorial standard is: corporate corruption, government overreach, institutional failure, and police accountability are American issues — not left or right issues.',
-  },
-  {
-    q: 'What types of content does TopNewsClips publish?',
-    a: 'Every story carries a Source Credibility badge — a 10-tier classification so readers can evaluate the source, not just the headline. Tier 1 is Nonprofit Investigative (ProPublica, Marshall Project), Tier 3 is Public Broadcaster (DW, Al Jazeera, PBS), Tier 7 is Independent Commentary (analysts and explainers), down to Tier 10 Community Sourced (Reddit footage). Stories are also labeled by content type: Footage (bodycam, dashcam, bystander video), Investigation (reported journalism from known journalists), Report (wire, press, institutional), or Commentary (analysis, explainers, opinion). See the full taxonomy at topnewsclips.com/taxonomy.',
-  },
-]
-
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: FAQ.map(({ q, a }) => ({
-    '@type': 'Question',
-    name: q,
-    acceptedAnswer: { '@type': 'Answer', text: a },
-  })),
 }
 
 export default function AboutPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
 
         <div className="mb-10 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">About</h1>
           <p className="text-sm text-muted-foreground">
-            What mainstream media misses. What the world is watching. In 5 minutes.
+            The full picture, not the profitable picture.
           </p>
         </div>
 
-        <div className="prose prose-sm max-w-none space-y-8 text-[15px] leading-relaxed">
+        <div className="prose prose-sm max-w-none space-y-10 text-[15px] leading-relaxed">
 
+          {/* About Top News Clips */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">What we do</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3">About Top News Clips</h2>
             <p>
-              TopNewsClips is a daily briefing that keeps Americans genuinely informed — without
-              the noise, the outrage bait, or the partisan frame. We do four things:
-            </p>
-            <ul className="mt-4 space-y-4 list-none pl-0">
-              {[
-                { label: 'Surface what mainstream media is underreporting', body: 'Credible, verified stories that fewer than 3 of the 15 major US outlets are covering. Real events. Just not getting airtime.' },
-                { label: 'Cover what the world is watching that US media ignores', body: 'International protests, crises, and events the rest of the world considers major news — and US outlets have skipped.' },
-                { label: 'Show how the world frames today\'s biggest stories', body: 'The same story looks different from Seoul, London, or Lagos. We surface those perspectives so you understand the full picture.' },
-                { label: 'Make the news digestible so you can get on with your day', body: 'One daily briefing. Verified. Curated. You read it in 5 minutes and you\'re done — informed, not anxious.' },
-              ].map(({ label, body }, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="text-[oklch(0.52_0.14_196)] shrink-0 font-black text-lg leading-snug">{i + 1}.</span>
-                  <div>
-                    <p className="font-semibold">{label}</p>
-                    <p className="text-muted-foreground text-sm mt-0.5">{body}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">Our editorial standard</h2>
-            <p>
-              If a story only resonates with one side, it probably doesn&apos;t belong here. We curate
-              for the citizen who wants to understand what&apos;s actually happening — not for the
-              partisan who wants confirmation of what they already believe.
+              Top News Clips is an independent daily news briefing founded by Eric Neuner.
             </p>
             <p className="mt-3">
-              Corporate corruption, government overreach, institutional failure, scientific breakthroughs,
-              police accountability — these aren&apos;t left issues or right issues. They&apos;re
-              American issues. That&apos;s the lens we apply.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">How verification works</h2>
-            <p>
-              Every piece of content goes through an automated verification pipeline before it goes live.
-              We cross-reference mainstream media coverage to confirm events are real, filter out
-              entertainment and foreign news, and flag stories with an{' '}
-              <span className="font-semibold">Limited Coverage</span> badge when fewer than 3 of the
-              15 major outlets we monitor have covered a story — meaning it&apos;s receiving little mainstream attention.
+              It was built for people who want to understand what&apos;s actually happening in the world —
+              not just what fits the American news cycle, what generates clicks, or what keeps you scrolling.
             </p>
             <p className="mt-3">
-              We&apos;re not perfect. If you see something that shouldn&apos;t be here, or something
-              important we&apos;re missing, reach out.
+              We believe most Americans aren&apos;t suffering from an information shortage. They&apos;re
+              suffering from an incomplete picture — filtered through business models that prioritize engagement
+              over understanding, and limited to the roughly 5% of global news that US media chooses to cover.
+            </p>
+            <p className="mt-3">So we built something different.</p>
+            <p className="mt-3">
+              Every morning, Top News Clips delivers a briefing that includes stories mainstream outlets are
+              underreporting, international events the rest of the world considers urgent, how journalists in
+              other countries frame the same events, and a side-by-side view of what the full spectrum of US
+              media is leading with — all with every source labeled by a published credibility tier.
+            </p>
+            <p className="mt-3">
+              Our goal: help people get the full picture in 5 minutes — then get on with their day.
             </p>
           </section>
 
+          {/* About Eric Neuner */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">The daily digest</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3">About Eric Neuner</h2>
             <p>
-              Each morning we publish a briefing from the day&apos;s best stories — written the way
-              a smart, non-partisan friend would explain the news: what happened, who it affects,
-              and why it matters to your life. No spin. No outrage. Just facts and context.
+              Eric Neuner is the founder of Top News Clips.
+            </p>
+            <p className="mt-3">
+              Eric is an entrepreneur, builder, and systems thinker based in Marin County, California.
+              Much of his work has centered on helping people cut through noise, focus on what matters,
+              and build things that are useful and life-giving.
+            </p>
+            <p className="mt-3">
+              Top News Clips reflects those same values. It was not built to maximize outrage or trap
+              readers in an engagement loop. It was built because Eric wanted a daily briefing that showed
+              him the full picture — and when he couldn&apos;t find one, he built it.
+            </p>
+            <p className="mt-3">
+              The site is independently operated and self-funded. There are no investors, no advertisers,
+              and no institutional backers.
+            </p>
+          </section>
+
+          {/* How it works */}
+          <section>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3">How it works</h2>
+            <p>
+              Every morning, the pipeline pulls from 50+ sources across 10 credibility tiers, filters
+              noise, classifies every source, checks coverage against 15 mainstream outlets,
+              pressure-tests stories with multiple AI models, and assembles a briefing with visible
+              source labels and coverage counts.
             </p>
             <Link
-              href="/"
+              href="/how-it-works"
               className="inline-block mt-3 text-sm font-semibold text-[oklch(0.52_0.14_196)] hover:underline"
             >
-              Read today&apos;s digest →
+              See the full process →
             </Link>
           </section>
 
+          {/* Editorial standard */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">How we&apos;re funded</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3">Editorial standard</h2>
             <p>
-              TopNewsClips is independently operated and funded by its founder. We have no investors,
-              no advertisers, and no institutional backing. Revenue comes from voluntary email subscriptions.
-              That&apos;s it. No one is paying us to cover — or not cover — any story.
+              If a story only resonates with one side, it probably doesn&apos;t belong here. We curate
+              for the citizen who wants to understand what&apos;s actually happening — not for the partisan
+              who wants confirmation of what they already believe.
+            </p>
+            <p className="mt-3">
+              Corporate corruption, government overreach, police accountability — these aren&apos;t left
+              issues or right issues. They&apos;re American issues. That&apos;s the lens we apply.
             </p>
           </section>
 
+          {/* Funding */}
+          <section>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3">How we&apos;re funded</h2>
+            <p>
+              Top News Clips is independently operated and funded by its founder. No investors.
+              No advertisers. No institutional backing. Revenue comes from voluntary subscriptions.
+              No one is paying us to cover — or not cover — any story.
+            </p>
+          </section>
+
+          {/* Corrections */}
           <section>
             <h2 className="text-lg font-black tracking-tight uppercase mb-3">Corrections</h2>
             <p>
               We&apos;re not perfect. If a story is mislabeled, a summary overstates the source material,
-              or a tier badge is wrong, we want to know. Email us at{' '}
-              <Link href="/contact" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
-                the contact page
-              </Link>{' '}
-              with the story URL and the specific issue. Confirmed corrections are applied within 24 hours.
-              We don&apos;t memory-hole mistakes — if a summary was editorially out of bounds, we&apos;ll
-              note it was updated.
+              or a tier badge is wrong, we want to know. Trust is not built by pretending nothing ever goes
+              wrong — it&apos;s built by being reachable, responsive, and willing to get better in public.
             </p>
+            <Link
+              href="/corrections"
+              className="inline-block mt-3 text-sm font-semibold text-[oklch(0.52_0.14_196)] hover:underline"
+            >
+              Submit a correction →
+            </Link>
           </section>
 
-          {/* FAQ — structured for AI extraction */}
-          <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-6">Frequently asked questions</h2>
-            <dl className="space-y-6">
-              {FAQ.map(({ q, a }) => (
-                <div key={q} className="border-b border-border pb-6 last:border-0 last:pb-0">
-                  <dt className="font-bold text-[15px] mb-2">{q}</dt>
-                  <dd className="text-muted-foreground leading-relaxed">{a}</dd>
-                </div>
+          {/* Further reading */}
+          <section className="border-t border-border pt-8">
+            <h2 className="text-lg font-black tracking-tight uppercase mb-4">Further reading</h2>
+            <ul className="space-y-3 text-sm">
+              {[
+                { href: '/how-it-works', label: 'How It Works', desc: 'The full 7-step pipeline process' },
+                { href: '/trust', label: 'Why Trust This', desc: 'What earns trust — and what we don\'t claim' },
+                { href: '/faq', label: 'FAQ', desc: 'Common questions answered' },
+                { href: '/taxonomy', label: 'Source Taxonomy', desc: 'How we classify every source in 10 tiers' },
+                { href: '/corrections', label: 'Corrections', desc: 'How to report an error' },
+              ].map(({ href, label, desc }) => (
+                <li key={href} className="flex gap-3 items-baseline">
+                  <Link href={href} className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline shrink-0">
+                    {label}
+                  </Link>
+                  <span className="text-muted-foreground">— {desc}</span>
+                </li>
               ))}
-            </dl>
+            </ul>
           </section>
 
         </div>

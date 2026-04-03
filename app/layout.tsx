@@ -20,7 +20,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'Top News Clips — Independent News. No Agenda.',
   description:
-    'Independent news clips and journalism mainstream media undercovers. Bodycam footage, investigative reporting, and global stories — unfiltered.',
+    'A daily news briefing founded by Eric Neuner — surfaces verified stories mainstream media underreports, shows how the world covers today\'s events, and labels every source by credibility tier.',
   metadataBase: new URL('https://www.topnewsclips.com'),
   alternates: {
     canonical: 'https://www.topnewsclips.com',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Top News Clips — Independent News. No Agenda.',
-    description: 'Independent news clips mainstream media undercovers.',
+    description: 'The full picture, not the profitable picture. Daily briefing where every source is labeled and every blind spot is surfaced.',
     url: 'https://www.topnewsclips.com',
     siteName: 'Top News Clips',
     type: 'website',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Top News Clips — Independent News. No Agenda.',
-    description: 'Independent news clips mainstream media undercovers.',
+    description: 'The full picture, not the profitable picture. Daily briefing where every source is labeled and every blind spot is surfaced.',
     site: '@topnewsclips',
   },
   verification: {
@@ -51,7 +51,7 @@ const websiteJsonLd = {
   '@type': 'WebSite',
   name: 'Top News Clips',
   url: 'https://www.topnewsclips.com',
-  description: 'Independent news clips and journalism mainstream media undercovers.',
+  description: 'A daily news briefing that surfaces verified stories mainstream media underreports and labels every source by credibility tier.',
   potentialAction: {
     '@type': 'SearchAction',
     target: {

@@ -8,7 +8,7 @@ export default function Footer() {
           <div>
             <p className="font-bold text-sm tracking-tight">TOP NEWS CLIPS</p>
             <p className="text-xs text-muted-foreground mt-1">
-              What mainstream media misses. What the world is watching. In 5 minutes.
+              The full picture, not the profitable picture.
             </p>
           </div>
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
@@ -21,8 +21,20 @@ export default function Footer() {
             <Link href="/about" className="hover:text-foreground transition-colors">
               About
             </Link>
+            <Link href="/how-it-works" className="hover:text-foreground transition-colors">
+              How It Works
+            </Link>
+            <Link href="/trust" className="hover:text-foreground transition-colors">
+              Trust
+            </Link>
+            <Link href="/faq" className="hover:text-foreground transition-colors">
+              FAQ
+            </Link>
             <Link href="/taxonomy" className="hover:text-foreground transition-colors">
               Sources
+            </Link>
+            <Link href="/corrections" className="hover:text-foreground transition-colors">
+              Corrections
             </Link>
             <Link href="/contact" className="hover:text-foreground transition-colors">
               Contact
