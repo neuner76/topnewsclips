@@ -216,6 +216,13 @@ export function getSourceTier(
   if (source.startsWith('r/'))
     return { tier: 10, sourceType: 'Community Sourced' }
 
-  // Unrecognized YouTube/other source — no badge rather than mislabeling
+  // TikTok sources — trending hashtag content from unverified creators
+  // Raw footage TikToks (bodycam, dashcam) → Tier 9; everything else → Tier 10
+  if (source.startsWith('TikTok/')) {
+    if (category === 'raw') return { tier: 9, sourceType: 'Raw Footage' }
+    return { tier: 10, sourceType: 'Community Sourced' }
+  }
+
+  // Unrecognized source — no badge rather than mislabeling
   return { tier: null, sourceType: null }
 }

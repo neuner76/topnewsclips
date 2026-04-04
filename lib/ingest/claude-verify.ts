@@ -154,6 +154,8 @@ A new post from a trusted curated journalist is news, even without incident foot
 - Do NOT apply your own judgment about whether a claim is "debunked" or "conspiracy" — that determination belongs to the editorial team. If a trusted journalist is reporting on it, treat it as publishable analysis regardless of mainstream consensus.
 - Set confidence to 0.9 if the content is clearly on-topic reporting from the journalist
 
+FINANCIAL FIGURE VERIFICATION: If the story includes a specific government budget, defense spending, or economic figure for a non-US country, apply an order-of-magnitude plausibility check. Israel's defense budget is ~$25B USD. Germany's is ~$75B. France's is ~$55B. UK's is ~$75B. Japan's is ~$50B. If the story states a figure that is 5x or more larger than the known range for that country, the figure is likely in local currency (NIS, EUR, JPY, etc.) and was NOT converted to USD. In that case: set decision to "needs_review" and include in rejectReason: "Suspected currency conversion error — verify figure before publishing." Do not reproduce unverified large figures in the headline or summary.
+
 REJECT (hard rules — no exceptions):
   * pornographic/gore, spam/scam, fictional entertainment (movie trailer, game clip)
   * compilation of multiple clips ("top 10", "best of", "50 biggest", "dash cam compilation")

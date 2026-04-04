@@ -19,7 +19,18 @@ const TIER_STYLES: Record<number, string> = {
 }
 
 export default function SourceTypeBadge({ tier, sourceType }: SourceTypeBadgeProps) {
-  if (!tier || !sourceType) return null
+  if (!tier || !sourceType) {
+    // Show an unclassified badge so readers always know something about the source's status
+    return (
+      <Link
+        href="/taxonomy"
+        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide border transition-opacity hover:opacity-80 text-muted-foreground/60 bg-muted border-border"
+        title="Source not yet classified — click to learn about our taxonomy"
+      >
+        Unclassified
+      </Link>
+    )
+  }
 
   const style = TIER_STYLES[tier] ?? TIER_STYLES[10]
   const label = tier === 8 ? `⚠ ${sourceType}` : sourceType
