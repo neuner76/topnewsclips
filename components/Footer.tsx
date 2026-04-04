@@ -33,6 +33,9 @@ export default function Footer() {
             <Link href="/taxonomy" className="hover:text-foreground transition-colors">
               Sources
             </Link>
+            <Link href="/recommend-a-source" className="hover:text-foreground transition-colors">
+              Recommend a Source
+            </Link>
             <Link href="/corrections" className="hover:text-foreground transition-colors">
               Corrections
             </Link>
