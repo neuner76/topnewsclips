@@ -219,6 +219,11 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     'storyfulmanagedlicensing', 'storyfulnews', 'storyfulsports',
   ])
 
+  // Satire handles that must never appear in NeedToKnow — enforced post-generation
+  const SATIRE_HANDLES = new Set([
+    'thedailyshow', 'lastweektonight', 'joshjohnsoncomedy', 'smn', 'thejuicemedia', 'jonathanpie',
+  ])
+
   function getContentType(s: typeof cappedStories[0]): string {
     if (s.category === 'raw') return 'footage'           // bodycam, dashcam, bystander video
     if (s.category === 'analysis') return 'commentary'   // talking head, explainer, opinion
@@ -442,6 +447,33 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const ntkSlugs = new Set(content.needToKnow.map(i => i.slug))
   const commentaryItems = content.needToKnow.filter(i => candidateContentType.get(i.slug) === 'commentary')
 
+  // First pass: remove any satire sources — these must never appear in NeedToKnow regardless of count
+  const satireSlugs = new Set(
+    freshCandidates
+      .filter(s => SATIRE_HANDLES.has((s.journalist_username ?? '').toLowerCase()))
+      .map(s => s.slug)
+  )
+  const satireItems = content.needToKnow.filter(i => satireSlugs.has(i.slug))
+  for (const satireItem of satireItems) {
+    const replacement = freshCandidates.find(s =>
+      !satireSlugs.has(s.slug) &&
+      !ntkSlugs.has(s.slug) &&
+      (s.description?.length ?? 0) >= 80 &&
+      !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
+    )
+    content.needToKnow = content.needToKnow.filter(i => i.slug !== satireItem.slug)
+    if (replacement) {
+      ntkSlugs.add(replacement.slug)
+      content.needToKnow.push({
+        sectionTitle: replacement.title.slice(0, 60),
+        slug: replacement.slug,
+        paragraphs: [replacement.description ?? ''],
+      })
+    }
+    // If no replacement, drop to 2 NeedToKnow stories rather than insert garbage
+  }
+
+  // Second pass: cap total commentary at 1
   if (commentaryItems.length > MAX_COMMENTARY) {
     // Find best non-commentary candidate not already in NeedToKnow
     // Require a real story description (≥80 chars) — reject channel descriptions and promo text
