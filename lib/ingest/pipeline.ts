@@ -308,6 +308,21 @@ export async function runFetch(): Promise<FetchResult> {
 }
 
 const TOPIC_DAILY_CAP = 4
+const TOPIC_DAILY_CAP_CRISIS = 8  // higher cap for major developing international stories
+
+// Keywords that indicate a fast-moving international crisis — these stories get a higher cap
+// and a lower MSM bypass threshold so breaking developments don't get silenced
+const CRISIS_KEYWORDS = [
+  'iran', 'nuclear', 'missile', 'strike', 'war ', 'warfare', 'conflict',
+  'invasion', 'nato', 'ceasefire', 'bombing', 'airstrike', 'explosion',
+  'earthquake', 'tsunami', 'hurricane', 'flood', 'wildfire',
+  'assassination', 'coup', 'protest', 'riot', 'uprising',
+]
+
+function isCrisisTopic(title: string): boolean {
+  const t = title.toLowerCase()
+  return CRISIS_KEYWORDS.some(k => t.includes(k))
+}
 
 // Phase 2: process next 10 pending candidates from the queue through Claude
 export async function runProcess(): Promise<PipelineResult> {
@@ -363,15 +378,19 @@ export async function runProcess(): Promise<PipelineResult> {
   const publishedTitles: string[] = (todayPublished ?? []).map((r: { title: string }) => r.title)
 
   // Count topic clusters already published today — used to enforce TOPIC_DAILY_CAP
-  // Each published title may be representative of a topic cluster; we track overlap counts
-  // Breaking news override: if MSM article count > 30, the story is verified major news — skip cap
+  // Rules:
+  // 1. MSM bypass: if 15+ outlets have covered it, it's confirmed major news — never cap it
+  // 2. Crisis topics get a higher cap (TOPIC_DAILY_CAP_CRISIS) so developing stories
+  //    can keep flowing through without being silenced after the 4th hit
+  // 3. Routine topics are capped at TOPIC_DAILY_CAP
   function topicAlreadyCapped(candidateTitle: string, msmArticleCount: number): boolean {
-    if (msmArticleCount > 30) return false // major breaking news bypasses topic cap
+    if (msmArticleCount >= 15) return false  // 15+ outlets = confirmed major news, always let through
+    const cap = isCrisisTopic(candidateTitle) ? TOPIC_DAILY_CAP_CRISIS : TOPIC_DAILY_CAP
     let overlap = 0
     for (const published of publishedTitles) {
       if (isSameIncident(candidateTitle, published, 2)) overlap++
     }
-    return overlap >= TOPIC_DAILY_CAP
+    return overlap >= cap
   }
 
   for (const candidate of pending) {
