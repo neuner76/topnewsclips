@@ -49,9 +49,22 @@ const IN_THE_KNOW_CATEGORIES = [
 
 // ─── Digest components ───────────────────────────────────────────────────────
 
-/** Always computes source tier fresh — ignores stale stored values from before the taxonomy was corrected */
+/**
+ * Compute source tier for display. Fresh computation takes priority (fixes stale DB values
+ * from before taxonomy corrections). Exception: if the static lookup returns null or the
+ * generic Tier 7 handle catch-all, fall back to the DB-stored tier — this covers
+ * community-accepted sources that have a tier in featured_journalists but aren't yet
+ * in the static lookup table in source-tier.ts.
+ */
 function resolvedBadge(story: Story): { tier: number | null; sourceType: string | null } {
-  return getSourceTier(story.journalist_username, story.source ?? '', story.category)
+  const fresh = getSourceTier(story.journalist_username, story.source ?? '', story.category)
+  const isGenericFallback =
+    fresh.tier === null ||
+    (fresh.tier === 7 && fresh.sourceType === 'Independent Commentary' && story.source_tier && story.source_tier !== 7)
+  if (isGenericFallback && story.source_tier) {
+    return { tier: story.source_tier, sourceType: story.source_type }
+  }
+  return fresh
 }
 
 function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: Map<string, Story> }) {

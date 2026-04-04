@@ -62,6 +62,7 @@ const COMMENTARY_JOURNALISTS = new Set([
   'kylescanlon', 'kylascanlon', 'michaeltracey', 'tarapalmeri', 'wendoverproductions',
   'veritasium', 'audittheaudit', 'ggreenwald', 'geohussar', 'iancarrollshow',
   'whitneywebb', 'jamesfreeman', 'undecidedtechnology', 'tanglenews', 'patrickboyleonfinance',
+  'drmyriamfrancois1', // Community nominated — accepted 2026-04-04
 ])
 
 // ── Source-string lookups (for YouTube search results with no journalist username) ──

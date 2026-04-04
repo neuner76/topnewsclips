@@ -334,6 +334,24 @@ export async function runProcess(): Promise<PipelineResult> {
 
   const publishedSlugs: string[] = []
 
+  // Load tier overrides from featured_journalists — used for community-accepted sources
+  // that aren't yet in the static source-tier.ts lookup table
+  const { data: journalistRows } = await supabase
+    .from('featured_journalists')
+    .select('username, source_tier, source_type')
+    .not('source_tier', 'is', null)
+
+  const journalistTierMap = new Map<string, { tier: number; sourceType: string }>(
+    (journalistRows ?? [])
+      .filter((r: { username: string; source_tier: number | null; source_type: string | null }) =>
+        r.source_tier !== null && r.source_type !== null
+      )
+      .map((r: { username: string; source_tier: number; source_type: string }) => [
+        r.username.toLowerCase(),
+        { tier: r.source_tier, sourceType: r.source_type },
+      ])
+  )
+
   // Fetch today's published story titles for topic diversity enforcement
   const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const { data: todayPublished } = await supabase
@@ -446,7 +464,15 @@ export async function runProcess(): Promise<PipelineResult> {
         duration: candidate.duration ?? null,
         ...(() => {
           const { tier, sourceType } = getSourceTier(candidate.journalist_username ?? null, candidate.source, verification.category ?? null)
-          return { source_tier: tier, source_type: sourceType }
+          // If the static lookup returned null or the generic Tier 7 handle catch-all,
+          // prefer the DB-stored tier from featured_journalists (set when a community
+          // submission was accepted with a specific tier assigned by the editor)
+          const handle = (candidate.journalist_username ?? '').toLowerCase()
+          const dbOverride = handle ? journalistTierMap.get(handle) : undefined
+          const isGenericFallback = tier === null || (tier === 7 && sourceType === 'Independent Commentary' && dbOverride)
+          const finalTier = isGenericFallback && dbOverride ? dbOverride.tier : tier
+          const finalSourceType = isGenericFallback && dbOverride ? dbOverride.sourceType : sourceType
+          return { source_tier: finalTier, source_type: finalSourceType }
         })(),
       })
 
