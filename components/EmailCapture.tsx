@@ -40,10 +40,10 @@ export default function EmailCapture() {
     <section id="subscribe" className="bg-foreground text-background rounded-lg px-6 py-8 sm:px-10 sm:py-10 my-12">
       <div className="max-w-xl mx-auto text-center">
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-2">
-          The news your feeds aren&apos;t showing you.
+          The full picture, not the profitable picture.
         </h2>
         <p className="text-sm text-background/70 mb-6">
-          Bodycam footage, independent journalism, and global stories mainstream media skips — curated daily. Free.
+          A daily briefing where every source is labeled, every blind spot is surfaced, and no one&apos;s selling you outrage. Free.
         </p>
 
         {status === 'success' ? (

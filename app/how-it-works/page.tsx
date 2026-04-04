@@ -31,7 +31,7 @@ const STEPS = [
   {
     step: 2,
     title: 'Deduplication and noise filtering',
-    body: null,
+    body: 'The pipeline removes duplicates and filters out:',
     note: 'The goal: keep the briefing from becoming a landfill with good typography.',
     list: [
       'repetitive versions of the same story',

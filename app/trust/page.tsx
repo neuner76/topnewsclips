@@ -97,16 +97,18 @@ export default function TrustPage() {
 
         <div className="text-[15px] leading-relaxed space-y-10">
 
-          <p>
-            Top News Clips is built around a transparent process: broad intake from sources across
-            10 published credibility tiers, careful filtering, source-aware evaluation, coverage
-            measurement against 15 named mainstream outlets, and multiple AI models challenging
-            one another before anything reaches readers.
-          </p>
-          <p>
-            We are not asking you to trust a black box.
-            We are showing you the box, how it works, and where every piece comes from.
-          </p>
+          <div className="space-y-3">
+            <p>
+              Top News Clips is built around a transparent process: broad intake from sources across
+              10 published credibility tiers, careful filtering, source-aware evaluation, coverage
+              measurement against 15 named mainstream outlets, and multiple AI models challenging
+              one another before anything reaches readers.
+            </p>
+            <p>
+              We are not asking you to trust a black box.
+              We are showing you the box, how it works, and where every piece comes from.
+            </p>
+          </div>
 
           {/* What earns trust */}
           <section>

@@ -33,7 +33,7 @@ export default function ContactPage() {
           </p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Contact</h1>
           <p className="text-sm text-muted-foreground mt-2">
-            What mainstream media misses. What the world is watching. In 5 minutes.
+            The full picture, not the profitable picture.
           </p>
         </div>
 
