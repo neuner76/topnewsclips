@@ -40,5 +40,18 @@ create policy "Anyone can submit a source"
 -- Public read: only reviewed rows (submitted status hidden until reviewed)
 create policy "Public can read reviewed submissions"
   on source_submissions for select
-  to anon, authenticated
+  to anon
   using (status in ('under_review','accepted','declined'));
+
+-- Authenticated users (admins) can read all rows including submitted
+create policy "Authenticated users can read all submissions"
+  on source_submissions for select
+  to authenticated
+  using (true);
+
+-- Authenticated users (admins) can update submissions for review decisions
+create policy "Authenticated users can update submissions"
+  on source_submissions for update
+  to authenticated
+  using (true)
+  with check (true);

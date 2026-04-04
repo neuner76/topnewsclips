@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createAnonClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 export async function PATCH(req: NextRequest) {
-  const supabase = await createClient()
+  // Auth check uses the anon/cookie client — verifies the session
+  const anonClient = await createAnonClient()
+  const { data: { user } } = await anonClient.auth.getUser()
 
-  // Auth check — must be a logged-in admin
-  const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // All DB writes use the service role to bypass RLS
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const { id, status, decision_tier, decision_rationale, submitter_email } = await req.json()
 
   if (!id || typeof id !== 'string') {

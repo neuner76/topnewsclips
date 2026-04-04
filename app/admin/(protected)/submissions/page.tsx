@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import ReviewForm from './ReviewForm'
 
 export const revalidate = 0
@@ -27,8 +27,15 @@ const STATUS_COLORS: Record<string, string> = {
   declined:     'text-blue-700 bg-blue-50 dark:bg-blue-950/20',
 }
 
+function getServiceClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
 export default async function SubmissionsPage() {
-  const supabase = await createClient()
+  const supabase = getServiceClient()
 
   const { data: submissions } = await supabase
     .from('source_submissions')
