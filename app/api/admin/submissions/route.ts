@@ -8,7 +8,7 @@ const TIER_SOURCE_TYPES: Record<number, string> = {
   3: 'Public Broadcaster',
   4: 'Independent News',
   5: 'Wire Service',
-  6: 'Commercial / Explainer',
+  6: 'Commercial Newsroom',
   7: 'Independent Commentary',
   8: 'State Media',
   9: 'Raw Footage',

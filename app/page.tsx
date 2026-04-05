@@ -286,7 +286,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             </span>
             <div className="flex-1 border-t border-border" />
           </div>
-          <p className="text-xs text-muted-foreground mb-4">Stories the rest of the world is covering that US media is ignoring.</p>
+          <p className="text-xs text-muted-foreground mb-4">Stories the rest of the world is covering that haven&apos;t reached US headlines.</p>
           <ul className="space-y-4">
             {content.globalBlindspots.map((item, i) => {
               const story = storyMap.get(item.slug)
@@ -322,7 +322,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             </span>
             <div className="flex-1 border-t border-border" />
           </div>
-          <p className="text-xs text-muted-foreground mb-4">How international outlets are covering today&apos;s stories — perspectives US media isn&apos;t amplifying.</p>
+          <p className="text-xs text-muted-foreground mb-4">How international outlets are covering today&apos;s stories — perspectives that add context to the US view.</p>
           <div className="space-y-4">
             {content.globalLens.map((item: GlobalLensItem) => (
               <div key={item.slug} className="border-b border-border pb-4 last:border-0 last:pb-0">
@@ -547,7 +547,7 @@ export default async function HomePage({
           <p className="text-sm text-muted-foreground mt-1">
             The full picture, not the profitable picture.
           </p>
-          <p className="text-xs text-muted-foreground mt-3">A daily briefing where every source is labeled, every blind spot is surfaced, and no one&apos;s selling you outrage. Free.</p>
+          <p className="text-xs text-muted-foreground mt-3">A daily briefing with visible source labels, broader coverage, and clearer context. Free.</p>
           <EmailCaptureInline />
         </div>
 
@@ -621,7 +621,7 @@ export default async function HomePage({
                   <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-[oklch(0.52_0.14_55)]">
                     Global Blindspot
                   </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Stories the rest of the world is covering that US media is ignoring</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Stories the rest of the world is covering that haven&apos;t reached US headlines</p>
                 </div>
                 <div>
                   {globalBlindspots.slice(0, SECTION_CAP).map(s => {

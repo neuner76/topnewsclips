@@ -68,21 +68,25 @@ export default function AboutPage() {
           <section>
             <h2 className="text-lg font-black tracking-tight uppercase mb-3">About Eric Neuner</h2>
             <p>
-              Eric Neuner is the founder of Top News Clips.
+              Top News Clips was founded by Eric Neuner, an entrepreneur and builder based in Marin County,
+              California.
             </p>
             <p className="mt-3">
-              Eric is an entrepreneur, builder, and systems thinker based in Marin County, California.
-              Much of his work has centered on helping people cut through noise, focus on what matters,
-              and build things that are useful and life-giving.
+              Eric has spent his career building systems that help people cut through noise and focus on
+              what matters — from community building to technology to independent media.
             </p>
             <p className="mt-3">
-              Top News Clips reflects those same values. It was not built to maximize outrage or trap
-              readers in an engagement loop. It was built because Eric wanted a daily briefing that showed
-              him the full picture — and when he couldn&apos;t find one, he built it.
+              He started Top News Clips because he wanted a daily briefing that showed him the full picture:
+              what outlets were covering, what they weren&apos;t, how the rest of the world saw the same events,
+              and who was behind each source. When he couldn&apos;t find one, he built it.
             </p>
             <p className="mt-3">
-              The site is independently operated and self-funded. There are no investors, no advertisers,
-              and no institutional backers.
+              The site is self-funded. There are no investors, no advertisers, and no institutional backers.
+              Eric can be reached at{' '}
+              <a href="mailto:eric@topnewsclips.com" className="text-[oklch(0.52_0.14_196)] hover:underline">
+                eric@topnewsclips.com
+              </a>
+              .
             </p>
           </section>
 

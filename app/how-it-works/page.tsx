@@ -135,8 +135,54 @@ export default function HowItWorksPage() {
           ))}
         </div>
 
+        {/* Annotated example */}
+        <div className="mt-12 border border-border rounded-lg overflow-hidden">
+          <div className="bg-muted/50 px-5 py-3 border-b border-border">
+            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Example: How a story reaches your briefing</p>
+          </div>
+          <div className="px-5 py-4 space-y-4 text-[14px]">
+            <div className="border-l-2 border-border pl-4">
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 1 — Source identified</p>
+              <p>Channel: <span className="font-semibold">@60minutes</span> — Tier 6 (Commercial Newsroom)</p>
+              <p className="text-muted-foreground">Published: April 4, 2026</p>
+            </div>
+            <div className="border-l-2 border-border pl-4">
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 2 — Coverage check</p>
+              <p>Checked against 15 major US outlets. Result: <span className="font-semibold">0 of 15</span> had covered this story at publication time.</p>
+              <p className="text-muted-foreground mt-0.5">→ Flagged as Limited Coverage.</p>
+            </div>
+            <div className="border-l-2 border-border pl-4">
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 3 — Content classification</p>
+              <p>Type: <span className="font-semibold">Reported</span> — original field journalism with named sources.</p>
+              <p className="text-muted-foreground mt-0.5">Not commentary. Not raw footage. Not promotional.</p>
+            </div>
+            <div className="border-l-2 border-border pl-4">
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 4 — Verification</p>
+              <p>A second AI model challenges the classification, checks the financial figures, and flags anything that can&apos;t be corroborated. If confidence is below threshold, the story is held for human review rather than published.</p>
+            </div>
+            <div className="border-l-2 border-border pl-4">
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 5 — Placement decision</p>
+              <p>Assigned to: <span className="font-semibold">Science &amp; Technology</span></p>
+              <p className="text-muted-foreground mt-0.5">Rationale: primary significance is the engineering innovation, not the geopolitics.</p>
+            </div>
+            <div className="border-l-2 border-border pl-4">
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 6 — Summary written</p>
+              <p>Attribution-forward voice. &ldquo;60 Minutes reports that...&rdquo; No editorial conclusions beyond what the source documents.</p>
+            </div>
+            <div className="bg-muted/50 rounded p-3 text-sm">
+              <p className="font-semibold mb-1">Result: story appears in today&apos;s briefing with:</p>
+              <ul className="space-y-0.5 text-muted-foreground">
+                <li>– Tier 6 badge (Commercial Newsroom)</li>
+                <li>– @60minutes handle</li>
+                <li>– &ldquo;0 of 15 outlets&rdquo; coverage count</li>
+                <li>– Neutral, source-attributed summary</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* Short version */}
-        <div className="mt-12 p-5 bg-muted/50 border border-border rounded-lg">
+        <div className="mt-8 p-5 bg-muted/50 border border-border rounded-lg">
           <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-3">Short version</p>
           <p className="text-[15px] leading-relaxed">
             Overnight, the pipeline pulls from 50+ sources across 10 credibility tiers, filters junk,

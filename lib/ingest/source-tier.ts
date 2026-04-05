@@ -186,10 +186,10 @@ export function getSourceTier(
     return { tier: 5, sourceType: 'Wire Service' }
 
   if (COMMERCIAL_JOURNALISTS.has(u))
-    return { tier: 6, sourceType: 'Commercial / Explainer' }
+    return { tier: 6, sourceType: 'Commercial Newsroom' }
 
   if (SATIRE_COMMERCIAL_JOURNALISTS.has(u))
-    return { tier: 6, sourceType: 'Commercial / Explainer (Satire)' }
+    return { tier: 6, sourceType: 'Commercial Newsroom (Satire)' }
 
   if (SATIRE_COMMENTARY_JOURNALISTS.has(u))
     return { tier: 7, sourceType: 'Independent Commentary (Satire)' }

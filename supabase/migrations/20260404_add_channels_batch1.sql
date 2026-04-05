@@ -22,16 +22,16 @@ insert into featured_journalists (username, platform, active, source_tier, sourc
 on conflict (username, platform) do update
   set active = true, source_tier = excluded.source_tier, source_type = excluded.source_type;
 
--- Tier 6 — Commercial / Explainer
+-- Tier 6 — Commercial Newsroom
 insert into featured_journalists (username, platform, active, source_tier, source_type) values
-  ('60minutes',          'youtube', true, 6, 'Commercial / Explainer'),
-  ('2020',               'youtube', true, 6, 'Commercial / Explainer'),
-  ('datelinenbc',        'youtube', true, 6, 'Commercial / Explainer'),
-  ('cnn',                'youtube', true, 6, 'Commercial / Explainer'),
-  ('bbcnews',            'youtube', true, 6, 'Commercial / Explainer'),
-  ('cnbc',               'youtube', true, 6, 'Commercial / Explainer'),
-  ('bloombergquicktake', 'youtube', true, 6, 'Commercial / Explainer'),
-  ('abcnews',            'youtube', true, 6, 'Commercial / Explainer'),
-  ('cbsnews',            'youtube', true, 6, 'Commercial / Explainer')
+  ('60minutes',          'youtube', true, 6, 'Commercial Newsroom'),
+  ('2020',               'youtube', true, 6, 'Commercial Newsroom'),
+  ('datelinenbc',        'youtube', true, 6, 'Commercial Newsroom'),
+  ('cnn',                'youtube', true, 6, 'Commercial Newsroom'),
+  ('bbcnews',            'youtube', true, 6, 'Commercial Newsroom'),
+  ('cnbc',               'youtube', true, 6, 'Commercial Newsroom'),
+  ('bloombergquicktake', 'youtube', true, 6, 'Commercial Newsroom'),
+  ('abcnews',            'youtube', true, 6, 'Commercial Newsroom'),
+  ('cbsnews',            'youtube', true, 6, 'Commercial Newsroom')
 on conflict (username, platform) do update
   set active = true, source_tier = excluded.source_tier, source_type = excluded.source_type;

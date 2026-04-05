@@ -62,11 +62,11 @@ const TIERS = [
   },
   {
     tier: 6,
-    name: 'Commercial / Explainer',
+    name: 'Commercial Newsroom',
     color: 'text-muted-foreground bg-muted border-border',
-    definition: 'Established commercial media outlets and explainer-journalism brands. Ad-supported or subscription-funded with professional editorial teams.',
-    rationale: 'These outlets produce quality journalism but operate within commercial media structures. Their editorial decisions can be influenced by audience metrics, advertiser relationships, or corporate ownership.',
-    examples: 'Vox, Journeyman Pictures',
+    definition: 'Established commercial news outlets and explainer-journalism brands. Ad-supported or subscription-funded with professional editorial teams and institutional editorial standards.',
+    rationale: 'These outlets produce quality journalism but operate within commercial media structures. Their editorial decisions can be influenced by audience metrics, advertiser relationships, or corporate ownership — a structural constraint that doesn\'t apply to nonprofits or public broadcasters.',
+    examples: 'CNN, ABC News, CBS News, CNBC, BBC News, 60 Minutes, Dateline NBC, Vox, Bloomberg Quicktake, Journeyman Pictures',
     note: null,
   },
   {
