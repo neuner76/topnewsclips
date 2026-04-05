@@ -71,7 +71,7 @@ const SATIRE_COMMENTARY_JOURNALISTS = new Set([
 const COMMENTARY_JOURNALISTS = new Set([
   'breakingpoints', 'caspianreport', 'polymatter', 'johnnyharris', 'perunau',
   'kylescanlon', 'kylascanlon', 'michaeltracey', 'tarapalmeri', 'wendoverproductions',
-  'veritasium', 'audittheaudit', 'ggreenwald', 'geohussar', 'iancarrollshow',
+  'veritasium', 'audittheaudit', 'glenngreenwald', 'geohussar', 'iancarrollshow',
   'whitneywebb', 'jamesfreeman', 'undecidedtechnology', 'tanglenews', 'patrickboyleonfinance',
   'drmyriamfrancois1', // Community nominated — accepted 2026-04-04
 ])
