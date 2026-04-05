@@ -206,7 +206,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   // Tier 7 commentary journalists — have a journalist_username but produce opinion/explainer content
   const COMMENTARY_HANDLES = new Set([
-    'breakingpoints', 'ggreenwald', 'audittheaudit', 'caspianreport',
+    'breakingpoints', 'ggreenwald', 'glenngreenwald', 'audittheaudit', 'caspianreport',
     'johnnyharris', 'polymatter', 'kylescanlon', 'kylascanlon',
     'michaeltracey', 'tarapalmeri', 'wendoverproductions', 'veritasium',
     'whitneywebb', 'jamesfreeman', 'tanglenews', 'patrickboyleonfinance',
@@ -367,6 +367,7 @@ ETCETERA:
 - Short, curious, or surprising one-liners from any remaining US stories
 - DEDUPLICATION: Never use a story that already appears in NeedToKnow or InTheKnow — each story slug must appear at most once across the entire digest
 - Each entry must be concrete: name the specific fact, number, place, or finding. Never vague.
+- EXCLUSION — HARD RULE: Military operations, airstrikes, conflict developments, casualties, prisoner/hostage situations, and humanitarian crises (evacuations, famine, civilian deaths) must NEVER appear in Etcetera. These belong in InTheKnow under "Politics & World Affairs". Etcetera is for genuinely odd, surprising, or quirky stories — not for serious conflict news that happens to be left over.
 - Each item: { "text": "...", "slug": "..." } — include the story's slug so we can link to it
 
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
