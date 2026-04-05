@@ -10,8 +10,10 @@ export interface SourceTierResult {
 // (e.g. ProPublica, The Marshall Project, CSIS, RAND)
 const NONPROFIT_JOURNALISTS = new Set([
   'propublica', 'marshall', 'texastribune', 'calmatters', 'frontlinepbs',
+  'frontline', // FRONTLINE PBS (alternate handle)
   'revealnews', 'icijorg',
   'csis', 'csisonline', // Center for Strategic and International Studies
+  'npr', // NPR
 ])
 
 // Tier 2: OSINT
@@ -28,6 +30,10 @@ const PUBLIC_BROADCASTER_JOURNALISTS = new Set([
   'nhkworldjapan', 'nhkworld',
   'arirangnews', 'trtworld', 'wion',
   'africanews',
+  'bbcworldservice', // BBC World Service
+  'abcnewsaustralia', // ABC News Australia
+  'cbcnews',          // CBC News (Canada)
+  'channel4news',     // Channel 4 News (UK)
 ])
 
 // Tier 4: Independent News Organization
@@ -40,6 +46,11 @@ const INDEPENDENT_NEWS_JOURNALISTS = new Set([
 // Tier 6: Commercial / Explainer
 const COMMERCIAL_JOURNALISTS = new Set([
   'vox', 'journeymanpictures',
+  // Broadcast network news magazines & cable news
+  '60minutes', '2020', 'datelinenbc',
+  'cnn', 'bbcnews', 'cnbc',
+  'bloombergquicktake',
+  'abcnews', 'cbsnews',
 ])
 
 // Tier 6: Commercial / Explainer (Satire) — institutional backing (Paramount, HBO)
@@ -137,6 +148,8 @@ const STATE_MEDIA_SOURCES = new Set([
 // Tier 5: Wire Service journalists
 const WIRE_SERVICE_JOURNALISTS = new Set([
   'news2share', 'storyfulnews', 'aparchive',
+  'reuters',        // Reuters
+  'afpnewsagency',  // AFP News Agency
 ])
 
 // Raw footage subreddits
