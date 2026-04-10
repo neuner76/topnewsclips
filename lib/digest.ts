@@ -165,22 +165,24 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: false })
       .limit(40),
-    // Global blindspot stories
+    // Global blindspot stories — last 48 hours only, sorted by recency
     supabase
       .from('stories')
       .select('slug, title, description, region')
       .eq('published', true)
       .eq('msm_gap', true)
       .not('region', 'is', null)
-      .order('view_count', { ascending: false })
+      .gte('created_at', twoDaysAgo)
+      .order('created_at', { ascending: false })
       .limit(8),
-    // All regional stories as matching pool for "How the World Sees It"
+    // All regional stories as matching pool for "How the World Sees It" — last 48 hours only
     supabase
       .from('stories')
       .select('slug, title, description, region')
       .eq('published', true)
       .not('region', 'is', null)
-      .order('view_count', { ascending: false })
+      .gte('created_at', twoDaysAgo)
+      .order('created_at', { ascending: false })
       .limit(20),
     fetchMainstreamPulse(),
   ])
