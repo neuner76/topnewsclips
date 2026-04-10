@@ -362,7 +362,7 @@ IN THE KNOW:
   * "Science & Technology": research, medicine, space, climate science, AI, tech products, environment
   * "Business & Markets": economy, finance, companies, markets, labor, private equity, corporate news
   * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category.
-  * "Comedy & Satire": satirical takes on current events, political comedy, late-night-style analysis, and humorous commentary on news stories (e.g. The Daily Show, Last Week Tonight, Jonathan Pie, Some More News, Josh Johnson). Assign here ONLY if the PRIMARY value of the content is comedic or satirical framing — not if comedy is incidental to a news report.
+  * "Comedy & Satire": ONLY for sources whose PRIMARY value is comedic or satirical framing — The Daily Show, Last Week Tonight, Jonathan Pie, Some More News, Josh Johnson, The Juice Media. Do NOT place serious political commentary, opinion journalism, or investigative analysis here even if the contentType is "commentary". Glenn Greenwald, Breaking Points, Caspian Report, and similar opinion/analysis channels belong in "Politics & World Affairs" or "Business & Markets" based on their topic — never in Comedy & Satire.
 
 ETCETERA:
 - MINIMUM 3, maximum 5 — you must include at least 3 entries. If fewer than 3 quirky stories exist, use the most surprising or unexpected remaining facts from any US story not yet used.
@@ -385,7 +385,7 @@ HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
 - Each entry: { "region": "...", "slug": "...", "summary": "..." }
 - "region" MUST be the specific outlet name from the input's "source" field (e.g. "Al Jazeera", "DW", "France 24", "TRT World", "ABC Australia") — NEVER a geographic label like "Middle East", "Europe", or "Australia". Extract the outlet name from the source field: "YouTube/DW News" → "DW News", "YouTube/Al Jazeera English" → "Al Jazeera".
 - "summary" = one sentence describing how that outlet frames the story differently than the US angle
-- If no DIRECT topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array, do NOT force a connection
+- If no DIRECT topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array, do NOT force a connection, do NOT use thematic or tangential links (e.g. "both involve accountability" or "parallel power dynamics"). The match must be the same specific event, person, or policy — not a vague conceptual parallel.
 - Never reuse a slug already used in globalBlindspots
 
 GLOBAL LENS (only if INTERNATIONAL PERSPECTIVES are provided):
