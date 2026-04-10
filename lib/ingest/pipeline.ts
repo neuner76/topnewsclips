@@ -393,10 +393,33 @@ export async function runProcess(): Promise<PipelineResult> {
     return overlap >= cap
   }
 
+  // Journalist handles that produce international news — route to global verifier
+  const GLOBAL_JOURNALIST_HANDLES = new Set([
+    'bbcworldservice', 'channel4news', 'cbcnews', 'abcnewsaustralia',
+    'france24english', 'france24', 'dwnews', 'dwenglish', 'dwplaneta', 'dwdocumentary',
+    'aljazeeraenglish', 'aljazeera', 'nhkworldjapan', 'nhkworld',
+    'arirangnews', 'trtworld', 'wion', 'africanews',
+    'reuters', 'afpnewsagency',
+  ])
+
+  const GLOBAL_JOURNALIST_REGION: Record<string, string> = {
+    'bbcworldservice': 'Europe', 'channel4news': 'Europe', 'cbcnews': 'Canada',
+    'abcnewsaustralia': 'Australia', 'france24english': 'Europe', 'france24': 'Europe',
+    'dwnews': 'Europe', 'dwenglish': 'Europe', 'dwplaneta': 'Europe', 'dwdocumentary': 'Europe',
+    'aljazeeraenglish': 'Middle East', 'aljazeera': 'Middle East',
+    'nhkworldjapan': 'Japan', 'nhkworld': 'Japan',
+    'arirangnews': 'Korea', 'trtworld': 'Middle East', 'wion': 'South Asia',
+    'africanews': 'Africa', 'reuters': 'World', 'afpnewsagency': 'World',
+  }
+
   for (const candidate of pending) {
     try {
       const msm = await checkMSMCoverage(candidate.title)
       await delay(200)
+
+      const handle = (candidate.journalist_username ?? '').toLowerCase()
+      const isGlobalJournalist = GLOBAL_JOURNALIST_HANDLES.has(handle)
+      const candidateRegion = candidate.region ?? (isGlobalJournalist ? (GLOBAL_JOURNALIST_REGION[handle] ?? 'World') : null)
 
       const verification = await verifyAndTitle(
         {
@@ -408,8 +431,8 @@ export async function runProcess(): Promise<PipelineResult> {
           msmArticleCount: msm.articleCount,
           msmGap: msm.msmGap,
           isJournalist: !!candidate.journalist_username,
-          isGlobal: !!candidate.region,
-          region: candidate.region ?? null,
+          isGlobal: !!candidateRegion,
+          region: candidateRegion,
         },
         anthropicKey
       )
@@ -479,7 +502,7 @@ export async function runProcess(): Promise<PipelineResult> {
         category: verification.category,
         thumbnail_url: candidate.thumbnail_url ?? null,
         journalist_username: candidate.journalist_username ?? null,
-        region: candidate.region ?? null,
+        region: candidateRegion,
         duration: candidate.duration ?? null,
         ...(() => {
           const { tier, sourceType } = getSourceTier(candidate.journalist_username ?? null, candidate.source, verification.category ?? null)
