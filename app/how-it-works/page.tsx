@@ -182,6 +182,55 @@ export default function HowItWorksPage() {
           </div>
         </div>
 
+        {/* How Stories Are Selected */}
+        <div id="selection" className="mt-12 border-t-2 border-[oklch(0.52_0.14_196)] pt-8">
+          <h2 className="text-xl font-black tracking-tight mb-2">How Stories Are Selected</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            A story qualifies for the daily briefing when it meets at least one of these criteria.
+          </p>
+          <div className="space-y-4 text-[14px]">
+            {[
+              {
+                label: 'Public consequence',
+                body: 'The development directly affects government policy, public spending, civil rights, public health, or institutional accountability.',
+              },
+              {
+                label: 'Market or economic impact',
+                body: 'The story affects consumer prices, employment, trade, or financial markets in ways that reach ordinary households.',
+              },
+              {
+                label: 'Democratic process',
+                body: 'The development involves elections, judicial decisions, legislative action, or government transparency.',
+              },
+              {
+                label: 'Undercovered significance',
+                body: 'The story is verified and consequential but receiving limited attention from the 15 major US outlets we monitor.',
+              },
+              {
+                label: 'Global perspective',
+                body: 'International coverage reveals a meaningfully different framing of an event also covered in US media, or an event the rest of the world considers significant that US outlets have not covered.',
+              },
+              {
+                label: 'Structural pattern',
+                body: 'The story documents a systemic issue — corporate practice, institutional failure, policy gap — rather than a one-time event.',
+              },
+            ].map(({ label, body }) => (
+              <div key={label} className="flex gap-3">
+                <span className="shrink-0 text-[oklch(0.52_0.14_196)] font-bold mt-0.5">—</span>
+                <p>
+                  <span className="font-semibold">{label}</span>
+                  {' '}
+                  <span className="text-muted-foreground">{body}</span>
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-5 text-[13px] text-muted-foreground border-t border-border pt-4">
+            Stories are <strong>not</strong> included simply because they are viral, dramatic, or emotionally provocative.
+            Virality and engagement metrics are tracked but are not inclusion criteria.
+          </p>
+        </div>
+
         {/* Short version */}
         <div className="mt-8 p-5 bg-muted/50 border border-border rounded-lg">
           <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-3">Short version</p>

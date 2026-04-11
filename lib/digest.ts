@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
+import { getConfidenceLabel } from './confidence'
 
 export interface HowWorldSeesItItem {
   region: string
@@ -157,7 +158,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const [{ data: usStories, error }, { data: globalStories }, { data: worldViewStories }, mainstreamPulse] = await Promise.all([
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, created_at, view_count')
+      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, created_at, view_count')
       .eq('published', true)
       .is('region', null)
       .gte('created_at', twoDaysAgo)
@@ -242,6 +243,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     title: s.title,
     summary: s.description,
     contentType: getContentType(s),  // "footage" | "commentary" | "investigation" | "report"
+    confidenceLabel: getConfidenceLabel(s as Parameters<typeof getConfidenceLabel>[0]),
     source: s.journalist_username ? `@${s.journalist_username}` : (s.source ?? null),
     msmGap: s.msm_gap,
     hoursAgo: Math.round((Date.now() - new Date(s.created_at).getTime()) / 3600000),
@@ -345,6 +347,34 @@ NEED TO KNOW (3 stories max):
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on the story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague. The final paragraph must include a "Why this matters to you" sentence connecting the story to something tangible in an American's daily life — their wallet, their rights, their community, or their family. Make it specific and concrete, not generic. Wrong: "This could affect Americans." Right: "If you've driven past a license plate reader this week, your vehicle's location may already be in ICE's database." or "If you have a 401(k), the private equity fees documented here are likely embedded in funds you already own."
 - TONE — REPORTER NOT ADVOCATE: Every sentence must describe what the source reports, shows, or claims. Use varied attribution language — do not repeat the same phrase more than once per paragraph. Attribution vocabulary: "reports that", "shows", "according to", "documents", "alleges", "found that", "the video shows", "the analysis finds", "per the report", "the investigation documents", "the explainer notes". FORBIDDEN phrases: "corrosive", "perverse", "troubling", "alarming", "shocking", "raises questions about", "sparks concerns", "drawing attention to", "highlights the need for", "underscores", "exposes" (use "documents" instead), any phrase that implies a conclusion the source didn't explicitly state. Wrong: "financial engineering at its most corrosive." Wrong: "raising questions about institutional transparency." Right: "Harris reports that the financing structure created incentives that, per the video, may prioritize revenue over care." Test every sentence: could a reader of any political affiliation find this sentence editorializing? If yes, rewrite it.
+
+EDITORIAL RESTRAINT RULES — MANDATORY FOR ALL PARAGRAPHS:
+
+RULE 1 — MATCH VOICE TO CONFIDENCE:
+Each story in the input has a "confidenceLabel" field. Apply these writing rules accordingly:
+- CORROBORATED: You may state confirmed facts directly. Attribution still required for interpretive claims.
+- REPORTED: Every claim must be attributed to the source. ("CNN reports that...")
+- SINGLE-SOURCE: Every sentence must contain an attribution phrase. No sentence may read as the site's own conclusion. ("According to the BBC analysis, the removals represent a departure from Pentagon norms.")
+- ANALYSIS: Lead with "In an analysis published by [source]..." Frame all claims as the source's arguments. Use: "argues," "suggests," "characterizes," "contends." Avoid: "signals," "demonstrates," "reveals," "exposes."
+- DEVELOPING: Note which details are confirmed and which are not. Use: "initial reports indicate," "details are still emerging," "accounts differ on."
+
+RULE 2 — BANNED CONSTRUCTIONS ON THIN EVIDENCE:
+On stories with confidenceLabel of SINGLE-SOURCE or ANALYSIS, do NOT use:
+  "purge" or "purges" (use "removal" or "dismissal")
+  "consolidation of control" (use "change in leadership")
+  "unprecedented" without a specific historical comparison
+  "sweeping" without defining the scope
+  "dramatic shift" (use "change" or "departure")
+  "signals" in the site's own voice (use "the source describes as")
+  "underscores" in the site's own voice
+  "raises critical questions" (use "the report raises questions" or describe what happened)
+
+RULE 3 — FACTS FIRST, INTERPRETATION SECOND:
+Structure every NeedToKnow paragraph sequence as:
+  Paragraph 1: What happened. Plain facts. Attributed.
+  Paragraph 2: What the source reports about context or significance. Clearly attributed as the source's framing.
+Never lead with the interpretation and use facts as evidence for a conclusion already drawn.
+
 - Use the slug field from the input exactly as-is
 
 IN THE KNOW:
@@ -380,7 +410,7 @@ ETCETERA:
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
 - 1-sentence summary per global story explaining what's happening and why Americans should care
 - Use the slug, region, AND title fields from the input exactly as-is — do NOT rewrite or invent a title
-- "summary" must end with a concrete US relevance hook — connect to American wallets, security, rights, or foreign policy. Wrong: "a story Americans should follow." Right: "...a chokepoint that controls 20% of global oil supply, meaning price spikes at the pump could follow within weeks."
+- RULE 4 — US RELEVANCE GATE: Only add a "why Americans should care" frame if the connection is direct and specific. Strong connections: story directly affects US gas prices, involves US military personnel, involves US foreign aid dollars, involves US trade policy or tariffs, involves rights of US citizens abroad. Weak connections (omit the relevance frame entirely and just report the news): relevance requires multiple inferential leaps, the only hook is "could have implications for American interests" or "raises questions for US policymakers," or the connection requires explaining three intermediate steps. When the connection is weak, present it as significant international news — not every global story needs a US justification. Wrong: "a development that matters to Americans because US policymakers may take note." Right: "...a chokepoint controlling 20% of global oil supply, meaning price spikes at the pump could follow within weeks." OR (when no direct link): simply describe what happened and why it matters globally.
 
 HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
 - For each NeedToKnow story, scan INTERNATIONAL PERSPECTIVES for stories about the same event, policy, or entity — including direct international reactions to a US policy (e.g. a Canadian or European outlet covering US tariffs, immigration policy, or court rulings counts as a match for those NeedToKnow stories).
@@ -543,6 +573,31 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
         paragraphs: [replacement.description ?? ''],
       })
     }
+  }
+
+  // Homepage satire gate — enforce: max 1 satire item total, satire ONLY in Comedy & Satire section
+  // Move any satire that leaked into other InTheKnow categories into Comedy & Satire
+  const satireSlugsSet = new Set(
+    cappedStories
+      .filter(s => SATIRE_HANDLES.has((s.journalist_username ?? '').toLowerCase()))
+      .map(s => s.slug)
+  )
+
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    if (cat === 'Comedy & Satire') continue
+    const leaked = content.inTheKnow[cat].filter(item => item.slug && satireSlugsSet.has(item.slug))
+    if (leaked.length > 0) {
+      content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => !item.slug || !satireSlugsSet.has(item.slug))
+      content.inTheKnow['Comedy & Satire'].push(...leaked)
+    }
+  }
+
+  // Cap Comedy & Satire at 1 item — keep the one with the highest view count among source stories
+  if (content.inTheKnow['Comedy & Satire'].length > 1) {
+    const ranked = content.inTheKnow['Comedy & Satire']
+      .map(item => ({ item, views: cappedStories.find(s => s.slug === item.slug)?.view_count ?? 0 }))
+      .sort((a, b) => b.views - a.views)
+    content.inTheKnow['Comedy & Satire'] = [ranked[0].item]
   }
 
   // Step 1: filter promo terms and Storyful-sourced stories from Claude's output

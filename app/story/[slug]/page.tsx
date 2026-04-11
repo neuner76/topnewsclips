@@ -356,6 +356,10 @@ export default async function StoryPage({ params }: Props) {
               <Link href="/taxonomy#confidence" className="font-semibold hover:underline underline-offset-2">
                 Learn about our confidence system →
               </Link>
+              {' · '}
+              <Link href="/how-it-works#selection" className="font-semibold hover:underline underline-offset-2">
+                What qualifies a story →
+              </Link>
             </p>
           </div>
         </details>

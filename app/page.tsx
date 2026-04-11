@@ -133,29 +133,68 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
   )
 }
 
+// Convert a raw source handle/string to a human-readable display name.
+// E.g. "YouTube/GlennGreenwald" → "Glenn Greenwald", "glenngreenwald" → "Glenn Greenwald"
+function getDisplayName(story: Story): string | null {
+  // Prefer the source field (e.g. "YouTube/60 Minutes" → "60 Minutes")
+  const src = story.source ?? ''
+  const stripped = src.replace(/^(YouTube|TikTok|Reddit)\/(@)?/i, '').trim()
+  if (stripped) return stripped
+  // Fall back to journalist handle with basic title-casing
+  const handle = story.journalist_username ?? ''
+  if (!handle) return null
+  // Split camelCase handle into words and capitalize each
+  return handle
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/^./, c => c.toUpperCase())
+}
+
 function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Map<string, Story> }) {
   const story = item.slug ? storyMap.get(item.slug) : null
   const badge = story ? resolvedBadge(story) : null
-  const inner = <span className="text-[1.05rem] leading-relaxed">{item.text}</span>
+  const displayName = story ? getDisplayName(story) : null
+  const confidence = story ? getConfidenceLabel(story) : null
+  const confidenceLabel = confidence ? confidence.charAt(0) + confidence.slice(1).toLowerCase() : null
+  const coveredCount = story?.msm_outlet_coverage?.covered?.length ?? 0
+  const totalChecked = (story?.msm_outlet_coverage?.covered?.length ?? 0) + (story?.msm_outlet_coverage?.notCovered?.length ?? 0)
+  const coverageText = totalChecked > 0 ? `${coveredCount} of ${totalChecked} outlets` : null
+  const hasMetadata = displayName || badge?.sourceType || confidenceLabel || coverageText
+
+  const inner = <span className="text-[1.0rem] leading-relaxed">{item.text}</span>
   return (
-    <li className="flex gap-2 py-2.5 border-b border-border/50 last:border-0">
-      <span className="text-muted-foreground shrink-0 mt-0.5">›</span>
-      <div className="flex flex-col gap-1">
-        {item.slug ? (
-          <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
-            {inner}
-          </Link>
-        ) : inner}
-        {(badge?.tier || badge?.sourceType || story?.journalist_username || story?.msm_gap) && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge!.tier} sourceType={badge!.sourceType} />}
-            {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
-            {story?.journalist_username && (
-              <span className="text-[10px] text-muted-foreground">@{story.journalist_username}</span>
-            )}
-            {story?.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
-          </div>
-        )}
+    <li className="py-3 border-b border-border/50 last:border-0">
+      <div className="flex gap-2">
+        <span className="text-muted-foreground shrink-0 mt-0.5">›</span>
+        <div className="flex flex-col gap-2">
+          {item.slug ? (
+            <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
+              {inner}
+            </Link>
+          ) : inner}
+          {hasMetadata && (
+            <p className="text-[11px] text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+              {displayName && (
+                <span className="font-semibold text-foreground/70">{displayName}</span>
+              )}
+              {displayName && badge?.sourceType && <span className="opacity-40">·</span>}
+              {badge?.sourceType && (
+                <span>{badge.sourceType}{badge.tier ? ` (Tier ${badge.tier})` : ''}</span>
+              )}
+              {(displayName || badge?.sourceType) && confidenceLabel && <span className="opacity-40">·</span>}
+              {confidenceLabel && (
+                <span className="italic">{confidenceLabel}</span>
+              )}
+              {(displayName || badge?.sourceType || confidenceLabel) && coverageText && <span className="opacity-40">·</span>}
+              {coverageText && (
+                <span>{coverageText}</span>
+              )}
+              {story?.msm_gap && (
+                <><span className="opacity-40">·</span><span className="font-semibold text-[oklch(0.45_0.22_24)]">Limited Coverage</span></>
+              )}
+            </p>
+          )}
+        </div>
       </div>
     </li>
   )

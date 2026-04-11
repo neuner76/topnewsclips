@@ -68,21 +68,20 @@ export default function AboutPage() {
           <section>
             <h2 className="text-lg font-black tracking-tight uppercase mb-3">About Eric Neuner</h2>
             <p>
-              Top News Clips was founded by Eric Neuner, an entrepreneur and builder based in Marin County,
-              California.
+              Eric Neuner is the founder of Top News Clips. He lives in Marin County, California, where
+              he has spent over a decade building ventures across media, real estate, and sustainable land
+              development — including co-founding an intentional community that recently celebrated its
+              10th anniversary.
             </p>
             <p className="mt-3">
-              Eric has spent his career building systems that help people cut through noise and focus on
-              what matters — from community building to technology to independent media.
+              He started Top News Clips because his own morning news routine felt broken: too many tabs,
+              too much repetition, no easy way to see which sources were behind each story or what the
+              rest of the world was saying about the same events. When he couldn&apos;t find a briefing
+              that solved those problems, he built one.
             </p>
             <p className="mt-3">
-              He started Top News Clips because he wanted a daily briefing that showed him the full picture:
-              what outlets were covering, what they weren&apos;t, how the rest of the world saw the same events,
-              and who was behind each source. When he couldn&apos;t find one, he built it.
-            </p>
-            <p className="mt-3">
-              The site is self-funded. There are no investors, no advertisers, and no institutional backers.
-              Eric can be reached at{' '}
+              The site is self-funded. There are no investors, advertisers, or institutional backers.
+              Revenue comes from voluntary subscriptions. Eric can be reached at{' '}
               <a href="mailto:eric@topnewsclips.com" className="text-[oklch(0.52_0.14_196)] hover:underline">
                 eric@topnewsclips.com
               </a>
@@ -99,12 +98,14 @@ export default function AboutPage() {
               pressure-tests stories with multiple AI models, and assembles a briefing with visible
               source labels and coverage counts.
             </p>
-            <Link
-              href="/how-it-works"
-              className="inline-block mt-3 text-sm font-semibold text-[oklch(0.52_0.14_196)] hover:underline"
-            >
-              See the full process →
-            </Link>
+            <div className="mt-3 flex flex-wrap gap-4 text-sm">
+              <Link href="/how-it-works" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+                See the full process →
+              </Link>
+              <Link href="/how-it-works#selection" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+                What qualifies a story →
+              </Link>
+            </div>
           </section>
 
           {/* Editorial standard */}
