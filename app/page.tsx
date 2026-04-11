@@ -246,7 +246,10 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                     </Link>
                   ) : text}
                   {story && (
-                    <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />
+                      <ConfidenceBadge label={getConfidenceLabel(story)} />
+                    </div>
                   )}
                 </li>
               )
