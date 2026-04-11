@@ -557,7 +557,7 @@ export default async function HomePage({
           <p className="text-sm text-muted-foreground mt-1">
             The full picture, not the profitable picture.
           </p>
-          <p className="text-xs text-muted-foreground mt-3">A daily briefing with visible source labels, broader coverage, and clearer context. Free.</p>
+          <p className="text-xs text-muted-foreground mt-3">A daily briefing founded by Eric Neuner with visible source labels, confidence markers, broader coverage, and clearer context. Built to help you understand what matters without drowning in noise.</p>
           <EmailCaptureInline />
         </div>
 

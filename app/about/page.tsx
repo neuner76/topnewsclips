@@ -49,9 +49,9 @@ export default function AboutPage() {
               across the source spectrum.
             </p>
             <p className="mt-3">
-              We believe most people benefit from seeing more of the picture: how the same story looks
-              from different countries, which credible stories are receiving less mainstream attention,
-              and what type of source is behind each piece of reporting.
+              Most people are not suffering from an information shortage. They&apos;re suffering from an
+              incomplete picture — fragmented across outlets, shaped by engagement incentives, and often
+              missing broader global context.
             </p>
             <p className="mt-3">
               Every morning, Top News Clips delivers a briefing that surfaces credible stories receiving
@@ -111,13 +111,10 @@ export default function AboutPage() {
           <section>
             <h2 className="text-lg font-black tracking-tight uppercase mb-3">Editorial standard</h2>
             <p>
-              If a story only resonates with one side, it probably doesn&apos;t belong here. We curate
-              for the citizen who wants to understand what&apos;s actually happening — not for the partisan
-              who wants confirmation of what they already believe.
+              We look for stories that matter beyond one ideological lane and hold up under broader scrutiny.
             </p>
             <p className="mt-3">
-              Corporate corruption, government overreach, police accountability — these aren&apos;t left
-              issues or right issues. They&apos;re American issues. That&apos;s the lens we apply.
+              We prioritize developments with broad public consequence, not just partisan heat.
             </p>
           </section>
 

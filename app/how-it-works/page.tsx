@@ -94,12 +94,13 @@ export default function HowItWorksPage() {
           </p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3">How It Works</h1>
           <p className="text-base text-muted-foreground leading-relaxed">
-            Top News Clips uses a multi-stage, multi-model AI process combined with a published editorial
-            framework to produce each daily briefing.
+            Top News Clips uses a multi-stage, multi-model process guided by published standards to produce
+            each daily briefing.
           </p>
           <p className="text-sm text-muted-foreground mt-3 italic">
-            The trust isn&apos;t &ldquo;the AI said so.&rdquo; The trust comes from the process — and from
-            showing you how every piece is made.
+            The trust isn&apos;t &ldquo;the AI said so.&rdquo; It comes from the process: source labels,
+            confidence labels, public methodology, coverage measurement, and multiple systems checking
+            the work before publication.
           </p>
         </div>
 
@@ -190,7 +191,7 @@ export default function HowItWorksPage() {
             with multiple AI models, and assembles a briefing with visible source labels and coverage
             counts — so by morning, you have the full picture in 5 minutes.
           </p>
-          <p className="mt-3 text-sm font-semibold text-muted-foreground">No doom scroll required.</p>
+          <p className="mt-3 text-sm font-semibold text-muted-foreground">Broader context and undercovered stories are surfaced. No doom scroll required.</p>
         </div>
 
         <div className="mt-8 flex flex-wrap gap-4 text-sm">

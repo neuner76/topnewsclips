@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 const TRUST_POINTS = [
   {
     title: 'Published source taxonomy',
-    body: 'Every source is classified into one of 10 tiers — from nonprofit investigative to community sourced. The taxonomy is public. You can read the methodology. You can dispute any rating.',
+    body: 'Every source is labeled using a published 10-part source taxonomy — from nonprofit investigative to community sourced. The taxonomy is public. You can read the methodology. You can dispute any rating.',
     link: { href: '/taxonomy', label: 'See the taxonomy →' },
   },
   {
@@ -105,8 +105,8 @@ export default function TrustPage() {
               one another before anything reaches readers.
             </p>
             <p>
-              We are not asking you to trust a black box.
-              We are showing you the box, how it works, and where every piece comes from.
+              We are not asking you to trust a black box. We publish the method, label the sources,
+              show confidence levels, and make the process more inspectable.
             </p>
           </div>
 
