@@ -167,6 +167,63 @@ export default function TaxonomyPage() {
           ))}
         </div>
 
+        {/* Confidence Labels */}
+        <div id="confidence" className="mt-12 pt-8 border-t border-border">
+          <h2 className="text-xl font-black tracking-tight mb-2">Confidence Labels</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Every story carries a confidence label indicating how settled the underlying information is.
+            Labels are assigned automatically based on source tier and coverage count, and may be updated
+            as stories develop.
+          </p>
+          <div className="space-y-3">
+            {[
+              {
+                label: 'Corroborated',
+                color: 'text-[oklch(0.38_0.13_145)] bg-[oklch(0.96_0.03_145)] border-[oklch(0.88_0.07_145)]',
+                definition: 'Multiple independent sources confirm the core facts.',
+                when: '5+ outlets have covered the story, or 3+ outlets when the originating source is Tier 1–5.',
+              },
+              {
+                label: 'Reported',
+                color: 'text-[oklch(0.45_0.10_230)] bg-[oklch(0.96_0.02_230)] border-[oklch(0.88_0.05_230)]',
+                definition: 'Published by a credible source with institutional editorial standards (Tier 1–6), not yet independently corroborated.',
+                when: 'Source is Tier 1–6 (has a corrections policy and editorial oversight).',
+              },
+              {
+                label: 'Developing',
+                color: 'text-[oklch(0.48_0.12_85)] bg-[oklch(0.97_0.04_85)] border-[oklch(0.88_0.08_85)]',
+                definition: 'Event confirmed but key details still emerging or conflicting across sources.',
+                when: 'Source is Tier 7–10 with 2+ outlets covering the story.',
+              },
+              {
+                label: 'Single-source',
+                color: 'text-muted-foreground bg-muted border-border',
+                definition: 'One source, not yet independently verified. May be credible but has not been corroborated.',
+                when: 'Source is Tier 7–10 and fewer than 2 other outlets have covered the story.',
+              },
+              {
+                label: 'Analysis',
+                color: 'text-muted-foreground bg-muted border-border italic',
+                definition: 'Interpretation or commentary — not original fact reporting.',
+                when: 'Content type is analysis or commentary, regardless of source tier.',
+              },
+            ].map(({ label, color, definition, when }) => (
+              <div key={label} className="border border-border rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide border ${color}`}>
+                    {label}
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-foreground mb-1">{definition}</p>
+                <p className="text-xs text-muted-foreground"><span className="font-semibold">Assigned when:</span> {when}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">
+            Labels can change as stories develop — a &ldquo;Single-source&rdquo; story may move to &ldquo;Corroborated&rdquo; as more outlets confirm details.
+          </p>
+        </div>
+
         <div className="mt-10 pt-6 border-t border-border">
           <p className="text-xs text-muted-foreground">
             This taxonomy is reviewed quarterly. Sources may shift tiers based on changes to their funding, editorial independence, or track record.{' '}

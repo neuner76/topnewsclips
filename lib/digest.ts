@@ -364,6 +364,11 @@ IN THE KNOW:
   * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category.
   * "Comedy & Satire": ONLY for sources whose PRIMARY value is comedic or satirical framing — The Daily Show, Last Week Tonight, Jonathan Pie, Some More News, Josh Johnson, The Juice Media. Do NOT place serious political commentary, opinion journalism, or investigative analysis here even if the contentType is "commentary". Glenn Greenwald, Breaking Points, Caspian Report, and similar opinion/analysis channels belong in "Politics & World Affairs" or "Business & Markets" based on their topic — never in Comedy & Satire.
 
+EDITORIAL MIX RULE — HARD CONSTRAINT:
+- IN THE KNOW must include at least TWO non-conflict topic categories even on heavy conflict days. If the day is dominated by Iran/Middle East/war coverage, you MUST still include items in at least two of: Science & Technology, Business & Markets, Sports/Entertainment/Culture, or other non-conflict topics. Do not let a single conflict story crowd out all other categories.
+- GLOBAL BLINDSPOT: If 5 or more blindspot items are from the same conflict or region, include at least one story from a different region or topic entirely.
+- Do not place stories with direct military or humanitarian significance in Etcetera — promote them to Politics & World Affairs.
+
 ETCETERA:
 - MINIMUM 3, maximum 5 — you must include at least 3 entries. If fewer than 3 quirky stories exist, use the most surprising or unexpected remaining facts from any US story not yet used.
 - Short, curious, or surprising one-liners from any remaining US stories

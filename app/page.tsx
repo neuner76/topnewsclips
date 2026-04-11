@@ -13,6 +13,8 @@ import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getSourceTier } from '@/lib/ingest/source-tier'
+import { getConfidenceLabel } from '@/lib/confidence'
+import ConfidenceBadge from '@/components/ConfidenceBadge'
 import PressureScore from '@/components/PressureScore'
 import MSMBadge from '@/components/MSMBadge'
 
@@ -76,6 +78,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />}
+          {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
           {story?.journalist_username && (
             <span className="text-xs text-muted-foreground">@{story.journalist_username}</span>
           )}
@@ -146,6 +149,7 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
         {(badge?.tier || badge?.sourceType || story?.journalist_username || story?.msm_gap) && (
           <div className="flex flex-wrap items-center gap-1.5">
             {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge!.tier} sourceType={badge!.sourceType} />}
+            {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
             {story?.journalist_username && (
               <span className="text-[10px] text-muted-foreground">@{story.journalist_username}</span>
             )}

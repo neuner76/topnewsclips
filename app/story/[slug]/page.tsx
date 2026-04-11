@@ -32,7 +32,9 @@ import ShareButtons from '@/components/ShareButtons'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
 import SourceTypeBadge from '@/components/SourceTypeBadge'
+import ConfidenceBadge from '@/components/ConfidenceBadge'
 import { getSourceTier } from '@/lib/ingest/source-tier'
+import { getConfidenceLabel } from '@/lib/confidence'
 
 export const revalidate = 300
 
@@ -134,6 +136,16 @@ export default async function StoryPage({ params }: Props) {
   const fullDescription = (s.description ?? '').trim()
   const shortDescription = fullDescription.slice(0, 155)
 
+  const badge = getSourceTier(s.journalist_username, s.source ?? '', s.category)
+  const confidence = getConfidenceLabel(s)
+  const coveredCount = s.msm_outlet_coverage?.covered?.length ?? 0
+  const totalChecked = (s.msm_outlet_coverage?.covered?.length ?? 0) + (s.msm_outlet_coverage?.notCovered?.length ?? 0)
+  const coverageDisplay = totalChecked > 0 ? `${coveredCount} of ${totalChecked} major US outlets` : coveredCount > 0 ? `${coveredCount} outlets` : 'Not yet checked'
+  const tierLabel = badge.sourceType ? `${badge.sourceType}${badge.tier ? ` (Tier ${badge.tier})` : ''}` : null
+  const contentTypeLabel = s.category === 'raw' ? 'Raw Footage' : s.category === 'analysis' ? 'Analysis' : s.category === 'reported' ? 'Reported' : null
+  const publishedLabel = new Date(s.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles', timeZoneName: 'short' })
+  const updatedLabel = s.updated_at !== s.created_at ? new Date(s.updated_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles', timeZoneName: 'short' }) : null
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -226,7 +238,8 @@ export default async function StoryPage({ params }: Props) {
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <PlatformBadge platform={s.platform} />
           <CategoryBadge category={s.category} />
-          <SourceTypeBadge {...getSourceTier(s.journalist_username, s.source ?? '', s.category)} />
+          <SourceTypeBadge {...badge} />
+          <ConfidenceBadge label={confidence} />
           {s.msm_gap && <MSMBadge notes={s.msm_notes} coverage={s.msm_outlet_coverage} />}
         </div>
 
@@ -246,6 +259,61 @@ export default async function StoryPage({ params }: Props) {
         {s.description && (
           <p className="editorial-body mt-6 text-foreground/90">{s.description}</p>
         )}
+
+        {/* Why This Is Here */}
+        <details className="mt-6 group" open={false}>
+          <summary className="cursor-pointer list-none flex items-center gap-2 text-xs font-bold tracking-widest text-muted-foreground uppercase select-none hover:text-foreground transition-colors">
+            <span className="group-open:hidden">▸</span>
+            <span className="hidden group-open:inline">▾</span>
+            Why this is here
+          </summary>
+          <div className="mt-3 p-4 bg-muted/50 border border-border rounded-lg text-[13px]">
+            <dl className="space-y-1.5">
+              {s.journalist_username && (
+                <div className="flex gap-2">
+                  <dt className="font-semibold text-muted-foreground w-28 shrink-0">Source</dt>
+                  <dd className="text-foreground">@{s.journalist_username}</dd>
+                </div>
+              )}
+              {tierLabel && (
+                <div className="flex gap-2">
+                  <dt className="font-semibold text-muted-foreground w-28 shrink-0">Source type</dt>
+                  <dd className="text-foreground">{tierLabel}</dd>
+                </div>
+              )}
+              {contentTypeLabel && (
+                <div className="flex gap-2">
+                  <dt className="font-semibold text-muted-foreground w-28 shrink-0">Content type</dt>
+                  <dd className="text-foreground">{contentTypeLabel}</dd>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <dt className="font-semibold text-muted-foreground w-28 shrink-0">Confidence</dt>
+                <dd className="text-foreground"><ConfidenceBadge label={confidence} /></dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="font-semibold text-muted-foreground w-28 shrink-0">Coverage</dt>
+                <dd className="text-foreground">{coverageDisplay}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="font-semibold text-muted-foreground w-28 shrink-0">Published</dt>
+                <dd className="text-foreground">{publishedLabel}</dd>
+              </div>
+              {updatedLabel && (
+                <div className="flex gap-2">
+                  <dt className="font-semibold text-muted-foreground w-28 shrink-0">Updated</dt>
+                  <dd className="text-foreground">{updatedLabel} (corrected)</dd>
+                </div>
+              )}
+            </dl>
+            <p className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+              Confidence labels explain how settled this information is.{' '}
+              <Link href="/taxonomy#confidence" className="font-semibold hover:underline underline-offset-2">
+                Learn about our confidence system →
+              </Link>
+            </p>
+          </div>
+        </details>
 
         {/* MSM context */}
         {s.msm_gap && (

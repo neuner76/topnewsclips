@@ -44,23 +44,23 @@ export default function AboutPage() {
               Top News Clips is an independent daily news briefing founded by Eric Neuner.
             </p>
             <p className="mt-3">
-              It was built for people who want to understand what&apos;s actually happening in the world —
-              not just what fits the American news cycle, what generates clicks, or what keeps you scrolling.
+              It was built for people who want a broader, steadier view of the news — one that includes
+              international perspectives, independent investigations, and institutional reporting from
+              across the source spectrum.
             </p>
             <p className="mt-3">
-              We believe most Americans aren&apos;t suffering from an information shortage. They&apos;re
-              suffering from an incomplete picture — filtered through business models that prioritize engagement
-              over understanding, and limited to the roughly 5% of global news that US media chooses to cover.
-            </p>
-            <p className="mt-3">So we built something different.</p>
-            <p className="mt-3">
-              Every morning, Top News Clips delivers a briefing that includes stories mainstream outlets are
-              underreporting, international events the rest of the world considers urgent, how journalists in
-              other countries frame the same events, and a side-by-side view of what the full spectrum of US
-              media is leading with — all with every source labeled by a published credibility tier.
+              We believe most people benefit from seeing more of the picture: how the same story looks
+              from different countries, which credible stories are receiving less mainstream attention,
+              and what type of source is behind each piece of reporting.
             </p>
             <p className="mt-3">
-              Our goal: help people get the full picture in 5 minutes — then get on with their day.
+              Every morning, Top News Clips delivers a briefing that surfaces credible stories receiving
+              limited mainstream attention, covers international events receiving significant global coverage,
+              shows how journalists in other countries frame the same events, and labels every source by
+              a published credibility tier — so you always know what kind of reporting you&apos;re reading.
+            </p>
+            <p className="mt-3">
+              Our goal: the full picture in 5 minutes.
             </p>
           </section>
 
