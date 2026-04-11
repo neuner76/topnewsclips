@@ -103,32 +103,38 @@ export default async function StoryPage({ params }: Props) {
 
   const s = story as Story
 
-  // World View — find related stories from other regions covering the same topic
-  const recentCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const { data: relatedPool } = await supabase
-    .from('stories')
-    .select('id, title, slug, description, region, msm_gap')
-    .eq('published', true)
-    .gte('created_at', recentCutoff)
-    .not('region', 'is', s.region) // opposite track: global stories for US page, US for global page
+  // World View — only shown on international (regional) story pages.
+  // Finds US domestic stories covering the same topic, with a strict 3-word overlap requirement.
+  type RelatedStory = { id: string; title: string; slug: string; description: string | null; region: string | null; msm_gap: boolean }
+  let worldView: RelatedStory[] = []
 
-  function sigWords(title: string): Set<string> {
-    const stop = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','that','this','is','are','was','were','be','been','have','has','had','will','after','during','its','as','over','into'])
-    return new Set(
-      title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
-        .filter(w => w.length > 3 && !stop.has(w))
-    )
+  if (s.region) {
+    const recentCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+    const { data: relatedPool } = await supabase
+      .from('stories')
+      .select('id, title, slug, description, region, msm_gap')
+      .eq('published', true)
+      .gte('created_at', recentCutoff)
+      .is('region', null)
+
+    function sigWords(title: string): Set<string> {
+      const stop = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','that','this','is','are','was','were','be','been','have','has','had','will','after','during','its','as','over','into'])
+      return new Set(
+        title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
+          .filter(w => w.length > 4 && !stop.has(w))
+      )
+    }
+
+    const storyWords = sigWords(s.title)
+    worldView = (relatedPool ?? [])
+      .filter(r => {
+        const words = sigWords(r.title)
+        let overlap = 0
+        for (const w of storyWords) if (words.has(w)) overlap++
+        return overlap >= 3
+      })
+      .slice(0, 3)
   }
-
-  const storyWords = sigWords(s.title)
-  const worldView = (relatedPool ?? [])
-    .filter(r => {
-      const words = sigWords(r.title)
-      let overlap = 0
-      for (const w of storyWords) if (words.has(w)) overlap++
-      return overlap >= 2
-    })
-    .filter(r => r.region !== null || s.region !== null) // at least one must be international
 
   const canonicalUrl = `https://www.topnewsclips.com/story/${s.slug}`
   const ogImage = s.platform === 'youtube' ? getYouTubeThumbnailUrl(s.embed_url) : s.thumbnail_url ?? null
@@ -258,6 +264,45 @@ export default async function StoryPage({ params }: Props) {
         {/* Description */}
         {s.description && (
           <p className="editorial-body mt-6 text-foreground/90">{s.description}</p>
+        )}
+
+        {/* Verified vs. Interpretation */}
+        {s.verified_interpretation && (s.verified_interpretation.verified.length > 0 || s.verified_interpretation.interpretation.length > 0) && (
+          <div className="mt-6 border border-border rounded-lg overflow-hidden text-[13px]">
+            {s.verified_interpretation.headerNote && (
+              <div className="px-4 py-2 bg-amber-50 dark:bg-amber-950/30 border-b border-border text-xs text-amber-800 dark:text-amber-300">
+                {s.verified_interpretation.headerNote}
+              </div>
+            )}
+            <div className="divide-y divide-border">
+              {s.verified_interpretation.verified.length > 0 && (
+                <div className="px-4 py-3">
+                  <p className="text-[10px] font-bold tracking-widest text-emerald-700 dark:text-emerald-400 uppercase mb-2">Verified</p>
+                  <ul className="space-y-1.5">
+                    {s.verified_interpretation.verified.map((claim, i) => (
+                      <li key={i} className="flex gap-2 text-foreground/90">
+                        <span className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">✓</span>
+                        <span>{claim}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {s.verified_interpretation.interpretation.length > 0 && (
+                <div className="px-4 py-3 bg-muted/30">
+                  <p className="text-[10px] font-bold tracking-widest text-blue-700 dark:text-blue-400 uppercase mb-2">Interpretation</p>
+                  <ul className="space-y-1.5">
+                    {s.verified_interpretation.interpretation.map((claim, i) => (
+                      <li key={i} className="flex gap-2 text-foreground/70">
+                        <span className="text-blue-500 dark:text-blue-400 shrink-0 mt-0.5">~</span>
+                        <span>{claim}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Why This Is Here */}

@@ -13,6 +13,12 @@ export interface ClipInput {
   region?: string | null
 }
 
+export interface VerifiedInterpretation {
+  verified: string[]       // factual claims confirmed by multiple sources or official records
+  interpretation: string[] // analytical claims, characterizations, causal arguments
+  headerNote?: string      // shown for ANALYSIS, SINGLE-SOURCE, DEVELOPING stories
+}
+
 export interface VerificationResult {
   isRealEvent: boolean
   confidence: number
@@ -23,6 +29,7 @@ export interface VerificationResult {
   category: 'raw' | 'reported' | 'analysis'
   decision: 'publish' | 'needs_review' | 'reject'
   rejectReason?: string
+  verifiedInterpretation?: VerifiedInterpretation
 }
 
 function buildGlobalPrompt(clip: ClipInput, today: string): string {
@@ -52,7 +59,10 @@ Respond with this exact JSON structure:
   "msmGap": true or false,
   "category": "reported" or "analysis" or "raw",
   "decision": "publish" or "reject",
-  "rejectReason": "reason if rejected, otherwise null"
+  "rejectReason": "reason if rejected, otherwise null",
+  "verifiedClaims": ["Each factual claim from the summary confirmed by 2+ sources or official records. Format: 'Claim. (Source: X)'"],
+  "interpretiveClaims": ["Each analytical or causal claim from the summary. Format: 'Claim. (Source argument, not verified finding)'"],
+  "confidenceNote": "For ANALYSIS category: 'This item is classified as Analysis. Claims reflect the source's arguments, not independently verified findings.' For single-source with no MSM corroboration: 'This story is based on a single source. Key claims have not been independently corroborated.' Otherwise: null"
 }
 
 msmGap rules:
@@ -88,7 +98,7 @@ export async function verifyAndTitle(
     const prompt = buildGlobalPrompt(clip, today)
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
+      max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     })
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
@@ -97,7 +107,19 @@ export async function verifyAndTitle(
     const jsonMatch = stripped.match(/\{[\s\S]*\}/)
     const text = jsonMatch ? jsonMatch[0] : stripped
     try {
-      return JSON.parse(text) as VerificationResult
+      const parsed = JSON.parse(text) as VerificationResult & {
+        verifiedClaims?: string[]
+        interpretiveClaims?: string[]
+        confidenceNote?: string | null
+      }
+      if (parsed.verifiedClaims || parsed.interpretiveClaims) {
+        parsed.verifiedInterpretation = {
+          verified: parsed.verifiedClaims ?? [],
+          interpretation: parsed.interpretiveClaims ?? [],
+          ...(parsed.confidenceNote ? { headerNote: parsed.confidenceNote } : {}),
+        }
+      }
+      return parsed
     } catch {
       return {
         isRealEvent: false, confidence: 0, aiGeneratedRisk: 'high',
@@ -131,11 +153,14 @@ Respond with this exact JSON structure:
   "confidence": 0.0 to 1.0,
   "aiGeneratedRisk": "low" or "medium" or "high",
   "headline": "Direct 10-15 word headline that states the most newsworthy fact plainly. IGNORE the source's headline framing entirely — do not reproduce it, paraphrase it, or let it anchor your word choice. Extract the underlying facts from the title and description and write from scratch. Lead with what actually happened — not the institutional response to it. No passive constructions. Never use MSM hedge words like 'uncorroborated', 'alleged', 'claims', 'reportedly', or 'appears to'. If a woman told the FBI something, say she told the FBI. If a cop broke someone's arm, say the cop broke their arm. Make the reader feel the stakes without softening the fact for the powerful party. CRITICAL: Never mention the journalist's name, channel name, or outlet name in the headline — the story is the story, not the messenger.",
-  "summary": "3-4 sentences, 20-30 words each, written for a citizen who distrusts institutional spin. Do not reproduce the source's framing — reconstruct the story from the facts. Sentence 1: state exactly what happened, who did it, and who was affected — use specific names, places, and numbers. Sentence 2: the immediate consequence or scale — how many people affected, what changed, what was seized/spent/lost. Sentence 3: what this means for ordinary people's rights, safety, money, or accountability over powerful institutions. Sentence 4 (optional): relevant context, what happens next, or a specific detail that makes the story concrete. CRITICAL RULES: (1) Never editorialize or use politically charged descriptors — do not characterize events as 'authoritarian', 'fascist', 'extremist', 'radical', 'dangerous', 'alarming', or any other loaded political label. State facts only. (2) Never use: 'highlights the risks of', 'raises questions about', 'sparks debate', 'draws attention to', 'allegedly', 'reportedly', 'is said to', or any phrase that softens facts for the powerful. (3) The summary must be informative to a citizen regardless of their political affiliation. (4) Write as a standalone paragraph — a reader with zero prior context should fully understand the story after reading it.",
+  "summary": "3-4 sentences, 20-30 words each. VOICE RULES — MANDATORY: (1) ALWAYS attribute claims to their source. Use 'X reports that,' 'according to the investigation,' 'per the analysis,' 'the source documents.' Never present a source's interpretation as your own conclusion. (2) NEVER use conclusory verbs in your own voice: do not write 'this signals,' 'this underscores,' 'this reflects,' 'this demonstrates,' 'this exposes,' 'this highlights.' If the source makes that argument, write 'the source argues this signals' or 'the analysis characterizes this as.' (3) MATCH certainty to evidence: if 3+ sources confirm, state the fact directly; if 1-2 sources report, attribute with 'X reports that'; if analytical, use 'the analysis argues.' (4) AVOID on single-source stories: 'unprecedented,' 'historic,' 'sweeping,' 'dramatic,' 'critical,' 'extraordinary.' Prefer plain description. (5) ONE-SOURCE RULE: if based on a single source, every sentence must contain an attribution phrase. Sentence 1: what happened, who, where, specific names/numbers — attributed. Sentence 2: immediate consequence or scale — attributed. Sentence 3: what this means for ordinary people — attributed or framed as the source's argument. Sentence 4 (optional): context or what happens next.",
   "msmGap": true or false,
   "category": "raw" or "reported" or "analysis",
   "decision": "publish" or "needs_review" or "reject",
-  "rejectReason": "reason if rejected, otherwise null"
+  "rejectReason": "reason if rejected, otherwise null",
+  "verifiedClaims": ["List each factual claim from the summary that is confirmable — confirmed by 2+ sources, official records, or direct observation. Format: 'Claim. (Source: X)' — e.g. 'Gen. George was fired on April 3. (AP, Reuters)'"],
+  "interpretiveClaims": ["List each analytical or causal claim from the summary. Format: 'Claim. (Source argument, not verified finding)' — e.g. 'The removals signal political consolidation. (Al Jazeera analysis, not independently confirmed)'"],
+  "confidenceNote": "For ANALYSIS category: 'This item is classified as Analysis. Claims reflect the source's arguments, not independently verified findings.' For single-source with no MSM corroboration: 'This story is based on a single source. Key claims have not been independently corroborated.' For developing stories with conflicting details: 'This story is developing. Specific details may change.' Otherwise: null"
 }
 
 CATEGORY RULES:
@@ -179,7 +204,7 @@ PUBLISH THRESHOLDS:
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 512,
+    max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })
 
@@ -188,8 +213,19 @@ PUBLISH THRESHOLDS:
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
 
   try {
-    const result = JSON.parse(text) as VerificationResult
-    return result
+    const parsed = JSON.parse(text) as VerificationResult & {
+      verifiedClaims?: string[]
+      interpretiveClaims?: string[]
+      confidenceNote?: string | null
+    }
+    if (parsed.verifiedClaims || parsed.interpretiveClaims) {
+      parsed.verifiedInterpretation = {
+        verified: parsed.verifiedClaims ?? [],
+        interpretation: parsed.interpretiveClaims ?? [],
+        ...(parsed.confidenceNote ? { headerNote: parsed.confidenceNote } : {}),
+      }
+    }
+    return parsed
   } catch {
     // Fallback if Claude returns malformed JSON
     return {

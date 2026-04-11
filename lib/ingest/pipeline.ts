@@ -504,6 +504,7 @@ export async function runProcess(): Promise<PipelineResult> {
         journalist_username: candidate.journalist_username ?? null,
         region: candidateRegion,
         duration: candidate.duration ?? null,
+        verified_interpretation: verification.verifiedInterpretation ?? null,
         ...(() => {
           const { tier, sourceType } = getSourceTier(candidate.journalist_username ?? null, candidate.source, verification.category ?? null)
           // If the static lookup returned null or the generic Tier 7 handle catch-all,

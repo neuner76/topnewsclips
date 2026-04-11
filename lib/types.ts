@@ -26,6 +26,11 @@ export interface Story {
   duration: string | null
   created_at: string
   updated_at: string
+  verified_interpretation: {
+    verified: string[]
+    interpretation: string[]
+    headerNote?: string
+  } | null
 }
 
 export interface Subscriber {
