@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Top News Clips — Independent News. No Agenda.',
-    description: 'The full picture, not the profitable picture. Daily briefing where every source is labeled and every blind spot is surfaced.',
+    description: 'The full picture, not the profitable picture. Daily briefing where every source is labeled and broader blind spots are easier to see.',
     url: 'https://www.topnewsclips.com',
     siteName: 'Top News Clips',
     type: 'website',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Top News Clips — Independent News. No Agenda.',
-    description: 'The full picture, not the profitable picture. Daily briefing where every source is labeled and every blind spot is surfaced.',
+    description: 'The full picture, not the profitable picture. Daily briefing where every source is labeled and broader blind spots are easier to see.',
     site: '@topnewsclips',
   },
   verification: {

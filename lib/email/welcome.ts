@@ -208,7 +208,7 @@ function email3Html(email: string, referralCode: string) {
     ${p("TopNewsClips is independently operated and funded by its founder. No investors. No advertisers. No institutional backing. Revenue comes from voluntary subscriptions. That's it. No one is paying us to cover — or not cover — any story.")}
     ${p("That means growth comes from one place: people like you telling one other person.")}
     ${p("If this week's briefings have been worth your morning five minutes, the single most valuable thing you can do is send TopNewsClips to someone who'd want the same thing. A friend. A group chat. A colleague who's tired of the algorithm.")}
-    ${p("They get it free. You help build something that doesn't exist anywhere else — a daily briefing where every source is labeled, every blind spot is surfaced, and no one's selling you outrage.")}
+    ${p("They get it free. You help build something that doesn't exist anywhere else — a daily briefing where every source is labeled, broader blind spots are easier to see, and no one's selling you outrage.")}
     <div style="margin:24px 0;display:flex;gap:10px;flex-wrap:wrap;">
       <a href="https://twitter.com/intent/tweet?text=${tweetText}" style="display:inline-block;background:#000000;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Share on X →</a>
       <a href="${refUrl}" style="display:inline-block;background:#0e7490;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none;">Send them the link →</a>
@@ -233,7 +233,7 @@ That means growth comes from one place: people like you telling one other person
 
 If this week's briefings have been worth your morning five minutes, the single most valuable thing you can do is send TopNewsClips to someone who'd want the same thing. A friend. A group chat. A colleague who's tired of the algorithm.
 
-They get it free. You help build something that doesn't exist anywhere else — a daily briefing where every source is labeled, every blind spot is surfaced, and no one's selling you outrage.
+They get it free. You help build something that doesn't exist anywhere else — a daily briefing where every source is labeled, broader blind spots are easier to see, and no one's selling you outrage.
 
 Share on X: https://twitter.com/intent/tweet?text=${tweetText}
 
