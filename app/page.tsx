@@ -299,6 +299,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                 <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                   <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
                   {story && <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />}
+                  {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
                 </div>
                 <Link
                   href={`/story/${item.slug}`}
@@ -328,10 +329,14 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           </div>
           <p className="text-xs text-muted-foreground mb-4">How international outlets are covering today&apos;s stories — perspectives that add context to the US view.</p>
           <div className="space-y-4">
-            {content.globalLens.map((item: GlobalLensItem) => (
+            {content.globalLens.map((item: GlobalLensItem) => {
+              const story = storyMap.get(item.slug)
+              return (
               <div key={item.slug} className="border-b border-border pb-4 last:border-0 last:pb-0">
                 <div className="flex flex-wrap items-center gap-1.5 mb-1">
                   <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
+                  {story && <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />}
+                  {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
                 </div>
                 <Link
                   href={`/story/${item.slug}`}
@@ -343,7 +348,8 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                 </Link>
                 <p className="text-sm text-muted-foreground">{item.summary}</p>
               </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       )}

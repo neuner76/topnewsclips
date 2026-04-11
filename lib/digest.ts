@@ -168,7 +168,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     // Global blindspot stories — last 48 hours only, sorted by recency
     supabase
       .from('stories')
-      .select('slug, title, description, region')
+      .select('slug, title, description, region, source_tier, source_type, journalist_username, source, category, msm_outlet_coverage')
       .eq('published', true)
       .eq('msm_gap', true)
       .not('region', 'is', null)
@@ -178,7 +178,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     // All regional stories as matching pool for "How the World Sees It" — last 48 hours only
     supabase
       .from('stories')
-      .select('slug, title, description, region')
+      .select('slug, title, description, region, source_tier, source_type, journalist_username, source, category, msm_outlet_coverage')
       .eq('published', true)
       .not('region', 'is', null)
       .gte('created_at', twoDaysAgo)
