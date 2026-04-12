@@ -6,7 +6,6 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import StoryCard from '@/components/StoryCard'
 import EmailCapture from '@/components/EmailCapture'
-import EmailCaptureInline from '@/components/EmailCaptureInline'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import SourceTypeBadge from '@/components/SourceTypeBadge'
 import TrackEvent from '@/components/TrackEvent'
@@ -14,6 +13,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
+import { getOutletDescriptor } from '@/lib/outlet-descriptors'
 import ConfidenceBadge from '@/components/ConfidenceBadge'
 import PressureScore from '@/components/PressureScore'
 import MSMBadge from '@/components/MSMBadge'
@@ -190,7 +190,12 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
                 <span>{coverageText}</span>
               )}
               {story?.msm_gap && (
-                <><span className="opacity-40">·</span><span className="font-semibold text-[oklch(0.45_0.22_24)]">Limited Coverage</span></>
+                <span
+                  className="font-semibold text-[oklch(0.45_0.22_24)]"
+                  title="Limited Coverage: This story is receiving attention from fewer than 3 of 15 tracked mainstream outlets"
+                >
+                  Limited Coverage
+                </span>
               )}
             </p>
           )}
@@ -223,11 +228,6 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           {content.needToKnow.map((item, i) => (
             <div key={item.slug}>
               <NeedToKnowStory item={item} storyMap={storyMap} />
-              {i === 0 && content.needToKnow.length > 1 && (
-                <div className="py-4">
-                  <EmailCaptureInline nudge />
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -308,16 +308,22 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             <div className="flex-1 border-t border-border" />
           </div>
           <p className="text-xs text-muted-foreground mb-4">What the major outlets are leading with today.</p>
+          <Link href="/corrections" className="block text-[10px] text-muted-foreground/70 hover:text-foreground transition-colors mb-3">
+            ✓ No corrections today
+          </Link>
           <ul className="space-y-2">
-            {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => (
+            {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => {
+              const standardizedDescriptor = getOutletDescriptor(item.source)
+              return (
               <li key={i} className="flex gap-3 items-baseline py-1.5 border-b border-border/50 last:border-0">
                 <div className="shrink-0 w-24">
                   <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block">{item.source}</span>
-                  <span className="text-[9px] text-muted-foreground/60 leading-none">{item.descriptor}</span>
+                  <span className="text-[9px] text-muted-foreground/60 leading-none" title={item.descriptor}>{standardizedDescriptor}</span>
                 </div>
                 <span className="text-sm leading-relaxed">{item.headline}</span>
               </li>
-            ))}
+              )
+            })}
           </ul>
         </section>
       )}

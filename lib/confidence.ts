@@ -33,27 +33,27 @@ export interface ConfidenceMeta {
 export const CONFIDENCE_META: Record<ConfidenceLabel, ConfidenceMeta> = {
   CORROBORATED: {
     label: 'Corroborated',
-    description: 'Multiple independent sources confirm the core facts.',
+    description: '5+ independent outlets or 3+ outlets including Tier 1-5 sources confirm the core facts.',
     className: 'text-[oklch(0.38_0.13_145)] bg-[oklch(0.96_0.03_145)] border-[oklch(0.88_0.07_145)]',
   },
   REPORTED: {
     label: 'Reported',
-    description: 'Published by a credible source with editorial standards, not yet independently corroborated.',
+    description: 'Published by a Tier 1-6 source with editorial oversight and corrections policy.',
     className: 'text-[oklch(0.45_0.10_230)] bg-[oklch(0.96_0.02_230)] border-[oklch(0.88_0.05_230)]',
   },
   DEVELOPING: {
     label: 'Developing',
-    description: 'Event confirmed but key details still emerging or conflicting across sources.',
+    description: 'Event confirmed by 2+ sources but key details still emerging or conflicting.',
     className: 'text-[oklch(0.48_0.12_85)] bg-[oklch(0.97_0.04_85)] border-[oklch(0.88_0.08_85)]',
   },
   'SINGLE-SOURCE': {
     label: 'Single-source',
-    description: 'One source, not yet independently verified.',
+    description: 'One source reporting this, not yet independently verified.',
     className: 'text-muted-foreground bg-muted border-border',
   },
   ANALYSIS: {
     label: 'Analysis',
-    description: 'Interpretation or commentary — not original fact reporting.',
+    description: 'Interpretation, synthesis, or commentary — not original fact reporting.',
     className: 'text-muted-foreground bg-muted border-border',
     italic: true,
   },
