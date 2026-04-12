@@ -68,6 +68,20 @@ export interface Digest {
   generated_at: string
 }
 
+function sigWords(title: string): Set<string> {
+  const stop = new Set([
+    'the','a','an','and','or','but','in','on','at','to','for','of','with',
+    'by','from','that','this','is','are','was','were','be','been','have',
+    'has','had','will','after','during','its','as','over','into',
+  ])
+  return new Set(
+    title.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 3 && !stop.has(w))
+  )
+}
+
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -728,11 +742,25 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     })
   }
 
+  // Build a topic word set from NeedToKnow titles for topic-level deduplication
+  const ntkTopicWords = new Set<string>()
+  for (const ntk of content.needToKnow) {
+    const story = cappedStories.find(s => s.slug === ntk.slug)
+    if (story) for (const w of sigWords(story.title)) ntkTopicWords.add(w)
+  }
+
   content.etcetera = content.etcetera.filter(item => {
     const etc = typeof item === 'string' ? { text: item, slug: null } : item
     // Drop slugless Etcetera items — Claude uses these for meta-commentary rather than real facts
     if (!etc.slug) return false
     if (usedSlugs.has(etc.slug)) return false
+    // Drop Etcetera items whose topic overlaps significantly with a NeedToKnow story
+    const story = cappedStories.find(s => s.slug === etc.slug)
+    if (story) {
+      let overlap = 0
+      for (const w of sigWords(story.title)) if (ntkTopicWords.has(w)) overlap++
+      if (overlap >= 2) return false  // same topic already in NeedToKnow
+    }
     usedSlugs.add(etc.slug)
     return true
   }) as EtceteraItem[]
@@ -797,11 +825,14 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       return true
     }).slice(0, 3)
 
-    // Populate howWorldSeesIt titles from DB
+    // Populate howWorldSeesIt titles from DB and deduplicate by outlet (region field)
     for (const ntk of content.needToKnow) {
       if (!ntk.howWorldSeesIt) continue
+      const seenOutlets = new Set<string>()
       ntk.howWorldSeesIt = ntk.howWorldSeesIt.filter(w => {
         if (!titleMap.has(w.slug)) return false
+        if (seenOutlets.has(w.region)) return false  // drop duplicate outlet
+        seenOutlets.add(w.region)
         w.title = titleMap.get(w.slug)!
         return true
       })
