@@ -430,6 +430,10 @@ GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
     ✗ "matters to Americans tracking global trends"
     ✗ "relevant as the US debates similar issues"
     ✗ "offers lessons for American educators/businesses/leaders"
+    ✗ "potential consequences for regional security" (too vague)
+    ✗ "US-[country] competition for influence" (geopolitical framing, not a direct impact)
+    ✗ "connects to broader US foreign policy debates"
+    ✗ "a development US officials will be watching"
   When the connection is weak, simply present the story as significant international news. The Global Blindspot section already justifies inclusion: "the rest of the world is covering this and US media is not." That is sufficient — no additional US hook required.
 
   WRONG: "India's ruling carries implications for how American courts may weigh similar arguments."
@@ -541,29 +545,32 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
   }
 
-  // Homepage gate: enforce NeedToKnow Tier 1-6 only — evict any Tier 7+ commentary that slipped through
-  const tier7PlusSlugs = new Set(
+  // Homepage gate: NeedToKnow must not contain pure analysis/commentary — evict any that slipped through
+  // This applies regardless of tier: even a Tier 4 source publishing analysis shouldn't be in NeedToKnow
+  // unless no non-commentary replacement exists. Exception: allow max 1 commentary if no non-commentary available.
+  const ntkCommentarySlugs = new Set(
     freshCandidates
-      .filter(s => (s.source_tier ?? 99) > 6 && getContentType(s) === 'commentary')
+      .filter(s => getContentType(s) === 'commentary')
       .map(s => s.slug)
   )
-  const ntkTierViolations = content.needToKnow.filter(i => tier7PlusSlugs.has(i.slug))
-  for (const violation of ntkTierViolations) {
+  const ntkCommentaryViolations = content.needToKnow.filter(i => ntkCommentarySlugs.has(i.slug))
+  for (const violation of ntkCommentaryViolations) {
+    const currentNtkSlugs = new Set(content.needToKnow.map(i => i.slug))
     const replacement = freshCandidates.find(s =>
-      (s.source_tier ?? 99) <= 6 &&
-      !tier7PlusSlugs.has(s.slug) &&
-      !new Set(content.needToKnow.map(i => i.slug)).has(s.slug) &&
+      getContentType(s) !== 'commentary' &&
+      !currentNtkSlugs.has(s.slug) &&
       (s.description?.length ?? 0) >= 80 &&
       !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
     )
-    content.needToKnow = content.needToKnow.filter(i => i.slug !== violation.slug)
     if (replacement) {
+      content.needToKnow = content.needToKnow.filter(i => i.slug !== violation.slug)
       content.needToKnow.push({
         sectionTitle: replacement.title.slice(0, 60),
         slug: replacement.slug,
         paragraphs: [replacement.description ?? ''],
       })
     }
+    // If no non-commentary replacement exists, leave the commentary item rather than drop below 2
   }
 
   // Enforce NeedToKnow mix: max 1 commentary — swap extras for best non-commentary candidate
@@ -686,14 +693,21 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content.inTheKnow['Comedy & Satire'] = [ranked[0].item]
   }
 
-  // Step 1: filter promo terms and Storyful-sourced stories from Claude's output
+  // Step 1: filter promo terms, Storyful-sourced stories, and analysis/commentary from Etcetera
   // Storyful videos are always embed-blocked — no point surfacing them in the digest
+  // Analysis and commentary items don't belong in Etcetera — they belong in InTheKnow
   const storyfulSlugs = new Set(
     cappedStories.filter(s => (s.source ?? '').toLowerCase().includes('storyful')).map(s => s.slug)
+  )
+  const analysisCommentarySlugs = new Set(
+    cappedStories
+      .filter(s => s.category === 'analysis' || getContentType(s) === 'commentary')
+      .map(s => s.slug)
   )
   content.etcetera = content.etcetera.filter(item => {
     const etc = typeof item === 'string' ? { text: item, slug: null } : item
     if (etc.slug && storyfulSlugs.has(etc.slug)) return false
+    if (etc.slug && analysisCommentarySlugs.has(etc.slug)) return false
     const text = (typeof item === 'string' ? item : item.text).toLowerCase()
     return !PROMO_TERMS.some(t => text.includes(t))
   })
