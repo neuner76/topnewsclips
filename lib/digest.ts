@@ -244,6 +244,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     summary: s.description,
     contentType: getContentType(s),  // "footage" | "commentary" | "investigation" | "report"
     confidenceLabel: getConfidenceLabel(s as Parameters<typeof getConfidenceLabel>[0]),
+    source_tier: s.source_tier ?? null,
     source: s.journalist_username ? `@${s.journalist_username}` : (s.source ?? null),
     msmGap: s.msm_gap,
     hoursAgo: Math.round((Date.now() - new Date(s.created_at).getTime()) / 3600000),
@@ -408,9 +409,34 @@ ETCETERA:
 - Each item: { "text": "...", "slug": "..." } — include the story's slug so we can link to it
 
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
-- 1-sentence summary per global story explaining what's happening and why Americans should care
+- 1-sentence summary per global story
 - Use the slug, region, AND title fields from the input exactly as-is — do NOT rewrite or invent a title
-- RULE 4 — US RELEVANCE GATE: Only add a "why Americans should care" frame if the connection is direct and specific. Strong connections: story directly affects US gas prices, involves US military personnel, involves US foreign aid dollars, involves US trade policy or tariffs, involves rights of US citizens abroad. Weak connections (omit the relevance frame entirely and just report the news): relevance requires multiple inferential leaps, the only hook is "could have implications for American interests" or "raises questions for US policymakers," or the connection requires explaining three intermediate steps. When the connection is weak, present it as significant international news — not every global story needs a US justification. Wrong: "a development that matters to Americans because US policymakers may take note." Right: "...a chokepoint controlling 20% of global oil supply, meaning price spikes at the pump could follow within weeks." OR (when no direct link): simply describe what happened and why it matters globally.
+- Only include stories with coverage count ≤ 2 of 14 US outlets (these are the genuine blindspots)
+- US RELEVANCE GATE — MANDATORY: Before adding a "why this matters to Americans" frame, apply this test:
+
+  INCLUDE US RELEVANCE FRAME only when the connection is DIRECT AND CONCRETE:
+    ✓ US gas prices will be affected (e.g. Strait of Hormuz, OPEC decisions)
+    ✓ US military personnel are deployed or at risk
+    ✓ US taxpayer dollars fund the program or aid involved
+    ✓ US citizens' rights are affected (travel, trade, detention abroad)
+    ✓ US imports/exports are directly disrupted
+    ✓ A US company or institution is named in the story
+    ✓ A US law, court ruling, or policy is directly referenced
+  Format: one factual sentence — "This matters to Americans because US military aid to Israel exceeds $3 billion annually."
+
+  OMIT US RELEVANCE FRAME when the connection is vague or requires inferential leaps:
+    ✗ "raises questions for US policymakers"
+    ✗ "could have implications for American interests"
+    ✗ "matters to Americans tracking global trends"
+    ✗ "relevant as the US debates similar issues"
+    ✗ "offers lessons for American educators/businesses/leaders"
+  When the connection is weak, simply present the story as significant international news. The Global Blindspot section already justifies inclusion: "the rest of the world is covering this and US media is not." That is sufficient — no additional US hook required.
+
+  WRONG: "India's ruling carries implications for how American courts may weigh similar arguments."
+  RIGHT: "India's Supreme Court ruled Parliament, not the judiciary, should expand marriage rights — drawing dissent from the Chief Justice." (stop there — no forced US frame)
+
+  WRONG: "a development that matters to Americans because US policymakers may take note."
+  RIGHT: "...a chokepoint controlling 20% of global oil supply, meaning price spikes at the pump could follow within weeks." (only if that connection is real)
 
 HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
 - For each NeedToKnow story, scan INTERNATIONAL PERSPECTIVES for stories about the same event, policy, or entity — including direct international reactions to a US policy (e.g. a Canadian or European outlet covering US tariffs, immigration policy, or court rulings counts as a match for those NeedToKnow stories).
@@ -432,6 +458,41 @@ GLOBAL LENS (only if INTERNATIONAL PERSPECTIVES are provided):
 - "summary" = one sentence describing the international angle and why it adds perspective for American readers
 - If fewer than 3 unused international stories exist, omit "globalLens" entirely
 - Never reuse a slug already used in globalBlindspots or howWorldSeesIt
+
+HOMEPAGE INCLUSION GATE — HARD RULES (apply BEFORE finalizing each section):
+
+NEED TO KNOW:
+  - MUST be Tier 1-6 sources only (source_tier ≤ 6 in the input)
+  - MUST have contentType "footage", "investigation", or "report" — not "commentary"
+  - Tier 7 commentary ONLY if: the underlying event is confirmed by a Tier 1-5 source AND no Tier 1-5 source covers the same event
+  - NEVER satire sources
+
+IN THE KNOW:
+  - Tier 1-6: included by default
+  - Tier 7 commentary: only if the underlying event is independently confirmed by at least one Tier 1-5 source — if confirmed, prefer the Tier 1-5 source as the primary item and use the commentary as supplemental context
+  - Raw footage (contentType="footage"): maximum 1 item in In The Know per day
+  - Apply source_tier from the input data to determine tier
+
+GLOBAL BLINDSPOT:
+  - Prefer Tier 1-3 sources (public broadcasters, wire services, nonprofit newsrooms)
+  - Tier 7 only if no Tier 1-5 source covers the same story
+
+GLOBAL LENS:
+  - Prefer Tier 3 public broadcaster sources
+  - Each item must present a meaningfully DIFFERENT framing from US coverage — not just the same facts from a different outlet
+  - Maximum 4 items
+
+ETCETERA:
+  - Genuinely lighter, miscellaneous, or quirky items only — maximum 3
+  - Any story with direct military, humanitarian, or policy significance must be promoted to Politics & World Affairs instead
+
+DAILY SELF-CHECK — before finalizing output verify:
+  ✓ Every Need To Know item has source_tier ≤ 6 in the input
+  ✓ No satire in Need To Know
+  ✓ Maximum 1 satire item on entire homepage
+  ✓ Maximum 1 raw footage item in In The Know
+  ✓ Every Tier 7 item in In The Know has the underlying event confirmed by a Tier 1-5 source
+  ✓ Etcetera has maximum 3 items, none with military/humanitarian significance
 
 Return ONLY valid JSON in this exact structure:
 {
@@ -478,6 +539,31 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content = JSON.parse(text)
   } catch {
     throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
+  }
+
+  // Homepage gate: enforce NeedToKnow Tier 1-6 only — evict any Tier 7+ commentary that slipped through
+  const tier7PlusSlugs = new Set(
+    freshCandidates
+      .filter(s => (s.source_tier ?? 99) > 6 && getContentType(s) === 'commentary')
+      .map(s => s.slug)
+  )
+  const ntkTierViolations = content.needToKnow.filter(i => tier7PlusSlugs.has(i.slug))
+  for (const violation of ntkTierViolations) {
+    const replacement = freshCandidates.find(s =>
+      (s.source_tier ?? 99) <= 6 &&
+      !tier7PlusSlugs.has(s.slug) &&
+      !new Set(content.needToKnow.map(i => i.slug)).has(s.slug) &&
+      (s.description?.length ?? 0) >= 80 &&
+      !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
+    )
+    content.needToKnow = content.needToKnow.filter(i => i.slug !== violation.slug)
+    if (replacement) {
+      content.needToKnow.push({
+        sectionTitle: replacement.title.slice(0, 60),
+        slug: replacement.slug,
+        paragraphs: [replacement.description ?? ''],
+      })
+    }
   }
 
   // Enforce NeedToKnow mix: max 1 commentary — swap extras for best non-commentary candidate
@@ -708,6 +794,12 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (ntk.howWorldSeesIt.length === 0) delete ntk.howWorldSeesIt
     }
   }
+
+  // Cap Etcetera at 3 (homepage gate hard rule — applied after padding so minimum is still met first)
+  content.etcetera = content.etcetera.slice(0, 3)
+
+  // Cap Global Lens at 4 (homepage gate)
+  if (content.globalLens) content.globalLens = content.globalLens.slice(0, 4)
 
   // Attach mainstream pulse (fetched independently, not via Claude)
   if (mainstreamPulse.length > 0) content.mainstreamPulse = mainstreamPulse
