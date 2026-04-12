@@ -43,7 +43,7 @@ export default function EmailCapture() {
           The full picture, not the profitable picture.
         </h2>
         <p className="text-sm text-background/70 mb-6">
-          A daily briefing where every source is labeled, broader blind spots are easier to see, and no one&apos;s selling you outrage. Free.
+          A daily briefing where every source is labeled, what US media skips gets surfaced, and no one&apos;s selling you outrage. Free.
         </p>
 
         {status === 'success' ? (

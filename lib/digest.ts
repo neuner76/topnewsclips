@@ -401,9 +401,9 @@ EDITORIAL RESTRAINT RULES — MANDATORY FOR ALL PARAGRAPHS:
 RULE 1 — MATCH VOICE TO CONFIDENCE:
 Each story in the input has a "confidenceLabel" field. Apply these writing rules accordingly:
 - CORROBORATED: You may state confirmed facts directly. Attribution still required for interpretive claims.
-- REPORTED: Every claim must be attributed to the source. ("CNN reports that...")
-- SINGLE-SOURCE: Every sentence must contain an attribution phrase. No sentence may read as the site's own conclusion. ("According to the BBC analysis, the removals represent a departure from Pentagon norms.")
-- ANALYSIS: Lead with "In an analysis published by [source]..." Frame all claims as the source's arguments. Use: "argues," "suggests," "characterizes," "contends." Avoid: "signals," "demonstrates," "reveals," "exposes."
+- REPORTED: Every claim must be attributed to the cited source. No synthesis beyond what that source stated.
+- SINGLE-SOURCE: Every sentence must contain an attribution phrase. No sentence may read as the site's own conclusion.
+- ANALYSIS: This is the strictest rule. EVERY sentence — including the first — must be framed as the source's argument, not a fact. Lead with "In an analysis, [source] argues..." or "[Source] characterizes this as..." You may not open with a declarative statement and then attribute later. The reader must know from the first word that this is one source's interpretation. If you cannot attribute every claim, cut it. Banned on Analysis items entirely (even inside attribution): "purge," "unprecedented," "consolidation of power," "sweeping," "signals" in site voice, "makes clear," "lays bare." These words imply settled conclusions — Analysis items have no settled conclusions.
 - DEVELOPING: Note which details are confirmed and which are not. Use: "initial reports indicate," "details are still emerging," "accounts differ on."
 
 RULE 2 — BANNED CONSTRUCTIONS ON THIN EVIDENCE:
@@ -482,6 +482,8 @@ GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
     ✗ "connects to broader US foreign policy debates"
     ✗ "a development US officials will be watching"
   When the connection is weak, simply present the story as significant international news. The Global Blindspot section already justifies inclusion: "the rest of the world is covering this and US media is not." That is sufficient — no additional US hook required.
+
+  BLINDSPOT TONE: Write as a calm, informed observer — not as a product arguing for why it included a story. The worst Blindspot summaries sound like they are making a case for inclusion. The best ones simply report what happened and let the significance speak for itself. Test every sentence: is this sentence here to inform the reader, or to justify the item's presence on the page? If it's the latter, cut it.
 
   WRONG: "India's ruling carries implications for how American courts may weigh similar arguments."
   RIGHT: "India's Supreme Court ruled Parliament, not the judiciary, should expand marriage rights — drawing dissent from the Chief Justice." (stop there — no forced US frame)
@@ -770,9 +772,25 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const storyfulSlugs = new Set(
     cappedStories.filter(s => (s.source ?? '').toLowerCase().includes('storyful')).map(s => s.slug)
   )
+  // Etcetera must exclude: analysis, commentary, AND raw footage on serious topics (conflict, policy, disasters)
+  const ETCETERA_SERIOUS_KEYWORDS = [
+    'flood', 'hurricane', 'tornado', 'earthquake', 'wildfire', 'drought',
+    'shooting', 'killed', 'dead', 'deaths', 'injured', 'crash', 'explosion',
+    'war', 'strike', 'missile', 'bomb', 'attack', 'conflict', 'military',
+    'iran', 'israel', 'ukraine', 'russia', 'china', 'north korea',
+    'congress', 'senate', 'court', 'supreme', 'indicted', 'arrested', 'charged',
+    'data center', 'megawatt', 'vote', 'council', 'board', 'approved',
+  ]
   const analysisCommentarySlugs = new Set(
     cappedStories
-      .filter(s => s.category === 'analysis' || getContentType(s) === 'commentary')
+      .filter(s => {
+        if (s.category === 'analysis' || getContentType(s) === 'commentary') return true
+        // Also block raw footage on serious topics from Etcetera
+        const titleLower = (s.title ?? '').toLowerCase()
+        const descLower = (s.description ?? '').toLowerCase()
+        if (ETCETERA_SERIOUS_KEYWORDS.some(k => titleLower.includes(k) || descLower.slice(0, 100).includes(k))) return true
+        return false
+      })
       .map(s => s.slug)
   )
   content.etcetera = content.etcetera.filter(item => {
