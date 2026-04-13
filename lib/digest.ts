@@ -805,6 +805,32 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => !item.slug || !tier10Slugs.has(item.slug))
   }
 
+  // InTheKnow commentary ceiling — max 1 commentary/analysis item per category section
+  // Keeps the highest-credibility commentary (lowest source_tier), drops the rest
+  const storyTierMap = new Map(cappedStories.map(s => [s.slug, s.source_tier ?? 99]))
+  const storyContentTypeMap = new Map(cappedStories.map(s => [s.slug, getContentType(s)]))
+  const COMMENTARY_TYPES = new Set(['commentary'])
+  const COMMENTARY_CATEGORIES = new Set(['analysis'])
+  const isCommentaryItem = (slug: string | null): boolean => {
+    if (!slug) return false
+    const ct = storyContentTypeMap.get(slug)
+    if (ct && COMMENTARY_TYPES.has(ct)) return true
+    const story = cappedStories.find(s => s.slug === slug)
+    if (story?.category && COMMENTARY_CATEGORIES.has(story.category)) return true
+    return false
+  }
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    if (cat === 'Comedy & Satire') continue  // satire gate handles this category separately
+    const items = content.inTheKnow[cat]
+    const commentaryItems = items.filter(item => isCommentaryItem(item.slug))
+    if (commentaryItems.length <= 1) continue
+    // Keep the commentary item with the best (lowest) source tier; drop the rest
+    commentaryItems.sort((a, b) => (storyTierMap.get(a.slug ?? '') ?? 99) - (storyTierMap.get(b.slug ?? '') ?? 99))
+    const keepSlug = commentaryItems[0].slug
+    const dropSlugs = new Set(commentaryItems.slice(1).map(i => i.slug).filter(Boolean))
+    content.inTheKnow[cat] = items.filter(item => !item.slug || !dropSlugs.has(item.slug))
+  }
+
   // Step 1: filter promo terms, Storyful-sourced stories, and analysis/commentary from Etcetera
   // Storyful videos are always embed-blocked — no point surfacing them in the digest
   // Analysis and commentary items don't belong in Etcetera — they belong in InTheKnow
@@ -944,9 +970,24 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     const titleMap = new Map((dbStories ?? []).map((s: { slug: string; title: string }) => [s.slug, s.title]))
 
     // Fix globalBlindspots — drop entries where slug doesn't exist in DB or summary is empty
+    // Also drop trend-synthesis items: these are forward-looking analysis pieces, not news events
+    const TREND_SYNTHESIS_PHRASES = [
+      'within the next decade', 'over the next decade', 'in the coming decade',
+      'accelerate toward', 'accelerating toward', 'on track to',
+      'could reshape', 'could transform', 'could redefine', 'could disrupt',
+      'may reshape', 'may transform', 'may redefine',
+      'expected to reach', 'projected to', 'set to become',
+      'growing movement', 'a new era of', 'marks a turning point',
+      'analysts say', 'experts warn', 'experts say',
+    ]
+    const isTrendSynthesis = (summary: string): boolean => {
+      const lower = summary.toLowerCase()
+      return TREND_SYNTHESIS_PHRASES.some(p => lower.includes(p))
+    }
     content.globalBlindspots = (content.globalBlindspots ?? []).filter(item => {
       if (!titleMap.has(item.slug)) return false
       if (!item.summary?.trim()) return false
+      if (isTrendSynthesis(item.summary)) return false  // reject future-facing trend analysis
       item.title = titleMap.get(item.slug)!
       return true
     })
