@@ -435,6 +435,12 @@ Structure every NeedToKnow paragraph sequence as:
   Paragraph 2: What the source reports about context or significance. Clearly attributed as the source's framing.
 Never lead with the interpretation and use facts as evidence for a conclusion already drawn.
 
+RULE 4 — ONE STORY, ONE CLAIM:
+Each NeedToKnow card must have a single, unmistakable center of gravity — one event, one actor, one development. If you catch yourself writing a card that touches a blockade AND a diplomatic summit AND a naval warning AND a counter-threat from a second country, you have four stories, not one. Pick the single most significant development and cut the rest. The other developments belong in InTheKnow as separate bullets — not packed into the same card.
+  ANTI-PATTERN: "Israel has tightened its blockade on Gaza; separately, Pakistan and India held emergency talks in Islamabad; Iran's navy meanwhile warned ships near the Strait of Hormuz; Tehran also issued a counter-threat to..."
+  CORRECT: One card = the blockade tightening. Islamabad talks = separate InTheKnow bullet. Hormuz warning = separate InTheKnow bullet.
+  TEST: After writing a card, count the number of distinct actor–event pairs. If there are more than 2, cut to the strongest one.
+
 - Use the slug field from the input exactly as-is
 
 IN THE KNOW:
@@ -499,6 +505,10 @@ GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
 
   BLINDSPOT TONE: Write as a calm, informed observer — not as a product arguing for why it included a story. The worst Blindspot summaries sound like they are making a case for inclusion. The best ones simply report what happened and let the significance speak for itself. Test every sentence: is this sentence here to inform the reader, or to justify the item's presence on the page? If it's the latter, cut it.
 
+  TREND-SYNTHESIS FILTER — HARD RULE: Global Blindspot is for news events, not trend analysis. Reject any item whose summary is primarily about what "could," "may," "might," or "is expected to" happen — or that synthesizes a multi-year trajectory rather than reporting a specific event. The story must have a dateable event: a vote, a ruling, a launch, an arrest, a report publication, a statement by a named official. Future-facing synthesis ("nations are accelerating toward X," "experts warn this technology could reshape Y within a decade," "a growing movement is challenging Z") belongs in a weekly analysis piece, not a daily news blindspot.
+  ANTI-PATTERN: "Several nations are expanding lunar mining programs that could challenge US dominance in space resources within the next decade, analysts say."
+  CORRECT: "Japan's JAXA signed an agreement with [country] to begin exploratory lunar drilling missions in [year]." (specific, dateable, attributable)
+
   WRONG: "India's ruling carries implications for how American courts may weigh similar arguments."
   RIGHT: "India's Supreme Court ruled Parliament, not the judiciary, should expand marriage rights — drawing dissent from the Chief Justice." (stop there — no forced US frame)
 
@@ -559,7 +569,8 @@ NEED TO KNOW:
   - NEVER satire sources
 
 IN THE KNOW:
-  - Tier 1-6: included by default
+  - Tier 1-6 reported/investigative/footage: included by default
+  - COMMENTARY CEILING: Maximum 1 commentary item per category section. Commentary includes: opinion journalism, creator analysis, pundit explainers, niche deep-dives from advocacy-adjacent outlets. If a category has 3+ items and more than 1 is commentary, drop the weakest commentary item. Reported facts beat commentary when covering the same event.
   - Tier 7 commentary: only if the underlying event is independently confirmed by at least one Tier 1-5 source — if confirmed, prefer the Tier 1-5 source as the primary item and use the commentary as supplemental context
   - Raw footage (contentType="footage"): maximum 1 item in In The Know per day
   - Apply source_tier from the input data to determine tier
