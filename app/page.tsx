@@ -266,20 +266,20 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       {/* Etcetera */}
       {content.etcetera?.length > 0 && (
         <section className="mb-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 border-t border-border" />
-            <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase shrink-0">
-              Etcetera
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 border-t border-border/40" />
+            <span className="text-[10px] font-bold tracking-widest text-muted-foreground/60 uppercase shrink-0">
+              Also worth knowing
             </span>
-            <div className="flex-1 border-t border-border" />
+            <div className="flex-1 border-t border-border/40" />
           </div>
-          <ul className="space-y-3">
+          <ul className="space-y-2 bg-muted/30 rounded-lg px-4 py-3">
             {content.etcetera.map((item: EtceteraItem | string, i: number) => {
               const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
               const story = etc.slug ? storyMap.get(etc.slug) : null
-              const text = <span className="text-base leading-relaxed text-muted-foreground">{etc.text}</span>
+              const text = <span className="text-[0.9rem] leading-relaxed text-muted-foreground">{etc.text}</span>
               return (
-                <li key={i} className="flex flex-col gap-1">
+                <li key={i} className="flex flex-col gap-1 py-1.5 border-b border-border/30 last:border-0">
                   {etc.slug ? (
                     <Link href={`/story/${etc.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
                       {text}
