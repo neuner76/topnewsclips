@@ -359,7 +359,7 @@ NEED TO KNOW (3 stories max):
 - CELEBRITY/ENTERTAINMENT EXCLUSION: Do not place celebrity arrests, DUI incidents, athlete legal trouble, or personal drama in NeedToKnow — even if the story includes bodycam footage. These belong in "Sports, Entertainment, & Culture". A famous person being arrested is not NeedToKnow unless the police conduct itself is the story (explicit misconduct documented on camera).
 - SATIRE/COMEDY EXCLUSION — HARD RULE: Never place a satire or comedy source in NeedToKnow. This includes The Daily Show, Last Week Tonight, Jonathan Pie, Some More News, Josh Johnson, The Juice Media, and any other source whose contentType would be "commentary (satire)". NeedToKnow is the editorial standard-setter for the entire page — it must only contain straight reporting (Tiers 1–5) or non-satirical independent commentary (Tier 7). If the only source for a newsworthy topic is a comedy show, move that story to "Comedy & Satire" in InTheKnow and find a straight-reporting source to cover the same topic in NeedToKnow if one exists.
 - POLITICAL BALANCE — HARD CONSTRAINT: Before finalizing, label each pick as primarily appealing to: (A) left-leaning readers, (B) right-leaning readers, or (C) cross-partisan. You MUST have at least one (C) pick. Cross-partisan stories include: health costs, food prices, local crime/safety, natural disasters, scientific breakthroughs, personal finance. If all 3 are (A) or all 3 are (B), replace the weakest pick with the most cross-partisan story available in the candidates list.
-- ONE STORY PER CARD — HARD RULE: Each NeedToKnow item must cover exactly one story. Do not bundle multiple unrelated developments into a single card even if they come from the same source. If an ABC News segment covers Artemis, Swalwell, and JD Vance, pick the strongest single story and write only about that. The other stories belong in InTheKnow as separate bullets. A card whose headline promises one thing and whose summary delivers three weakens the entire digest. Test: could you write a clean 4-7 word sectionTitle that accurately describes the entire card? If the answer requires "and" or a semicolon, the card covers too much — split it.
+- ONE STORY PER CARD — HARD RULE: Each NeedToKnow item must cover exactly one story. Do not bundle multiple unrelated developments into a single card even if they come from the same source or the same news cycle. If ABC News covers both a US blockade announcement AND JD Vance negotiations, those are two separate stories — write one card about the blockade, move the Vance item to InTheKnow. The word "Separately" in a NeedToKnow paragraph is a signal you have violated this rule. Test: write the sectionTitle first. If the summary requires "Separately" or "Also" or "Meanwhile" to cover the full card, split it.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on ONE story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague. The final paragraph must include a "Why this matters to you" sentence connecting the story to something tangible in an American's daily life — their wallet, their rights, their community, or their family. Make it specific and concrete, not generic. Wrong: "This could affect Americans." Right: "If you've driven past a license plate reader this week, your vehicle's location may already be in ICE's database." or "If you have a 401(k), the private equity fees documented here are likely embedded in funds you already own."
 - TONE — REPORTER NOT ADVOCATE: Every sentence must describe what the source reports, shows, or claims. Use varied attribution language — do not repeat the same phrase more than once per paragraph. Attribution vocabulary: "reports that", "shows", "according to", "documents", "alleges", "found that", "the video shows", "the analysis finds", "per the report", "the investigation documents", "the explainer notes". FORBIDDEN phrases: "corrosive", "perverse", "troubling", "alarming", "shocking", "raises questions about", "sparks concerns", "drawing attention to", "highlights the need for", "underscores", "exposes" (use "documents" instead), any phrase that implies a conclusion the source didn't explicitly state. Wrong: "financial engineering at its most corrosive." Wrong: "raising questions about institutional transparency." Right: "Harris reports that the financing structure created incentives that, per the video, may prioritize revenue over care." Test every sentence: could a reader of any political affiliation find this sentence editorializing? If yes, rewrite it.
@@ -453,7 +453,7 @@ IN THE KNOW:
   * "Politics & World Affairs": government, elections, military, geopolitics, law enforcement, police accountability, civil rights, international conflict — INCLUDING Hezbollah, Gaza, Russia, Ukraine, and any police/bodycam accountability story
   * "Science & Technology": research, medicine, space, climate science, AI, tech products, environment
   * "Business & Markets": economy, finance, companies, markets, labor, private equity, corporate news
-  * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category.
+  * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category. EPSTEIN RULE — HARD: Any story involving Jeffrey Epstein, his associates, sex trafficking, or related legal proceedings belongs in "Politics & World Affairs" regardless of whether celebrities are involved. "Melania and Epstein" is Politics, not Sports/Entertainment. "Trump and Epstein" is Politics. Any story where the news hook is institutional conduct, legal proceedings, or abuse of power — even if the subject is a celebrity — belongs in Politics.
   * "Comedy & Satire": MANDATORY for The Daily Show (@thedailyshow), Last Week Tonight (@lastweektonight), Jonathan Pie (@jonathanpie), Some More News (@smn), Josh Johnson (@joshjohnsoncomedy), The Juice Media (@thejuicemedia) — regardless of topic. These sources MUST go here, never in Politics & World Affairs. Do NOT place serious political commentary, opinion journalism, or investigative analysis here — Glenn Greenwald, Breaking Points, Caspian Report, and similar channels belong in "Politics & World Affairs" or "Business & Markets" based on topic.
 
 EDITORIAL MIX RULE — HARD CONSTRAINT:
@@ -780,6 +780,20 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content.inTheKnow['Comedy & Satire'] = [ranked[0].item]
   }
 
+  // Tier 10 gate — remove Community Sourced (Tier 10) items from InTheKnow unless independently verified (3+ outlets)
+  const tier10Slugs = new Set(
+    cappedStories
+      .filter(s => (s.source_tier ?? 99) >= 10)
+      .filter(s => {
+        const covered = s.msm_outlet_coverage?.covered?.length ?? 0
+        return covered < 3  // allow Tier 10 only if 3+ outlets confirm the underlying story
+      })
+      .map(s => s.slug)
+  )
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => !item.slug || !tier10Slugs.has(item.slug))
+  }
+
   // Step 1: filter promo terms, Storyful-sourced stories, and analysis/commentary from Etcetera
   // Storyful videos are always embed-blocked — no point surfacing them in the digest
   // Analysis and commentary items don't belong in Etcetera — they belong in InTheKnow
@@ -818,6 +832,16 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => !item.slug || !storyfulSlugs.has(item.slug))
   }
 
+  // Truncate to last complete sentence within a character limit
+  function toEtceteraText(desc: string, limit = 280): string {
+    if (desc.length <= limit) return desc
+    const truncated = desc.slice(0, limit)
+    const lastBoundary = Math.max(truncated.lastIndexOf('. '), truncated.lastIndexOf('! '), truncated.lastIndexOf('? '))
+    if (lastBoundary > 80) return truncated.slice(0, lastBoundary + 1).trim()
+    const lastSpace = truncated.lastIndexOf(' ')
+    return (lastSpace > 80 ? truncated.slice(0, lastSpace) : truncated).trim() + '…'
+  }
+
   // Step 2: deduplication — NeedToKnow and InTheKnow slugs take priority
   const usedSlugs = new Set<string>()
   for (const item of content.needToKnow) usedSlugs.add(item.slug)
@@ -838,7 +862,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     if (story) for (const w of sigWords(story.title)) ntkTopicWords.add(w)
   }
 
-  content.etcetera = content.etcetera.filter(item => {
+  content.etcetera = (content.etcetera.filter(item => {
     const etc = typeof item === 'string' ? { text: item, slug: null } : item
     // Drop slugless Etcetera items — Claude uses these for meta-commentary rather than real facts
     if (!etc.slug) return false
@@ -852,23 +876,15 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     }
     usedSlugs.add(etc.slug)
     return true
-  }) as EtceteraItem[]
+  }) as EtceteraItem[]).map(item => ({
+    ...item,
+    // Truncate Claude-generated text to last complete sentence within 240 chars
+    text: toEtceteraText(item.text, 240),
+  }))
 
   // Step 3: pad Etcetera AFTER deduplication and promo filtering so the count is accurate
   const MIN_ETCETERA = 3
   const ETCETERA_MIN_VIEWS = 1000  // don't pad with zero-traction stories
-
-  // Truncate to last complete sentence within a character limit
-  function toEtceteraText(desc: string, limit = 280): string {
-    if (desc.length <= limit) return desc
-    const truncated = desc.slice(0, limit)
-    // Find last sentence boundary (. ! ?) before the limit
-    const lastBoundary = Math.max(truncated.lastIndexOf('. '), truncated.lastIndexOf('! '), truncated.lastIndexOf('? '))
-    if (lastBoundary > 80) return truncated.slice(0, lastBoundary + 1).trim()
-    // Fall back to last word boundary
-    const lastSpace = truncated.lastIndexOf(' ')
-    return (lastSpace > 80 ? truncated.slice(0, lastSpace) : truncated).trim() + '…'
-  }
 
   if (content.etcetera.length < MIN_ETCETERA) {
     for (const s of cappedStories) {
@@ -906,13 +922,16 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       return true
     })
 
-    // Fix globalLens — drop unknowns, restore real titles, cap at 3
+    // Fix globalLens — drop unknowns, restore real titles, deduplicate by outlet, cap at 4
+    const seenLensOutlets = new Set<string>()
     content.globalLens = (content.globalLens ?? []).filter(item => {
       if (!titleMap.has(item.slug)) return false
       if (!item.summary?.trim()) return false
+      if (seenLensOutlets.has(item.region)) return false  // one item per outlet
+      seenLensOutlets.add(item.region)
       item.title = titleMap.get(item.slug)!
       return true
-    }).slice(0, 3)
+    }).slice(0, 4)
 
     // Populate howWorldSeesIt titles from DB and deduplicate by outlet (region field)
     for (const ntk of content.needToKnow) {
