@@ -842,6 +842,24 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     return (lastSpace > 80 ? truncated.slice(0, lastSpace) : truncated).trim() + '…'
   }
 
+  // Truncate InTheKnow bullets to ~55 words — enforce the one-fact-per-bullet discipline
+  function trimItkBullet(text: string, wordLimit = 55): string {
+    const words = text.split(/\s+/)
+    if (words.length <= wordLimit) return text
+    // Find last sentence boundary within word limit
+    const candidate = words.slice(0, wordLimit).join(' ')
+    const lastBoundary = Math.max(candidate.lastIndexOf('. '), candidate.lastIndexOf('! '), candidate.lastIndexOf('? '))
+    if (lastBoundary > 30) return candidate.slice(0, lastBoundary + 1).trim()
+    return candidate.trim() + '…'
+  }
+
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    content.inTheKnow[cat] = content.inTheKnow[cat].map(item => ({
+      ...item,
+      text: trimItkBullet(item.text),
+    }))
+  }
+
   // Step 2: deduplication — NeedToKnow and InTheKnow slugs take priority
   const usedSlugs = new Set<string>()
   for (const item of content.needToKnow) usedSlugs.add(item.slug)
@@ -947,6 +965,18 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (ntk.howWorldSeesIt.length === 0) delete ntk.howWorldSeesIt
     }
   }
+
+  // Etcetera significance filter — promote or drop items that are too important for this shelf
+  // Items about elections, government transitions, war outcomes, or major policy belong in InTheKnow
+  const ETCETERA_TOO_SIGNIFICANT = [
+    'election', 'elected', 'wins supermajority', 'ousts', 'parliament', 'prime minister', 'president',
+    'orban', 'orbán', 'magyar', 'blockade', 'ceasefire', 'war', 'killed', 'nuclear',
+    'nato', 'supreme court', 'indicted', 'convicted', 'sentenced',
+  ]
+  content.etcetera = content.etcetera.filter(item => {
+    const t = item.text.toLowerCase()
+    return !ETCETERA_TOO_SIGNIFICANT.some(k => t.includes(k))
+  })
 
   // Cap Etcetera at 3 (homepage gate hard rule — applied after padding so minimum is still met first)
   content.etcetera = content.etcetera.slice(0, 3)

@@ -43,7 +43,7 @@ export default function EmailCapture() {
           The full picture, not the profitable picture.
         </h2>
         <p className="text-sm text-background/70 mb-6">
-          Every source labeled. Every story placed in context. International coverage included. Free.
+          Every source labeled. Every story in context. The full picture in 5 minutes. Free.
         </p>
 
         {status === 'success' ? (
