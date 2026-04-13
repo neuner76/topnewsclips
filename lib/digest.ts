@@ -440,6 +440,7 @@ Each NeedToKnow card must have a single, unmistakable center of gravity — one 
   ANTI-PATTERN: "Israel has tightened its blockade on Gaza; separately, Pakistan and India held emergency talks in Islamabad; Iran's navy meanwhile warned ships near the Strait of Hormuz; Tehran also issued a counter-threat to..."
   CORRECT: One card = the blockade tightening. Islamabad talks = separate InTheKnow bullet. Hormuz warning = separate InTheKnow bullet.
   TEST: After writing a card, count the number of distinct actor–event pairs. If there are more than 2, cut to the strongest one.
+  NO-BLEED RULE: If you have placed a sub-event from this card as its own InTheKnow bullet, do NOT also reference that sub-event in the card's paragraphs. One placement only. If the Vance/Islamabad talks are an InTheKnow bullet, the blockade card paragraphs must not mention them.
 
 - Use the slug field from the input exactly as-is
 
@@ -831,6 +832,29 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content.inTheKnow[cat] = items.filter(item => !item.slug || !dropSlugs.has(item.slug))
   }
 
+  // InTheKnow commentary-on-NeedToKnow-topic eviction
+  // Drop commentary/analysis InTheKnow items whose topic already appears in NeedToKnow
+  // Prevents pundit takes on a story that's already covered by a primary NeedToKnow card
+  const ntkTopicWordsEarly = new Set<string>()
+  for (const ntk of content.needToKnow) {
+    const story = cappedStories.find(s => s.slug === ntk.slug)
+    if (story) for (const w of sigWords(story.title)) ntkTopicWordsEarly.add(w)
+    // Also index the sectionTitle words so topic overlap catches renamed cards
+    for (const w of sigWords(ntk.sectionTitle)) ntkTopicWordsEarly.add(w)
+  }
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    if (cat === 'Comedy & Satire') continue
+    content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => {
+      if (!item.slug) return true
+      if (!isCommentaryItem(item.slug)) return true  // only evict commentary/analysis, not reported items
+      const story = cappedStories.find(s => s.slug === item.slug)
+      if (!story) return true
+      let overlap = 0
+      for (const w of sigWords(story.title)) if (ntkTopicWordsEarly.has(w)) overlap++
+      return overlap < 2  // drop if 2+ topic words overlap with any NeedToKnow card
+    })
+  }
+
   // Step 1: filter promo terms, Storyful-sourced stories, and analysis/commentary from Etcetera
   // Storyful videos are always embed-blocked — no point surfacing them in the digest
   // Analysis and commentary items don't belong in Etcetera — they belong in InTheKnow
@@ -922,8 +946,16 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     // Drop slugless Etcetera items — Claude uses these for meta-commentary rather than real facts
     if (!etc.slug) return false
     if (usedSlugs.has(etc.slug)) return false
+    // Text-based serious-topic check — catches items whose generated text has serious keywords
+    // even if the slug lookup didn't catch them in step 1
+    const generatedText = etc.text.toLowerCase()
+    if (ETCETERA_SERIOUS_KEYWORDS.some(k => generatedText.includes(k))) return false
+    // Also drop analysis/commentary items that slipped past step 1 (e.g. null slug at that point)
+    if (isCommentaryItem(etc.slug)) return false
+    const slugStory = cappedStories.find(s => s.slug === etc.slug)
+    if (slugStory?.category === 'analysis') return false
     // Drop Etcetera items whose topic overlaps significantly with a NeedToKnow story
-    const story = cappedStories.find(s => s.slug === etc.slug)
+    const story = slugStory
     if (story) {
       let overlap = 0
       for (const w of sigWords(story.title)) if (ntkTopicWords.has(w)) overlap++
