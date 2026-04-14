@@ -798,6 +798,30 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content.inTheKnow[politicsCat].push(...epsteinLeaked)
   }
 
+  // Evict non-satire sources misplaced in Comedy & Satire — move them to the appropriate category
+  // Claude sometimes puts analysis/explainer content here; only real satire handles belong
+  const misplacedSatire = content.inTheKnow['Comedy & Satire'].filter(
+    item => item.slug && !satireSlugsSet.has(item.slug)
+  )
+  if (misplacedSatire.length > 0) {
+    content.inTheKnow['Comedy & Satire'] = content.inTheKnow['Comedy & Satire'].filter(
+      item => !item.slug || satireSlugsSet.has(item.slug)
+    )
+    // Move each misplaced item to the correct category based on its DB story metadata
+    for (const item of misplacedSatire) {
+      const story = cappedStories.find(s => s.slug === item.slug)
+      if (!story) continue
+      const ct = getContentType(story)
+      // Politics & World Affairs is the fallback for anything ambiguous
+      const targetCat: keyof typeof content.inTheKnow =
+        story.category === 'science' || story.subcategory === 'technology' ? 'Science & Technology' :
+        story.category === 'business' || story.category === 'economy' ? 'Business & Markets' :
+        story.category === 'sports' || story.category === 'entertainment' ? 'Sports, Entertainment, & Culture' :
+        'Politics & World Affairs'
+      content.inTheKnow[targetCat].push(item)
+    }
+  }
+
   // Cap Comedy & Satire at 1 item — keep the one with the highest view count among source stories
   if (content.inTheKnow['Comedy & Satire'].length > 1) {
     const ranked = content.inTheKnow['Comedy & Satire']
@@ -1023,7 +1047,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   // Step 3: pad Etcetera AFTER deduplication and promo filtering so the count is accurate
   const MIN_ETCETERA = 3
-  const ETCETERA_MIN_VIEWS = 1000  // don't pad with zero-traction stories
+  const ETCETERA_MIN_VIEWS = 500  // don't pad with zero-traction stories
 
   if (content.etcetera.length < MIN_ETCETERA) {
     for (const s of cappedStories) {
@@ -1101,8 +1125,10 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (!item.summary?.trim()) return false
       if (isTrendSynthesis(item.summary)) return false  // reject future-facing trend analysis
       // Drop analysis-labeled blindspot items — should be reported events only
-      const dbStory = cappedStories.find(s => s.slug === item.slug)
-      if (dbStory?.category === 'analysis') return false
+      // Check globalStories (not cappedStories — blindspot items are international, not US)
+      const dbStory = (globalStories ?? []).find((s: { slug: string }) => s.slug === item.slug)
+        ?? cappedStories.find(s => s.slug === item.slug)
+      if ((dbStory as { category?: string })?.category === 'analysis') return false
       item.title = titleMap.get(item.slug)!
       // Repair geographic region labels — replace with actual outlet name from DB
       if (GEO_LABELS.has(item.region.toLowerCase())) {
