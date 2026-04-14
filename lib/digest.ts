@@ -300,7 +300,18 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     .filter(s => (s.description?.length ?? 0) >= 150 && !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)))
     .filter(s => (s.source_tier ?? 99) < 10)  // never offer Tier 10 sources as NeedToKnow candidates
     .filter(s => getContentType(s) !== 'footage')  // raw footage belongs in InTheKnow, not NeedToKnow
+    .filter(s => s.category !== 'analysis')  // analysis belongs in InTheKnow, not NeedToKnow
+    .filter(s => !s.region)  // international stories belong in Global sections, not NeedToKnow
     .map(toPromptItem)
+
+  // Build a set of valid NeedToKnow slugs for post-processing enforcement
+  const validNtkSlugs = new Set(freshCandidates
+    .filter(s => (s.source_tier ?? 99) < 10)
+    .filter(s => getContentType(s) !== 'footage')
+    .filter(s => s.category !== 'analysis')
+    .filter(s => !s.region)
+    .map(s => s.slug)
+  )
   const storiesForPrompt = cappedStories
     .filter(s => !yesterdaySlugs.has(s.slug))
     .map(toPromptItem)
@@ -664,6 +675,10 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
   }
 
+  // NeedToKnow slug whitelist — evict any item whose slug wasn't in the approved candidates list
+  // This catches international stories, analysis, footage, and Tier 10 that Claude pulled from storiesForPrompt
+  content.needToKnow = content.needToKnow.filter(i => validNtkSlugs.has(i.slug))
+
   // Homepage gate: NeedToKnow must not contain pure analysis/commentary — evict any that slipped through
   // Also evict Tier 10 sources and raw footage — these must never appear in NeedToKnow
   const ntkIneligibleSlugs = new Set(
@@ -844,6 +859,8 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   // Epstein rule enforcement — any commentary mentioning Epstein/sex trafficking in Sports/Entertainment
   // must be moved to Politics & World Affairs (the prompt rule doesn't hold reliably)
   const EPSTEIN_KEYWORDS = ['epstein', 'sex trafficking']
+  // Politics keywords — items mentioning these in Sports/Entertainment belong in Politics
+  const POLITICS_KEYWORDS = ['ambassador', 'nominated', 'nomination', 'senator', 'congress', 'sanctions', 'diplomat', 'treaty', 'military', 'pentagon', 'white house', 'president trump', 'vice president']
   const sportsCat = 'Sports, Entertainment, & Culture' as keyof typeof content.inTheKnow
   const politicsCat = 'Politics & World Affairs' as keyof typeof content.inTheKnow
   const epsteinLeaked = content.inTheKnow[sportsCat].filter(item => {
@@ -853,6 +870,15 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   if (epsteinLeaked.length > 0) {
     content.inTheKnow[sportsCat] = content.inTheKnow[sportsCat].filter(item => !epsteinLeaked.includes(item))
     content.inTheKnow[politicsCat].push(...epsteinLeaked)
+  }
+  // Politics keyword enforcement — move misplaced political items out of Sports/Entertainment
+  const politicsLeaked = content.inTheKnow[sportsCat].filter(item => {
+    const t = item.text.toLowerCase()
+    return POLITICS_KEYWORDS.some(k => t.includes(k))
+  })
+  if (politicsLeaked.length > 0) {
+    content.inTheKnow[sportsCat] = content.inTheKnow[sportsCat].filter(item => !politicsLeaked.includes(item))
+    content.inTheKnow[politicsCat].push(...politicsLeaked)
   }
 
   // Evict non-satire sources misplaced in Comedy & Satire — move them to the appropriate category
@@ -1004,10 +1030,14 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       })
       .map(s => s.slug)
   )
+  const footageSlugs = new Set(
+    cappedStories.filter(s => getContentType(s) === 'footage' || s.category === 'raw').map(s => s.slug)
+  )
   content.etcetera = content.etcetera.filter(item => {
     const etc = typeof item === 'string' ? { text: item, slug: null } : item
     if (etc.slug && storyfulSlugs.has(etc.slug)) return false
     if (etc.slug && analysisCommentarySlugs.has(etc.slug)) return false
+    if (etc.slug && footageSlugs.has(etc.slug)) return false  // raw footage never in Etcetera
     const text = (typeof item === 'string' ? item : item.text).toLowerCase()
     return !PROMO_TERMS.some(t => text.includes(t))
   })
@@ -1220,8 +1250,11 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       return true
     })
 
+    // Add Blindspot slugs to usedSlugs so Lens dedup catches cross-section duplicates
+    for (const item of content.globalBlindspots ?? []) usedSlugs.add(item.slug)
+
     // Fix globalLens — drop unknowns, restore real titles, deduplicate by outlet, repair geo labels, cap at 4
-    // Also drop items already used in InTheKnow (cross-dedup against usedSlugs)
+    // Also drop items already used in InTheKnow or Blindspot (cross-dedup against usedSlugs)
     const seenLensOutlets = new Set<string>()
     content.globalLens = (content.globalLens ?? []).filter(item => {
       if (!titleMap.has(item.slug)) return false
