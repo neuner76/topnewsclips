@@ -303,7 +303,6 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     .map(toPromptItem)
   const storiesForPrompt = cappedStories
     .filter(s => !yesterdaySlugs.has(s.slug))
-    .filter(s => (s.source_tier ?? 99) < 10)  // exclude Tier 10 from all prompt sections
     .map(toPromptItem)
 
   // Slug → contentType map for post-generation enforcement
@@ -666,14 +665,27 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   }
 
   // Homepage gate: NeedToKnow must not contain pure analysis/commentary — evict any that slipped through
-  // NeedToKnow Tier 10 gate — Tier 10 sources must never appear in NeedToKnow regardless of coverage count
-  const tier10NtkSlugs = new Set(
-    freshCandidates.filter(s => (s.source_tier ?? 99) >= 10).map(s => s.slug)
+  // Also evict Tier 10 sources and raw footage — these must never appear in NeedToKnow
+  const ntkIneligibleSlugs = new Set(
+    freshCandidates.filter(s =>
+      (s.source_tier ?? 99) >= 10 ||    // Tier 10: community sourced, too low credibility
+      s.category === 'raw' ||            // raw footage: bodycam/dashcam belongs in InTheKnow
+      s.source_type === 'Community Sourced'  // belt-and-suspenders check on source_type
+    ).map(s => s.slug)
   )
-  for (const violation of content.needToKnow.filter(i => tier10NtkSlugs.has(i.slug))) {
+  // Also catch by slug lookup in all stories (not just freshCandidates) in case Claude pulled from storiesForPrompt
+  const allStoriesBySlug = new Map(cappedStories.map(s => [s.slug, s]))
+  for (const violation of content.needToKnow.filter(i => {
+    if (ntkIneligibleSlugs.has(i.slug)) return true
+    const s = allStoriesBySlug.get(i.slug)
+    if (!s) return false
+    return (s.source_tier ?? 99) >= 10 || s.category === 'raw' || s.source_type === 'Community Sourced'
+  })) {
     const currentNtkSlugs = new Set(content.needToKnow.map(i => i.slug))
     const replacement = freshCandidates.find(s =>
       (s.source_tier ?? 99) < 10 &&
+      s.category !== 'raw' &&
+      s.source_type !== 'Community Sourced' &&
       !currentNtkSlugs.has(s.slug) &&
       (s.description?.length ?? 0) >= 80 &&
       !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
