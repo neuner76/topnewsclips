@@ -440,7 +440,7 @@ Each NeedToKnow card must have a single, unmistakable center of gravity — one 
   ANTI-PATTERN: "Israel has tightened its blockade on Gaza; separately, Pakistan and India held emergency talks in Islamabad; Iran's navy meanwhile warned ships near the Strait of Hormuz; Tehran also issued a counter-threat to..."
   CORRECT: One card = the blockade tightening. Islamabad talks = separate InTheKnow bullet. Hormuz warning = separate InTheKnow bullet.
   TEST: After writing a card, count the number of distinct actor–event pairs. If there are more than 2, cut to the strongest one.
-  NO-BLEED RULE: If you have placed a sub-event from this card as its own InTheKnow bullet, do NOT also reference that sub-event in the card's paragraphs. One placement only. If the Vance/Islamabad talks are an InTheKnow bullet, the blockade card paragraphs must not mention them.
+  NO-BLEED RULE: If you have placed a sub-event from this card as its own InTheKnow bullet, do NOT also reference that sub-event in the card's paragraphs. One placement only. If the Vance/Islamabad talks are an InTheKnow bullet, the blockade card paragraphs must not mention them. MANDATORY CHECK: Before finalizing each NeedToKnow card, scan every sentence in its paragraphs. If any sentence describes an event that is covered as its own InTheKnow bullet, delete that sentence from the card. Do not soften it, do not attribute it differently — delete it entirely.
 
 - Use the slug field from the input exactly as-is
 
@@ -798,7 +798,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       .filter(s => (s.source_tier ?? 99) >= 10)
       .filter(s => {
         const covered = s.msm_outlet_coverage?.covered?.length ?? 0
-        return covered < 3  // allow Tier 10 only if 3+ outlets confirm the underlying story
+        return covered < 6  // allow Tier 10 only if 6+ outlets confirm the underlying story
       })
       .map(s => s.slug)
   )
@@ -850,7 +850,9 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
     content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => {
       if (!item.slug) return true
-      if (!isCommentaryItem(item.slug)) return true  // only evict commentary/analysis, not reported items
+      const itemStory = cappedStories.find(s => s.slug === item.slug)
+      const isAnalysisOrCommentary = isCommentaryItem(item.slug) || itemStory?.category === 'analysis'
+      if (!isAnalysisOrCommentary) return true  // only evict commentary/analysis, not reported items
       // In Comedy & Satire, only evict non-satire sources — real satire handles belong there regardless of topic
       if (cat === 'Comedy & Satire' && satireSlugsSet.has(item.slug)) return true
       const story = cappedStories.find(s => s.slug === item.slug)
@@ -985,9 +987,10 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (usedSlugs.has(s.slug) || !s.description) continue
       if ((s.view_count ?? 0) < ETCETERA_MIN_VIEWS) continue
       if (PROMO_TERMS.some(t => s.description.toLowerCase().includes(t))) continue
-      // Don't pad with commentary, analysis, or serious-topic stories
+      // Don't pad with commentary, analysis, raw footage, or serious-topic stories
       if (analysisCommentarySlugs.has(s.slug)) continue
       if (getContentType(s) === 'commentary') continue
+      if (getContentType(s) === 'footage') continue
       if (s.category === 'analysis') continue
       // Only check the title for serious keywords in padding — description is too broad on heavy news days
       const titleLower = (s.title ?? '').toLowerCase()
@@ -1045,16 +1048,26 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       const lower = summary.toLowerCase()
       return TREND_SYNTHESIS_PHRASES.some(p => lower.includes(p))
     }
+    const seenBlindspotOutlets = new Map<string, number>()  // outlet → count
+    const BLINDSPOT_MAX_PER_OUTLET = 1
     content.globalBlindspots = (content.globalBlindspots ?? []).filter(item => {
       if (!titleMap.has(item.slug)) return false
       if (!item.summary?.trim()) return false
       if (isTrendSynthesis(item.summary)) return false  // reject future-facing trend analysis
+      // Drop analysis-labeled blindspot items — should be reported events only
+      const dbStory = cappedStories.find(s => s.slug === item.slug)
+      if (dbStory?.category === 'analysis') return false
       item.title = titleMap.get(item.slug)!
       // Repair geographic region labels — replace with actual outlet name from DB
       if (GEO_LABELS.has(item.region.toLowerCase())) {
         const outletName = outletNameMap.get(item.slug)
         if (outletName) item.region = outletName
       }
+      // Deduplicate by outlet — max 1 item per outlet in Blindspot
+      const outlet = item.region.toLowerCase()
+      const count = seenBlindspotOutlets.get(outlet) ?? 0
+      if (count >= BLINDSPOT_MAX_PER_OUTLET) return false
+      seenBlindspotOutlets.set(outlet, count + 1)
       return true
     })
 
