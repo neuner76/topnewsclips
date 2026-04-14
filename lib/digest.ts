@@ -838,7 +838,12 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const ntkTopicWordsEarly = new Set<string>()
   for (const ntk of content.needToKnow) {
     const story = cappedStories.find(s => s.slug === ntk.slug)
-    if (story) for (const w of sigWords(story.title)) ntkTopicWordsEarly.add(w)
+    if (story) {
+      for (const w of sigWords(story.title)) ntkTopicWordsEarly.add(w)
+      // Also index first 200 chars of description so topic words like "iran" match
+      // even when the card title is "US Naval Blockade Begins" not "Iran Blockade"
+      for (const w of sigWords(story.description?.slice(0, 200) ?? '')) ntkTopicWordsEarly.add(w)
+    }
     // Also index the sectionTitle words so topic overlap catches renamed cards
     for (const w of sigWords(ntk.sectionTitle)) ntkTopicWordsEarly.add(w)
   }
@@ -979,6 +984,13 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (usedSlugs.has(s.slug) || !s.description) continue
       if ((s.view_count ?? 0) < ETCETERA_MIN_VIEWS) continue
       if (PROMO_TERMS.some(t => s.description.toLowerCase().includes(t))) continue
+      // Don't pad with commentary, analysis, or serious-topic stories
+      if (analysisCommentarySlugs.has(s.slug)) continue
+      if (getContentType(s) === 'commentary') continue
+      if (s.category === 'analysis') continue
+      const titleLower = (s.title ?? '').toLowerCase()
+      const descLower = (s.description ?? '').toLowerCase()
+      if (ETCETERA_SERIOUS_KEYWORDS.some(k => titleLower.includes(k) || descLower.slice(0, 100).includes(k))) continue
       content.etcetera.push({ text: toEtceteraText(s.description), slug: s.slug })
       usedSlugs.add(s.slug)
     }
