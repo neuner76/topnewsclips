@@ -179,7 +179,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .order('pinned', { ascending: false })
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: false })
-      .limit(40),
+      .limit(28),
     // Global blindspot stories — last 48 hours only, sorted by recency
     supabase
       .from('stories')
@@ -189,7 +189,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .not('region', 'is', null)
       .gte('created_at', twoDaysAgo)
       .order('created_at', { ascending: false })
-      .limit(8),
+      .limit(6),
     // All regional stories as matching pool for "How the World Sees It" — last 48 hours only
     supabase
       .from('stories')
@@ -198,7 +198,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .not('region', 'is', null)
       .gte('created_at', twoDaysAgo)
       .order('created_at', { ascending: false })
-      .limit(20),
+      .limit(12),
     fetchMainstreamPulse(),
   ])
 

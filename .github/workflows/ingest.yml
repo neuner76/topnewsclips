@@ -4,7 +4,6 @@ on:
   schedule:
     - cron: '0 12 * * *'   # 12pm UTC (8am ET)   — morning run
     - cron: '0 16 * * *'   # 4pm UTC  (11am EST) — midday run (sends email)
-    - cron: '0 0 * * *'    # midnight UTC (7pm EST) — evening refresh
   workflow_dispatch:        # manual trigger from GitHub UI
 
 jobs:
