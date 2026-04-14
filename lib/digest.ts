@@ -298,13 +298,30 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // Minimum 150 chars ensures enough source material for Claude to write a real paragraph
   const needToKnowCandidates = freshCandidates
     .filter(s => (s.description?.length ?? 0) >= 150 && !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)))
+    .filter(s => (s.source_tier ?? 99) < 10)  // never offer Tier 10 sources as NeedToKnow candidates
     .map(toPromptItem)
   const storiesForPrompt = cappedStories.filter(s => !yesterdaySlugs.has(s.slug)).map(toPromptItem)
 
   // Slug → contentType map for post-generation enforcement
   const candidateContentType = new Map(freshCandidates.map(s => [s.slug, getContentType(s)]))
 
-  const globalForPrompt = (globalStories ?? []).map(s => ({
+  // Cap international stories to max 2 per outlet before sending to Claude
+  // Prevents WION/Al Jazeera from dominating the prompt input and the resulting digest
+  function capByOutlet<T extends { slug: string; journalist_username?: string | null; source?: string | null }>(
+    arr: T[], max = 2
+  ): T[] {
+    const counts = new Map<string, number>()
+    return arr.filter(s => {
+      const handle = (s.journalist_username ?? s.source ?? '').replace(/^YouTube\//i, '').toLowerCase().trim()
+      if (!handle) return true
+      const count = counts.get(handle) ?? 0
+      if (count >= max) return false
+      counts.set(handle, count + 1)
+      return true
+    })
+  }
+
+  const globalForPrompt = capByOutlet(globalStories ?? []).map(s => ({
     slug: s.slug,
     title: s.title,
     summary: s.description,
@@ -312,14 +329,14 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   }))
 
   const blindspotSlugs = new Set((globalStories ?? []).map(s => s.slug))
-  const worldViewForPrompt = (worldViewStories ?? [])
-    .filter(s => !blindspotSlugs.has(s.slug))
-    .map(s => ({
-      slug: s.slug,
-      title: s.title,
-      summary: s.description,
-      region: s.region,
-    }))
+  const worldViewForPrompt = capByOutlet(
+    (worldViewStories ?? []).filter(s => !blindspotSlugs.has(s.slug))
+  ).map(s => ({
+    slug: s.slug,
+    title: s.title,
+    summary: s.description,
+    region: s.region,
+  }))
 
   // Retry on 529 overloaded with exponential backoff
   async function createWithRetry(params: Parameters<typeof claude.messages.create>[0], maxAttempts = 6): Promise<Anthropic.Message> {
