@@ -189,7 +189,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .not('region', 'is', null)
       .gte('created_at', twoDaysAgo)
       .order('created_at', { ascending: false })
-      .limit(6),
+      .limit(10),
     // All regional stories as matching pool for "How the World Sees It" — last 48 hours only
     supabase
       .from('stories')
@@ -198,7 +198,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .not('region', 'is', null)
       .gte('created_at', twoDaysAgo)
       .order('created_at', { ascending: false })
-      .limit(12),
+      .limit(16),
     fetchMainstreamPulse(),
   ])
 
