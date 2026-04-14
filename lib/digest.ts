@@ -645,6 +645,30 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   }
 
   // Homepage gate: NeedToKnow must not contain pure analysis/commentary — evict any that slipped through
+  // NeedToKnow Tier 10 gate — Tier 10 sources must never appear in NeedToKnow regardless of coverage count
+  const tier10NtkSlugs = new Set(
+    freshCandidates.filter(s => (s.source_tier ?? 99) >= 10).map(s => s.slug)
+  )
+  for (const violation of content.needToKnow.filter(i => tier10NtkSlugs.has(i.slug))) {
+    const currentNtkSlugs = new Set(content.needToKnow.map(i => i.slug))
+    const replacement = freshCandidates.find(s =>
+      (s.source_tier ?? 99) < 10 &&
+      !currentNtkSlugs.has(s.slug) &&
+      (s.description?.length ?? 0) >= 80 &&
+      !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
+    )
+    if (replacement) {
+      content.needToKnow = content.needToKnow.filter(i => i.slug !== violation.slug)
+      content.needToKnow.push({
+        sectionTitle: replacement.title.slice(0, 60),
+        slug: replacement.slug,
+        paragraphs: [replacement.description ?? ''],
+      })
+    } else {
+      content.needToKnow = content.needToKnow.filter(i => i.slug !== violation.slug)
+    }
+  }
+
   // This applies regardless of tier: even a Tier 4 source publishing analysis shouldn't be in NeedToKnow
   // unless no non-commentary replacement exists. Exception: allow max 1 commentary if no non-commentary available.
   const ntkCommentarySlugs = new Set(
@@ -842,6 +866,25 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   )
   for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
     content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => !item.slug || !tier10Slugs.has(item.slug))
+  }
+
+  // InTheKnow source diversity cap — max 2 items per journalist/outlet across all categories
+  // Prevents a single international outlet (e.g. WION) from dominating the digest
+  const itkSourceCounts = new Map<string, number>()
+  const allInternationalStories = [...(globalStories ?? []), ...(worldViewStories ?? [])]
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => {
+      if (!item.slug) return true
+      const story = cappedStories.find(s => s.slug === item.slug)
+        ?? allInternationalStories.find(s => s.slug === item.slug)
+      if (!story) return true
+      const handle = (story.journalist_username ?? story.source ?? '').toLowerCase()
+      if (!handle) return true
+      const count = itkSourceCounts.get(handle) ?? 0
+      if (count >= 2) return false
+      itkSourceCounts.set(handle, count + 1)
+      return true
+    })
   }
 
   // InTheKnow commentary ceiling — max 1 commentary/analysis item per category section
@@ -1123,6 +1166,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     content.globalBlindspots = (content.globalBlindspots ?? []).filter(item => {
       if (!titleMap.has(item.slug)) return false
       if (!item.summary?.trim()) return false
+      if (usedSlugs.has(item.slug)) return false  // already in InTheKnow — don't double-list
       if (isTrendSynthesis(item.summary)) return false  // reject future-facing trend analysis
       // Drop analysis-labeled blindspot items — should be reported events only
       // Check globalStories (not cappedStories — blindspot items are international, not US)
@@ -1143,11 +1187,18 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       return true
     })
 
-    // Fix globalLens — drop unknowns, restore real titles, deduplicate by outlet, cap at 4
+    // Fix globalLens — drop unknowns, restore real titles, deduplicate by outlet, repair geo labels, cap at 4
+    // Also drop items already used in InTheKnow (cross-dedup against usedSlugs)
     const seenLensOutlets = new Set<string>()
     content.globalLens = (content.globalLens ?? []).filter(item => {
       if (!titleMap.has(item.slug)) return false
       if (!item.summary?.trim()) return false
+      if (usedSlugs.has(item.slug)) return false  // already in InTheKnow
+      // Repair geographic region labels
+      if (GEO_LABELS.has(item.region.toLowerCase())) {
+        const outletName = outletNameMap.get(item.slug)
+        if (outletName) item.region = outletName
+      }
       if (seenLensOutlets.has(item.region)) return false  // one item per outlet
       seenLensOutlets.add(item.region)
       item.title = titleMap.get(item.slug)!
