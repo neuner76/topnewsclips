@@ -393,6 +393,12 @@ export async function runProcess(): Promise<PipelineResult> {
     return overlap >= cap
   }
 
+  // Satire/comedy handles — bypass Claude verification entirely
+  // These are explicitly satirical creators whose content fails news verification by design
+  const SATIRE_BYPASS_HANDLES = new Set([
+    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia',
+  ])
+
   // Journalist handles that produce international news — route to global verifier
   const GLOBAL_JOURNALIST_HANDLES = new Set([
     'bbcworldservice', 'channel4news', 'cbcnews', 'abcnewsaustralia',
@@ -420,6 +426,49 @@ export async function runProcess(): Promise<PipelineResult> {
       const handle = (candidate.journalist_username ?? '').toLowerCase()
       const isGlobalJournalist = GLOBAL_JOURNALIST_HANDLES.has(handle)
       const candidateRegion = candidate.region ?? (isGlobalJournalist ? (GLOBAL_JOURNALIST_REGION[handle] ?? 'World') : null)
+
+      // Satire bypass — skip Claude verification for known comedy/satire creators
+      if (SATIRE_BYPASS_HANDLES.has(handle)) {
+        const embeddable = candidate.platform === 'youtube' ? await isYouTubeEmbeddable(candidate.video_url) : true
+        if (!embeddable) {
+          result.rejected++
+          result.errors.push(`Embed blocked (satire): "${candidate.title.slice(0, 50)}"`)
+          await supabase.from('rejected_slugs').upsert({ slug: candidate.slug, reason: 'youtube_embed_blocked' })
+          await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
+          continue
+        }
+        const { error: satirErr } = await supabase.from('stories').insert({
+          title: candidate.title,
+          slug: candidate.slug,
+          description: candidate.description ?? '',
+          embed_url: candidate.video_url,
+          platform: candidate.platform,
+          view_count: candidate.viral_score,
+          share_count: 0,
+          msm_gap: false,
+          msm_outlet_coverage: { covered: [], notCovered: [] },
+          source: candidate.source,
+          msm_notes: `Source: ${candidate.source} | Satire bypass`,
+          published: true,
+          display_order: 80,
+          category: 'comedy',
+          thumbnail_url: candidate.thumbnail_url ?? null,
+          journalist_username: candidate.journalist_username ?? null,
+          region: null,
+          duration: candidate.duration ?? null,
+          source_tier: getSourceTier(handle),
+          source_type: 'satire',
+          verified_interpretation: null,
+        })
+        await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
+        if (satirErr) {
+          result.errors.push(`Satire insert error: ${satirErr.message}`)
+        } else {
+          result.inserted++
+          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })
+        }
+        continue
+      }
 
       const verification = await verifyAndTitle(
         {
