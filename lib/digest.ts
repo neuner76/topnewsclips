@@ -520,6 +520,10 @@ RULE 4 — ONE STORY, ONE CLAIM:
 Each NeedToKnow card must have a single, unmistakable center of gravity — one event, one actor, one development. If you catch yourself writing a card that touches a blockade AND a diplomatic summit AND a naval warning AND a counter-threat from a second country, you have four stories, not one. Pick the single most significant development and cut the rest. The other developments belong in InTheKnow as separate bullets — not packed into the same card.
   ANTI-PATTERN: "Israel has tightened its blockade on Gaza; separately, Pakistan and India held emergency talks in Islamabad; Iran's navy meanwhile warned ships near the Strait of Hormuz; Tehran also issued a counter-threat to..."
   CORRECT: One card = the blockade tightening. Islamabad talks = separate InTheKnow bullet. Hormuz warning = separate InTheKnow bullet.
+  CONTEXT vs. SEPARATE EVENT — CRITICAL DISTINCTION:
+    - Background facts about scale or geography are CONTEXT and are allowed as one sentence in the card: "The Strait of Hormuz carries 20% of global oil supply."
+    - A named person or delegation taking a named action is a SEPARATE EVENT and must be moved to InTheKnow: "JD Vance met Pakistani officials in Islamabad" = separate event. "Iran's navy warned shipping near Hormuz" = separate event. The test: does the sentence name a person/government AND describe what they did? If yes and it is not the core event of this card, it is a separate story.
+  ACTOR-EVENT TEST: After writing each card, list every sentence that names a person or organization AND describes an action they took. If that list has more than 2 entries describing DIFFERENT actions, cut to the single most newsworthy action. One shared event with two actors is fine (CENTCOM announced a blockade; Iran disputed it — same event, two actors). Two independent actions by different actors are two events, not one card.
   TEST: After writing a card, count the number of distinct actor–event pairs. If there are more than 2, cut to the strongest one.
   NO-BLEED RULE: If you have placed a sub-event from this card as its own InTheKnow bullet, do NOT also reference that sub-event in the card's paragraphs. One placement only. If the Vance/Islamabad talks are an InTheKnow bullet, the blockade card paragraphs must not mention them. MANDATORY CHECK: Before finalizing each NeedToKnow card, scan every sentence in its paragraphs. If any sentence describes an event that is covered as its own InTheKnow bullet, delete that sentence from the card. Do not soften it, do not attribute it differently — delete it entirely.
 
@@ -652,7 +656,8 @@ NEED TO KNOW:
 
 IN THE KNOW:
   - Tier 1-6 reported/investigative/footage: included by default
-  - COMMENTARY CEILING: Maximum 1 commentary item per category section. Commentary includes: opinion journalism, creator analysis, pundit explainers, niche deep-dives from advocacy-adjacent outlets. If a category has 3+ items and more than 1 is commentary, drop the weakest commentary item. Reported facts beat commentary when covering the same event.
+  - COMMENTARY CEILING: Maximum 1 commentary item per category section. Commentary includes: opinion journalism, creator analysis, pundit explainers, niche deep-dives from advocacy-adjacent outlets. DISPLACEMENT RULE: if a Tier 1-5 reported item covers the same topic as a commentary item, the commentary item is dropped — it does NOT appear alongside the reported item. Commentary earns InTheKnow placement ONLY when it is the sole coverage of a topic. If CBS, AP, or Reuters already cover the blockade, Breaking Points' take on the blockade is excluded, not supplemented.
+  - SOFT FEATURE EXCLUSION: Do not include human-interest trend pieces, novelty stories, or soft cultural features in InTheKnow (e.g. "an AI attended a dinner party," "a study found people prefer X," "a viral video shows"). These belong in Etcetera if genuinely surprising, or should be skipped. InTheKnow is for reported news — developments with named actors, decisions, events, or findings.
   - Tier 7 commentary: only if the underlying event is independently confirmed by at least one Tier 1-5 source — if confirmed, prefer the Tier 1-5 source as the primary item and use the commentary as supplemental context
   - Raw footage (contentType="footage"): maximum 1 item in In The Know per day
   - Apply source_tier from the input data to determine tier
@@ -1067,6 +1072,10 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     'iran', 'israel', 'ukraine', 'russia', 'china', 'north korea',
     'congress', 'senate', 'court', 'supreme', 'indicted', 'arrested', 'charged',
     'data center', 'megawatt', 'vote', 'council', 'board', 'approved',
+    // Legal analysis, interview, and dashcam content patterns — these belong in InTheKnow or skipped
+    'dashcam', 'bodycam', 'legal analysis', 'law explained', 'what the law',
+    'interview', 'in conversation', 'sit down with', 'explains why', 'breaking down',
+    'foreign affairs', 'foreign policy', 'geopolitical', 'diplomacy',
   ]
   const analysisCommentarySlugs = new Set(
     cappedStories
@@ -1216,6 +1225,8 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (getContentType(s) === 'commentary') continue
       if (getContentType(s) === 'footage') continue
       if (s.category === 'analysis') continue
+      // Don't pad with low-credibility sources — Etcetera padding must still feel premium
+      if ((s.source_tier ?? 99) > 8) continue
       // Only check the title for serious keywords in padding — description is too broad on heavy news days
       const titleLower = (s.title ?? '').toLowerCase()
       if (ETCETERA_SERIOUS_KEYWORDS.some(k => titleLower.includes(k))) continue
