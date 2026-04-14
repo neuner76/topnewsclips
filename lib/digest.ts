@@ -848,10 +848,11 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     for (const w of sigWords(ntk.sectionTitle)) ntkTopicWordsEarly.add(w)
   }
   for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
-    if (cat === 'Comedy & Satire') continue
     content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => {
       if (!item.slug) return true
       if (!isCommentaryItem(item.slug)) return true  // only evict commentary/analysis, not reported items
+      // In Comedy & Satire, only evict non-satire sources — real satire handles belong there regardless of topic
+      if (cat === 'Comedy & Satire' && satireSlugsSet.has(item.slug)) return true
       const story = cappedStories.find(s => s.slug === item.slug)
       if (!story) return true
       let overlap = 0
