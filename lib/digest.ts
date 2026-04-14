@@ -108,7 +108,7 @@ async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
       try {
         const res = await fetch(
           `https://news.google.com/rss/search?q=site:${domain}&hl=en-US&gl=US&ceid=US:en`,
-          { headers: { 'User-Agent': 'TopNewsClips/1.0' }, signal: AbortSignal.timeout(8000) }
+          { headers: { 'User-Agent': 'TopNewsClips/1.0' }, signal: AbortSignal.timeout(8000), cache: 'no-store' }
         )
         if (!res.ok) return null
         const xml = await res.text()
@@ -299,8 +299,12 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const needToKnowCandidates = freshCandidates
     .filter(s => (s.description?.length ?? 0) >= 150 && !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)))
     .filter(s => (s.source_tier ?? 99) < 10)  // never offer Tier 10 sources as NeedToKnow candidates
+    .filter(s => getContentType(s) !== 'footage')  // raw footage belongs in InTheKnow, not NeedToKnow
     .map(toPromptItem)
-  const storiesForPrompt = cappedStories.filter(s => !yesterdaySlugs.has(s.slug)).map(toPromptItem)
+  const storiesForPrompt = cappedStories
+    .filter(s => !yesterdaySlugs.has(s.slug))
+    .filter(s => (s.source_tier ?? 99) < 10)  // exclude Tier 10 from all prompt sections
+    .map(toPromptItem)
 
   // Slug → contentType map for post-generation enforcement
   const candidateContentType = new Map(freshCandidates.map(s => [s.slug, getContentType(s)]))
