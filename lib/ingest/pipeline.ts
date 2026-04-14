@@ -456,7 +456,7 @@ export async function runProcess(): Promise<PipelineResult> {
           journalist_username: candidate.journalist_username ?? null,
           region: null,
           duration: candidate.duration ?? null,
-          source_tier: getSourceTier(handle),
+          source_tier: getSourceTier(candidate.journalist_username ?? null, candidate.source ?? '', 'comedy'),
           source_type: 'satire',
           verified_interpretation: null,
         })
