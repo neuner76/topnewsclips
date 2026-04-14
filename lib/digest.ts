@@ -68,6 +68,56 @@ export interface Digest {
   generated_at: string
 }
 
+function validateDigest(content: DigestContent, validNtkSlugs: Set<string>): string[] {
+  const issues: string[] = []
+
+  // NeedToKnow: all slugs must be in the pre-approved whitelist
+  content.needToKnow.forEach(i => {
+    if (!validNtkSlugs.has(i.slug)) issues.push(`NTK invalid slug: ${i.slug}`)
+  })
+
+  // NeedToKnow: length bounds
+  if (content.needToKnow.length < 3) issues.push(`NTK too short: ${content.needToKnow.length} items`)
+  if (content.needToKnow.length > 7) issues.push(`NTK too long: ${content.needToKnow.length} items`)
+
+  // NeedToKnow: each card must have at least 2 paragraphs
+  content.needToKnow.forEach(i => {
+    if (i.paragraphs.length < 2) issues.push(`NTK card "${i.slug}" has only ${i.paragraphs.length} paragraph(s)`)
+  })
+
+  // Cross-section duplicate slug check (NTK + Blindspot + Lens)
+  const seenSlugs = new Set<string>()
+  const checkDupe = (slug: string, section: string) => {
+    if (seenSlugs.has(slug)) issues.push(`Duplicate slug across sections [${section}]: ${slug}`)
+    seenSlugs.add(slug)
+  }
+  content.needToKnow.forEach(i => checkDupe(i.slug, 'NTK'))
+  ;(content.globalBlindspots ?? []).forEach(i => checkDupe(i.slug, 'Blindspot'))
+  ;(content.globalLens ?? []).forEach(i => checkDupe(i.slug, 'Lens'))
+
+  // Section minimums
+  if ((content.globalBlindspots?.length ?? 0) < 2) issues.push(`Blindspot too short: ${content.globalBlindspots?.length ?? 0} items`)
+  if ((content.globalLens?.length ?? 0) < 2) issues.push(`GlobalLens too short: ${content.globalLens?.length ?? 0} items`)
+  if (content.etcetera.length < 1) issues.push('Etcetera empty')
+
+  // InTheKnow: Politics & World Affairs should always have content
+  if ((content.inTheKnow['Politics & World Affairs']?.length ?? 0) < 1) {
+    issues.push('InTheKnow Politics & World Affairs empty')
+  }
+
+  // InTheKnow: per-outlet cap (max 2 per source handle)
+  const itkOutletCounts = new Map<string, number>()
+  Object.values(content.inTheKnow).flat().forEach(item => {
+    if (!item.slug) return
+    const handle = item.slug.split('-')[0]
+    const count = itkOutletCounts.get(handle) ?? 0
+    if (count >= 2) issues.push(`InTheKnow outlet over cap: ${handle} (${count + 1} items)`)
+    itkOutletCounts.set(handle, count + 1)
+  })
+
+  return issues
+}
+
 function sigWords(title: string): Set<string> {
   const stop = new Set([
     'the','a','an','and','or','but','in','on','at','to','for','of','with',
@@ -1306,6 +1356,14 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   // Attach mainstream pulse (fetched independently, not via Claude)
   if (mainstreamPulse.length > 0) content.mainstreamPulse = mainstreamPulse
+
+  // Validate digest quality before saving
+  const digestIssues = validateDigest(content, validNtkSlugs)
+  if (digestIssues.length > 0) {
+    console.warn('[digest] validation warnings:', digestIssues)
+  } else {
+    console.log('[digest] validation passed')
+  }
 
   // Upsert by date — regenerating today's digest overwrites the previous one
   const { data: digest, error: insertError } = await supabase
