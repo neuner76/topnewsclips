@@ -814,7 +814,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       const ct = getContentType(story)
       // Politics & World Affairs is the fallback for anything ambiguous
       const targetCat: keyof typeof content.inTheKnow =
-        story.category === 'science' || story.subcategory === 'technology' ? 'Science & Technology' :
+        story.category === 'science' || story.category === 'technology' ? 'Science & Technology' :
         story.category === 'business' || story.category === 'economy' ? 'Business & Markets' :
         story.category === 'sports' || story.category === 'entertainment' ? 'Sports, Entertainment, & Culture' :
         'Politics & World Affairs'
