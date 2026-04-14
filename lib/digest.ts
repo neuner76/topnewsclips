@@ -786,7 +786,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   // Epstein rule enforcement — any commentary mentioning Epstein/sex trafficking in Sports/Entertainment
   // must be moved to Politics & World Affairs (the prompt rule doesn't hold reliably)
-  const EPSTEIN_KEYWORDS = ['epstein', 'sex trafficking', 'melania', 'trump.*epstein', 'epstein.*trump']
+  const EPSTEIN_KEYWORDS = ['epstein', 'sex trafficking']
   const sportsCat = 'Sports, Entertainment, & Culture' as keyof typeof content.inTheKnow
   const politicsCat = 'Politics & World Affairs' as keyof typeof content.inTheKnow
   const epsteinLeaked = content.inTheKnow[sportsCat].filter(item => {
