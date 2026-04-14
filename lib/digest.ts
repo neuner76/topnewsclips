@@ -271,6 +271,12 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // Build two lists: fresh stories (NeedToKnow eligible) and all stories (InTheKnow/Etcetera)
   // Hard-exclude yesterday's NeedToKnow slugs from the NeedToKnow pool — don't rely on Claude to honor a flag
 
+  // Bodycam/dashcam/raw footage channels — have a journalist_username but produce footage, not analysis
+  const FOOTAGE_HANDLES = new Set([
+    'policeactivity', 'funkeracts', 'funker530', 'livepdvideos', 'realworldpolice',
+    'activeself defense', 'activeselfdefense', 'dashcamdashboard',
+  ])
+
   // Tier 7 commentary journalists — have a journalist_username but produce opinion/explainer content
   const COMMENTARY_HANDLES = new Set([
     'breakingpoints', 'ggreenwald', 'glenngreenwald', 'audittheaudit', 'caspianreport',
@@ -292,10 +298,11 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   ])
 
   function getContentType(s: typeof cappedStories[0]): string {
-    if (s.category === 'raw') return 'footage'           // bodycam, dashcam, bystander video
+    if (s.category === 'raw' || s.category === 'footage') return 'footage'  // bodycam, dashcam, bystander video
     if (s.category === 'analysis') return 'commentary'   // talking head, explainer, opinion
     if (s.journalist_username) {
       const u = s.journalist_username.toLowerCase()
+      if (FOOTAGE_HANDLES.has(u)) return 'footage'        // known bodycam/dashcam channel
       if (COMMENTARY_HANDLES.has(u)) return 'commentary' // known opinion/explainer channel
       return 'investigation'                              // nonprofit, OSINT, independent news
     }
