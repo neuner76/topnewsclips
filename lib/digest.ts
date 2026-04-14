@@ -359,7 +359,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   const response = await createWithRetry({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 5000,
     messages: [{
       role: 'user',
       content: `You are writing a daily newsletter digest for TopNewsClips — a site that surfaces independent journalism, viral news footage, and global stories that mainstream US media undercovers.
@@ -643,12 +643,12 @@ If there are no global stories, return "globalBlindspots": [] and omit "globalLe
 If there are no international perspective matches for a NeedToKnow story, omit "howWorldSeesIt" for that entry.
 
 NEED TO KNOW CANDIDATES (choose NeedToKnow only from this list):
-${JSON.stringify(needToKnowCandidates, null, 2)}
+${JSON.stringify(needToKnowCandidates)}
 
 ALL US STORIES (use for InTheKnow and Etcetera — includes the candidates above plus yesterday's featured stories):
-${JSON.stringify(storiesForPrompt, null, 2)}
-${globalForPrompt.length > 0 ? `\nGLOBAL STORIES (US media is not covering these):\n${JSON.stringify(globalForPrompt, null, 2)}` : ''}
-${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outlets cover today's US stories):\n${JSON.stringify(worldViewForPrompt, null, 2)}` : ''}`
+${JSON.stringify(storiesForPrompt)}
+${globalForPrompt.length > 0 ? `\nGLOBAL STORIES (US media is not covering these):\n${JSON.stringify(globalForPrompt)}` : ''}
+${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outlets cover today's US stories):\n${JSON.stringify(worldViewForPrompt)}` : ''}`
     }]
   })
 
