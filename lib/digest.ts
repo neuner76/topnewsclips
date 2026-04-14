@@ -988,9 +988,9 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (analysisCommentarySlugs.has(s.slug)) continue
       if (getContentType(s) === 'commentary') continue
       if (s.category === 'analysis') continue
+      // Only check the title for serious keywords in padding — description is too broad on heavy news days
       const titleLower = (s.title ?? '').toLowerCase()
-      const descLower = (s.description ?? '').toLowerCase()
-      if (ETCETERA_SERIOUS_KEYWORDS.some(k => titleLower.includes(k) || descLower.slice(0, 100).includes(k))) continue
+      if (ETCETERA_SERIOUS_KEYWORDS.some(k => titleLower.includes(k))) continue
       content.etcetera.push({ text: toEtceteraText(s.description), slug: s.slug })
       usedSlugs.add(s.slug)
     }
@@ -1008,10 +1008,26 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   if (titledSlugs.size > 0) {
     const { data: dbStories } = await supabase
       .from('stories')
-      .select('slug, title')
+      .select('slug, title, source, journalist_username')
       .in('slug', [...titledSlugs])
 
     const titleMap = new Map((dbStories ?? []).map((s: { slug: string; title: string }) => [s.slug, s.title]))
+
+    // Build a slug→outlet-name map to repair geographic region labels (Claude ignores the prompt rule)
+    // Strip "YouTube/" prefix, clean up handles
+    const outletNameMap = new Map<string, string>()
+    for (const s of dbStories ?? []) {
+      const raw: string = s.source ?? s.journalist_username ?? ''
+      const name = raw.replace(/^YouTube\//i, '').replace(/^@/, '').trim()
+      if (name) outletNameMap.set(s.slug, name)
+    }
+    // Geographic labels Claude uses instead of outlet names
+    const GEO_LABELS = new Set([
+      'europe', 'middle east', 'asia', 'africa', 'australia', 'south asia',
+      'latin america', 'south america', 'north america', 'central asia',
+      'east asia', 'southeast asia', 'sub-saharan africa', 'north africa',
+      'eastern europe', 'western europe', 'oceania', 'caribbean',
+    ])
 
     // Fix globalBlindspots — drop entries where slug doesn't exist in DB or summary is empty
     // Also drop trend-synthesis items: these are forward-looking analysis pieces, not news events
@@ -1033,6 +1049,11 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (!item.summary?.trim()) return false
       if (isTrendSynthesis(item.summary)) return false  // reject future-facing trend analysis
       item.title = titleMap.get(item.slug)!
+      // Repair geographic region labels — replace with actual outlet name from DB
+      if (GEO_LABELS.has(item.region.toLowerCase())) {
+        const outletName = outletNameMap.get(item.slug)
+        if (outletName) item.region = outletName
+      }
       return true
     })
 
