@@ -784,6 +784,20 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     }
   }
 
+  // Epstein rule enforcement — any commentary mentioning Epstein/sex trafficking in Sports/Entertainment
+  // must be moved to Politics & World Affairs (the prompt rule doesn't hold reliably)
+  const EPSTEIN_KEYWORDS = ['epstein', 'sex trafficking', 'melania', 'trump.*epstein', 'epstein.*trump']
+  const sportsCat = 'Sports, Entertainment, & Culture' as keyof typeof content.inTheKnow
+  const politicsCat = 'Politics & World Affairs' as keyof typeof content.inTheKnow
+  const epsteinLeaked = content.inTheKnow[sportsCat].filter(item => {
+    const t = item.text.toLowerCase()
+    return EPSTEIN_KEYWORDS.some(k => t.includes(k))
+  })
+  if (epsteinLeaked.length > 0) {
+    content.inTheKnow[sportsCat] = content.inTheKnow[sportsCat].filter(item => !epsteinLeaked.includes(item))
+    content.inTheKnow[politicsCat].push(...epsteinLeaked)
+  }
+
   // Cap Comedy & Satire at 1 item — keep the one with the highest view count among source stories
   if (content.inTheKnow['Comedy & Satire'].length > 1) {
     const ranked = content.inTheKnow['Comedy & Satire']
@@ -859,7 +873,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (!story) return true
       let overlap = 0
       for (const w of sigWords(story.title)) if (ntkTopicWordsEarly.has(w)) overlap++
-      return overlap < 2  // drop if 2+ topic words overlap with any NeedToKnow card
+      return overlap < 1  // drop if any topic word overlaps with a NeedToKnow card
     })
   }
 
@@ -920,6 +934,36 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     const lastBoundary = Math.max(candidate.lastIndexOf('. '), candidate.lastIndexOf('! '), candidate.lastIndexOf('? '))
     if (lastBoundary > 30) return candidate.slice(0, lastBoundary + 1).trim()
     return candidate.trim() + '…'
+  }
+
+  // NeedToKnow bleed prevention — strip sentences that cross-reference InTheKnow sources
+  // If "per CBS News" or "according to CBS News" appears in a NeedToKnow paragraph, and CBS News
+  // has its own InTheKnow bullet, that sentence is a duplicate and should be removed from the card.
+  const itkSourceNames = new Set<string>()
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    for (const item of content.inTheKnow[cat]) {
+      if (!item.slug) continue
+      const story = cappedStories.find(s => s.slug === item.slug)
+      if (!story) continue
+      const src = (story.source ?? story.journalist_username ?? '').replace(/^YouTube\//i, '').replace(/^@/, '').trim().toLowerCase()
+      if (src) itkSourceNames.add(src)
+    }
+  }
+  if (itkSourceNames.size > 0) {
+    for (const ntk of content.needToKnow) {
+      ntk.paragraphs = ntk.paragraphs.map(para => {
+        // Split into sentences, strip any that end with "per [ITK source]" or "according to [ITK source]"
+        const sentences = para.split(/(?<=\.)\s+/)
+        const filtered = sentences.filter(sentence => {
+          const lower = sentence.toLowerCase()
+          for (const src of itkSourceNames) {
+            if (lower.includes(`per ${src}`) || lower.includes(`according to ${src}`)) return false
+          }
+          return true
+        })
+        return filtered.join(' ').trim()
+      }).filter(p => p.length > 0)
+    }
   }
 
   for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
@@ -1031,6 +1075,8 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       'latin america', 'south america', 'north america', 'central asia',
       'east asia', 'southeast asia', 'sub-saharan africa', 'north africa',
       'eastern europe', 'western europe', 'oceania', 'caribbean',
+      'korea', 'japan', 'china', 'india', 'russia', 'israel', 'iran',
+      'canada', 'mexico', 'brazil', 'ukraine', 'turkey', 'pakistan',
     ])
 
     // Fix globalBlindspots — drop entries where slug doesn't exist in DB or summary is empty
