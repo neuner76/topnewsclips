@@ -274,7 +274,7 @@ export async function runFetch(): Promise<FetchResult> {
   // Satire handles are exempt from the daily journalist cap — they're gated to Comedy & Satire
   // and the cap was silently dropping newer episodes when older ones already filled the 3-slot limit
   const SATIRE_CAP_EXEMPT = new Set([
-    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia',
+    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
   ])
 
   const newCandidates = sortedCandidates.filter(c => {
@@ -403,7 +403,7 @@ export async function runProcess(): Promise<PipelineResult> {
   // Satire/comedy handles — bypass Claude verification entirely
   // These are explicitly satirical creators whose content fails news verification by design
   const SATIRE_BYPASS_HANDLES = new Set([
-    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia',
+    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
   ])
 
   // Journalist handles that produce international news — route to global verifier

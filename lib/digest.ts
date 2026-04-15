@@ -260,7 +260,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // Cap any single journalist/creator to 1 story — prevents one voice dominating the digest
   // Satire/comedy channels are exempt: they're already gated to Comedy & Satire, can't bleed elsewhere
   const SATIRE_DIGEST_EXEMPT = new Set([
-    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia',
+    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
   ])
   const journalistCounts = new Map<string, number>()
   const SOURCE_CAP = 1
@@ -292,14 +292,14 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     // Tier 6 commercial/explainer — not investigative journalism
     'vox', 'journeymanpictures',
     // Satire/comedy channels — commentary content, not news
-    'thedailyshow', 'lastweektonight', 'joshjohnsoncomedy', 'smn', 'thejuicemedia', 'jonathanpie',
+    'thedailyshow', 'lastweektonight', 'joshjohnsoncomedy', 'smn', 'thejuicemedia', 'jonathanpie', 'saturdaynightlive',
     // Wire/syndication services — footage aggregators, not original journalism
     'storyfulmanagedlicensing', 'storyfulnews', 'storyfulsports',
   ])
 
   // Satire handles that must never appear in NeedToKnow — enforced post-generation
   const SATIRE_HANDLES = new Set([
-    'thedailyshow', 'lastweektonight', 'joshjohnsoncomedy', 'smn', 'thejuicemedia', 'jonathanpie',
+    'thedailyshow', 'lastweektonight', 'joshjohnsoncomedy', 'smn', 'thejuicemedia', 'jonathanpie', 'saturdaynightlive',
   ])
 
   function getContentType(s: typeof cappedStories[0]): string {
@@ -452,7 +452,7 @@ NEED TO KNOW (3 stories max):
 - MIX RULE — HARD CONSTRAINT: Each story has a "contentType" field: "footage", "commentary", "investigation", or "report". You MUST NOT pick 3 stories that are all "commentary". Count your picks before finalizing: if all 3 are "commentary", replace the weakest commentary pick with the highest-impact "footage", "investigation", or "report" story in the candidates list — even if it seems less important. A digest of 3 talking-head videos fails the reader.
 - TOPIC DIVERSITY: All 3 NeedToKnow stories must cover different topics. Do not pick 3 stories that all critique the same type of institution (e.g. 3 stories about government overreach, or 3 stories about corporate exploitation). Vary across: government/policy, health/science, economy/business, local accountability, foreign affairs.
 - CELEBRITY/ENTERTAINMENT EXCLUSION: Do not place celebrity arrests, DUI incidents, athlete legal trouble, or personal drama in NeedToKnow — even if the story includes bodycam footage. These belong in "Sports, Entertainment, & Culture". A famous person being arrested is not NeedToKnow unless the police conduct itself is the story (explicit misconduct documented on camera).
-- SATIRE/COMEDY EXCLUSION — HARD RULE: Never place a satire or comedy source in NeedToKnow. This includes The Daily Show, Last Week Tonight, Jonathan Pie, Some More News, Josh Johnson, The Juice Media, and any other source whose contentType would be "commentary (satire)". NeedToKnow is the editorial standard-setter for the entire page — it must only contain straight reporting (Tiers 1–5) or non-satirical independent commentary (Tier 7). If the only source for a newsworthy topic is a comedy show, move that story to "Comedy & Satire" in InTheKnow and find a straight-reporting source to cover the same topic in NeedToKnow if one exists.
+- SATIRE/COMEDY EXCLUSION — HARD RULE: Never place a satire or comedy source in NeedToKnow. This includes The Daily Show, Last Week Tonight, Jonathan Pie, Some More News, Josh Johnson, The Juice Media, Saturday Night Live, and any other source whose contentType would be "commentary (satire)". NeedToKnow is the editorial standard-setter for the entire page — it must only contain straight reporting (Tiers 1–5) or non-satirical independent commentary (Tier 7). If the only source for a newsworthy topic is a comedy show, move that story to "Comedy & Satire" in InTheKnow and find a straight-reporting source to cover the same topic in NeedToKnow if one exists.
 - POLITICAL BALANCE — HARD CONSTRAINT: Before finalizing, label each pick as primarily appealing to: (A) left-leaning readers, (B) right-leaning readers, or (C) cross-partisan. You MUST have at least one (C) pick. Cross-partisan stories include: health costs, food prices, local crime/safety, natural disasters, scientific breakthroughs, personal finance. If all 3 are (A) or all 3 are (B), replace the weakest pick with the most cross-partisan story available in the candidates list.
 - ONE STORY PER CARD — HARD RULE: Each NeedToKnow item must cover exactly one story. Do not bundle multiple unrelated developments into a single card even if they come from the same source or the same news cycle. If ABC News covers both a US blockade announcement AND JD Vance negotiations, those are two separate stories — write one card about the blockade, move the Vance item to InTheKnow. The word "Separately" in a NeedToKnow paragraph is a signal you have violated this rule. Test: write the sectionTitle first. If the summary requires "Separately" or "Also" or "Meanwhile" to cover the full card, split it.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
@@ -560,7 +560,7 @@ IN THE KNOW:
   * "Science & Technology": research, medicine, space, climate science, AI, tech products, environment
   * "Business & Markets": economy, finance, companies, markets, labor, private equity, corporate news
   * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category. EPSTEIN RULE — HARD: Any story involving Jeffrey Epstein, his associates, sex trafficking, or related legal proceedings belongs in "Politics & World Affairs" regardless of whether celebrities are involved. "Melania and Epstein" is Politics, not Sports/Entertainment. "Trump and Epstein" is Politics. Any story where the news hook is institutional conduct, legal proceedings, or abuse of power — even if the subject is a celebrity — belongs in Politics.
-  * "Comedy & Satire": MANDATORY for any story with contentType "commentary (satire)" — this includes The Daily Show (@thedailyshow), Last Week Tonight (@lastweektonight), Jonathan Pie (@jonathanpie), Some More News (@smn), Josh Johnson (@joshjohnsoncomedy), The Juice Media (@thejuicemedia). If you see contentType "commentary (satire)" in the input, that story MUST go here and nowhere else — regardless of topic. Do NOT place serious political commentary, opinion journalism, or investigative analysis here — Glenn Greenwald, Breaking Points, Caspian Report, and similar channels belong in "Politics & World Affairs" or "Business & Markets" based on topic.
+  * "Comedy & Satire": MANDATORY for any story with contentType "commentary (satire)" — this includes The Daily Show (@thedailyshow), Last Week Tonight (@lastweektonight), Jonathan Pie (@jonathanpie), Some More News (@smn), Josh Johnson (@joshjohnsoncomedy), The Juice Media (@thejuicemedia), Saturday Night Live (@saturdaynightlive). If you see contentType "commentary (satire)" in the input, that story MUST go here and nowhere else — regardless of topic. Do NOT place serious political commentary, opinion journalism, or investigative analysis here — Glenn Greenwald, Breaking Points, Caspian Report, and similar channels belong in "Politics & World Affairs" or "Business & Markets" based on topic.
 
 EDITORIAL MIX RULE — HARD CONSTRAINT:
 - IN THE KNOW must include at least TWO non-conflict topic categories even on heavy conflict days. If the day is dominated by Iran/Middle East/war coverage, you MUST still include items in at least two of: Science & Technology, Business & Markets, Sports/Entertainment/Culture, or other non-conflict topics. Do not let a single conflict story crowd out all other categories.
