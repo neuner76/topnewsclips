@@ -258,10 +258,15 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   if (!stories || stories.length === 0) throw new Error('No published stories to digest')
 
   // Cap any single journalist/creator to 1 story — prevents one voice dominating the digest
+  // Satire/comedy channels are exempt: they're already gated to Comedy & Satire, can't bleed elsewhere
+  const SATIRE_DIGEST_EXEMPT = new Set([
+    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia',
+  ])
   const journalistCounts = new Map<string, number>()
   const SOURCE_CAP = 1
   const cappedStories = stories.filter(s => {
     if (!s.journalist_username) return true
+    if (SATIRE_DIGEST_EXEMPT.has(s.journalist_username.toLowerCase())) return true  // satire exempt from cap
     const count = journalistCounts.get(s.journalist_username) ?? 0
     if (count >= SOURCE_CAP) return false
     journalistCounts.set(s.journalist_username, count + 1)

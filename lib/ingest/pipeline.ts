@@ -271,10 +271,17 @@ export async function runFetch(): Promise<FetchResult> {
   const sortedCandidates = [...dedupedCandidates].sort((a, b) =>
     (b.viralScore ?? 0) - (a.viralScore ?? 0)
   )
+  // Satire handles are exempt from the daily journalist cap — they're gated to Comedy & Satire
+  // and the cap was silently dropping newer episodes when older ones already filled the 3-slot limit
+  const SATIRE_CAP_EXEMPT = new Set([
+    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia',
+  ])
+
   const newCandidates = sortedCandidates.filter(c => {
     if (knownSlugs.has(makeSlug(c.platform, c.videoId, c.title))) return false
     const username = (c as { journalistUsername?: string | null }).journalistUsername
     if (!username) return true
+    if (SATIRE_CAP_EXEMPT.has(username.toLowerCase())) return true  // satire exempt from daily cap
     const count = todayJournalistCounts.get(username) ?? 0
     if (count >= JOURNALIST_DAILY_CAP) return false
     todayJournalistCounts.set(username, count + 1)
