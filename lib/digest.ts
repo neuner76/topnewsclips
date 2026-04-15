@@ -219,17 +219,28 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
 
   // Fetch US and regional stories separately to prevent regional volume crowding out US stories
-  const [{ data: usStories, error }, { data: globalStories }, { data: worldViewStories }, mainstreamPulse] = await Promise.all([
+  const [{ data: usStoriesRaw, error }, { data: satireStories }, { data: globalStories }, { data: worldViewStories }, mainstreamPulse] = await Promise.all([
     supabase
       .from('stories')
       .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, created_at, view_count')
       .eq('published', true)
       .is('region', null)
+      .neq('category', 'comedy')
       .gte('created_at', twoDaysAgo)
       .order('pinned', { ascending: false })
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: false })
       .limit(28),
+    // Satire/comedy stories fetched separately — they have display_order 80 and would be cut off by the limit
+    supabase
+      .from('stories')
+      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, created_at, view_count')
+      .eq('published', true)
+      .is('region', null)
+      .eq('category', 'comedy')
+      .gte('created_at', twoDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(10),
     // Global blindspot stories — last 48 hours only, sorted by recency
     supabase
       .from('stories')
@@ -252,10 +263,21 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     fetchMainstreamPulse(),
   ])
 
-  const stories = usStories
+  // Cap satire to 1 per handle (most recent) before merging — prevents joshjohnsoncomedy etc. flooding the prompt
+  const satireByHandle = new Map<string, NonNullable<typeof satireStories>[0]>()
+  for (const s of (satireStories ?? [])) {
+    const handle = (s.journalist_username ?? '').toLowerCase()
+    if (!satireByHandle.has(handle)) satireByHandle.set(handle, s)
+  }
+  const satireStoriesCapped = [...satireByHandle.values()]
+
+  // Merge satire stories into the main pool — they're fetched separately to avoid being cut off by the limit
+  const usStories = [...(usStoriesRaw ?? []), ...satireStoriesCapped]
 
   if (error) throw new Error(`Failed to fetch stories: ${error.message}`)
-  if (!stories || stories.length === 0) throw new Error('No published stories to digest')
+  if (!usStories || usStories.length === 0) throw new Error('No published stories to digest')
+
+  const stories = usStories
 
   // Cap any single journalist/creator to 1 story — prevents one voice dominating the digest
   // Satire/comedy channels are exempt: they're already gated to Comedy & Satire, can't bleed elsewhere
