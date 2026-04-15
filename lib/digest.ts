@@ -304,10 +304,12 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   function getContentType(s: typeof cappedStories[0]): string {
     if (s.category === 'raw' || s.category === 'footage') return 'footage'  // bodycam, dashcam, bystander video
+    if (s.category === 'comedy') return 'commentary (satire)'               // satire bypass stories
     if (s.category === 'analysis') return 'commentary'   // talking head, explainer, opinion
     if (s.journalist_username) {
       const u = s.journalist_username.toLowerCase()
       if (FOOTAGE_HANDLES.has(u)) return 'footage'        // known bodycam/dashcam channel
+      if (SATIRE_HANDLES.has(u)) return 'commentary (satire)'  // known satire channel
       if (COMMENTARY_HANDLES.has(u)) return 'commentary' // known opinion/explainer channel
       return 'investigation'                              // nonprofit, OSINT, independent news
     }
@@ -558,7 +560,7 @@ IN THE KNOW:
   * "Science & Technology": research, medicine, space, climate science, AI, tech products, environment
   * "Business & Markets": economy, finance, companies, markets, labor, private equity, corporate news
   * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category. EPSTEIN RULE — HARD: Any story involving Jeffrey Epstein, his associates, sex trafficking, or related legal proceedings belongs in "Politics & World Affairs" regardless of whether celebrities are involved. "Melania and Epstein" is Politics, not Sports/Entertainment. "Trump and Epstein" is Politics. Any story where the news hook is institutional conduct, legal proceedings, or abuse of power — even if the subject is a celebrity — belongs in Politics.
-  * "Comedy & Satire": MANDATORY for The Daily Show (@thedailyshow), Last Week Tonight (@lastweektonight), Jonathan Pie (@jonathanpie), Some More News (@smn), Josh Johnson (@joshjohnsoncomedy), The Juice Media (@thejuicemedia) — regardless of topic. These sources MUST go here, never in Politics & World Affairs. Do NOT place serious political commentary, opinion journalism, or investigative analysis here — Glenn Greenwald, Breaking Points, Caspian Report, and similar channels belong in "Politics & World Affairs" or "Business & Markets" based on topic.
+  * "Comedy & Satire": MANDATORY for any story with contentType "commentary (satire)" — this includes The Daily Show (@thedailyshow), Last Week Tonight (@lastweektonight), Jonathan Pie (@jonathanpie), Some More News (@smn), Josh Johnson (@joshjohnsoncomedy), The Juice Media (@thejuicemedia). If you see contentType "commentary (satire)" in the input, that story MUST go here and nowhere else — regardless of topic. Do NOT place serious political commentary, opinion journalism, or investigative analysis here — Glenn Greenwald, Breaking Points, Caspian Report, and similar channels belong in "Politics & World Affairs" or "Business & Markets" based on topic.
 
 EDITORIAL MIX RULE — HARD CONSTRAINT:
 - IN THE KNOW must include at least TWO non-conflict topic categories even on heavy conflict days. If the day is dominated by Iran/Middle East/war coverage, you MUST still include items in at least two of: Science & Technology, Business & Markets, Sports/Entertainment/Culture, or other non-conflict topics. Do not let a single conflict story crowd out all other categories.
