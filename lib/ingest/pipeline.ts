@@ -277,11 +277,18 @@ export async function runFetch(): Promise<FetchResult> {
     'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
   ])
 
+  const SATIRE_CAP_EXEMPT_SOURCES = [
+    'the daily show', 'last week tonight', 'jonathan pie', 'some more news',
+    'josh johnson', 'the juice media', 'saturday night live',
+  ]
+
   const newCandidates = sortedCandidates.filter(c => {
     if (knownSlugs.has(makeSlug(c.platform, c.videoId, c.title))) return false
     const username = (c as { journalistUsername?: string | null }).journalistUsername
+    const src = (c.source ?? '').toLowerCase()
+    if (username && SATIRE_CAP_EXEMPT.has(username.toLowerCase())) return true
+    if (SATIRE_CAP_EXEMPT_SOURCES.some(s => src.includes(s))) return true
     if (!username) return true
-    if (SATIRE_CAP_EXEMPT.has(username.toLowerCase())) return true  // satire exempt from daily cap
     const count = todayJournalistCounts.get(username) ?? 0
     if (count >= JOURNALIST_DAILY_CAP) return false
     todayJournalistCounts.set(username, count + 1)
@@ -405,6 +412,12 @@ export async function runProcess(): Promise<PipelineResult> {
   const SATIRE_BYPASS_HANDLES = new Set([
     'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
   ])
+  // Source name substrings for satire channels — matches when video arrives via YouTube search
+  // without a journalistUsername (e.g. "YouTube/Saturday Night Live")
+  const SATIRE_BYPASS_SOURCES = [
+    'the daily show', 'last week tonight', 'jonathan pie', 'some more news',
+    'josh johnson', 'the juice media', 'saturday night live',
+  ]
 
   // Journalist handles that produce international news — route to global verifier
   const GLOBAL_JOURNALIST_HANDLES = new Set([
@@ -435,7 +448,10 @@ export async function runProcess(): Promise<PipelineResult> {
       const candidateRegion = candidate.region ?? (isGlobalJournalist ? (GLOBAL_JOURNALIST_REGION[handle] ?? 'World') : null)
 
       // Satire bypass — skip Claude verification for known comedy/satire creators
-      if (SATIRE_BYPASS_HANDLES.has(handle)) {
+      const sourceLower = (candidate.source ?? '').toLowerCase()
+      const isSatireSource = SATIRE_BYPASS_HANDLES.has(handle) ||
+        SATIRE_BYPASS_SOURCES.some(s => sourceLower.includes(s))
+      if (isSatireSource) {
         const embeddable = candidate.platform === 'youtube' ? await isYouTubeEmbeddable(candidate.video_url) : true
         if (!embeddable) {
           result.rejected++
@@ -460,7 +476,16 @@ export async function runProcess(): Promise<PipelineResult> {
           display_order: 80,
           category: 'comedy',
           thumbnail_url: candidate.thumbnail_url ?? null,
-          journalist_username: candidate.journalist_username ?? null,
+          journalist_username: candidate.journalist_username ?? (
+            sourceLower.includes('saturday night live') ? 'saturdaynightlive' :
+            sourceLower.includes('the daily show') ? 'thedailyshow' :
+            sourceLower.includes('last week tonight') ? 'lastweektonight' :
+            sourceLower.includes('jonathan pie') ? 'jonathanpie' :
+            sourceLower.includes('some more news') ? 'smn' :
+            sourceLower.includes('josh johnson') ? 'joshjohnsoncomedy' :
+            sourceLower.includes('the juice media') ? 'thejuicemedia' :
+            null
+          ),
           region: null,
           duration: candidate.duration ?? null,
           source_tier: getSourceTier(candidate.journalist_username ?? null, candidate.source ?? '', 'comedy').tier,
