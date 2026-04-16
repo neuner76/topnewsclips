@@ -31,6 +31,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
     'Science & Technology',
     'Business & Markets',
     'Sports, Entertainment, & Culture',
+    'Comedy & Satire',
   ] as const
 
   const needToKnowHtml = content.needToKnow.map(item => `
@@ -73,8 +74,14 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
 
   const etceteraHtml = content.etcetera.length > 0 ? `
     <div style="margin-top:28px;padding:20px 24px;background:#f9fafb;border-radius:8px;">
-      <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#6b7280;text-transform:uppercase;margin-bottom:12px;">ETCETERA</div>
-      ${content.etcetera.map(item => { const etc = typeof item === 'string' ? { text: item, slug: null } : item; return `<p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#6b7280;">• ${etc.text}</p>` }).join('')}
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#6b7280;text-transform:uppercase;margin-bottom:12px;">Also worth knowing</div>
+      ${content.etcetera.map(item => {
+        const etc = typeof item === 'string' ? { text: item, slug: null } : item
+        const linked = etc.slug
+          ? `<a href="${storyUrl(siteUrl, etc.slug)}" target="_blank" rel="noopener noreferrer" style="color:#374151;text-decoration:none;">${etc.text}</a>`
+          : etc.text
+        return `<p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#6b7280;">• ${linked}</p>`
+      }).join('')}
     </div>
   ` : ''
 
@@ -102,7 +109,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
         <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #fde68a;last-child:border-bottom:none;">
           <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#92400e;text-transform:uppercase;margin-right:6px;">${item.region}</span>
           <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
-          <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#78716c;">${item.summary.split('.')[0]}.</p>
+          <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#78716c;">${item.summary}</p>
         </div>
       `).join('')}
     </div>
@@ -116,7 +123,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
         <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #99f6e4;last-child:border-bottom:none;">
           <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#0e7490;text-transform:uppercase;margin-right:6px;">${item.region}</span>
           <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
-          <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#6b7280;">${item.summary.split('.')[0]}.</p>
+          <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#6b7280;">${item.summary}</p>
         </div>
       `).join('')}
     </div>
@@ -136,7 +143,7 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
     <div style="background:#ffffff;border-bottom:3px solid #0e7490;padding:20px 32px;">
       <a href="${siteUrlUtm(siteUrl)}" style="text-decoration:none;">
         <div style="font-size:22px;font-weight:900;letter-spacing:-0.03em;color:#111827;">TopNewsClips</div>
-        <div style="font-size:11px;color:#6b7280;margin-top:2px;">What mainstream media misses. What the world is watching.</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;">The full picture, not the profitable picture.</div>
       </a>
       <div style="font-size:12px;color:#9ca3af;margin-top:6px;">${formatDate(date)}</div>
     </div>
@@ -183,12 +190,13 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     'Science & Technology',
     'Business & Markets',
     'Sports, Entertainment, & Culture',
+    'Comedy & Satire',
   ] as const
 
   const lines: string[] = []
 
   lines.push(`TOPNEWSCLIPS — ${formatDate(date)}`)
-  lines.push('Independent news. No agenda.')
+  lines.push('The full picture, not the profitable picture.')
   lines.push('')
   lines.push('━'.repeat(60))
   lines.push('')
@@ -229,15 +237,16 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push('')
   }
 
-  // Etcetera
+  // Also worth knowing
   if (content.etcetera.length > 0) {
     lines.push('─'.repeat(60))
     lines.push('')
-    lines.push('ETCETERA')
+    lines.push('ALSO WORTH KNOWING')
     lines.push('')
     for (const item of content.etcetera) {
       const etc = typeof item === 'string' ? { text: item, slug: null } : item
-      lines.push(`• ${etc.text}`)
+      const link = etc.slug ? `  ${storyUrl(siteUrl, etc.slug)}` : ''
+      lines.push(`• ${etc.text}${link}`)
     }
     lines.push('')
   }
@@ -321,6 +330,7 @@ export async function GET(request: Request) {
   const { data: subscribers, error } = await supabase
     .from('subscribers')
     .select('email')
+    .eq('confirmed', true)
 
   if (error) {
     return NextResponse.json({ error: `Failed to fetch subscribers: ${error.message}` }, { status: 500 })
