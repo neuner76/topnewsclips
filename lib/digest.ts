@@ -947,6 +947,15 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     }
   }
 
+  // Rescue satire that Claude placed in Etcetera — move to Comedy & Satire as InTheKnow bullets
+  const satireInEtcetera = content.etcetera.filter(item => item.slug && satireSlugsSet.has(item.slug))
+  if (satireInEtcetera.length > 0) {
+    content.etcetera = content.etcetera.filter(item => !item.slug || !satireSlugsSet.has(item.slug))
+    content.inTheKnow['Comedy & Satire'].push(
+      ...satireInEtcetera.map(item => ({ text: item.text, slug: item.slug }))
+    )
+  }
+
   // Epstein rule enforcement — any commentary mentioning Epstein/sex trafficking in Sports/Entertainment
   // must be moved to Politics & World Affairs (the prompt rule doesn't hold reliably)
   const EPSTEIN_KEYWORDS = ['epstein', 'sex trafficking']
