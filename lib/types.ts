@@ -14,7 +14,7 @@ export interface Story {
   msm_outlet_coverage: { covered: string[]; notCovered: string[] } | null
   published: boolean
   display_order: number
-  category: 'raw' | 'reported' | 'analysis' | null
+  category: 'raw' | 'reported' | 'analysis' | 'comedy' | null
   subcategory: string | null
   thumbnail_url: string | null
   journalist_username: string | null

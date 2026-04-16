@@ -40,7 +40,7 @@ export default function StoryForm({ story }: StoryFormProps) {
   const [platform, setPlatform] = useState<Platform>(story?.platform ?? 'youtube')
   const [viewCount, setViewCount] = useState(String(story?.view_count ?? ''))
   const [shareCount, setShareCount] = useState(String(story?.share_count ?? ''))
-  const [category, setCategory] = useState<'raw' | 'reported' | 'analysis' | ''>(story?.category ?? '')
+  const [category, setCategory] = useState<'raw' | 'reported' | 'analysis' | 'comedy' | ''>(story?.category ?? '')
   const [msmGap, setMsmGap] = useState(story?.msm_gap ?? false)
   const [msmNotes, setMsmNotes] = useState(story?.msm_notes ?? '')
   const [pinned, setPinned] = useState(story?.pinned ?? false)
