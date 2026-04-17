@@ -49,3 +49,9 @@ jobs:
         run: |
           curl -s --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/cleanup" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Send Digest Email
+        if: always()
+        run: |
+          curl -s --max-time 60 -X GET "${{ secrets.SITE_URL }}/api/admin/send-digest" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

@@ -330,7 +330,6 @@ export async function GET(request: Request) {
   const { data: subscribers, error } = await supabase
     .from('subscribers')
     .select('email')
-    .eq('confirmed', true)
 
   if (error) {
     return NextResponse.json({ error: `Failed to fetch subscribers: ${error.message}` }, { status: 500 })
