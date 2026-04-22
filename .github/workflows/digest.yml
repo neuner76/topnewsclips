@@ -2,7 +2,7 @@ name: Daily Digest & Email
 
 on:
   schedule:
-    - cron: '30 12 * * *'   # 12:30pm UTC = 5:30am PDT — generate digest
+    - cron: '0 12 * * *'    # 12:00pm UTC = 5:00am PDT — generate digest
   workflow_dispatch:         # manual trigger from GitHub UI
     inputs:
       send_email:
