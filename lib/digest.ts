@@ -85,6 +85,17 @@ function validateDigest(content: DigestContent, validNtkSlugs: Set<string>): str
     if (i.paragraphs.length < 2) issues.push(`NTK card "${i.slug}" has only ${i.paragraphs.length} paragraph(s)`)
   })
 
+  // NeedToKnow: no two cards should share the same topic (2+ significant word overlap)
+  {
+    const seenWords = new Set<string>()
+    content.needToKnow.forEach(i => {
+      const words = sigWords(i.sectionTitle)
+      const overlap = [...words].filter(w => seenWords.has(w)).length
+      if (overlap >= 2) issues.push(`NTK topic duplicate: "${i.sectionTitle}" overlaps with a prior card`)
+      for (const w of words) seenWords.add(w)
+    })
+  }
+
   // Cross-section duplicate slug check (NTK + Blindspot + Lens)
   const seenSlugs = new Set<string>()
   const checkDupe = (slug: string, section: string) => {
@@ -1070,6 +1081,28 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     const keepSlug = commentaryItems[0].slug
     const dropSlugs = new Set(commentaryItems.slice(1).map(i => i.slug).filter(Boolean))
     content.inTheKnow[cat] = items.filter(item => !item.slug || !dropSlugs.has(item.slug))
+  }
+
+  // NeedToKnow internal topic deduplication
+  // Claude sometimes picks two stories about the same event with different slugs.
+  // Keep the first card and drop any subsequent card whose story shares 2+ significant words.
+  {
+    const seenTopicWords = new Set<string>()
+    content.needToKnow = content.needToKnow.filter(ntk => {
+      const story = cappedStories.find(s => s.slug === ntk.slug)
+      const words = new Set([
+        ...sigWords(ntk.sectionTitle),
+        ...sigWords(story?.title ?? ''),
+        ...sigWords(story?.description?.slice(0, 200) ?? ''),
+      ])
+      const overlap = [...words].filter(w => seenTopicWords.has(w)).length
+      if (overlap >= 2) {
+        console.warn(`[digest] NTK dedup: dropping "${ntk.sectionTitle}" (${overlap} overlapping words with prior card)`)
+        return false
+      }
+      for (const w of words) seenTopicWords.add(w)
+      return true
+    })
   }
 
   // InTheKnow commentary-on-NeedToKnow-topic eviction
