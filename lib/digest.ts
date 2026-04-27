@@ -579,7 +579,7 @@ Each NeedToKnow card must have a single, unmistakable center of gravity — one 
 IN THE KNOW:
 - RECENCY: Stories have a "hoursAgo" field. Strongly prefer stories under 24 hours old. Only include older stories if they are genuinely significant and not already widely known.
 - Remaining US stories as 1-sentence bullets under the correct topic category
-- Each sentence should end with (More)
+- Do NOT append "(More)" or any link text — the platform renders a link automatically when a slug is present
 - LENGTH CEILING — HARD RULE: Each InTheKnow bullet is ONE sentence, maximum 45 words. If you cannot state the core fact in 45 words, you are compressing too many stories into one bullet — pick the single most important fact and cut the rest. Do not write mini-essays. Do not chain multiple developments with semicolons or "and separately." One bullet = one fact.
 - ONE STORY PER BULLET: Do not bundle multiple unrelated developments into one InTheKnow bullet. "CNN reports Trump said X, while separately Pakistan and Hezbollah and Iran's parliament speaker all did Y" is three bullets, not one.
 - Each bullet must state a specific fact — name the person, place, number, or finding. Never write a vague bullet like "X documented how Y operates with minimal oversight" — instead say what specifically was found. Wrong: "drew prominent figures to publicly protest a political cause." Right: "Robert De Niro and Al Sharpton led an estimated 15,000-person march in Manhattan opposing [specific policy]."
@@ -606,6 +606,7 @@ ETCETERA:
 - DEDUPLICATION: Never use a story that already appears in NeedToKnow or InTheKnow — each story slug must appear at most once across the entire digest
 - Each entry must be concrete: name the specific fact, number, place, or finding. Never vague.
 - EXCLUSION — HARD RULE: Military operations, airstrikes, conflict developments, casualties, prisoner/hostage situations, and humanitarian crises (evacuations, famine, civilian deaths) must NEVER appear in Etcetera. These belong in InTheKnow under "Politics & World Affairs". Etcetera is for genuinely odd, surprising, or quirky stories — not for serious conflict news that happens to be left over.
+- QUALITY BAR — HARD RULE: Do not include brand statistics, marketing trivia, or promotional facts (e.g. "Brand X reports Y% of Americans do Z", "per [company], one in four bags contains..."). These are advertising data, not news. Etcetera must be genuinely surprising facts about the world — not a brand's self-reported statistics.
 - Each item: { "text": "...", "slug": "..." } — include the story's slug so we can link to it
 
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
@@ -1170,14 +1171,31 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const footageSlugs = new Set(
     cappedStories.filter(s => getContentType(s) === 'footage' || s.category === 'raw').map(s => s.slug)
   )
+  // Brand-stat patterns: "per [Brand]", "one in X", "X out of every Y", "[N]% of Americans" sourced from a company
+  const ETCETERA_BRAND_PATTERNS = [
+    /\bper [A-Z][a-z]+,/,           // "per Better Made,"
+    /\bone (in|out of every) \d+/i, // "one in four", "one out of every four"
+    /\b\d+ (in|out of every) \d+/i, // "3 in 4"
+    /\baccording to [A-Z][a-z]+ [A-Z][a-z]+,/,  // "according to Better Made,"
+  ]
   content.etcetera = content.etcetera.filter(item => {
     const etc = typeof item === 'string' ? { text: item, slug: null } : item
     if (etc.slug && storyfulSlugs.has(etc.slug)) return false
     if (etc.slug && analysisCommentarySlugs.has(etc.slug)) return false
     if (etc.slug && footageSlugs.has(etc.slug)) return false  // raw footage never in Etcetera
-    const text = (typeof item === 'string' ? item : item.text).toLowerCase()
-    return !PROMO_TERMS.some(t => text.includes(t))
+    const text = (typeof item === 'string' ? item : item.text)
+    if (ETCETERA_BRAND_PATTERNS.some(p => p.test(text))) return false
+    return !PROMO_TERMS.some(t => text.toLowerCase().includes(t))
   })
+
+  // Strip any trailing "(More)" Claude appended despite instructions
+  for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+    content.inTheKnow[cat] = content.inTheKnow[cat].map(item => ({
+      ...item,
+      text: item.text.replace(/\s*\(More\.?\)\s*$/, '').trimEnd(),
+    }))
+  }
+
   for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
     content.inTheKnow[cat] = content.inTheKnow[cat].filter(item => !item.slug || !storyfulSlugs.has(item.slug))
   }
