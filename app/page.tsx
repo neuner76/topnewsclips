@@ -321,7 +321,13 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                   <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block">{item.source}</span>
                   <span className="text-[9px] text-muted-foreground/60 leading-none" title={item.descriptor}>{standardizedDescriptor}</span>
                 </div>
-                <span className="text-sm leading-relaxed">{item.headline}</span>
+                {item.slug ? (
+                  <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-relaxed hover:underline underline-offset-2">
+                    {item.headline}
+                  </Link>
+                ) : (
+                  <span className="text-sm leading-relaxed">{item.headline}</span>
+                )}
               </li>
               )
             })}

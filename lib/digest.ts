@@ -44,6 +44,7 @@ export interface MainstreamPulseItem {
   headline: string
   source: string
   descriptor: string
+  slug?: string | null
 }
 
 export interface DigestContent {
@@ -229,14 +230,25 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
 
+  // Mainstream Pulse outlet config — maps journalist_username to display label + descriptor
+  const MAINSTREAM_PULSE_OUTLETS: Record<string, { label: string; descriptor: string }> = {
+    'npr':             { label: 'NPR',      descriptor: 'public media' },
+    'nytimes':         { label: 'NYT',      descriptor: 'center-left' },
+    'associatedpress': { label: 'AP',       descriptor: 'wire' },
+    'reuters':         { label: 'Reuters',  descriptor: 'global wire' },
+    'wsj':             { label: 'WSJ',      descriptor: 'business' },
+    'foxnews':         { label: 'Fox News', descriptor: 'conservative' },
+  }
+
   // Fetch US and regional stories separately to prevent regional volume crowding out US stories
-  const [{ data: usStoriesRaw, error }, { data: satireStories }, { data: globalStories }, { data: worldViewStories }, mainstreamPulse] = await Promise.all([
+  const [{ data: usStoriesRaw, error }, { data: satireStories }, { data: globalStories }, { data: worldViewStories }, { data: mainstreampulseStoriesRaw }, rssMainstreamPulse] = await Promise.all([
     supabase
       .from('stories')
       .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, created_at, view_count')
       .eq('published', true)
       .is('region', null)
       .neq('category', 'comedy')
+      .neq('source_type', 'Mainstream Pulse')
       .gte('created_at', twoDaysAgo)
       .order('pinned', { ascending: false })
       .order('display_order', { ascending: true })
@@ -271,6 +283,15 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .gte('created_at', twoDaysAgo)
       .order('created_at', { ascending: false })
       .limit(16),
+    // Mainstream Pulse stories — one per outlet, most recent
+    supabase
+      .from('stories')
+      .select('slug, title, journalist_username, source_type')
+      .eq('published', true)
+      .in('journalist_username', Object.keys(MAINSTREAM_PULSE_OUTLETS))
+      .gte('created_at', twoDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(30),
     fetchMainstreamPulse(),
   ])
 
@@ -1461,8 +1482,22 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   // Cap Global Lens at 4 (homepage gate)
   if (content.globalLens) content.globalLens = content.globalLens.slice(0, 4)
 
-  // Attach mainstream pulse (fetched independently, not via Claude)
-  if (mainstreamPulse.length > 0) content.mainstreamPulse = mainstreamPulse
+  // Build mainstream pulse — prefer DB stories (with slugs), fall back to RSS per outlet
+  const dbPulseByHandle = new Map<string, { slug: string; title: string }>()
+  for (const s of (mainstreampulseStoriesRaw ?? [])) {
+    const h = (s.journalist_username ?? '').toLowerCase()
+    if (!dbPulseByHandle.has(h)) dbPulseByHandle.set(h, { slug: s.slug, title: s.title })
+  }
+  const rssByLabel = new Map(rssMainstreamPulse.map(i => [i.source, i]))
+  const mergedPulse: MainstreamPulseItem[] = Object.entries(MAINSTREAM_PULSE_OUTLETS).flatMap<MainstreamPulseItem>(([handle, { label, descriptor }]) => {
+    const db = dbPulseByHandle.get(handle)
+    if (db) return [{ headline: db.title, source: label, descriptor, slug: db.slug }]
+    const rss = rssByLabel.get(label)
+    if (rss) return [{ headline: rss.headline, source: rss.source, descriptor: rss.descriptor, slug: undefined }]
+    return []
+  })
+
+  if (mergedPulse.length > 0) content.mainstreamPulse = mergedPulse
 
   // Validate digest quality before saving
   const digestIssues = validateDigest(content, validNtkSlugs)

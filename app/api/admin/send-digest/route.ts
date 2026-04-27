@@ -95,7 +95,10 @@ function buildEmailHtml(content: DigestContent, date: string, siteUrl: string): 
             <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#94a3b8;text-transform:uppercase;">${item.source}</div>
             <div style="font-size:8px;color:#cbd5e1;margin-top:1px;">${item.descriptor}</div>
           </div>
-          <span style="font-size:13px;color:#374151;line-height:1.5;">${item.headline}</span>
+          ${item.slug
+            ? `<a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;color:#374151;line-height:1.5;text-decoration:none;">${item.headline}</a>`
+            : `<span style="font-size:13px;color:#374151;line-height:1.5;">${item.headline}</span>`
+          }
         </div>
       `).join('')}
     </div>

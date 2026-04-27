@@ -412,6 +412,14 @@ export async function runProcess(): Promise<PipelineResult> {
   const SATIRE_BYPASS_HANDLES = new Set([
     'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
   ])
+
+  // Mainstream Pulse handles — bypass Claude verification; skip MSM gap check (circular for MSM sources)
+  const MAINSTREAM_PULSE_HANDLES = new Set([
+    'nytimes', 'associatedpress', 'wsj', 'foxnews',
+  ])
+  const MAINSTREAM_PULSE_LABEL: Record<string, string> = {
+    'nytimes': 'NYT', 'associatedpress': 'AP', 'wsj': 'WSJ', 'foxnews': 'Fox News',
+  }
   // Source name substrings for satire channels — matches when video arrives via YouTube search
   // without a journalistUsername (e.g. "YouTube/Saturday Night Live")
   const SATIRE_BYPASS_SOURCES = [
@@ -495,6 +503,49 @@ export async function runProcess(): Promise<PipelineResult> {
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
         if (satirErr) {
           result.errors.push(`Satire insert error: ${satirErr.message}`)
+        } else {
+          result.inserted++
+          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })
+        }
+        continue
+      }
+
+      // Mainstream Pulse bypass — skip Claude verification; MSM gap check is circular for these sources
+      if (MAINSTREAM_PULSE_HANDLES.has(handle)) {
+        const embeddable = candidate.platform === 'youtube' ? await isYouTubeEmbeddable(candidate.video_url) : true
+        if (!embeddable) {
+          result.rejected++
+          result.errors.push(`Embed blocked (mainstream): "${candidate.title.slice(0, 50)}"`)
+          await supabase.from('rejected_slugs').upsert({ slug: candidate.slug, reason: 'youtube_embed_blocked' })
+          await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
+          continue
+        }
+        const { error: msmErr } = await supabase.from('stories').insert({
+          title: candidate.title,
+          slug: candidate.slug,
+          description: candidate.description ?? '',
+          embed_url: candidate.video_url,
+          platform: candidate.platform,
+          view_count: candidate.viral_score,
+          share_count: 0,
+          msm_gap: false,
+          msm_outlet_coverage: { covered: [], notCovered: [] },
+          source: candidate.source,
+          msm_notes: `Source: ${candidate.source} | Mainstream Pulse bypass`,
+          published: true,
+          display_order: 90,
+          category: 'reported',
+          thumbnail_url: candidate.thumbnail_url ?? null,
+          journalist_username: handle || null,
+          region: null,
+          duration: candidate.duration ?? null,
+          source_tier: 6,
+          source_type: 'Mainstream Pulse',
+          verified_interpretation: null,
+        })
+        await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
+        if (msmErr) {
+          result.errors.push(`Mainstream insert error: ${msmErr.message}`)
         } else {
           result.inserted++
           result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })

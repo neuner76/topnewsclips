@@ -162,6 +162,11 @@ const RAW_FOOTAGE_JOURNALISTS = new Set([
   'policeactivity', 'weathernation', 'viralhog',
 ])
 
+// Mainstream Pulse — gated from NTK/InTheKnow; used only for the Mainstream Pulse section
+const MAINSTREAM_PULSE_JOURNALISTS = new Set([
+  'nytimes', 'associatedpress', 'wsj', 'foxnews',
+])
+
 export function getSourceTier(
   journalistUsername: string | null,
   source: string,
@@ -199,6 +204,9 @@ export function getSourceTier(
 
   if (RAW_FOOTAGE_JOURNALISTS.has(u))
     return { tier: 9, sourceType: 'Raw Footage' }
+
+  if (MAINSTREAM_PULSE_JOURNALISTS.has(u))
+    return { tier: 6, sourceType: 'Mainstream Pulse' }
 
   // Any other known journalist handle → Independent Commentary by default
   if (journalistUsername)
