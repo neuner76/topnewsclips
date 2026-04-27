@@ -176,8 +176,8 @@ async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
         const items = xml.split('<item>').slice(1, 6) // try up to 5 items to skip opinions
         for (const item of items) {
           const titleRaw = item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
-          // Google News search titles are "Headline - Source Name" — strip the trailing source
-          const headline = decodeHtml(titleRaw.replace(/\s*-\s*[^-]+$/, ''))
+          // Google News search titles are "Headline - Source Name" or "Headline | Source Name" — strip the trailing source
+          const headline = decodeHtml(titleRaw.replace(/\s*[-|]\s*[^-|]+$/, ''))
           if (!headline) continue
           // Skip opinion, editorial, and letter pieces — not news leads
           if (/^(Opinion|Editorial|Letters?|Commentary)\s*[|:]/i.test(headline)) continue
