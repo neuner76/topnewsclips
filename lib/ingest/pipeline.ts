@@ -4,6 +4,7 @@ import { fetchTikTokTrending, type TikTokClip } from './tiktok'
 import { fetchGlobalClips, type GlobalClip } from './global'
 import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
+import { fetchYouTubeTranscript } from './apify-transcript'
 import { pingIndexNow } from './indexnow'
 import { getSourceTier } from './source-tier'
 
@@ -11,6 +12,7 @@ export interface PipelineResult {
   inserted: number
   needsReview: number
   rejected: number
+  transcriptsFetched: number
   errors: string[]
   stories: Array<{ title: string; slug: string; decision: string }>
 }
@@ -342,7 +344,7 @@ function isCrisisTopic(title: string): boolean {
 export async function runProcess(): Promise<PipelineResult> {
   const supabase = getSupabase()
   const anthropicKey = process.env.ANTHROPIC_API_KEY!
-  const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, errors: [], stories: [] }
+  const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, transcriptsFetched: 0, errors: [], stories: [] }
 
   const { data: pending, error: fetchError } = await supabase
     .from('candidates')
@@ -415,10 +417,11 @@ export async function runProcess(): Promise<PipelineResult> {
 
   // Mainstream Pulse handles — bypass Claude verification; skip MSM gap check (circular for MSM sources)
   const MAINSTREAM_PULSE_HANDLES = new Set([
-    'nytimes', 'associatedpress', 'wsj', 'foxnews',
+    'nytimes', 'associatedpress', 'wsj', 'foxnews', 'npr', 'reuters',
   ])
   const MAINSTREAM_PULSE_LABEL: Record<string, string> = {
     'nytimes': 'NYT', 'associatedpress': 'AP', 'wsj': 'WSJ', 'foxnews': 'Fox News',
+    'npr': 'NPR', 'reuters': 'Reuters',
   }
   // Source name substrings for satire channels — matches when video arrives via YouTube search
   // without a journalistUsername (e.g. "YouTube/Saturday Night Live")
@@ -553,6 +556,12 @@ export async function runProcess(): Promise<PipelineResult> {
         continue
       }
 
+      const apifyKey = process.env.APIFY_API_KEY
+      const transcript = (candidate.platform === 'youtube' && apifyKey)
+        ? await fetchYouTubeTranscript(candidate.video_url, apifyKey)
+        : null
+      if (transcript) result.transcriptsFetched++
+
       const verification = await verifyAndTitle(
         {
           title: candidate.title,
@@ -565,6 +574,7 @@ export async function runProcess(): Promise<PipelineResult> {
           isJournalist: !!candidate.journalist_username,
           isGlobal: !!candidateRegion,
           region: candidateRegion,
+          transcript,
         },
         anthropicKey
       )
@@ -685,6 +695,7 @@ export async function runIngestionPipeline(): Promise<PipelineResult & { queued:
   return {
     ...processResult,
     queued: fetchResult.added,
+    transcriptsFetched: processResult.transcriptsFetched,
     errors: [...fetchResult.errors, ...processResult.errors],
   }
 }

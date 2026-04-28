@@ -11,6 +11,7 @@ export interface ClipInput {
   isJournalist: boolean
   isGlobal?: boolean
   region?: string | null
+  transcript?: string | null
 }
 
 export interface VerifiedInterpretation {
@@ -48,6 +49,7 @@ Description: ${clip.description.slice(0, 400)}
 Platform: ${clip.platform}
 Viral Score: ${clip.viralScore}
 US Mainstream Media Articles Found: ${clip.msmArticleCount === -1 ? 'unknown' : clip.msmArticleCount}
+${clip.transcript ? `Transcript (first 3000 chars): ${clip.transcript}` : ''}
 
 Respond with this exact JSON structure:
 {
@@ -146,6 +148,7 @@ Source: ${clip.source}
 Viral Score: ${clip.viralScore}
 Mainstream Media Articles Found: ${clip.msmArticleCount === -1 ? 'unknown' : clip.msmArticleCount}
 Trusted Journalist: ${clip.isJournalist ? 'YES' : 'No'}
+${clip.transcript ? `Transcript (first 3000 chars): ${clip.transcript}` : ''}
 
 Respond with this exact JSON structure:
 {
