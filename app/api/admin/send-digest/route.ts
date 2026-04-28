@@ -330,6 +330,17 @@ export async function GET(request: Request) {
   }
 
   const supabase = getSupabase()
+
+  // Guard: only send once per day — check if email was already sent for today's digest
+  const { data: sentCheck } = await supabase
+    .from('digests')
+    .select('email_sent_at')
+    .eq('id', digest.id)
+    .single()
+
+  if (sentCheck?.email_sent_at) {
+    return NextResponse.json({ skipped: true, message: `Email already sent at ${sentCheck.email_sent_at}` })
+  }
   const { data: subscribers, error } = await supabase
     .from('subscribers')
     .select('email')
@@ -376,6 +387,10 @@ export async function GET(request: Request) {
     } catch (err) {
       errors.push(`Batch ${i / BATCH_SIZE + 1}: ${err instanceof Error ? err.message : String(err)}`)
     }
+  }
+
+  if (sent > 0) {
+    await supabase.from('digests').update({ email_sent_at: new Date().toISOString() }).eq('id', digest.id)
   }
 
   return NextResponse.json({ sent, total: emails.length, errors })
