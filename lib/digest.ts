@@ -419,6 +419,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     .filter(s => (s.source_tier ?? 99) < 10)  // never offer Tier 10 sources as NeedToKnow candidates
     .filter(s => getContentType(s) !== 'footage')  // raw footage belongs in InTheKnow, not NeedToKnow
     .filter(s => s.category !== 'analysis')  // analysis belongs in InTheKnow, not NeedToKnow
+    .filter(s => s.category !== 'comedy')    // satire/comedy never in NeedToKnow
     .filter(s => !s.region)  // international stories belong in Global sections, not NeedToKnow
     .map(toPromptItem)
 
@@ -427,6 +428,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     .filter(s => (s.source_tier ?? 99) < 10)
     .filter(s => getContentType(s) !== 'footage')
     .filter(s => s.category !== 'analysis')
+    .filter(s => s.category !== 'comedy')
     .filter(s => !s.region)
     .map(s => s.slug)
   )
@@ -1103,6 +1105,13 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     const keepSlug = commentaryItems[0].slug
     const dropSlugs = new Set(commentaryItems.slice(1).map(i => i.slug).filter(Boolean))
     content.inTheKnow[cat] = items.filter(item => !item.slug || !dropSlugs.has(item.slug))
+  }
+
+  // Strip URLs from NeedToKnow paragraphs — raw descriptions (e.g. satire bypass) can contain promo links
+  for (const ntk of content.needToKnow) {
+    ntk.paragraphs = ntk.paragraphs.map(p =>
+      p.replace(/https?:\/\/\S+/g, '').replace(/\s{2,}/g, ' ').trim()
+    ).filter(p => p.length > 0)
   }
 
   // NeedToKnow internal topic deduplication
