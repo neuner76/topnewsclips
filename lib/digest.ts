@@ -801,6 +801,14 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
   }
 
+  // Normalize — Claude occasionally omits or nulls a section on overloaded responses
+  content.needToKnow = content.needToKnow ?? []
+  content.inTheKnow = content.inTheKnow ?? { 'Politics & World Affairs': [], 'Science & Technology': [], 'Business & Markets': [], 'Sports, Entertainment, & Culture': [], 'Comedy & Satire': [] }
+  content.etcetera = content.etcetera ?? []
+  for (const ntk of content.needToKnow) {
+    ntk.paragraphs = ntk.paragraphs ?? []
+  }
+
   // NeedToKnow slug whitelist — evict any item whose slug wasn't in the approved candidates list
   // This catches international stories, analysis, footage, and Tier 10 that Claude pulled from storiesForPrompt
   content.needToKnow = content.needToKnow.filter(i => validNtkSlugs.has(i.slug))
