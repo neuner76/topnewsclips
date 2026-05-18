@@ -38,3 +38,7 @@ jobs:
         run: |
           curl -s --fail-with-body --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/send-digest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Ping healthcheck
+        if: always()
+        run: curl -fsS "https://hc-ping.com/7f110136-b72a-4ce3-8b4d-3f3f2d602fc6" > /dev/null
