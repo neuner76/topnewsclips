@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { createClient as createSessionClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 import { getLatestDigest } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import { buildEmailHtml, buildStoryMap, formatDate } from '@/lib/email/digest-html'
 
-function getSupabase() {
-  return createClient(
+function getServiceSupabase() {
+  return createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 }
 
-export async function GET(request: NextRequest) {
+async function isAuthorized(request: NextRequest): Promise<boolean> {
   const auth = request.headers.get('Authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (auth === `Bearer ${process.env.CRON_SECRET}`) return true
+  const supabase = await createSessionClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  return !!user
+}
+
+export async function GET(request: NextRequest) {
+  if (!await isAuthorized(request)) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 
@@ -23,7 +31,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse('No digest found', { status: 404 })
   }
 
-  const supabase = getSupabase()
+  const supabase = getServiceSupabase()
   const storyMap = await buildStoryMap(
     async (slugs) => { const { data } = await supabase.from('stories').select('*').in('slug', slugs); return (data ?? []) as Story[] },
     digest.content
