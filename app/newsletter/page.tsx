@@ -140,6 +140,8 @@ export default async function NewsletterPage() {
 
               <Link
                 href={`/digest/${digest.date}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-block text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2"
               >
                 Open full sample →
@@ -170,6 +172,8 @@ export default async function NewsletterPage() {
                   <li key={d.date}>
                     <Link
                       href={`/digest/${d.date}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-between py-3 border-b border-border/50 group"
                     >
                       <span className="text-sm font-medium group-hover:underline">
