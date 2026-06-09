@@ -35,6 +35,8 @@ function SectionDivider({ label }: { label: string }) {
   )
 }
 
+const PARA_LABELS = ['What happened', 'Why it matters'] as const
+
 function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
   return (
     <article className="mb-10">
@@ -43,17 +45,20 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
           {item.sectionTitle}
         </h2>
       </Link>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {item.paragraphs.slice(0, 2).map((p, i) => (
-          <p key={i} className="text-sm leading-relaxed text-foreground/90">
-            {p}
-          </p>
+          <div key={i}>
+            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">
+              {PARA_LABELS[i]}
+            </p>
+            <p className="text-sm leading-relaxed text-foreground/90">{p}</p>
+          </div>
         ))}
       </div>
       {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
         <div className="mt-4 pl-3 border-l-2 border-border space-y-2">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-            How the world sees it
+            World view
           </p>
           {item.howWorldSeesIt.map((w, i) => (
             <div key={i} className="flex gap-2.5 items-start">
