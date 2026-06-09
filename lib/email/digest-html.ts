@@ -104,10 +104,10 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
         <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">NEED TO KNOW</div>
         <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
       </a>
-      ${item.paragraphs.slice(0, 2).map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#374151;">${p}</p>`).join('')}
+      ${item.paragraphs.slice(0, 2).map((p, i) => `<div style="margin-bottom:14px;"><div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#9ca3af;text-transform:uppercase;margin-bottom:4px;">${i === 0 ? 'What happened' : 'Why it matters'}</div><p style="margin:0;font-size:15px;line-height:1.65;color:#374151;">${p}</p></div>`).join('')}
       ${item.howWorldSeesIt && item.howWorldSeesIt.length > 0 ? `
         <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;">
-          <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;">How the world sees it</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;">World view</div>
           ${item.howWorldSeesIt.map(w => `
             <div style="display:flex;gap:12px;margin-bottom:6px;">
               <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#9ca3af;text-transform:uppercase;flex-shrink:0;width:72px;">${w.region}</span>
