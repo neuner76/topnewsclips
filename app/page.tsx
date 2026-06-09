@@ -70,6 +70,8 @@ function resolvedBadge(story: Story): { tier: number | null; sourceType: string 
   return fresh
 }
 
+const PARA_LABELS = ['What happened', 'Why it matters'] as const
+
 function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: Map<string, Story> }) {
   const story = storyMap.get(item.slug)
   const badge = story ? resolvedBadge(story) : null
@@ -91,11 +93,14 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
           {item.sectionTitle}
         </h2>
       </Link>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {item.paragraphs.slice(0, 2).map((p, i) => (
-          <p key={i} className="editorial-body text-foreground/90">
-            {p}
-          </p>
+          <div key={i}>
+            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">
+              {PARA_LABELS[i]}
+            </p>
+            <p className="editorial-body text-foreground/90">{p}</p>
+          </div>
         ))}
       </div>
       <Link
@@ -109,7 +114,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
       {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
         <div className="mt-5 pt-4 border-t border-border/50">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-3">
-            How the world sees it
+            World view
           </p>
           <div className="space-y-2">
             {item.howWorldSeesIt.map((w: HowWorldSeesItItem, i: number) => (
