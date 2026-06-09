@@ -1548,3 +1548,29 @@ export async function getLatestDigest(): Promise<Digest | null> {
     .single()
   return (data as Digest) ?? null
 }
+
+export interface DigestSummary {
+  id: string
+  date: string
+  generated_at: string
+}
+
+export async function getRecentDigests(n: number): Promise<DigestSummary[]> {
+  const supabase = getSupabase()
+  const { data } = await supabase
+    .from('digests')
+    .select('id, date, generated_at')
+    .order('date', { ascending: false })
+    .limit(n)
+  return (data ?? []) as DigestSummary[]
+}
+
+export async function getDigestByDate(date: string): Promise<Digest | null> {
+  const supabase = getSupabase()
+  const { data } = await supabase
+    .from('digests')
+    .select('*')
+    .eq('date', date)
+    .single()
+  return (data as Digest) ?? null
+}
