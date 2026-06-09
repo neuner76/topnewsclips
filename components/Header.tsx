@@ -15,6 +15,9 @@ export default function Header() {
             <Link href="/" className="hover:text-foreground transition-colors">
               Digest
             </Link>
+            <Link href="/newsletter" className="hover:text-foreground transition-colors hidden sm:block">
+              Newsletter
+            </Link>
             <Link href="/?view=clips" className="hover:text-foreground transition-colors">
               Clips
             </Link>
@@ -36,7 +39,7 @@ export default function Header() {
               </svg>
             </Link>
             <Link
-              href="/#subscribe"
+              href="/newsletter"
               className="bg-[oklch(0.52_0.14_196)] text-white px-3 py-1.5 rounded text-xs font-semibold hover:opacity-80 transition-opacity"
             >
               Get the digest
