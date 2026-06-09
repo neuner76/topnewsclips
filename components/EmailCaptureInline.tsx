@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { track } from '@/lib/analytics'
 
-export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean }) {
+export default function EmailCaptureInline({ placement = 'inline' }: { placement?: string }) {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
@@ -19,7 +19,7 @@ export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean 
         body: JSON.stringify({ email, ...(ref ? { ref } : {}) }),
       })
       if (res.ok) {
-        track('signup_completed', { placement: nudge ? 'nudge' : 'inline' })
+        track('signup_completed', { placement })
         setStatus('success')
       } else {
         setStatus('error')
@@ -37,13 +37,12 @@ export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean 
     )
   }
 
-  if (nudge) {
-    return (
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <span className="text-xs text-muted-foreground">Enjoying this?</span>
+  return (
+    <div className="mt-3">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
         <input
           type="email"
-          placeholder="your@email.com"
+          placeholder="Enter your email"
           value={email}
           onChange={e => setEmail(e.target.value)}
           required
@@ -54,32 +53,13 @@ export default function EmailCaptureInline({ nudge = false }: { nudge?: boolean 
           disabled={status === 'loading'}
           className="text-sm font-semibold px-4 py-2 rounded bg-[oklch(0.52_0.14_196)] text-white hover:opacity-80 transition-opacity shrink-0 disabled:opacity-50"
         >
-          Get it daily
+          {status === 'loading' ? '...' : 'Get the digest'}
         </button>
       </form>
-    )
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 mt-3">
-      <input
-        type="email"
-        placeholder="your@email.com"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        required
-        className="flex-1 text-sm px-3 py-2 rounded border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
-      />
-      <button
-        type="submit"
-        disabled={status === 'loading'}
-        className="text-sm font-semibold px-4 py-2 rounded bg-[oklch(0.52_0.14_196)] text-white hover:opacity-80 transition-opacity shrink-0 disabled:opacity-50"
-      >
-        {status === 'loading' ? '...' : 'Get daily briefing'}
-      </button>
+      <p className="text-[11px] text-muted-foreground mt-1.5">Free. No spam. Unsubscribe anytime.</p>
       {status === 'error' && (
-        <span className="text-xs text-red-500 sm:self-center">Try again</span>
+        <p className="text-xs text-red-500 mt-1">Something went wrong — try again.</p>
       )}
-    </form>
+    </div>
   )
 }

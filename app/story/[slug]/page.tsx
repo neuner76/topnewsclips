@@ -435,7 +435,7 @@ export default async function StoryPage({ params }: Props) {
           <div className="mt-8 p-4 bg-muted/50 border border-border rounded-lg">
             <p className="text-sm font-semibold text-foreground mb-1">Get stories like this every morning.</p>
             <p className="text-xs text-muted-foreground mb-2">Free daily briefing — 5 minutes, no spin.</p>
-            <EmailCaptureInline nudge />
+            <EmailCaptureInline placement="story" />
           </div>
         )}
 

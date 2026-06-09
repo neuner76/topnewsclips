@@ -40,10 +40,10 @@ export default function EmailCapture() {
     <section id="subscribe" className="bg-foreground text-background rounded-lg px-6 py-8 sm:px-10 sm:py-10 my-12">
       <div className="max-w-xl mx-auto text-center">
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-2">
-          The full picture, not the profitable picture.
+          Get the full picture in 5 minutes.
         </h2>
         <p className="text-sm text-background/70 mb-6">
-          Every source labeled. Every story in context. The full picture in 5 minutes. Free.
+          Every source labeled. Every story in context. No spin, no outrage.
         </p>
 
         {status === 'success' ? (
@@ -54,7 +54,7 @@ export default function EmailCapture() {
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
             <Input
               type="email"
-              placeholder="your@email.com"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -65,9 +65,10 @@ export default function EmailCapture() {
               disabled={status === 'loading'}
               className="bg-background text-foreground hover:bg-background/90 font-semibold shrink-0"
             >
-              {status === 'loading' ? 'Joining...' : 'Join Free'}
+              {status === 'loading' ? '...' : 'Get the digest'}
             </Button>
           </form>
+          <p className="text-xs text-background/50 mt-2 text-center">Free. No spam. Unsubscribe anytime.</p>
         )}
 
         {status === 'error' && (

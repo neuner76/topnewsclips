@@ -613,7 +613,7 @@ export default async function HomePage({
             The full picture, not the profitable picture.
           </p>
           <p className="text-xs text-muted-foreground mt-3">A daily briefing founded by Eric Neuner with visible source labels, confidence markers, broader coverage, and clearer context. Built to help you understand what matters without drowning in noise.</p>
-          <EmailCaptureInline />
+          <EmailCaptureInline placement="hero" />
         </div>
 
         {/* Tab switcher */}
