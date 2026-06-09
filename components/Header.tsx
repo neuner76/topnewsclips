@@ -39,7 +39,7 @@ export default function Header() {
               href="/#subscribe"
               className="bg-[oklch(0.52_0.14_196)] text-white px-3 py-1.5 rounded text-xs font-semibold hover:opacity-80 transition-opacity"
             >
-              Subscribe
+              Get the digest
             </Link>
           </nav>
         </div>
