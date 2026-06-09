@@ -621,6 +621,14 @@ export default async function HomePage({
           </p>
           <p className="text-xs text-muted-foreground mt-3">A daily briefing founded by Eric Neuner with visible source labels, confidence markers, broader coverage, and clearer context. Built to help you understand what matters without drowning in noise.</p>
           <EmailCaptureInline placement="hero" />
+          {digest && activeView === 'digest' && (
+            <a
+              href="#digest"
+              className="inline-block mt-3 text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2"
+            >
+              See today&apos;s digest ↓
+            </a>
+          )}
         </div>
 
         {/* Tab switcher */}
@@ -651,7 +659,9 @@ export default async function HomePage({
 
         {/* Content */}
         {activeView === 'digest' && digest ? (
-          <DigestView content={digest.content} date={digest.date} storyMap={storyMap} />
+          <div id="digest">
+            <DigestView content={digest.content} date={digest.date} storyMap={storyMap} />
+          </div>
         ) : (
           <div>
             {/* Digest teaser — shown in clips view when a digest exists */}
