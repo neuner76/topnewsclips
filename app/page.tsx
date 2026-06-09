@@ -230,9 +230,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             <div key={item.slug}>
               <NeedToKnowStory item={item} storyMap={storyMap} />
               {i === 0 && content.needToKnow.length > 1 && (
-                <div className="py-5 px-1">
-                  <p className="text-sm font-semibold text-foreground mb-0.5">Get the full picture in 5 minutes.</p>
-                  <p className="text-xs text-muted-foreground mb-2">Independent news, every source labeled. Free daily briefing.</p>
+                <div className="py-4 px-1 border-t border-border/40">
                   <EmailCaptureInline placement="post-ntk" />
                 </div>
               )}
