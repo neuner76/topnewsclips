@@ -1,11 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { track } from '@/lib/analytics'
 
 export default function EmailCaptureInline({ placement = 'inline' }: { placement?: string }) {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const startedRef = useRef(false)
+
+  useEffect(() => {
+    track('signup_impression', { placement })
+  }, [placement])
+
+  function handleFocus() {
+    if (!startedRef.current) {
+      startedRef.current = true
+      track('signup_started', { placement })
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,9 +44,17 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
 
   if (status === 'success') {
     return (
-      <p className="text-xs font-medium text-[oklch(0.52_0.14_196)] mt-3">
-        ✓ You&apos;re in — check your inbox.
-      </p>
+      <div className="mt-3">
+        <p className="text-xs font-medium text-[oklch(0.52_0.14_196)]">
+          ✓ You&apos;re in — check your inbox.
+        </p>
+        <Link
+          href="/digest"
+          className="inline-block mt-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+        >
+          See today&apos;s briefing →
+        </Link>
+      </div>
     )
   }
 
@@ -45,6 +66,7 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
           placeholder="Enter your email"
           value={email}
           onChange={e => setEmail(e.target.value)}
+          onFocus={handleFocus}
           required
           className="flex-1 text-sm px-3 py-2 rounded border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)] min-w-0"
         />

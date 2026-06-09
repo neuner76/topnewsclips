@@ -85,7 +85,10 @@ export default function StoryCard({ story }: StoryCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1"
-              onClick={() => track('story_click', { slug: story.slug, platform: story.platform, category: story.category ?? 'unknown' })}
+              onClick={() => {
+                track('story_click', { slug: story.slug, platform: story.platform, category: story.category ?? 'unknown' })
+                track('story_watched', { slug: story.slug, platform: story.platform, category: story.category ?? 'unknown' })
+              }}
             >
               Full story →
             </a>
