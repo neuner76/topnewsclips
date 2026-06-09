@@ -51,24 +51,26 @@ export default function EmailCapture() {
             {message}
           </p>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="bg-background/10 border-background/20 text-background placeholder:text-background/40 focus-visible:ring-background/30"
-            />
-            <Button
-              type="submit"
-              disabled={status === 'loading'}
-              className="bg-background text-foreground hover:bg-background/90 font-semibold shrink-0"
-            >
-              {status === 'loading' ? '...' : 'Get the digest'}
-            </Button>
-          </form>
-          <p className="text-xs text-background/50 mt-2 text-center">Free. No spam. Unsubscribe anytime.</p>
+          <>
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-background/10 border-background/20 text-background placeholder:text-background/40 focus-visible:ring-background/30"
+              />
+              <Button
+                type="submit"
+                disabled={status === 'loading'}
+                className="bg-background text-foreground hover:bg-background/90 font-semibold shrink-0"
+              >
+                {status === 'loading' ? '...' : 'Get the digest'}
+              </Button>
+            </form>
+            <p className="text-xs text-background/50 mt-2 text-center">Free. No spam. Unsubscribe anytime.</p>
+          </>
         )}
 
         {status === 'error' && (
