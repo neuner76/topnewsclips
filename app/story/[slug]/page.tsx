@@ -258,9 +258,6 @@ export default async function StoryPage({ params }: Props) {
           <ShareButtons title={s.title} slug={s.slug} />
         </div>
 
-        {/* Embed */}
-        <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
-
         {/* Description */}
         {s.description && (
           <p className="editorial-body mt-6 text-foreground/90">{s.description}</p>
@@ -424,6 +421,14 @@ export default async function StoryPage({ params }: Props) {
             </div>
           </div>
         )}
+
+        {/* Source Video */}
+        <div className="mt-8">
+          <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-3">
+            Source Video
+          </p>
+          <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
+        </div>
 
         {/* Subscribe nudge */}
         {s.published && (
