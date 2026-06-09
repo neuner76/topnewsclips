@@ -74,7 +74,7 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
         href={`/story/${item.slug}`}
         className="inline-block mt-3 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
       >
-        Watch →
+        Full story →
       </Link>
     </article>
   )

@@ -116,7 +116,7 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
           `).join('')}
         </div>
       ` : ''}
-      <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;display:inline-block;margin-top:12px;">Watch →</a>
+      <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:600;color:#0e7490;text-decoration:none;display:inline-block;margin-top:12px;">Full story →</a>
     </div>
   `
   }).join('')

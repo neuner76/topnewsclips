@@ -104,7 +104,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
         rel="noopener noreferrer"
         className="inline-block mt-4 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
       >
-        Watch →
+        Full story →
       </Link>
       {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
         <div className="mt-5 pt-4 border-t border-border/50">
@@ -710,7 +710,7 @@ export default async function HomePage({
                           <div className="flex items-center gap-3 mt-2">
                             <PressureScore viewCount={s.view_count} shareCount={s.share_count} />
                             <span className="text-xs text-muted-foreground">{formatDate(s.created_at)}</span>
-                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1">Watch →</a>
+                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1">Full story →</a>
                           </div>
                         </div>
                         {thumb && (
@@ -754,7 +754,7 @@ export default async function HomePage({
                           <div className="flex items-center gap-3 mt-2">
                             <PressureScore viewCount={s.view_count} shareCount={s.share_count} />
                             <span className="text-xs text-muted-foreground">{formatDate(s.created_at)}</span>
-                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1">Watch →</a>
+                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1">Full story →</a>
                           </div>
                         </div>
                         {thumb && (
