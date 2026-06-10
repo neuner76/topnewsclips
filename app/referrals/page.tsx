@@ -8,7 +8,7 @@ import CopyButton from './CopyButton'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Your Referrals — Top News Clips',
+  title: 'Your Referrals | Top News Clips',
   robots: { index: false },
 }
 
@@ -75,8 +75,8 @@ export default async function ReferralsPage({
 
   const count = referralCount ?? 0
   const referralUrl = `${SITE_URL}?ref=${subscriber.referral_code}`
-  const tweetText = encodeURIComponent(`I've been reading @TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that keeps you informed.\n\n${referralUrl}`)
-  const whatsappText = encodeURIComponent(`Stories mainstream media isn't covering — free daily briefing:\n${referralUrl}`)
+  const tweetText = encodeURIComponent(`I've been reading @TopNewsClips every morning, stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that keeps you informed.\n\n${referralUrl}`)
+  const whatsappText = encodeURIComponent(`Stories mainstream media isn't covering, free daily briefing:\n${referralUrl}`)
 
   const milestones = [
     { threshold: 1,  label: 'First referral',   note: 'You\'re on the board.' },
@@ -110,7 +110,7 @@ export default async function ReferralsPage({
           </p>
           {nextMilestone && count < nextMilestone.threshold && (
             <p className="text-sm text-muted-foreground mt-3">
-              {nextMilestone.threshold - count} more to reach <strong>{nextMilestone.label}</strong> — {nextMilestone.note}
+              {nextMilestone.threshold - count} more to reach <strong>{nextMilestone.label}</strong>, {nextMilestone.note}
             </p>
           )}
           {count >= 25 && (

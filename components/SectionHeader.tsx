@@ -1,5 +1,5 @@
 /**
- * SectionHeader — unified visual header for all homepage sections.
+ * SectionHeader, unified visual header for all homepage sections.
  * Designed to sit inside a SectionCard (dark background).
  */
 

@@ -1,6 +1,6 @@
 /**
- * SectionCard — dark encapsulated card with instant CSS globe-grid background.
- * No dynamic JS — renders immediately on server and client.
+ * SectionCard, dark encapsulated card with instant CSS globe-grid background.
+ * No dynamic JS, renders immediately on server and client.
  */
 
 interface SectionCardProps {
@@ -15,7 +15,7 @@ export default function SectionCard({ accent, children, className = '' }: Sectio
       className={`relative rounded-2xl overflow-hidden mb-8 dark ${className}`}
       style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
     >
-      {/* CSS globe grid — longitude/latitude lines as instant background */}
+      {/* CSS globe grid, longitude/latitude lines as instant background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{

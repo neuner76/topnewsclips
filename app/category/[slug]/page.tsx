@@ -24,8 +24,8 @@ const CATEGORY_META: Record<string, { label: string; subtitle: string; descripti
   },
   raw: {
     label: 'Raw Footage',
-    subtitle: 'Bodycam, dashcam, security cam, bystander video — unfiltered and unedited',
-    description: 'Raw video footage — bodycam, dashcam, security camera, and bystander recordings. Unfiltered primary sources without editorial spin.',
+    subtitle: 'Bodycam, dashcam, security cam, bystander video, unfiltered and unedited',
+    description: 'Raw video footage, bodycam, dashcam, security camera, and bystander recordings. Unfiltered primary sources without editorial spin.',
     accentClass: 'text-foreground',
   },
 }
@@ -45,7 +45,7 @@ export async function generateMetadata({
   const meta = CATEGORY_META[slug]
   if (!meta) return {}
 
-  const title = `${meta.label} — Top News Clips`
+  const title = `${meta.label} | Top News Clips`
   const SITE_URL = 'https://www.topnewsclips.com'
 
   return {
@@ -139,7 +139,7 @@ export default async function CategoryPage({
         </div>
 
         {stories.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-12 text-center">No stories yet — check back soon.</p>
+          <p className="text-sm text-muted-foreground py-12 text-center">No stories yet, check back soon.</p>
         ) : (
           <div>
             {stories.map(s => <StoryCard key={s.id} story={s} />)}

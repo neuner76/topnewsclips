@@ -26,18 +26,18 @@ export async function generateMetadata({
   const { category } = await searchParams
   const label = CATEGORIES.find(c => c.value === (category ?? ''))?.label ?? 'All'
   return {
-    title: `Stories${label !== 'All' ? ` — ${label}` : ''} — Top News Clips`,
-    description: 'Browse all Top News Clips stories — independent news, bodycam footage, and global events mainstream media underreports.',
+    title: `Stories${label !== 'All' ? `, ${label}` : ''} | Top News Clips`,
+    description: 'Browse all Top News Clips stories, independent news, bodycam footage, and global events mainstream media underreports.',
     alternates: { canonical: `https://www.topnewsclips.com/stories${category ? `?category=${category}` : ''}` },
     openGraph: {
-      title: `Stories${label !== 'All' ? ` — ${label}` : ''} — Top News Clips`,
-      description: 'Browse all Top News Clips stories — independent news, bodycam footage, and global events mainstream media underreports.',
+      title: `Stories${label !== 'All' ? `, ${label}` : ''} | Top News Clips`,
+      description: 'Browse all Top News Clips stories, independent news, bodycam footage, and global events mainstream media underreports.',
       url: `https://www.topnewsclips.com/stories${category ? `?category=${category}` : ''}`,
     },
     twitter: {
       card: 'summary' as const,
-      title: `Stories${label !== 'All' ? ` — ${label}` : ''} — Top News Clips`,
-      description: 'Browse all Top News Clips stories — independent news, bodycam footage, and global events mainstream media underreports.',
+      title: `Stories${label !== 'All' ? `, ${label}` : ''} | Top News Clips`,
+      description: 'Browse all Top News Clips stories, independent news, bodycam footage, and global events mainstream media underreports.',
       site: '@topnewsclips',
     },
   }
@@ -99,7 +99,7 @@ export default async function StoriesPage({
           </p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight">All Stories</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {count ?? 0} stories — what mainstream media misses, what the world is watching
+            {count ?? 0} stories, what mainstream media misses, what the world is watching
           </p>
         </div>
 

@@ -50,7 +50,7 @@ export default function WorldMapSection({
       style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
     >
 
-      {/* Instant CSS globe grid — renders server-side, no JS wait */}
+      {/* Instant CSS globe grid, renders server-side, no JS wait */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -75,7 +75,7 @@ export default function WorldMapSection({
       {/* Content */}
       <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
 
-        {/* Header — matches GlobalBlindspotSection style */}
+        {/* Header, matches GlobalBlindspotSection style */}
         <div className="mb-6">
           <div className="flex items-start justify-between">
             <div>
@@ -99,7 +99,7 @@ export default function WorldMapSection({
           </div>
         </div>
 
-        {/* Stories — hide section entirely if empty */}
+        {/* Stories, hide section entirely if empty */}
         {stories.length === 0 ? null : (
           <div className="flex flex-col gap-1">
             {stories.map((story, i) => {

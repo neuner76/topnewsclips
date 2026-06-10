@@ -4,17 +4,17 @@ import Footer from '@/components/Footer'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Contact — Top News Clips',
+  title: 'Contact | Top News Clips',
   description: 'Contact Top News Clips with story tips, corrections, press inquiries, or general feedback. We read everything.',
   alternates: { canonical: 'https://www.topnewsclips.com/contact' },
   openGraph: {
-    title: 'Contact — Top News Clips',
+    title: 'Contact | Top News Clips',
     description: 'Contact Top News Clips with story tips, corrections, press inquiries, or general feedback.',
     url: 'https://www.topnewsclips.com/contact',
   },
   twitter: {
     card: 'summary',
-    title: 'Contact — Top News Clips',
+    title: 'Contact | Top News Clips',
     description: 'Contact Top News Clips with story tips, corrections, press inquiries, or general feedback.',
     site: '@topnewsclips',
   },

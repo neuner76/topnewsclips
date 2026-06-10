@@ -202,7 +202,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
           <SectionDivider label="🌍 Global Lens" />
           <section>
             <p className="text-xs text-muted-foreground mb-4">
-              How international outlets are covering today&apos;s stories — perspectives US media isn&apos;t amplifying.
+              How international outlets are covering today&apos;s stories, perspectives US media isn&apos;t amplifying.
             </p>
             <div className="space-y-4">
               {content.globalLens.map((item: GlobalLensItem) => (

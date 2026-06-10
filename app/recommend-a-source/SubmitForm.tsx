@@ -3,16 +3,16 @@
 import { useState } from 'react'
 
 const TIERS = [
-  { value: 1,  label: '1 — Nonprofit Investigative (ProPublica, Marshall Project)' },
-  { value: 2,  label: '2 — OSINT (Bellingcat)' },
-  { value: 3,  label: '3 — Public Broadcaster (DW, Al Jazeera, France 24)' },
-  { value: 4,  label: '4 — Independent News Org (The Intercept, Drop Site)' },
-  { value: 5,  label: '5 — Wire Service (Reuters, AP)' },
-  { value: 6,  label: '6 — Commercial Newsroom (CNN, BBC, Vox, 60 Minutes)' },
-  { value: 7,  label: '7 — Independent Commentary' },
-  { value: 8,  label: '8 — State Media' },
-  { value: 9,  label: '9 — Raw Footage' },
-  { value: 10, label: '10 — Community Sourced' },
+  { value: 1,  label: '1, Nonprofit Investigative (ProPublica, Marshall Project)' },
+  { value: 2,  label: '2, OSINT (Bellingcat)' },
+  { value: 3,  label: '3, Public Broadcaster (DW, Al Jazeera, France 24)' },
+  { value: 4,  label: '4, Independent News Org (The Intercept, Drop Site)' },
+  { value: 5,  label: '5, Wire Service (Reuters, AP)' },
+  { value: 6,  label: '6, Commercial Newsroom (CNN, BBC, Vox, 60 Minutes)' },
+  { value: 7,  label: '7, Independent Commentary' },
+  { value: 8,  label: '8, State Media' },
+  { value: 9,  label: '9, Raw Footage' },
+  { value: 10, label: '10, Community Sourced' },
 ]
 
 export default function SubmitForm() {
@@ -109,13 +109,13 @@ export default function SubmitForm() {
           onChange={e => setSuggestedTier(e.target.value)}
           className="w-full text-sm px-3 py-2.5 rounded border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
         >
-          <option value="">— Not sure</option>
+          <option value=""> Not sure</option>
           {TIERS.map(t => (
             <option key={t.value} value={t.value}>{t.label}</option>
           ))}
         </select>
         <p className="text-xs text-muted-foreground mt-1">
-          We&apos;ll evaluate this independently — your suggestion helps us understand how you see the source.
+          We&apos;ll evaluate this independently, your suggestion helps us understand how you see the source.
         </p>
       </div>
 

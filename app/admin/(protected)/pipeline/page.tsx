@@ -23,7 +23,7 @@ function Badge({ label, color }: { label: string; color: 'green' | 'amber' | 're
 export default async function PipelinePage() {
   const supabase = getSupabase()
   const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  // Candidates may have been fetched slightly before the 24h window — use 36h to catch today's run
+  // Candidates may have been fetched slightly before the 24h window, use 36h to catch today's run
   const candidateCutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString()
 
   const [
@@ -78,7 +78,7 @@ export default async function PipelinePage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-bold">Pipeline — Last 24 Hours</h1>
+        <h1 className="text-lg font-bold">Pipeline, Last 24 Hours</h1>
         <IngestButton />
       </div>
 

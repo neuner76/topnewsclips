@@ -50,7 +50,7 @@ export default function DigestAdminPage() {
       <div>
         <h1 className="text-2xl font-black tracking-tight mb-1">Daily Digest</h1>
         <p className="text-sm text-muted-foreground">
-          Triggers the GitHub Actions digest workflow. Takes ~2 minutes to complete — check{' '}
+          Triggers the GitHub Actions digest workflow. Takes ~2 minutes to complete, check{' '}
           <a
             href={`https://github.com/neuner76/topnewsclips/actions/workflows/digest.yml`}
             target="_blank"

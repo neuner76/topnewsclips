@@ -5,17 +5,17 @@ import EmailCapture from '@/components/EmailCapture'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Why Trust This — Top News Clips',
-  description: 'You should trust a news product only to the degree that its method deserves trust. Here\'s what earns trust at Top News Clips — and what we don\'t claim.',
+  title: 'Why Trust This | Top News Clips',
+  description: 'You should trust a news product only to the degree that its method deserves trust. Here\'s what earns trust at Top News Clips, and what we don\'t claim.',
   alternates: { canonical: 'https://www.topnewsclips.com/trust' },
   openGraph: {
-    title: 'Why Trust This — Top News Clips',
+    title: 'Why Trust This | Top News Clips',
     description: 'You should trust a news product only to the degree that its method deserves trust. Here\'s what earns trust at Top News Clips.',
     url: 'https://www.topnewsclips.com/trust',
   },
   twitter: {
     card: 'summary',
-    title: 'Why Trust This — Top News Clips',
+    title: 'Why Trust This | Top News Clips',
     description: 'You should trust a news product only to the degree that its method deserves trust.',
     site: '@topnewsclips',
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 const TRUST_POINTS = [
   {
     title: 'Published source taxonomy',
-    body: 'Every source is labeled using a published 10-part source taxonomy — from nonprofit investigative to community sourced. The taxonomy is public. You can read the methodology. You can dispute any rating.',
+    body: 'Every source is labeled using a published 10-part source taxonomy, from nonprofit investigative to community sourced. The taxonomy is public. You can read the methodology. You can dispute any rating.',
     link: { href: '/taxonomy', label: 'See the taxonomy →' },
   },
   {
@@ -44,12 +44,12 @@ const TRUST_POINTS = [
   },
   {
     title: 'Global perspective by default',
-    body: 'We don\'t just show you what US media is covering. We show you what the rest of the world is covering that US media isn\'t — and how international outlets frame the stories that both are covering.',
+    body: 'We don\'t just show you what US media is covering. We show you what the rest of the world is covering that US media isn\'t, and how international outlets frame the stories that both are covering.',
     link: null,
   },
   {
     title: 'Mainstream comparison built in',
-    body: 'Mainstream Pulse shows you what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with — so you can see what\'s getting attention and calibrate accordingly.',
+    body: 'Mainstream Pulse shows you what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with, so you can see what\'s getting attention and calibrate accordingly.',
     link: null,
   },
   {
@@ -62,15 +62,15 @@ const TRUST_POINTS = [
 const DONT_CLAIM = [
   {
     title: 'We do not claim that AI is the source of truth.',
-    body: 'AI is part of the process — it helps us review, compare, challenge, and synthesize at scale. But truth is pursued through evidence, source quality, corroboration, transparent standards, and continuous refinement.',
+    body: 'AI is part of the process, it helps us review, compare, challenge, and synthesize at scale. But truth is pursued through evidence, source quality, corroboration, transparent standards, and continuous refinement.',
   },
   {
     title: 'We do not claim to be unbiased.',
-    body: 'We claim to be transparent about our sources, our methods, and our limitations — and to let you evaluate accordingly.',
+    body: 'We claim to be transparent about our sources, our methods, and our limitations, and to let you evaluate accordingly.',
   },
   {
     title: 'We do not claim to replace journalism.',
-    body: 'We surface, classify, and contextualize the journalism that already exists — especially the journalism that isn\'t getting the attention it deserves.',
+    body: 'We surface, classify, and contextualize the journalism that already exists, especially the journalism that isn\'t getting the attention it deserves.',
   },
 ]
 

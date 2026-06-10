@@ -271,17 +271,17 @@ export default function StoryForm({ story }: StoryFormProps) {
                 onChange={e => setSourceTier(e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
               >
-                <option value="">— auto —</option>
-                <option value="1">1 — Nonprofit Investigative</option>
-                <option value="2">2 — OSINT</option>
-                <option value="3">3 — Public Broadcaster</option>
-                <option value="4">4 — Independent News</option>
-                <option value="5">5 — Wire Service</option>
-                <option value="6">6 — Commercial Newsroom</option>
-                <option value="7">7 — Independent Commentary</option>
-                <option value="8">8 — State Media</option>
-                <option value="9">9 — Raw Footage</option>
-                <option value="10">10 — Community Sourced</option>
+                <option value=""> auto </option>
+                <option value="1">1, Nonprofit Investigative</option>
+                <option value="2">2, OSINT</option>
+                <option value="3">3, Public Broadcaster</option>
+                <option value="4">4, Independent News</option>
+                <option value="5">5, Wire Service</option>
+                <option value="6">6, Commercial Newsroom</option>
+                <option value="7">7, Independent Commentary</option>
+                <option value="8">8, State Media</option>
+                <option value="9">9, Raw Footage</option>
+                <option value="10">10, Community Sourced</option>
               </select>
             </div>
             <div className="space-y-1.5">

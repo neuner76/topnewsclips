@@ -23,7 +23,7 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid rgba(255,255,255,0.07)' }}>
 
-      {/* CSS globe grid — orange-tinted, instant */}
+      {/* CSS globe grid, orange-tinted, instant */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{

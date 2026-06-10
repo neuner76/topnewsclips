@@ -6,17 +6,17 @@ import Link from 'next/link'
 export const revalidate = 3600
 
 export const metadata = {
-  title: 'About Top News Clips — Independent News. No Agenda.',
-  description: 'Top News Clips is an independent daily news briefing founded by Eric Neuner — built for Americans who want to understand what\'s actually happening, not just what the algorithm wants them to see.',
+  title: 'About Top News Clips, Independent News. No Agenda.',
+  description: 'Top News Clips is an independent daily news briefing founded by Eric Neuner, built for Americans who want to understand what\'s actually happening, not just what the algorithm wants them to see.',
   alternates: { canonical: 'https://www.topnewsclips.com/about' },
   openGraph: {
-    title: 'About Top News Clips — Independent News. No Agenda.',
+    title: 'About Top News Clips, Independent News. No Agenda.',
     description: 'Top News Clips surfaces verified stories mainstream media is underreporting, shows how the rest of the world covers today\'s events, and labels every source by credibility tier.',
     url: 'https://www.topnewsclips.com/about',
   },
   twitter: {
     card: 'summary',
-    title: 'About Top News Clips — Independent News. No Agenda.',
+    title: 'About Top News Clips, Independent News. No Agenda.',
     description: 'Top News Clips surfaces verified stories mainstream media is underreporting, shows how the rest of the world covers today\'s events, and labels every source by credibility tier.',
     site: '@topnewsclips',
   },
@@ -44,20 +44,20 @@ export default function AboutPage() {
               Top News Clips is an independent daily news briefing founded by Eric Neuner.
             </p>
             <p className="mt-3">
-              It was built for people who want a broader, steadier view of the news — one that includes
+              It was built for people who want a broader, steadier view of the news, one that includes
               international perspectives, independent investigations, and institutional reporting from
               across the source spectrum.
             </p>
             <p className="mt-3">
               Most people are not suffering from an information shortage. They&apos;re suffering from an
-              incomplete picture — fragmented across outlets, shaped by engagement incentives, and often
+              incomplete picture, fragmented across outlets, shaped by engagement incentives, and often
               missing broader global context.
             </p>
             <p className="mt-3">
               Every morning, Top News Clips delivers a briefing that surfaces credible stories receiving
               limited mainstream attention, covers international events receiving significant global coverage,
               shows how journalists in other countries frame the same events, and labels every source by
-              a published credibility tier — so you always know what kind of reporting you&apos;re reading.
+              a published credibility tier, so you always know what kind of reporting you&apos;re reading.
             </p>
             <p className="mt-3">
               Our goal: the full picture in 5 minutes.
@@ -70,7 +70,7 @@ export default function AboutPage() {
             <p>
               Eric Neuner is the founder of Top News Clips. He lives in Marin County, California, where
               he has spent over a decade building ventures across media, real estate, and sustainable land
-              development — including co-founding an intentional community that recently celebrated its
+              development, including co-founding an intentional community that recently celebrated its
               10th anniversary.
             </p>
             <p className="mt-3">
@@ -125,7 +125,7 @@ export default function AboutPage() {
             <p>
               Top News Clips is independently operated and funded by its founder. No investors.
               No advertisers. No institutional backing. Revenue comes from voluntary subscriptions.
-              No one is paying us to cover — or not cover — any story.
+              No one is paying us to cover, or not cover, any story.
             </p>
           </section>
 
@@ -135,7 +135,7 @@ export default function AboutPage() {
             <p>
               We&apos;re not perfect. If a story is mislabeled, a summary overstates the source material,
               or a tier badge is wrong, we want to know. Trust is not built by pretending nothing ever goes
-              wrong — it&apos;s built by being reachable, responsive, and willing to get better in public.
+              wrong, it&apos;s built by being reachable, responsive, and willing to get better in public.
             </p>
             <Link
               href="/corrections"
@@ -151,7 +151,7 @@ export default function AboutPage() {
             <ul className="space-y-3 text-sm">
               {[
                 { href: '/how-it-works', label: 'How It Works', desc: 'The full 7-step pipeline process' },
-                { href: '/trust', label: 'Why Trust This', desc: 'What earns trust — and what we don\'t claim' },
+                { href: '/trust', label: 'Why Trust This', desc: 'What earns trust, and what we don\'t claim' },
                 { href: '/faq', label: 'FAQ', desc: 'Common questions answered' },
                 { href: '/taxonomy', label: 'Source Taxonomy', desc: 'How we classify every source in 10 tiers' },
                 { href: '/corrections', label: 'Corrections', desc: 'How to report an error' },
@@ -160,7 +160,7 @@ export default function AboutPage() {
                   <Link href={href} className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline shrink-0">
                     {label}
                   </Link>
-                  <span className="text-muted-foreground">— {desc}</span>
+                  <span className="text-muted-foreground"> {desc}</span>
                 </li>
               ))}
             </ul>

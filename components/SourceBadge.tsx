@@ -1,5 +1,5 @@
 /**
- * SourceBadge — neutral source-type label.
+ * SourceBadge, neutral source-type label.
  *
  * Replaces TierMeter. Shows what KIND of source something is,
  * without implying a trustworthiness ranking via color.

@@ -4,17 +4,17 @@ import Footer from '@/components/Footer'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Corrections — Top News Clips',
-  description: 'If we got something wrong — a misstated fact, a misclassified source, a misleading frame — we want to hear about it. Trust is built by being reachable and willing to get better in public.',
+  title: 'Corrections | Top News Clips',
+  description: 'If we got something wrong, a misstated fact, a misclassified source, a misleading frame, we want to hear about it. Trust is built by being reachable and willing to get better in public.',
   alternates: { canonical: 'https://www.topnewsclips.com/corrections' },
   openGraph: {
-    title: 'Corrections — Top News Clips',
+    title: 'Corrections | Top News Clips',
     description: 'If we got something wrong, we want to hear about it.',
     url: 'https://www.topnewsclips.com/corrections',
   },
   twitter: {
     card: 'summary',
-    title: 'Corrections — Top News Clips',
+    title: 'Corrections | Top News Clips',
     description: 'If we got something wrong, we want to hear about it.',
     site: '@topnewsclips',
   },
@@ -51,7 +51,7 @@ export default function CorrectionsPage() {
                 'framed something in a misleading way',
               ].map((item) => (
                 <li key={item} className="flex gap-2 text-muted-foreground">
-                  <span className="shrink-0 text-muted-foreground/50">—</span>
+                  <span className="shrink-0 text-muted-foreground/50"></span>
                   <span>{item}</span>
                 </li>
               ))}
@@ -65,7 +65,7 @@ export default function CorrectionsPage() {
             </p>
             <p className="text-sm text-muted-foreground mb-3">
               Send us the story URL, the specific issue, and any supporting context. Confirmed corrections
-              are applied promptly. We don&apos;t memory-hole mistakes — if something was editorially out
+              are applied promptly. We don&apos;t memory-hole mistakes, if something was editorially out
               of bounds, we&apos;ll note it was updated.
             </p>
             <a

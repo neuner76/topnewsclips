@@ -20,7 +20,7 @@ const CATEGORY_META: Record<string, { label: string; description: string; color:
   },
   raw: {
     label: 'Raw Footage',
-    description: 'Bodycam, dashcam, security cam — unfiltered and unedited',
+    description: 'Bodycam, dashcam, security cam, unfiltered and unedited',
     color: '#f1f1f3',
   },
 }

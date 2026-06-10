@@ -11,7 +11,7 @@ export default function NotFound() {
           This clip has expired.
         </h1>
         <p className="text-[15px] leading-relaxed text-foreground/80 mb-3">
-          TopNewsClips refreshes daily — stories cycle out after 7 days to keep the feed current and relevant. If you followed a link from an older newsletter, the clip is no longer available.
+          TopNewsClips refreshes daily, stories cycle out after 7 days to keep the feed current and relevant. If you followed a link from an older newsletter, the clip is no longer available.
         </p>
         <p className="text-[15px] leading-relaxed text-foreground/80 mb-8">
           Head to the homepage to see what&apos;s breaking today.

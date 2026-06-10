@@ -48,7 +48,7 @@ function getBarsFilled(tier: number): number {
   return Math.max(1, 11 - tier)
 }
 
-/** The trust bar — analogous to Ground.news's L/C/R bias bar */
+/** The trust bar, analogous to Ground.news's L/C/R bias bar */
 function TrustBar({ tier, sourceType }: { tier: number | null; sourceType: string | null }) {
   if (!tier || !sourceType) return null
   const color = getTierColor(tier)
@@ -87,7 +87,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
   const tierColor = tier ? getTierColor(tier) : 'rgba(255,255,255,0.2)'
 
   if (layout === 'list') {
-    // Compact list row — used in digest/detail views
+    // Compact list row, used in digest/detail views
     return (
       <article className="group py-3 border-b border-white/10 last:border-0">
         <div className="flex gap-3 items-start">
@@ -120,7 +120,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
     )
   }
 
-  // Grid card — image-first, Ground.news style
+  // Grid card, image-first, Ground.news style
   return (
     <article
       className="group relative flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
@@ -177,7 +177,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
           <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>
         )}
 
-        {/* Trust bar — the signature visual, like Ground.news's bias bar */}
+        {/* Trust bar, the signature visual, like Ground.news's bias bar */}
         <TrustBar tier={tier} sourceType={sourceType} />
       </div>
     </article>

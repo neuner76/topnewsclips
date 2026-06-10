@@ -44,7 +44,7 @@ export default async function AdminDashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-amber-700">
-              ⚠ Review Queue — {reviewQueue.length} {reviewQueue.length === 1 ? 'story needs' : 'stories need'} review
+              ⚠ Review Queue, {reviewQueue.length} {reviewQueue.length === 1 ? 'story needs' : 'stories need'} review
             </h2>
             <p className="text-xs text-muted-foreground">Promote to feature · Reject to remove</p>
           </div>

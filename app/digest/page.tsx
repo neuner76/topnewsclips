@@ -15,7 +15,7 @@ export default async function DigestPage() {
       <>
         <Header />
         <main className="max-w-2xl mx-auto px-4 sm:px-6 py-16 text-center">
-          <p className="text-sm text-muted-foreground">No digest yet — check back soon.</p>
+          <p className="text-sm text-muted-foreground">No digest yet, check back soon.</p>
         </main>
         <Footer />
       </>

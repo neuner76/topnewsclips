@@ -62,7 +62,7 @@ const IN_THE_KNOW_CATEGORIES = [
 /**
  * Compute source tier for display. Fresh computation takes priority (fixes stale DB values
  * from before taxonomy corrections). Exception: if the static lookup returns null or the
- * generic Tier 7 handle catch-all, fall back to the DB-stored tier — this covers
+ * generic Tier 7 handle catch-all, fall back to the DB-stored tier, this covers
  * community-accepted sources that have a tier in featured_journalists but aren't yet
  * in the static lookup table in source-tier.ts.
  */
@@ -169,7 +169,7 @@ const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string; subtitl
   'Science & Technology':            { color: '#a855f7', icon: '🔬', subtitle: 'Discoveries, breakthroughs, and what\'s changing fast' },
   'Business & Markets':              { color: '#22c55e', icon: '📈', subtitle: 'Economic signals, market moves, and industry shifts' },
   'Sports, Entertainment, & Culture':{ color: '#f97316', icon: '🎭', subtitle: 'Sports, culture, and the stories people are talking about' },
-  'Comedy & Satire':                 { color: '#eab308', icon: '🎤', subtitle: 'The week in news — through a different lens' },
+  'Comedy & Satire':                 { color: '#eab308', icon: '🎤', subtitle: 'The week in news, through a different lens' },
 }
 
 function DigestView({ content, date, storyMap }: { content: DigestContent; date: string; storyMap: Map<string, Story> }) {
@@ -189,7 +189,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       {/* Need To Know */}
       <WorldMapSection
         title="Need To Know" icon="📌" accent="#3b82f6" mapMode="hero"
-        subtitle="The stories that matter most today — verified, sourced, in context"
+        subtitle="The stories that matter most today, verified, sourced, in context"
         stories={[]}
         footer={
           <div className="divide-y divide-white/10 -mt-2">
@@ -207,7 +207,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
         }
       />
 
-      {/* In The Know — one WorldMapSection per category */}
+      {/* In The Know, one WorldMapSection per category */}
       {IN_THE_KNOW_CATEGORIES.map((cat) => {
         const items = content.inTheKnow[cat]
         if (!items?.length) return null
@@ -298,7 +298,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
         </div>
       )}
 
-      {/* Global Blindspot — visual section using world map design */}
+      {/* Global Blindspot, visual section using world map design */}
       {content.globalBlindspots && content.globalBlindspots.length > 0 && (
         <GlobalBlindspotSection stories={content.globalBlindspots.map(item => storyMap.get(item.slug)).filter((s): s is Story => !!s)} />
       )}
@@ -466,7 +466,7 @@ export default async function HomePage({
   const uncategorized = all.filter(s => !s.category && !s.region)
   const msmBlackout = all.filter(s => s.msm_gap && !s.region)
 
-  // Global Lens — one top story per region, excluding Blindspot stories
+  // Global Lens, one top story per region, excluding Blindspot stories
   const globalStories = all.filter(s => !!s.region)
   const globalBlindspots = globalStories.filter(s => s.msm_gap)
   const blindspotIds = new Set(globalBlindspots.map(s => s.id))
@@ -481,7 +481,7 @@ export default async function HomePage({
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Hero — world map + top story */}
+        {/* Hero, world map + top story */}
         {(() => {
           const heroStory = all.find(s => s.pinned) ?? all[0]
           return heroStory ? <HeroStory story={heroStory} /> : (
@@ -533,7 +533,7 @@ export default async function HomePage({
           </div>
         ) : (
           <div>
-            {/* Digest teaser — shown in clips view when a digest exists */}
+            {/* Digest teaser, shown in clips view when a digest exists */}
             {digest && (
               <Link
                 href="/feed"
@@ -587,7 +587,7 @@ export default async function HomePage({
             />
             <Section
               title="Raw Footage"
-              subtitle="Bodycam, dashcam, security cam, bystander video — unfiltered and unedited"
+              subtitle="Bodycam, dashcam, security cam, bystander video, unfiltered and unedited"
               categorySlug="raw"
               pinned={raw.pinned}
               voices={raw.voices}

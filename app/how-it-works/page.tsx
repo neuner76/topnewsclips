@@ -5,17 +5,17 @@ import EmailCapture from '@/components/EmailCapture'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'How It Works — Top News Clips',
-  description: 'A transparent look at the multi-stage, multi-model AI process Top News Clips uses to produce each daily briefing — from broad intake to finished digest.',
+  title: 'How It Works | Top News Clips',
+  description: 'A transparent look at the multi-stage, multi-model AI process Top News Clips uses to produce each daily briefing, from broad intake to finished digest.',
   alternates: { canonical: 'https://www.topnewsclips.com/how-it-works' },
   openGraph: {
-    title: 'How It Works — Top News Clips',
+    title: 'How It Works | Top News Clips',
     description: 'A transparent look at the multi-stage, multi-model AI process Top News Clips uses to produce each daily briefing.',
     url: 'https://www.topnewsclips.com/how-it-works',
   },
   twitter: {
     card: 'summary',
-    title: 'How It Works — Top News Clips',
+    title: 'How It Works | Top News Clips',
     description: 'A transparent look at the multi-stage, multi-model AI process Top News Clips uses to produce each daily briefing.',
     site: '@topnewsclips',
   },
@@ -44,14 +44,14 @@ const STEPS = [
   {
     step: 3,
     title: 'Source classification',
-    body: 'Every source is classified using our published 10-tier Source Credibility Taxonomy — from Tier 1 (nonprofit investigative newsrooms like ProPublica and FRONTLINE) through Tier 10 (unverified community-sourced content). The tier travels with the story from pipeline to publication.',
+    body: 'Every source is classified using our published 10-tier Source Credibility Taxonomy, from Tier 1 (nonprofit investigative newsrooms like ProPublica and FRONTLINE) through Tier 10 (unverified community-sourced content). The tier travels with the story from pipeline to publication.',
     note: null,
     link: { href: '/taxonomy', label: 'See the full taxonomy →' },
   },
   {
     step: 4,
     title: 'Coverage analysis',
-    body: 'The system checks each story against 15 major US news outlets — including NYT, Washington Post, CNN, Fox News, AP, Reuters, BBC, NBC, ABC, CBS, WSJ, Politico, The Hill, NPR, and USA Today. Stories covered by fewer than 3 of those 15 outlets are flagged as Limited Coverage, with the exact count displayed.',
+    body: 'The system checks each story against 15 major US news outlets, including NYT, Washington Post, CNN, Fox News, AP, Reuters, BBC, NBC, ABC, CBS, WSJ, Politico, The Hill, NPR, and USA Today. Stories covered by fewer than 3 of those 15 outlets are flagged as Limited Coverage, with the exact count displayed.',
     note: 'This is a measurement, not a conspiracy claim. You decide what to make of it.',
   },
   {
@@ -66,11 +66,11 @@ const STEPS = [
     body: 'The system assembles the daily briefing into distinct sections:',
     note: 'Every story carries its source tier badge, source handle, and coverage count.',
     list: [
-      'Need To Know — the day\'s most significant underreported stories',
-      'In The Know — categorized stories across politics, science, business, and culture',
-      'Global Blindspot — international stories US media is ignoring',
-      'Global Lens — how international outlets frame stories US media is also covering',
-      'Mainstream Pulse — what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with, left to right',
+      'Need To Know, the day\'s most significant underreported stories',
+      'In The Know, categorized stories across politics, science, business, and culture',
+      'Global Blindspot, international stories US media is ignoring',
+      'Global Lens, how international outlets frame stories US media is also covering',
+      'Mainstream Pulse, what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with, left to right',
     ],
   },
   {
@@ -143,31 +143,31 @@ export default function HowItWorksPage() {
           </div>
           <div className="px-5 py-4 space-y-4 text-[14px]">
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 1 — Source identified</p>
-              <p>Channel: <span className="font-semibold">@60minutes</span> — Tier 6 (Commercial Newsroom)</p>
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 1, Source identified</p>
+              <p>Channel: <span className="font-semibold">@60minutes</span>, Tier 6 (Commercial Newsroom)</p>
               <p className="text-muted-foreground">Published: April 4, 2026</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 2 — Coverage check</p>
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 2, Coverage check</p>
               <p>Checked against 15 major US outlets. Result: <span className="font-semibold">0 of 15</span> had covered this story at publication time.</p>
               <p className="text-muted-foreground mt-0.5">→ Flagged as Limited Coverage.</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 3 — Content classification</p>
-              <p>Type: <span className="font-semibold">Reported</span> — original field journalism with named sources.</p>
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 3, Content classification</p>
+              <p>Type: <span className="font-semibold">Reported</span>, original field journalism with named sources.</p>
               <p className="text-muted-foreground mt-0.5">Not commentary. Not raw footage. Not promotional.</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 4 — Verification</p>
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 4, Verification</p>
               <p>A second AI model challenges the classification, checks the financial figures, and flags anything that can&apos;t be corroborated. If confidence is below threshold, the story is held for human review rather than published.</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 5 — Placement decision</p>
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 5, Placement decision</p>
               <p>Assigned to: <span className="font-semibold">Science &amp; Technology</span></p>
               <p className="text-muted-foreground mt-0.5">Rationale: primary significance is the engineering innovation, not the geopolitics.</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 6 — Summary written</p>
+              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 6, Summary written</p>
               <p>Attribution-forward voice. &ldquo;60 Minutes reports that...&rdquo; No editorial conclusions beyond what the source documents.</p>
             </div>
             <div className="bg-muted/50 rounded p-3 text-sm">
@@ -212,11 +212,11 @@ export default function HowItWorksPage() {
               },
               {
                 label: 'Structural pattern',
-                body: 'The story documents a systemic issue — corporate practice, institutional failure, policy gap — rather than a one-time event.',
+                body: 'The story documents a systemic issue, corporate practice, institutional failure, policy gap, rather than a one-time event.',
               },
             ].map(({ label, body }) => (
               <div key={label} className="flex gap-3">
-                <span className="shrink-0 text-[oklch(0.52_0.14_196)] font-bold mt-0.5">—</span>
+                <span className="shrink-0 text-[oklch(0.52_0.14_196)] font-bold mt-0.5"></span>
                 <p>
                   <span className="font-semibold">{label}</span>
                   {' '}
@@ -238,7 +238,7 @@ export default function HowItWorksPage() {
             Overnight, the pipeline pulls from 50+ sources across 10 credibility tiers, filters junk,
             classifies every source, checks coverage against 15 mainstream outlets, pressure-tests stories
             with multiple AI models, and assembles a briefing with visible source labels and coverage
-            counts — so by morning, you have the full picture in 5 minutes.
+            counts, so by morning, you have the full picture in 5 minutes.
           </p>
           <p className="mt-3 text-sm font-semibold text-muted-foreground">Broader context and undercovered stories are surfaced. No doom scroll required.</p>
         </div>

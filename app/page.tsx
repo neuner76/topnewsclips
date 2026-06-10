@@ -9,7 +9,7 @@ import type { Metadata } from 'next'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Top News Clips — The Full Picture, Not the Profitable Picture',
+  title: 'Top News Clips, The Full Picture, Not the Profitable Picture',
   description:
     'Free daily briefing. Every source labeled by credibility tier. International context. Global Blindspot. No agenda.',
 }
@@ -22,8 +22,8 @@ function formatShortDate(iso: string) {
 }
 
 const FEATURES = [
-  { icon: '🔬', label: 'Every source labeled by tier', detail: 'Nonprofit investigative, public broadcaster, wire service, commentary — you always know what you\'re reading.' },
-  { icon: '✓', label: 'Confidence on every claim', detail: 'Corroborated, reported, analysis, or single-source — so you know how much weight to give each story.' },
+  { icon: '🔬', label: 'Every source labeled by tier', detail: 'Nonprofit investigative, public broadcaster, wire service, commentary, you always know what you\'re reading.' },
+  { icon: '✓', label: 'Confidence on every claim', detail: 'Corroborated, reported, analysis, or single-source, so you know how much weight to give each story.' },
   { icon: '🌍', label: 'Global Blindspot', detail: 'Stories with wide international coverage that major US outlets are skipping.' },
   { icon: '🌐', label: 'Global Lens', detail: 'How outlets in Europe, Asia, and the Middle East are covering the same events differently.' },
   { icon: '⚠️', label: 'Limited coverage alerts', detail: 'When fewer than 3 of 15 major outlets have touched a story, we flag it.' },
@@ -75,10 +75,10 @@ export default async function LandingPage() {
               <span style={{ color: '#3b82f6' }}>not the profitable one.</span>
             </h1>
             <p className="text-base sm:text-lg text-white/60 mb-8 max-w-lg mx-auto leading-relaxed">
-              Every source labeled by credibility tier. International context every morning. Stories mainstream media skips — surfaced daily.
+              Every source labeled by credibility tier. International context every morning. Stories mainstream media skips, surfaced daily.
             </p>
 
-            {/* Email form — the primary CTA */}
+            {/* Email form, the primary CTA */}
             <div className="max-w-sm mx-auto mb-4">
               <EmailCaptureInline placement="landing-hero" />
             </div>

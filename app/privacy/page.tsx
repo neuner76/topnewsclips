@@ -4,17 +4,17 @@ import Footer from '@/components/Footer'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Top News Clips',
+  title: 'Privacy Policy | Top News Clips',
   description: 'How Top News Clips collects, uses, and protects your information. We collect only your email address and never sell your data.',
   alternates: { canonical: 'https://www.topnewsclips.com/privacy' },
   openGraph: {
-    title: 'Privacy Policy — Top News Clips',
+    title: 'Privacy Policy | Top News Clips',
     description: 'How Top News Clips collects, uses, and protects your information.',
     url: 'https://www.topnewsclips.com/privacy',
   },
   twitter: {
     card: 'summary',
-    title: 'Privacy Policy — Top News Clips',
+    title: 'Privacy Policy | Top News Clips',
     description: 'How Top News Clips collects, uses, and protects your information.',
     site: '@topnewsclips',
   },
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
               other personal data.
             </p>
             <p className="mt-3">
-              We use Vercel Analytics to understand how the site is used — pageviews, traffic sources,
+              We use Vercel Analytics to understand how the site is used, pageviews, traffic sources,
               and device types. This data is aggregated and anonymous. No cookies are set for
               analytics purposes.
             </p>
@@ -83,7 +83,7 @@ export default function PrivacyPage() {
               ].map(({ name, purpose }) => (
                 <li key={name} className="flex gap-2">
                   <span className="text-[oklch(0.52_0.14_196)] shrink-0">›</span>
-                  <span><strong>{name}</strong> — {purpose}</span>
+                  <span><strong>{name}</strong>, {purpose}</span>
                 </li>
               ))}
             </ul>

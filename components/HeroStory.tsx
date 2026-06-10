@@ -31,7 +31,7 @@ export default function HeroStory({ story }: HeroStoryProps) {
       className="relative rounded-2xl overflow-hidden mb-6"
       style={{ background: '#0a0f1e', minHeight: 340 }}
     >
-      {/* CSS globe grid background — renders instantly */}
+      {/* CSS globe grid background, renders instantly */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -46,7 +46,7 @@ export default function HeroStory({ story }: HeroStoryProps) {
         }}
       />
 
-      {/* Thumbnail — right half, fades left into the grid */}
+      {/* Thumbnail, right half, fades left into the grid */}
       {thumbnail && (
         <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden sm:block">
           <Image

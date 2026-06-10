@@ -1,5 +1,5 @@
 /**
- * TierMeter — visual credibility signal bars
+ * TierMeter, visual credibility signal bars
  *
  * Tier 1 = most trustworthy (10/10 bars, green)
  * Tier 10 = least trustworthy (1/10 bars, red)
@@ -32,7 +32,7 @@ export default function TierMeter({ tier, sourceType, sources, compact = false }
 
   return (
     <span className="inline-flex items-center gap-1.5 flex-wrap">
-      {/* Signal bars — taller bars on the right like a phone signal meter */}
+      {/* Signal bars, taller bars on the right like a phone signal meter */}
       <span className="inline-flex items-end gap-[2px]" title={`Tier ${tier}: ${sourceType}`}>
         {Array.from({ length: total }).map((_, i) => (
           <span

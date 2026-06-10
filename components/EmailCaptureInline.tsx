@@ -46,7 +46,7 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
     return (
       <div className="mt-3">
         <p className="text-xs font-medium text-[oklch(0.52_0.14_196)]">
-          ✓ You&apos;re in — check your inbox.
+          ✓ You&apos;re in, check your inbox.
         </p>
         <Link
           href="/digest"
@@ -80,7 +80,7 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
       </form>
       <p className="text-[11px] text-muted-foreground mt-1.5">Free. No spam. Unsubscribe anytime.</p>
       {status === 'error' && (
-        <p className="text-xs text-red-500 mt-1">Something went wrong — try again.</p>
+        <p className="text-xs text-red-500 mt-1">Something went wrong, try again.</p>
       )}
     </div>
   )

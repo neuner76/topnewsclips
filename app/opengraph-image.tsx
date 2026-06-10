@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'Top News Clips — Independent news. No agenda.'
+export const alt = 'Top News Clips, Independent news. No agenda.'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 

@@ -64,7 +64,7 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
 
-      {/* CSS globe grid — blue-tinted, instant */}
+      {/* CSS globe grid, blue-tinted, instant */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{

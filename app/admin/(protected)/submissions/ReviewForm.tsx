@@ -78,7 +78,7 @@ export default function ReviewForm({ submissionId, currentStatus, submitterEmail
               onChange={e => setTier(e.target.value)}
               className="w-full text-xs px-2 py-1.5 rounded border border-border bg-background"
             >
-              <option value="">—</option>
+              <option value=""></option>
               {[1,2,3,4,5,6,7,8,9,10].map(t => (
                 <option key={t} value={t}>Tier {t}</option>
               ))}
@@ -95,8 +95,8 @@ export default function ReviewForm({ submissionId, currentStatus, submitterEmail
           value={rationale}
           onChange={e => setRationale(e.target.value)}
           placeholder={status === 'declined'
-            ? 'e.g. Declined — channel primarily produces entertainment rather than journalism.'
-            : 'e.g. Accepted as Tier 7 Independent Commentary — consistent independent reporting on housing policy.'}
+            ? 'e.g. Declined, channel primarily produces entertainment rather than journalism.'
+            : 'e.g. Accepted as Tier 7 Independent Commentary, consistent independent reporting on housing policy.'}
           rows={2}
           maxLength={300}
           className="w-full text-xs px-2 py-1.5 rounded border border-border bg-background resize-none focus:outline-none focus:border-[oklch(0.52_0.14_196)]"

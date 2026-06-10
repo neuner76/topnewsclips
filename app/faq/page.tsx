@@ -5,17 +5,17 @@ import EmailCapture from '@/components/EmailCapture'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'FAQ — Top News Clips',
-  description: 'Frequently asked questions about Top News Clips — what it is, how it works, how sources are classified, and how it\'s funded.',
+  title: 'FAQ | Top News Clips',
+  description: 'Frequently asked questions about Top News Clips, what it is, how it works, how sources are classified, and how it\'s funded.',
   alternates: { canonical: 'https://www.topnewsclips.com/faq' },
   openGraph: {
-    title: 'FAQ — Top News Clips',
+    title: 'FAQ | Top News Clips',
     description: 'Frequently asked questions about Top News Clips.',
     url: 'https://www.topnewsclips.com/faq',
   },
   twitter: {
     card: 'summary',
-    title: 'FAQ — Top News Clips',
+    title: 'FAQ | Top News Clips',
     description: 'Frequently asked questions about Top News Clips.',
     site: '@topnewsclips',
   },
@@ -24,27 +24,27 @@ export const metadata: Metadata = {
 const FAQ = [
   {
     q: 'What is Top News Clips?',
-    a: 'A daily news briefing that surfaces verified stories mainstream US media is underreporting, shows how the rest of the world covers today\'s events, and labels every source by credibility tier — so you can get the full picture in 5 minutes.',
+    a: 'A daily news briefing that surfaces verified stories mainstream US media is underreporting, shows how the rest of the world covers today\'s events, and labels every source by credibility tier, so you can get the full picture in 5 minutes.',
   },
   {
     q: 'Is it a traditional newsroom?',
-    a: 'No. We do not produce original reporting. We surface, classify, and contextualize journalism from over 50 sources across 10 credibility tiers — from nonprofit investigative newsrooms like ProPublica to public broadcasters like DW News to independent commentators and raw footage.',
+    a: 'No. We do not produce original reporting. We surface, classify, and contextualize journalism from over 50 sources across 10 credibility tiers, from nonprofit investigative newsrooms like ProPublica to public broadcasters like DW News to independent commentators and raw footage.',
   },
   {
     q: 'What does "Limited Coverage" mean?',
-    a: 'It means fewer than 3 of the 15 major US news outlets we monitor have covered this story at the time of publication. The exact count is displayed on the story. It signals that the story is receiving little mainstream attention — not that it is unverified.',
+    a: 'It means fewer than 3 of the 15 major US news outlets we monitor have covered this story at the time of publication. The exact count is displayed on the story. It signals that the story is receiving little mainstream attention, not that it is unverified.',
   },
   {
     q: 'What is a Global Blindspot?',
-    a: 'An international news story that the rest of the world considers significant — a protest, a policy shift, a humanitarian crisis — but that US mainstream media has largely skipped.',
+    a: 'An international news story that the rest of the world considers significant, a protest, a policy shift, a humanitarian crisis, but that US mainstream media has largely skipped.',
   },
   {
     q: 'What is Global Lens?',
-    a: 'A section showing how international outlets are framing the same stories US media is also covering. Same event, different perspective — so you can see what a single country\'s newsroom can\'t show you.',
+    a: 'A section showing how international outlets are framing the same stories US media is also covering. Same event, different perspective, so you can see what a single country\'s newsroom can\'t show you.',
   },
   {
     q: 'What is Mainstream Pulse?',
-    a: 'A side-by-side view of what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with today — spanning public media to conservative media. Ten seconds to see the full mainstream spectrum.',
+    a: 'A side-by-side view of what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with today, spanning public media to conservative media. Ten seconds to see the full mainstream spectrum.',
   },
   {
     q: 'How are sources classified?',
@@ -64,7 +64,7 @@ const FAQ = [
   },
   {
     q: 'How is Top News Clips funded?',
-    a: 'Independently. Top News Clips is operated and funded by its founder, Eric Neuner. No investors. No advertisers. No institutional backing. Revenue comes from voluntary subscriptions. No one is paying us to cover — or not cover — any story.',
+    a: 'Independently. Top News Clips is operated and funded by its founder, Eric Neuner. No investors. No advertisers. No institutional backing. Revenue comes from voluntary subscriptions. No one is paying us to cover, or not cover, any story.',
   },
   {
     q: 'Who founded Top News Clips?',

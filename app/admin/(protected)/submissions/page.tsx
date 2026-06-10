@@ -153,7 +153,7 @@ export default async function SubmissionsPage() {
                 </div>
                 <p className="text-muted-foreground text-xs mb-1">{s.reason}</p>
                 <p className="text-xs text-muted-foreground/60">
-                  Reviewed {s.reviewed_at ? formatDate(s.reviewed_at) : '—'}
+                  Reviewed {s.reviewed_at ? formatDate(s.reviewed_at) : ''}
                   {s.decision_tier && ` · Tier ${s.decision_tier}`}
                 </p>
                 {s.decision_rationale && (

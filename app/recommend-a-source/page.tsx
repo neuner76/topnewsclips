@@ -8,17 +8,17 @@ import SubmitForm from './SubmitForm'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Recommend a Source — Top News Clips',
-  description: 'Know a channel or outlet we should add? Submit it for editorial review. Every submission is evaluated against our published 10-tier taxonomy and the decision — accepted or declined, with rationale — is made public.',
+  title: 'Recommend a Source | Top News Clips',
+  description: 'Know a channel or outlet we should add? Submit it for editorial review. Every submission is evaluated against our published 10-tier taxonomy and the decision, accepted or declined, with rationale, is made public.',
   alternates: { canonical: 'https://www.topnewsclips.com/recommend-a-source' },
   openGraph: {
-    title: 'Recommend a Source — Top News Clips',
+    title: 'Recommend a Source | Top News Clips',
     description: 'Submit a source for editorial review. Every decision is made public.',
     url: 'https://www.topnewsclips.com/recommend-a-source',
   },
   twitter: {
     card: 'summary',
-    title: 'Recommend a Source — Top News Clips',
+    title: 'Recommend a Source | Top News Clips',
     description: 'Submit a source for editorial review. Every decision is made public.',
     site: '@topnewsclips',
   },
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 const CRITERIA = [
   {
     label: 'Original work',
-    body: 'Does the channel produce original reporting, commentary, or footage — not just repackage other outlets\' content?',
+    body: 'Does the channel produce original reporting, commentary, or footage, not just repackage other outlets\' content?',
   },
   {
     label: 'Publishing frequency',
@@ -43,11 +43,11 @@ const CRITERIA = [
   },
   {
     label: 'Tier fit',
-    body: 'Does it fit one of our 10 credibility tiers? Raw footage, wire service, independent commentary, nonprofit investigative — there\'s a tier for most legitimate sources.',
+    body: 'Does it fit one of our 10 credibility tiers? Raw footage, wire service, independent commentary, nonprofit investigative, there\'s a tier for most legitimate sources.',
   },
   {
     label: 'Not primarily entertainment',
-    body: 'The source must primarily produce news, analysis, or journalism — not entertainment, lifestyle, or satire that occasionally touches news topics.',
+    body: 'The source must primarily produce news, analysis, or journalism, not entertainment, lifestyle, or satire that occasionally touches news topics.',
   },
 ]
 
@@ -110,7 +110,7 @@ export default async function RecommendASourcePage() {
             <Link href="/taxonomy" className="font-semibold text-foreground hover:underline underline-offset-2">
               published 10-tier taxonomy
             </Link>{' '}
-            — and the decision, with rationale, is made public in the review log at the bottom of this page.
+           , and the decision, with rationale, is made public in the review log at the bottom of this page.
           </p>
         </div>
 
@@ -126,7 +126,7 @@ export default async function RecommendASourcePage() {
           <section>
             <h2 className="text-lg font-black tracking-tight uppercase mb-2">What we evaluate</h2>
             <p className="text-sm text-muted-foreground mb-5">
-              Every submission is checked against these six criteria. Reading them before you submit will help you self-screen — and write a stronger reason.
+              Every submission is checked against these six criteria. Reading them before you submit will help you self-screen, and write a stronger reason.
             </p>
             <div className="space-y-4">
               {CRITERIA.map(({ label, body }, i) => (
@@ -196,7 +196,7 @@ export default async function RecommendASourcePage() {
                     {s.decision_rationale && (
                       <div className={`mt-3 pt-3 border-t border-border text-xs ${s.status === 'declined' ? 'text-muted-foreground' : 'text-[oklch(0.38_0.13_145)]'}`}>
                         <span className="font-semibold uppercase tracking-wide mr-1">
-                          {s.status === 'accepted' ? 'Decision:' : 'Declined —'}
+                          {s.status === 'accepted' ? 'Decision:' : 'Declined '}
                         </span>
                         {s.decision_rationale}
                       </div>

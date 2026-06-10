@@ -4,11 +4,11 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Source Credibility Taxonomy — Top News Clips',
+  title: 'Source Credibility Taxonomy | Top News Clips',
   description: 'How Top News Clips classifies every source into a visible credibility tier so readers can instantly calibrate editorial weight.',
   alternates: { canonical: 'https://www.topnewsclips.com/taxonomy' },
   openGraph: {
-    title: 'Source Credibility Taxonomy — Top News Clips',
+    title: 'Source Credibility Taxonomy | Top News Clips',
     description: 'How Top News Clips classifies every source into a visible credibility tier.',
     url: 'https://www.topnewsclips.com/taxonomy',
   },
@@ -46,7 +46,7 @@ const TIERS = [
     tier: 4,
     name: 'Independent News',
     color: 'text-[oklch(0.45_0.10_230)] bg-[oklch(0.96_0.02_230)] border-[oklch(0.88_0.05_230)]',
-    definition: 'Editorially staffed outlets with institutional standards and professional journalists — but not structured as traditional nonprofits or legacy outlets.',
+    definition: 'Editorially staffed outlets with institutional standards and professional journalists, but not structured as traditional nonprofits or legacy outlets.',
     rationale: 'This tier captures outlets that don\'t fit cleanly into "nonprofit" or "legacy" but maintain newsroom-level editorial processes. They often employ award-winning journalists and operate with editorial independence from commercial pressures.',
     examples: 'The Intercept, Drop Site News, Bureau of Investigative Journalism, VICE News',
     note: 'The Intercept has a left-leaning editorial perspective and has faced some internal controversies. Drop Site News is new (2024) but staffed by experienced investigative reporters.',
@@ -65,7 +65,7 @@ const TIERS = [
     name: 'Commercial Newsroom',
     color: 'text-muted-foreground bg-muted border-border',
     definition: 'Established commercial news outlets and explainer-journalism brands. Ad-supported or subscription-funded with professional editorial teams and institutional editorial standards.',
-    rationale: 'These outlets produce quality journalism but operate within commercial media structures. Their editorial decisions can be influenced by audience metrics, advertiser relationships, or corporate ownership — a structural constraint that doesn\'t apply to nonprofits or public broadcasters.',
+    rationale: 'These outlets produce quality journalism but operate within commercial media structures. Their editorial decisions can be influenced by audience metrics, advertiser relationships, or corporate ownership, a structural constraint that doesn\'t apply to nonprofits or public broadcasters.',
     examples: 'CNN, ABC News, CBS News, CNBC, BBC News, 60 Minutes, Dateline NBC, Vox, Bloomberg Quicktake, Journeyman Pictures',
     note: null,
   },
@@ -85,7 +85,7 @@ const TIERS = [
     definition: 'Government-funded outlets where editorial direction is controlled or heavily influenced by the state. No structural independence from the funding government.',
     rationale: 'State media is included for perspective, not endorsement. In geopolitical stories, understanding how a government frames its own actions is itself newsworthy. But readers must know the source is state-directed.',
     examples: 'CGTN (China), TeleSUR (Venezuela)',
-    note: 'Required label: "State Media — editorial direction influenced by [country] government." Always paired with independent sources from Tiers 1–6.',
+    note: 'Required label: "State Media, editorial direction influenced by [country] government." Always paired with independent sources from Tiers 1–6.',
   },
   {
     tier: 9,
@@ -122,7 +122,7 @@ export default function TaxonomyPage() {
 
         <div className="mb-8">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
-            Editorial Framework — Version 1.0
+            Editorial Framework, Version 1.0
           </p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3">
             Source Credibility Taxonomy
@@ -204,7 +204,7 @@ export default function TaxonomyPage() {
               {
                 label: 'Analysis',
                 color: 'text-muted-foreground bg-muted border-border italic',
-                definition: 'Interpretation or commentary — not original fact reporting.',
+                definition: 'Interpretation or commentary, not original fact reporting.',
                 when: 'Content type is analysis or commentary, regardless of source tier.',
               },
             ].map(({ label, color, definition, when }) => (
@@ -220,7 +220,7 @@ export default function TaxonomyPage() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground mt-4">
-            Labels can change as stories develop — a &ldquo;Single-source&rdquo; story may move to &ldquo;Corroborated&rdquo; as more outlets confirm details.
+            Labels can change as stories develop, a &ldquo;Single-source&rdquo; story may move to &ldquo;Corroborated&rdquo; as more outlets confirm details.
           </p>
         </div>
 

@@ -63,14 +63,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const rawDescription = (data.description ?? '').trim()
   const description = rawDescription.length > 20
     ? rawDescription.slice(0, 155)
-    : `Watch: ${data.title} — independent news and footage on Top News Clips.`
+    : `Watch: ${data.title}, independent news and footage on Top News Clips.`
   const canonicalUrl = `https://www.topnewsclips.com/story/${slug}`
 
   const ytMatch = data.embed_url?.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
   const thumb = ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg` : null
 
   return {
-    title: `${data.title} — Top News Clips`,
+    title: `${data.title} | Top News Clips`,
     description,
     robots: data.published ? undefined : { index: false, follow: false },
     alternates: { canonical: canonicalUrl },
@@ -104,7 +104,7 @@ export default async function StoryPage({ params }: Props) {
 
   const s = story as Story
 
-  // World View — related stories for international pages
+  // World View, related stories for international pages
   type RelatedStory = { id: string; title: string; slug: string; description: string | null; region: string | null; msm_gap: boolean }
   let worldView: RelatedStory[] = []
 
@@ -242,7 +242,7 @@ export default async function StoryPage({ params }: Props) {
             {/* Archived banner */}
             {!s.published && (
               <div className="mb-4 px-3 py-2 rounded-lg text-xs text-white/60" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                Archived story — cycled out of the daily feed.{' '}
+                Archived story, cycled out of the daily feed.{' '}
                 <Link href="/" className="font-semibold text-white hover:underline underline-offset-2">See today&apos;s stories →</Link>
               </div>
             )}
@@ -334,7 +334,7 @@ export default async function StoryPage({ params }: Props) {
         {/* World View */}
         {worldView.length > 0 && (
           <SectionCard accent="#f97316" className="mb-4">
-            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#f97316] mb-4">🌍 World View — How others are covering this</p>
+            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#f97316] mb-4">🌍 World View, How others are covering this</p>
             <div className="space-y-3">
               {worldView.map(r => (
                 <div key={r.id} className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
@@ -415,7 +415,7 @@ export default async function StoryPage({ params }: Props) {
         {s.published && (
           <SectionCard accent="#14b8a6" className="mb-4">
             <p className="text-sm font-semibold text-white mb-1">Get stories like this every morning.</p>
-            <p className="text-xs text-white/50 mb-3">Free daily briefing — 5 minutes, no spin.</p>
+            <p className="text-xs text-white/50 mb-3">Free daily briefing, 5 minutes, no spin.</p>
             <EmailCaptureInline placement="story" />
           </SectionCard>
         )}

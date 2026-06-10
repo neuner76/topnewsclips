@@ -18,7 +18,7 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
 
   const baseUrl = `https://www.topnewsclips.com/story/${slug}`
   const shareUrl = `${baseUrl}?utm_source=social&utm_medium=share&utm_campaign=story`
-  const shareText = `${title}\n\nvia @TopNewsClips — stories mainstream media isn't covering`
+  const shareText = `${title}\n\nvia @TopNewsClips, stories mainstream media isn't covering`
   const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`
 
@@ -27,7 +27,7 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
       await navigator.share({ title, text: shareText, url: shareUrl })
       track('story_shared', { method: 'native', slug })
     } catch {
-      // user cancelled — no-op
+      // user cancelled, no-op
     }
   }
 
@@ -53,7 +53,7 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {/* Native share — mobile only, shown when API available */}
+      {/* Native share, mobile only, shown when API available */}
       {canNativeShare && (
         <button
           onClick={handleNativeShare}

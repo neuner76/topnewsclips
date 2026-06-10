@@ -28,7 +28,7 @@ const CITY_DOTS = [
   { name: 'Caracas',     coords: [-66.9, 10.5] },
 ]
 
-// Blindspot pins — underreported regions
+// Blindspot pins, underreported regions
 export const BLINDSPOT_PINS = [
   { name: 'Sudan',         coords: [32.5, 15.6]  },
   { name: 'Myanmar',       coords: [96.1, 19.7]  },
@@ -106,7 +106,7 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
           }
         </Geographies>
 
-        {/* City pulse dots — hero and blindspot modes only */}
+        {/* City pulse dots, hero and blindspot modes only */}
         {!isWatermark && CITY_DOTS.map((city, i) => {
           const phase = dotPhases[i]
           const pulse = Math.sin(phase * Math.PI * 2)
@@ -124,7 +124,7 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
           )
         })}
 
-        {/* Blindspot pins — orange, blindspot mode only */}
+        {/* Blindspot pins, orange, blindspot mode only */}
         {isBlindspot && BLINDSPOT_PINS.map((pin) => (
           <g key={pin.name} transform={`translate(${toX(pin.coords[0])}, ${toY(pin.coords[1])})`}>
             {/* Outer ring */}
@@ -139,7 +139,7 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
 }
 
 // Project lat/lng to SVG coordinates for the default Robinson projection at scale 147
-// These are approximate — react-simple-maps handles projection internally via the SVG
+// These are approximate, react-simple-maps handles projection internally via the SVG
 // We use a simple equirectangular approximation for the overlay dots
 function toX(lng: number): number {
   return ((lng + 180) / 360) * 800

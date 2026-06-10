@@ -15,7 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { q } = await searchParams
   return {
-    title: q ? `"${q}" — Search — Top News Clips` : 'Search — Top News Clips',
+    title: q ? `"${q}", Search | Top News Clips` : 'Search | Top News Clips',
     description: 'Search independent journalism, bodycam footage, and global stories on Top News Clips.',
     robots: { index: false },
   }
