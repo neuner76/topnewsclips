@@ -13,6 +13,7 @@ import TierMeter from '@/components/TierMeter'
 import HeroStory from '@/components/HeroStory'
 import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
 import GlobalLensSection from '@/components/GlobalLensSection'
+import SectionHeader from '@/components/SectionHeader'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -231,9 +232,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Need To Know */}
       <section className="mb-10">
-        <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
-          Need To Know
-        </p>
+        <SectionHeader variant="need-to-know" title="Need To Know" subtitle="The stories that matter most today — verified, sourced, in context" />
         <div className="divide-y divide-border">
           {content.needToKnow.map((item, i) => (
             <div key={item.slug}>
@@ -250,13 +249,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* In The Know */}
       <section className="mb-10">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 border-t border-border" />
-          <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase shrink-0">
-            In The Know
-          </span>
-          <div className="flex-1 border-t border-border" />
-        </div>
+        <SectionHeader variant="in-the-know" title="In The Know" subtitle="Curated briefings across politics, science, business, culture, and satire" />
         <div className="space-y-8">
           {IN_THE_KNOW_CATEGORIES.map((cat) => {
             const items = content.inTheKnow[cat]
@@ -280,13 +273,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       {/* Etcetera */}
       {content.etcetera?.length > 0 && (
         <section className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 border-t border-border/40" />
-            <span className="text-[10px] font-bold tracking-widest text-muted-foreground/60 uppercase shrink-0">
-              Also worth knowing
-            </span>
-            <div className="flex-1 border-t border-border/40" />
-          </div>
+          <SectionHeader variant="etcetera" title="Also Worth Knowing" />
           <ul className="space-y-2 bg-muted/30 rounded-lg px-4 py-3">
             {content.etcetera.map((item: EtceteraItem | string, i: number) => {
               const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
@@ -315,14 +302,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       {/* Mainstream Pulse */}
       {content.mainstreamPulse && content.mainstreamPulse.length > 0 && (
         <section className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 border-t border-border" />
-            <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase shrink-0">
-              Mainstream Pulse
-            </span>
-            <div className="flex-1 border-t border-border" />
-          </div>
-          <p className="text-xs text-muted-foreground mb-4">What the major outlets are leading with today.</p>
+          <SectionHeader variant="mainstream" title="Mainstream Pulse" subtitle="What the major outlets are leading with today" />
           <Link href="/corrections" className="block text-[10px] text-muted-foreground/70 hover:text-foreground transition-colors mb-3">
             ✓ No corrections today
           </Link>
@@ -426,6 +406,12 @@ function isToday(dateStr: string): boolean {
 const SECTION_CAP = 6
 const MIN_TRENDING_VIEWS = 1000
 
+const SECTION_VARIANT_MAP: Record<string, 'analysis' | 'reported' | 'raw' | 'in-the-know'> = {
+  'Analysis':    'analysis',
+  'Reported':    'reported',
+  'Raw Footage': 'raw',
+}
+
 interface SectionProps {
   title: string
   subtitle: string
@@ -436,36 +422,27 @@ interface SectionProps {
   accentClass: string
 }
 
-function Section({ title, subtitle, categorySlug, pinned, voices, stories, accentClass }: SectionProps) {
+function Section({ title, subtitle, categorySlug, pinned, voices, stories }: SectionProps) {
   const isEmpty = pinned.length === 0 && voices.length === 0 && stories.length === 0
-  // Cap total stories shown per section — pinned always show, cap applied to voices + stories
   let voicesBudget = Math.max(0, SECTION_CAP - pinned.length)
   const cappedVoices = voices.slice(0, voicesBudget)
   voicesBudget = Math.max(0, voicesBudget - cappedVoices.length)
   const cappedStories = stories.slice(0, voicesBudget)
 
-  // Split voices + stories into today vs earlier for freshness labels
   const allCapped = [...cappedVoices, ...cappedStories]
   const todayItems = allCapped.filter(s => isToday(s.created_at))
   const earlierItems = allCapped.filter(s => !isToday(s.created_at))
   const showFreshnessLabels = todayItems.length > 0 && earlierItems.length > 0
+  const variant = SECTION_VARIANT_MAP[title] ?? 'in-the-know'
+
   return (
     <section className="mb-12">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex-1">
-          <div className="flex items-baseline gap-3">
-            <h2 className={`text-2xl sm:text-3xl font-black tracking-tight uppercase ${accentClass}`}>
-              {title}
-            </h2>
-            {categorySlug && (
-              <Link href={`/category/${categorySlug}`} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium">
-                See all →
-              </Link>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
-        </div>
-      </div>
+      <SectionHeader
+        variant={variant}
+        title={title}
+        subtitle={subtitle}
+        seeAllHref={categorySlug ? `/category/${categorySlug}` : undefined}
+      />
       {isEmpty ? (
         <p className="text-sm text-muted-foreground py-6">Stories being curated — check back soon.</p>
       ) : (
@@ -665,12 +642,7 @@ export default async function HomePage({
             )}
             {msmBlackout.length > 0 && (
               <section className="mb-12">
-                <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
-                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-[oklch(0.52_0.14_196)]">
-                    Limited Coverage
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Stories receiving little attention from mainstream outlets</p>
-                </div>
+                <SectionHeader variant="limited" title="Limited Coverage" subtitle="Stories receiving little attention from mainstream outlets" />
                 <div>
                   {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} />)}
                 </div>
