@@ -250,7 +250,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       />
 
       {/* In The Know */}
-      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628' }}>
+      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#14b8a6' }} />
         <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
         <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#14b8a6]">🔍 In The Know</span>
@@ -287,7 +287,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Etcetera */}
       {content.etcetera?.length > 0 && (
-        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628' }}>
+        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#64748b' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-5 block text-white/40">··· Also Worth Knowing</span>
@@ -319,7 +319,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Mainstream Pulse */}
       {content.mainstreamPulse && content.mainstreamPulse.length > 0 && (
-        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628' }}>
+        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#94a3b8' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#94a3b8]">📺 Mainstream Pulse</span>

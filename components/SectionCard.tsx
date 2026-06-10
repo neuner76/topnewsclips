@@ -13,7 +13,7 @@ export default function SectionCard({ accent, children, className = '' }: Sectio
   return (
     <div
       className={`relative rounded-2xl overflow-hidden mb-8 dark ${className}`}
-      style={{ background: '#0d1628' }}
+      style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
     >
       {/* CSS globe grid — longitude/latitude lines as instant background */}
       <div

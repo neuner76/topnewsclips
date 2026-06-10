@@ -62,7 +62,7 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
   if (!displayItems.length) return null
 
   return (
-    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#0d1628' }}>
+    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
 
       {/* CSS globe grid — blue-tinted, instant */}
       <div
@@ -118,8 +118,8 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
                 href={`/story/${slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex gap-3 items-start rounded-xl p-3 transition-colors hover:bg-white/5"
-                style={{ borderLeft: '3px solid #3b82f6' }}
+                className="group flex gap-3 items-start rounded-xl p-3 transition-all"
+                style={{ borderLeft: '3px solid #3b82f6', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
               >
                 {/* Thumbnail */}
                 {thumbnail && (

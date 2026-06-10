@@ -45,7 +45,10 @@ export default function WorldMapSection({
   stories, seeAllHref, emptyMessage, footer,
 }: WorldMapSectionProps) {
   return (
-    <section className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628' }}>
+    <section
+      className="relative rounded-2xl overflow-hidden mb-8"
+      style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+    >
 
       {/* Instant CSS globe grid — renders server-side, no JS wait */}
       <div
@@ -103,8 +106,12 @@ export default function WorldMapSection({
                   href={`/story/${story.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex gap-3 items-start rounded-xl px-3 py-3 transition-colors hover:bg-white/5"
-                  style={{ borderLeft: `3px solid ${accent}${i === 0 ? 'ff' : '66'}` }}
+                  className="group flex gap-3 items-start rounded-xl px-3 py-3 transition-all hover:bg-white/8"
+                  style={{
+                    borderLeft: `3px solid ${accent}`,
+                    background: 'rgba(255,255,255,0.03)',
+                    marginBottom: '6px',
+                  }}
                 >
                   {/* Thumbnail */}
                   {thumbnail && (

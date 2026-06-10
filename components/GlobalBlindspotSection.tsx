@@ -21,7 +21,7 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
   if (!stories.length) return null
 
   return (
-    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)' }}>
+    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid rgba(255,255,255,0.07)' }}>
 
       {/* CSS globe grid — orange-tinted, instant */}
       <div
@@ -76,8 +76,8 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
                 href={`/story/${story.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex gap-3 items-start rounded-xl p-3 transition-colors hover:bg-white/5"
-                style={{ borderLeft: '3px solid var(--blindspot-orange)' }}
+                className="group flex gap-3 items-start rounded-xl p-3 transition-all"
+                style={{ borderLeft: '3px solid var(--blindspot-orange)', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
               >
                 {/* Thumbnail */}
                 {thumbnail && (
