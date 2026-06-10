@@ -68,7 +68,7 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
           onChange={e => setEmail(e.target.value)}
           onFocus={handleFocus}
           required
-          className="flex-1 text-sm px-3 py-2 rounded border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)] min-w-0"
+          className="flex-1 text-sm px-3 py-2 rounded border border-white/20 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[oklch(0.52_0.14_196)] min-w-0"
         />
         <button
           type="submit"
