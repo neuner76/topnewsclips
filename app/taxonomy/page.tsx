@@ -144,7 +144,7 @@ export default function TaxonomyPage() {
 
         <div className="space-y-6">
           {TIERS.map(({ tier, name, color, definition, rationale, examples, note }) => (
-            <div key={tier} className="border border-border rounded-lg p-5">
+            <div key={tier} id={`tier-${tier}`} className="border border-border rounded-lg p-5">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-xs font-bold text-muted-foreground w-10 shrink-0">
                   Tier {tier}

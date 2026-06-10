@@ -15,6 +15,7 @@ interface TierBadgeProps {
   tier: number | null
   sourceType: string | null
   compact?: boolean
+  asLink?: boolean
 }
 
 type Band = 'high' | 'mid' | 'low'
@@ -72,22 +73,18 @@ const SHORT_LABELS: Record<string, string> = {
   'Mainstream Pulse':                'Newsroom',
 }
 
-export default function TierBadge({ tier, sourceType, compact = false }: TierBadgeProps) {
+export default function TierBadge({ tier, sourceType, compact = false, asLink = true }: TierBadgeProps) {
   if (!tier || !sourceType) return null
 
   const band = getBand(tier)
   const styles = BAND_STYLES[band]
-  const label = compact
-    ? (SHORT_LABELS[sourceType] ?? sourceType)
-    : (SHORT_LABELS[sourceType] ?? sourceType)
+  const label = SHORT_LABELS[sourceType] ?? sourceType
   const tierLabel = `T${tier}`
 
-  return (
+  const pill = (
     <span className="inline-flex items-center gap-1.5">
       {/* Vertical bar — height signals band level */}
-      <span
-        className={`w-1.5 rounded-full shrink-0 ${styles.bar}`}
-      />
+      <span className={`w-1.5 rounded-full shrink-0 ${styles.bar}`} />
 
       {/* Pill */}
       <span
@@ -97,7 +94,6 @@ export default function TierBadge({ tier, sourceType, compact = false }: TierBad
           border: `1px solid ${styles.border}`,
           color: styles.labelColor,
         }}
-        title={`${sourceType} (Tier ${tier})`}
       >
         <span>{label}</span>
         <span style={{ color: styles.tierColor }}>·</span>
@@ -105,4 +101,19 @@ export default function TierBadge({ tier, sourceType, compact = false }: TierBad
       </span>
     </span>
   )
+
+  if (asLink) {
+    return (
+      <a
+        href={`/taxonomy#tier-${tier}`}
+        title={`${sourceType} (Tier ${tier}) — click to learn more`}
+        className="inline-flex hover:opacity-70 transition-opacity"
+        onClick={e => e.stopPropagation()}
+      >
+        {pill}
+      </a>
+    )
+  }
+
+  return <span title={`${sourceType} (Tier ${tier})`}>{pill}</span>
 }
