@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import TierMeter from './TierMeter'
@@ -103,7 +102,6 @@ export default function WorldMapSection({
         {stories.length === 0 ? null : (
           <div className="flex flex-col gap-1">
             {stories.map((story, i) => {
-              const thumbnail = storyThumbnail(story)
               const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
               return (
                 <Link
@@ -118,18 +116,6 @@ export default function WorldMapSection({
                     marginBottom: '6px',
                   }}
                 >
-                  {/* Thumbnail */}
-                  {thumbnail && (
-                    <div className="shrink-0 hidden sm:block">
-                      <Image
-                        src={thumbnail} alt={story.title}
-                        width={96} height={56}
-                        className="rounded-lg object-cover w-24 h-14 opacity-80 group-hover:opacity-100 transition-opacity"
-                        unoptimized
-                      />
-                    </div>
-                  )}
-
                   {/* Text */}
                   <div className="flex-1 min-w-0">
                     {/* Category + badges row */}

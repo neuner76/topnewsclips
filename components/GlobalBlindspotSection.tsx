@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import TierMeter from './TierMeter'
@@ -64,7 +63,6 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
         {/* Story cards */}
         <div className="flex flex-col gap-3">
           {stories.slice(0, 4).map((story) => {
-            const thumbnail = storyThumbnail(story)
             const { tier, sourceType } = getSourceTier(
               story.journalist_username,
               story.source ?? '',
@@ -79,19 +77,6 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
                 className="group flex gap-3 items-start rounded-xl p-3 transition-all"
                 style={{ borderLeft: '3px solid var(--blindspot-orange)', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
               >
-                {/* Thumbnail */}
-                {thumbnail && (
-                  <div className="shrink-0">
-                    <Image
-                      src={thumbnail}
-                      alt={story.title}
-                      width={80}
-                      height={48}
-                      className="rounded object-cover w-20 h-12 opacity-80 group-hover:opacity-100 transition-opacity"
-                      unoptimized
-                    />
-                  </div>
-                )}
 
                 {/* Text */}
                 <div className="flex-1 min-w-0">
