@@ -3,6 +3,7 @@ import { unsubscribeLink } from '@/lib/unsubscribe'
 
 const SITE_URL = 'https://www.topnewsclips.com'
 const UTM = 'utm_source=email&utm_medium=email&utm_campaign=welcome'
+const FEED_URL = `${SITE_URL}/feed?${UTM}`
 
 const FROM = 'TopNewsClips <digest@topnewsclips.com>'
 
@@ -66,7 +67,7 @@ function email1Html(unsubUrl: string) {
       <li style="margin-bottom:10px;">→ <strong>Every source labeled by credibility tier</strong> — from Pulitzer-winning nonprofits like ProPublica to public broadcasters like DW News to independent commentators. You always know who's behind what you're reading.</li>
     </ul>
     ${p("All of it in 5 minutes. No spin. No outrage. Just what happened, who it affects, and why it matters to your life.")}
-    ${cta("Read today's stories →", `${SITE_URL}/?${UTM}`)}
+    ${cta("Read today's stories →", FEED_URL)}
     ${p("Your first daily briefing arrives tomorrow morning.")}
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
     <p style="margin:24px 0 0;font-size:13px;color:#9ca3af;padding-top:16px;border-top:1px solid #f3f4f6;">P.S. Curious how we classify our sources? We publish a 10-tier Source Credibility Taxonomy so you never have to guess. <a href="${SITE_URL}/taxonomy?${UTM}" style="color:#0e7490;">See how it works →</a></p>
@@ -97,7 +98,7 @@ Here's what your briefing includes:
 All of it in 5 minutes. No spin. No outrage. Just what happened, who it affects, and why it matters to your life.
 
 Read today's stories:
-${SITE_URL}/?${UTM}
+${FEED_URL}
 
 Your first daily briefing arrives tomorrow morning.
 
@@ -121,7 +122,7 @@ function email2Html(unsubUrl: string) {
     ${p("<strong>Global Lens</strong> shows you how international journalists are framing the same stories US outlets are covering. Same event, different perspective. This is where you see what one country's media can't show you.")}
     ${p("<strong>Mainstream Pulse</strong> shows you what NPR, NYT, AP, Reuters, WSJ, and Fox News are each leading with — left to right, side by side. Ten seconds to see the full mainstream spectrum.")}
     ${p("That's it. Now you know how to read every section.")}
-    ${cta("Read this morning's briefing →", `${SITE_URL}/?${UTM}`)}
+    ${cta("Read this morning's briefing →", FEED_URL)}
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
   `, unsubUrl)
 }
@@ -142,7 +143,7 @@ Mainstream Pulse shows you what NPR, NYT, AP, Reuters, WSJ, and Fox News are eac
 That's it. Now you know how to read every section.
 
 Read this morning's briefing:
-${SITE_URL}/?${UTM}
+${FEED_URL}
 
 — Top News Clips
 Independent News. No Agenda.
@@ -161,7 +162,7 @@ function email25Html(unsubUrl: string) {
     ${p("You read stories flagged \"0 of 15 outlets\" that later showed up in mainstream coverage days later. You saw international events through the eyes of journalists in Doha, Seoul, Berlin, and Nairobi — perspectives that never made it into a US broadcast.")}
     ${p("That's every day. Here's what that actually involves. Overnight, the pipeline pulls from hundreds of RSS feeds and two dozen YouTube channels, deduplicates ~300 candidates, and runs each one through a pre-filter that quietly rejects LIVE streams, gaming videos, Cyrillic-only text, broadcast segments that are just an anchor reading bullet points, and anything a Brazilian tabloid would be proud of. What survives gets sent to an AI that checks whether it's a genuine news story or a press release wearing a trench coat — estimating how many of the 15 major newsrooms covered it, assigning a credibility tier from Tier 1 wire services down to independent commentary, and flagging the ones that look important but that nobody seems to be touching yet. Stories clustering around the same incident get capped so one slow news day at the State Department doesn't colonize the entire briefing. Everything that clears all of that goes to a second, more expensive AI, which reads the survivors and actually writes what you got this morning — deciding what belongs in Need To Know versus In The Know, synthesizing the international perspectives into a coherent global picture, and determining what counts as genuinely overlooked versus just unpopular. Then it gets reviewed, filtered one more time for noise that slipped through, and published. By morning, it's waiting. No algorithm optimizing for your outrage. No editor deciding what plays well in an election year. Just the pipeline, doing its thing.")}
     ${p("Most people get their news from whatever the algorithm surfaces. You're now getting the layer underneath — the one built for citizens who want the full picture, not the profitable picture.")}
-    ${cta("This morning's briefing →", `${SITE_URL}/?${UTM}`)}
+    ${cta("This morning's briefing →", FEED_URL)}
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
   `, unsubUrl)
 }
@@ -180,7 +181,7 @@ That's every day. Here's what that actually involves. Overnight, the pipeline pu
 Most people get their news from whatever the algorithm surfaces. You're now getting the layer underneath — the one built for citizens who want the full picture, not the profitable picture.
 
 This morning's briefing:
-${SITE_URL}/?${UTM}
+${FEED_URL}
 
 — Top News Clips
 Independent News. No Agenda.
