@@ -500,28 +500,26 @@ export default async function HomePage({
 
         {/* Tab switcher */}
         {digest && (
-          <div className="flex rounded-xl overflow-hidden mb-6 text-sm font-semibold" style={{ background: '#0d1628', border: '1px solid rgba(59,130,246,0.15)' }}>
+          <div className="flex rounded-xl overflow-hidden mb-6" style={{ background: '#0d1628', border: '1px solid rgba(59,130,246,0.15)' }}>
             <Link
               href="/feed"
-              className={`flex-1 text-center py-3 transition-all ${
-                activeView === 'digest'
-                  ? 'text-white font-bold'
-                  : 'text-white/40 hover:text-white/70'
+              className={`flex-1 text-center px-4 py-3 transition-all ${
+                activeView === 'digest' ? 'text-white' : 'text-white/40 hover:text-white/70'
               }`}
               style={activeView === 'digest' ? { background: 'rgba(59,130,246,0.15)', borderBottom: '2px solid #3b82f6' } : {}}
             >
-              📋 Digest
+              <div className="text-sm font-bold">📋 Digest</div>
+              <div className="text-[10px] text-white/40 mt-0.5">Read the day</div>
             </Link>
             <Link
               href="/feed?view=clips"
-              className={`flex-1 text-center py-3 transition-all border-l border-white/10 ${
-                activeView === 'clips'
-                  ? 'text-white font-bold'
-                  : 'text-white/40 hover:text-white/70'
+              className={`flex-1 text-center px-4 py-3 transition-all border-l border-white/10 ${
+                activeView === 'clips' ? 'text-white' : 'text-white/40 hover:text-white/70'
               }`}
               style={activeView === 'clips' ? { background: 'rgba(59,130,246,0.15)', borderBottom: '2px solid #3b82f6' } : {}}
             >
-              🎬 All Clips
+              <div className="text-sm font-bold">🎬 Clips</div>
+              <div className="text-[10px] text-white/40 mt-0.5">Scan the signal</div>
             </Link>
           </div>
         )}
@@ -533,27 +531,64 @@ export default async function HomePage({
           </div>
         ) : (
           <div>
-            {/* Digest teaser, shown in clips view when a digest exists */}
-            {digest && (
-              <Link
-                href="/feed"
-                className="block mb-6 p-5 rounded-xl group transition-opacity hover:opacity-90"
-                style={{ background: '#0d1628', border: '1px solid rgba(59,130,246,0.2)' }}
-              >
-                <p className="text-[10px] font-bold tracking-[0.15em] text-[#3b82f6] uppercase mb-2">
-                  📋 Today&apos;s Digest
+            {/* Clips hero */}
+            <div
+              className="relative rounded-2xl overflow-hidden mb-6 px-6 py-10 sm:px-10 sm:py-12"
+              style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+            >
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: `
+                    radial-gradient(ellipse at 70% 40%, rgba(59,130,246,0.14) 0%, transparent 60%),
+                    linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '100% 100%, 48px 48px, 48px 48px',
+                }}
+              />
+              <div className="relative z-10 max-w-lg">
+                <p className="text-[11px] font-bold tracking-[0.2em] text-[#3b82f6] uppercase mb-3">
+                  🎬 Clips
                 </p>
-                <p className="text-base font-bold leading-snug text-white group-hover:underline underline-offset-2 mb-1">
-                  {digest.content.needToKnow[0]?.sectionTitle}
+                <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight mb-3">
+                  See the signal faster.
+                </h2>
+                <p className="text-base text-white/60 leading-relaxed mb-2">
+                  A clip-first view of the news with visible source labels, confidence markers, and undercovered stories worth your attention.
                 </p>
-                <p className="text-sm text-white/50 line-clamp-2">
-                  {digest.content.needToKnow[0]?.paragraphs[0]}
+                <p className="text-sm text-white/40 mb-6">
+                  Scan what&apos;s happening in minutes. Then go deeper when something matters.
                 </p>
-                <p className="text-xs font-semibold mt-3 text-[#3b82f6]">
-                  Read full digest →
-                </p>
-              </Link>
-            )}
+                {digest && (
+                  <Link
+                    href="/feed"
+                    className="text-sm text-white/40 hover:text-white/70 transition-colors"
+                  >
+                    Prefer the written version? Read today&apos;s digest →
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Why Clips? explainer */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+              {[
+                { icon: '⚡', title: 'Faster scan', body: 'Important developments in a more visual, lower-friction format.' },
+                { icon: '🔬', title: 'Source-aware', body: 'Every clip carries source labels and confidence context, not just headlines.' },
+                { icon: '🌍', title: 'Find what others miss', body: 'Limited Coverage, Global Blindspot, and Global Lens surface what your main feed won\'t.' },
+              ].map(({ icon, title, body }) => (
+                <div
+                  key={title}
+                  className="rounded-xl px-4 py-4"
+                  style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+                >
+                  <div className="text-xl mb-2">{icon}</div>
+                  <p className="text-sm font-bold text-white mb-1">{title}</p>
+                  <p className="text-xs text-white/50 leading-relaxed">{body}</p>
+                </div>
+              ))}
+            </div>
             {msmBlackout.length > 0 && (
               <WorldMapSection
                 title="Limited Coverage" icon="⚠️" accent="#ef4444" mapMode="blindspot"

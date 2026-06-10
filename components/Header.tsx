@@ -18,7 +18,7 @@ export default function Header() {
             <Link href="/feed" className="text-white/50 hover:text-white transition-colors hidden sm:block">
               Feed
             </Link>
-            <Link href="/feed?view=clips" className="text-white/50 hover:text-white transition-colors">
+            <Link href="/clips" className="text-white/50 hover:text-white transition-colors">
               Clips
             </Link>
             <Link href="/stories" className="text-white/50 hover:text-white transition-colors hidden sm:block">
