@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
-import TierMeter from './TierMeter'
+import SourceBadge from './SourceBadge'
 
 interface GlobalBlindspotSectionProps {
   stories: Story[]
@@ -104,7 +104,7 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
                         {story.region}
                       </span>
                     )}
-                    <TierMeter tier={tier} sourceType={sourceType} compact />
+                    <SourceBadge tier={tier} sourceType={sourceType} compact />
                     {/* Western coverage callout badge */}
                     <span
                       className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded"

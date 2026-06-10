@@ -9,7 +9,7 @@ import EmailCapture from '@/components/EmailCapture'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import SourceTypeBadge from '@/components/SourceTypeBadge'
-import TierMeter from '@/components/TierMeter'
+import SourceBadge from '@/components/SourceBadge'
 import HeroStory from '@/components/HeroStory'
 import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
 import GlobalLensSection from '@/components/GlobalLensSection'
@@ -87,7 +87,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
     <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderLeft: '3px solid #3b82f6' }}>
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          {(badge?.tier || badge?.sourceType) && <TierMeter tier={badge.tier} sourceType={badge.sourceType} />}
+          {(badge?.tier || badge?.sourceType) && <SourceBadge tier={badge.tier} sourceType={badge.sourceType} />}
           {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
           {story?.journalist_username && (
             <span className="text-xs text-white/40">@{story.journalist_username}</span>
@@ -193,7 +193,7 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
           ) : inner}
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {(badge?.tier || badge?.sourceType) && (
-              <TierMeter tier={badge.tier} sourceType={badge.sourceType} compact />
+              <SourceBadge tier={badge.tier} sourceType={badge.sourceType} compact />
             )}
             {displayName && (
               <span className="text-[11px] font-semibold text-white/50">{displayName}</span>
