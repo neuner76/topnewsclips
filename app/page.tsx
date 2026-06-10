@@ -12,6 +12,7 @@ import SourceTypeBadge from '@/components/SourceTypeBadge'
 import TierMeter from '@/components/TierMeter'
 import HeroStory from '@/components/HeroStory'
 import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
+import GlobalLensSection from '@/components/GlobalLensSection'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -392,39 +393,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Global Lens */}
       {content.globalLens && content.globalLens.length > 0 && (
-        <section className="mt-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 border-t border-border" />
-            <span className="text-xs font-bold tracking-widest text-[oklch(0.52_0.14_196)] uppercase shrink-0">
-              🌍 Global Lens
-            </span>
-            <div className="flex-1 border-t border-border" />
-          </div>
-          <p className="text-xs text-muted-foreground mb-4">How international outlets are covering today&apos;s stories — perspectives that add context to the US view.</p>
-          <div className="space-y-4">
-            {content.globalLens.map((item: GlobalLensItem) => {
-              const story = storyMap.get(item.slug)
-              return (
-              <div key={item.slug} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                  <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
-                  {story && <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />}
-                  {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
-                </div>
-                <Link
-                  href={`/story/${item.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-base font-semibold text-foreground hover:underline underline-offset-2 leading-snug block mb-1"
-                >
-                  {item.title}
-                </Link>
-                <p className="text-sm text-muted-foreground">{item.summary}</p>
-              </div>
-              )
-            })}
-          </div>
-        </section>
+        <GlobalLensSection items={content.globalLens} storyMap={storyMap} />
       )}
     </div>
   )
@@ -711,48 +680,7 @@ export default async function HomePage({
               <GlobalBlindspotSection stories={globalBlindspots} />
             )}
             {globalLens.length > 0 && (
-              <section className="mb-12">
-                <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
-                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-[oklch(0.52_0.14_196)]">
-                    Global Lens
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">How the world is covering today&apos;s biggest stories</p>
-                </div>
-                <div>
-                  {globalLens.slice(0, SECTION_CAP).map(s => {
-                    const thumb = storyThumbnail(s)
-                    return (
-                    <div key={s.id} className="group py-3 border-b border-border">
-                      <div className="flex gap-3 items-start">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                            <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
-                            {s.msm_gap && <GlobalBlindspotBadge />}
-                            <SourceTypeBadge tier={resolvedBadge(s).tier} sourceType={resolvedBadge(s).sourceType} />
-                          </div>
-                          <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
-                            <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
-                          </Link>
-                          {s.description && (
-                            <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
-                          )}
-                          <div className="flex items-center gap-3 mt-2">
-                            <PressureScore viewCount={s.view_count} shareCount={s.share_count} />
-                            <span className="text-xs text-muted-foreground">{formatDate(s.created_at)}</span>
-                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1">Full story →</a>
-                          </div>
-                        </div>
-                        {thumb && (
-                          <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                            <Image src={thumb} alt={s.title} width={96} height={56} className="rounded object-cover w-20 h-12 sm:w-24 sm:h-14 opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    )
-                  })}
-                </div>
-              </section>
+              <GlobalLensSection stories={globalLens} />
             )}
             <Section
               title="Analysis"
