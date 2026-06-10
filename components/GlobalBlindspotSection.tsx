@@ -18,6 +18,24 @@ function storyThumbnail(s: Story): string | null {
   return s.platform === 'youtube' ? getYouTubeThumbnail(s.embed_url) : s.thumbnail_url ?? null
 }
 
+function formatPublishedDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffHours < 1) return 'Just now'
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function sourceHandle(story: Story): string | null {
+  if (story.journalist_username) return `@${story.journalist_username}`
+  const source = story.source?.replace(/^(YouTube|TikTok|Reddit)\/@?/i, '').trim()
+  return source ? `@${source.replace(/\s+/g, '').toLowerCase()}` : null
+}
+
 export default function GlobalBlindspotSection({ stories, layout = 'list' }: GlobalBlindspotSectionProps) {
   if (!stories.length) return null
 
@@ -91,6 +109,10 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                     {story.description && <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>}
                     <div className="mt-auto flex items-center gap-2 flex-wrap">
                       <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
+                      {sourceHandle(story) && (
+                        <span className="text-[10px] text-white/30">{sourceHandle(story)}</span>
+                      )}
                       <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
                         Under-reported
                       </span>
@@ -124,6 +146,10 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                     )}
                     <div className="flex items-center gap-2 flex-wrap">
                       <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
+                      {sourceHandle(story) && (
+                        <span className="text-[10px] text-white/30">{sourceHandle(story)}</span>
+                      )}
                       <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
                         Under-reported
                       </span>

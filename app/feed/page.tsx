@@ -269,6 +269,9 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
 const SECTION_CAP = 6
 const MIN_TRENDING_VIEWS = 1000
+const HIDDEN_STORY_SLUGS = new Set([
+  'tiktok-7395615642138791210',
+])
 
 interface SectionProps {
   title: string
@@ -348,7 +351,7 @@ export default async function HomePage({
   const all = [
     ...((usResult.data as Story[]) ?? []),
     ...((regionalResult.data as Story[]) ?? []),
-  ]
+  ].filter(story => !HIDDEN_STORY_SLUGS.has(story.slug))
   const storyMap = new Map(all.map(s => [s.slug, s]))
 
   // Supplement storyMap with any digest-referenced stories not in the 7-day window

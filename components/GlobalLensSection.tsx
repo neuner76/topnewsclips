@@ -27,6 +27,24 @@ function storyThumbnail(s: Story): string | null {
   return s.platform === 'youtube' ? getYouTubeThumbnail(s.embed_url) : s.thumbnail_url ?? null
 }
 
+function formatPublishedDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffHours < 1) return 'Just now'
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function sourceHandle(story: Story): string | null {
+  if (story.journalist_username) return `@${story.journalist_username}`
+  const source = story.source?.replace(/^(YouTube|TikTok|Reddit)\/@?/i, '').trim()
+  return source ? `@${source.replace(/\s+/g, '').toLowerCase()}` : null
+}
+
 const REGION_FLAGS: Record<string, string> = {
   'Europe': '🇪🇺', 'Asia': '🌏', 'Africa': '🌍', 'Middle East': '🌍',
   'Latin America': '🌎', 'South America': '🌎', 'Australia': '🇦🇺',
@@ -130,8 +148,12 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                     <h3 className="text-sm font-bold text-white/90 group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{title}</h3>
                     {summary && <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{summary}</p>}
                     {tier !== null && (
-                      <div className="mt-auto">
+                      <div className="mt-auto flex items-center gap-2 flex-wrap">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                        {story && <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>}
+                        {story && sourceHandle(story) && (
+                          <span className="text-[10px] text-white/30">{sourceHandle(story)}</span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -162,9 +184,15 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                     </div>
                     <h3 className="text-base font-bold text-white line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{title}</h3>
                     {summary && <p className="text-sm text-white/60 mt-0.5 line-clamp-3 leading-relaxed mb-2">{summary}</p>}
-                    {tier !== null && (
-                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-                    )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {tier !== null && (
+                        <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      )}
+                      {story && <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>}
+                      {story && sourceHandle(story) && (
+                        <span className="text-[10px] text-white/30">{sourceHandle(story)}</span>
+                      )}
+                    </div>
                   </div>
                 </Link>
               )
