@@ -77,7 +77,7 @@ export default async function LandingPage() {
             <p className="text-base sm:text-lg text-white/60 mb-10 max-w-lg mx-auto leading-relaxed">
               Every source labeled by credibility tier. International context every morning. Stories mainstream media skips — surfaced daily.
             </p>
-            <div className="max-w-sm mx-auto mb-6">
+            <div id="subscribe" className="max-w-sm mx-auto mb-6">
               <EmailCaptureInline placement="landing-hero" />
             </div>
             <Link
