@@ -84,7 +84,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
   const badge = story ? resolvedBadge(story) : null
   const hasAttribution = badge?.tier || badge?.sourceType || story?.journalist_username
   return (
-    <article className="py-6 border-b border-white/10 last:border-0">
+    <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderLeft: '3px solid #3b82f6' }}>
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {(badge?.tier || badge?.sourceType) && <TierMeter tier={badge.tier} sourceType={badge.sourceType} />}
@@ -182,7 +182,7 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
 
   const inner = <span className="text-[1.0rem] leading-relaxed text-white/85">{item.text}</span>
   return (
-    <li className="py-3 border-b border-white/10 last:border-0 group">
+    <li className="group rounded-xl px-3 py-2.5 mb-2 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #14b8a6' }}>
       <div className="flex gap-3">
         <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-[#14b8a6] opacity-60 group-hover:opacity-100 transition-opacity" />
         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
@@ -297,7 +297,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               const story = etc.slug ? storyMap.get(etc.slug) : null
               const text = <span className="text-[0.9rem] leading-relaxed text-white/70">{etc.text}</span>
               return (
-                <li key={i} className="flex flex-col gap-1 py-1.5 border-b border-white/10 last:border-0">
+                <li key={i} className="flex flex-col gap-1 px-3 py-2.5 rounded-xl mb-2 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #64748b' }}>
                   {etc.slug ? (
                     <Link href={`/story/${etc.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
                       {text}
@@ -331,7 +331,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => {
               const standardizedDescriptor = getOutletDescriptor(item.source)
               return (
-              <li key={i} className="group flex gap-3 items-start py-2.5 border-b border-white/10 last:border-0 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">
+              <li key={i} className="group flex gap-3 items-start py-2.5 px-3 rounded-xl mb-2 last:mb-0 transition-colors" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #94a3b8' }}>
                 <div className="shrink-0 w-20 pt-0.5">
                   <span className="text-[11px] font-bold text-white/80 block leading-tight">{item.source}</span>
                   <span className="text-[9px] text-white/30 leading-none italic" title={item.descriptor}>{standardizedDescriptor}</span>
