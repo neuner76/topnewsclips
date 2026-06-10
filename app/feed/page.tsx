@@ -163,55 +163,13 @@ function getDisplayName(story: Story): string | null {
     .replace(/^./, c => c.toUpperCase())
 }
 
-// Color + icon per In The Know category
+// Per-category config for In The Know
 const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string }> = {
   'Politics & World Affairs':        { color: '#3b82f6', icon: '🌐' },
   'Science & Technology':            { color: '#a855f7', icon: '🔬' },
   'Business & Markets':              { color: '#22c55e', icon: '📈' },
   'Sports, Entertainment, & Culture':{ color: '#f97316', icon: '🎭' },
   'Comedy & Satire':                 { color: '#eab308', icon: '🎤' },
-}
-
-function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Map<string, Story> }) {
-  const story = item.slug ? storyMap.get(item.slug) : null
-  const badge = story ? resolvedBadge(story) : null
-  const displayName = story ? getDisplayName(story) : null
-  const coveredCount = story?.msm_outlet_coverage?.covered?.length ?? 0
-  const totalChecked = (story?.msm_outlet_coverage?.covered?.length ?? 0) + (story?.msm_outlet_coverage?.notCovered?.length ?? 0)
-  const coverageText = totalChecked > 0 ? `${coveredCount} of ${totalChecked} outlets` : null
-
-  const inner = <span className="text-[1.0rem] leading-relaxed text-white/85">{item.text}</span>
-  return (
-    <li className="group rounded-xl px-3 py-2.5 mb-2 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #14b8a6' }}>
-      <div className="flex gap-3">
-        <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-[#14b8a6] opacity-60 group-hover:opacity-100 transition-opacity" />
-        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-          {item.slug ? (
-            <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
-              {inner}
-            </Link>
-          ) : inner}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {(badge?.tier || badge?.sourceType) && (
-              <SourceBadge tier={badge.tier} sourceType={badge.sourceType} compact />
-            )}
-            {displayName && (
-              <span className="text-[11px] font-semibold text-white/50">{displayName}</span>
-            )}
-            {coverageText && (
-              <span className="text-[11px] text-white/40">{coverageText}</span>
-            )}
-            {story?.msm_gap && (
-              <span className="text-[10px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded"
-                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
-                Limited coverage
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </li>
-  )
 }
 
 function DigestView({ content, date, storyMap }: { content: DigestContent; date: string; storyMap: Map<string, Story> }) {
@@ -249,41 +207,28 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
         }
       />
 
-      {/* In The Know */}
-      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#14b8a6' }} />
-        <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
-        <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#14b8a6]">🔍 In The Know</span>
-        <p className="text-xs text-white/50 mb-6">Curated briefings across politics, science, business, culture, and satire</p>
-        <div className="space-y-8">
-          {IN_THE_KNOW_CATEGORIES.map((cat) => {
-            const items = content.inTheKnow[cat]
-            if (!items?.length) return null
-            const cfg = ITK_CATEGORY_CONFIG[cat] ?? { color: 'oklch(0.52 0.14 196)', icon: '📌' }
-            return (
-              <div key={cat}>
-                {/* Category sub-header */}
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
-                  <span className="text-sm">{cfg.icon}</span>
-                  <span
-                    className="text-[11px] font-bold tracking-[0.12em] uppercase"
-                    style={{ color: cfg.color }}
-                  >
-                    {cat}
-                  </span>
-                  <div className="flex-1 h-px" style={{ background: `${cfg.color}22` }} />
-                </div>
-                <ul>
-                  {items.map((item, i) => (
-                    <InTheKnowBullet key={i} item={item} storyMap={storyMap} />
-                  ))}
-                </ul>
-              </div>
-            )
-          })}
-        </div>
-        </div>
-      </div>
+      {/* In The Know — one WorldMapSection per category */}
+      {IN_THE_KNOW_CATEGORIES.map((cat) => {
+        const items = content.inTheKnow[cat]
+        if (!items?.length) return null
+        const cfg = ITK_CATEGORY_CONFIG[cat] ?? { color: '#3b82f6', icon: '📌' }
+        // Resolve Story objects for each item, filtering out missing ones
+        const stories = items
+          .filter(item => item.slug)
+          .map(item => storyMap.get(item.slug!))
+          .filter((s): s is Story => !!s)
+        return (
+          <WorldMapSection
+            key={cat}
+            title={cat}
+            icon={cfg.icon}
+            accent={cfg.color}
+            mapMode="hero"
+            stories={stories}
+            emptyMessage="Stories being added — check back soon."
+          />
+        )
+      })}
 
       {/* Etcetera */}
       {content.etcetera?.length > 0 && (
