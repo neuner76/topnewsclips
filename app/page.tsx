@@ -1,4 +1,4 @@
-import { getLatestDigest, getRecentDigests } from '@/lib/digest'
+import { getLatestDigest } from '@/lib/digest'
 import { createClient } from '@/lib/supabase/server'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
@@ -15,13 +15,6 @@ export const metadata: Metadata = {
   description: 'Free daily briefing. Every source labeled by credibility tier. International context. Global Blindspot. No agenda.',
 }
 
-function formatShortDate(iso: string) {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
-    timeZone: 'America/New_York',
-  })
-}
-
 const FEATURES = [
   { icon: '🔬', label: 'Every source labeled by tier', detail: 'Nonprofit investigative, public broadcaster, wire service, commentary — you always know what you\'re reading.' },
   { icon: '✓', label: 'Confidence on every claim', detail: 'Corroborated, reported, analysis, or single-source — so you know how much weight to give each story.' },
@@ -32,14 +25,7 @@ const FEATURES = [
 
 export default async function LandingPage() {
   const supabase = await createClient()
-  const [digest, recent] = await Promise.all([
-    getLatestDigest(),
-    getRecentDigests(5),
-  ])
-
-  const pastEditions = digest
-    ? recent.filter(d => d.date !== digest.date).slice(0, 4)
-    : recent.slice(0, 4)
+  const digest = await getLatestDigest()
 
   // Fetch actual stories for the NeedToKnow digest preview
   let needToKnowStories: Story[] = []
@@ -144,38 +130,6 @@ export default async function LandingPage() {
               </ul>
             </div>
           </div>
-
-          {/* Past editions */}
-          {pastEditions.length > 0 && (
-            <div
-              className="relative rounded-2xl overflow-hidden mb-8"
-              style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
-            >
-              <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#94a3b8' }} />
-              <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
-                <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2 text-white/40">Past editions</span>
-                <h2 className="text-2xl font-bold text-white leading-tight mb-5">See what you&apos;ve been missing</h2>
-                <ul>
-                  {pastEditions.map(d => (
-                    <li key={d.date}>
-                      <Link
-                        href={`/digest/${d.date}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between py-3 rounded-xl px-3 mb-2 group transition-colors"
-                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #94a3b8' }}
-                      >
-                        <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
-                          {formatShortDate(d.date)}
-                        </span>
-                        <span className="text-xs text-white/30 group-hover:text-white/60 transition-colors">Read →</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
 
           {/* Final CTA */}
           <div
