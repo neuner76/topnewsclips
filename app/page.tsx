@@ -1,8 +1,10 @@
 import { getLatestDigest, getRecentDigests } from '@/lib/digest'
+import { createClient } from '@/lib/supabase/server'
+import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
-import SectionCard from '@/components/SectionCard'
+import WorldMapSection from '@/components/WorldMapSection'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
@@ -10,26 +12,26 @@ export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Top News Clips, The Full Picture, Not the Profitable Picture',
-  description:
-    'Free daily briefing. Every source labeled by credibility tier. International context. Global Blindspot. No agenda.',
+  description: 'Free daily briefing. Every source labeled by credibility tier. International context. Global Blindspot. No agenda.',
 }
 
 function formatShortDate(iso: string) {
   return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
+    weekday: 'long', month: 'long', day: 'numeric',
     timeZone: 'America/New_York',
   })
 }
 
 const FEATURES = [
-  { icon: '🔬', label: 'Every source labeled by tier', detail: 'Nonprofit investigative, public broadcaster, wire service, commentary, you always know what you\'re reading.' },
-  { icon: '✓', label: 'Confidence on every claim', detail: 'Corroborated, reported, analysis, or single-source, so you know how much weight to give each story.' },
+  { icon: '🔬', label: 'Every source labeled by tier', detail: 'Nonprofit investigative, public broadcaster, wire service, commentary — you always know what you\'re reading.' },
+  { icon: '✓', label: 'Confidence on every claim', detail: 'Corroborated, reported, analysis, or single-source — so you know how much weight to give each story.' },
   { icon: '🌍', label: 'Global Blindspot', detail: 'Stories with wide international coverage that major US outlets are skipping.' },
   { icon: '🌐', label: 'Global Lens', detail: 'How outlets in Europe, Asia, and the Middle East are covering the same events differently.' },
   { icon: '⚠️', label: 'Limited coverage alerts', detail: 'When fewer than 3 of 15 major outlets have touched a story, we flag it.' },
 ]
 
 export default async function LandingPage() {
+  const supabase = await createClient()
   const [digest, recent] = await Promise.all([
     getLatestDigest(),
     getRecentDigests(5),
@@ -39,17 +41,26 @@ export default async function LandingPage() {
     ? recent.filter(d => d.date !== digest.date).slice(0, 4)
     : recent.slice(0, 4)
 
+  // Fetch actual stories for the NeedToKnow digest preview
+  let needToKnowStories: Story[] = []
+  if (digest?.content.needToKnow?.length) {
+    const slugs = digest.content.needToKnow.map(i => i.slug).filter(Boolean)
+    if (slugs.length) {
+      const { data } = await supabase.from('stories').select('*').in('slug', slugs)
+      if (data) {
+        const map = new Map((data as Story[]).map(s => [s.slug, s]))
+        needToKnowStories = slugs.map(slug => map.get(slug)).filter((s): s is Story => !!s)
+      }
+    }
+  }
+
   return (
     <>
       <Header />
       <main>
 
-        {/* ── Hero ── */}
-        <section
-          className="relative overflow-hidden py-20 px-4 sm:px-6"
-          style={{ minHeight: 480 }}
-        >
-          {/* CSS globe grid background */}
+        {/* Hero */}
+        <section className="relative overflow-hidden py-20 px-4 sm:px-6" style={{ minHeight: 480 }}>
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -77,126 +88,111 @@ export default async function LandingPage() {
             <p className="text-base sm:text-lg text-white/60 mb-8 max-w-lg mx-auto leading-relaxed">
               Every source labeled by credibility tier. International context every morning. Stories mainstream media skips, surfaced daily.
             </p>
-
-            {/* Email form, the primary CTA */}
-            <div className="max-w-sm mx-auto mb-4">
+            <div className="max-w-sm mx-auto mb-6">
               <EmailCaptureInline placement="landing-hero" />
             </div>
-            <p className="text-xs text-white/30 mb-6">Free. No spam. Unsubscribe any time.</p>
-
-            <Link
-              href="/feed"
-              className="text-sm text-white/40 hover:text-white/70 transition-colors"
-            >
+            <Link href="/feed" className="text-sm text-white/40 hover:text-white/70 transition-colors">
               Browse today&apos;s feed without subscribing →
             </Link>
           </div>
         </section>
 
-        {/* ── Today's digest preview ── */}
-        {digest && (
-          <section className="px-4 sm:px-6 max-w-2xl mx-auto mb-8">
-            <SectionCard accent="#3b82f6">
-              <p className="text-[10px] font-bold tracking-[0.15em] text-[#3b82f6] uppercase mb-4">
-                📋 Today&apos;s Digest
-              </p>
-              <div className="space-y-4 mb-5">
-                {digest.content.needToKnow.slice(0, 3).map(item => (
-                  <div key={item.slug} className="border-l-2 border-[#3b82f6]/40 pl-3">
-                    <p className="text-sm font-bold text-white leading-snug">{item.sectionTitle}</p>
-                    <p className="text-xs text-white/50 mt-0.5 line-clamp-2">{item.paragraphs[0]}</p>
-                  </div>
-                ))}
-                <p className="text-xs text-white/30">
-                  Plus In The Know, Global Lens
-                  {digest.content.globalBlindspots?.length ? ', Global Blindspot' : ''}
-                  , and more.
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/feed"
-                  className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
-                  style={{ background: '#3b82f6' }}
-                >
-                  Read full digest →
-                </Link>
-                <Link
-                  href={`/digest/${digest.date}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-white/40 hover:text-white/70 transition-colors"
-                >
-                  Open in new tab
-                </Link>
-              </div>
-            </SectionCard>
-          </section>
-        )}
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
 
-        {/* ── What makes this different ── */}
-        <section className="px-4 sm:px-6 max-w-2xl mx-auto mb-8">
-          <SectionCard accent="#14b8a6">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-[#14b8a6] uppercase mb-5">
-              🔍 What you get every morning
-            </p>
-            <ul className="space-y-5">
-              {FEATURES.map(f => (
-                <li key={f.label} className="flex gap-3">
-                  <span className="text-lg shrink-0 mt-0.5">{f.icon}</span>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{f.label}</p>
-                    <p className="text-xs text-white/50 mt-0.5 leading-relaxed">{f.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </SectionCard>
-        </section>
+          {/* Today's digest preview — actual stories */}
+          {needToKnowStories.length > 0 && (
+            <WorldMapSection
+              title="Need To Know"
+              icon="📌"
+              accent="#3b82f6"
+              subtitle="Today's most important stories"
+              stories={needToKnowStories}
+              seeAllHref="/feed"
+            />
+          )}
 
-        {/* ── Past editions ── */}
-        {pastEditions.length > 0 && (
-          <section className="px-4 sm:px-6 max-w-2xl mx-auto mb-8">
-            <SectionCard accent="#94a3b8">
-              <p className="text-[10px] font-bold tracking-[0.15em] text-white/40 uppercase mb-4">
-                Past editions
-              </p>
-              <ul>
-                {pastEditions.map(d => (
-                  <li key={d.date}>
-                    <Link
-                      href={`/digest/${d.date}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between py-3 border-b border-white/10 last:border-0 group"
-                    >
-                      <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
-                        {formatShortDate(d.date)}
-                      </span>
-                      <span className="text-xs text-white/30 group-hover:text-white/60 transition-colors">
-                        Read →
-                      </span>
-                    </Link>
+          {/* What you get */}
+          <div
+            className="relative rounded-2xl overflow-hidden mb-8"
+            style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `
+                  radial-gradient(ellipse at 70% 40%, rgba(20,184,166,0.12) 0%, transparent 60%),
+                  linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px)
+                `,
+                backgroundSize: '100% 100%, 48px 48px, 48px 48px',
+              }}
+            />
+            <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#14b8a6' }} />
+            <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
+              <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2 text-[#14b8a6]">🔍 What you get every morning</span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight mb-6">Built for readers who want more than headlines</h2>
+              <ul className="space-y-4">
+                {FEATURES.map(f => (
+                  <li key={f.label} className="flex gap-3 rounded-xl px-3 py-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #14b8a6' }}>
+                    <span className="text-lg shrink-0 mt-0.5">{f.icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{f.label}</p>
+                      <p className="text-xs text-white/50 mt-0.5 leading-relaxed">{f.detail}</p>
+                    </div>
                   </li>
                 ))}
               </ul>
-            </SectionCard>
-          </section>
-        )}
+            </div>
+          </div>
 
-        {/* ── Final CTA ── */}
-        <section className="px-4 sm:px-6 max-w-2xl mx-auto mb-16">
-          <SectionCard accent="#f97316">
-            <div className="text-center py-4">
-              <p className="text-xl font-black text-white mb-2">Free. Daily. No agenda.</p>
+          {/* Past editions */}
+          {pastEditions.length > 0 && (
+            <div
+              className="relative rounded-2xl overflow-hidden mb-8"
+              style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+            >
+              <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#94a3b8' }} />
+              <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
+                <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2 text-white/40">Past editions</span>
+                <h2 className="text-2xl font-bold text-white leading-tight mb-5">See what you&apos;ve been missing</h2>
+                <ul>
+                  {pastEditions.map(d => (
+                    <li key={d.date}>
+                      <Link
+                        href={`/digest/${d.date}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between py-3 rounded-xl px-3 mb-2 group transition-colors"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #94a3b8' }}
+                      >
+                        <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+                          {formatShortDate(d.date)}
+                        </span>
+                        <span className="text-xs text-white/30 group-hover:text-white/60 transition-colors">Read →</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Final CTA */}
+          <div
+            className="relative rounded-2xl overflow-hidden mb-16"
+            style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
+            <div className="relative z-10 px-6 py-10 sm:px-8 text-center">
+              <p className="text-2xl font-black text-white mb-2">Free. Daily. No agenda.</p>
               <p className="text-sm text-white/50 mb-6">Join readers who want the full picture.</p>
               <div className="max-w-sm mx-auto">
                 <EmailCaptureInline placement="landing-bottom" />
               </div>
             </div>
-          </SectionCard>
-        </section>
+          </div>
 
+        </div>
       </main>
       <Footer />
     </>
