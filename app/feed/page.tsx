@@ -15,6 +15,7 @@ import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
 import GlobalLensSection from '@/components/GlobalLensSection'
 import SectionHeader, { VARIANT_CONFIG } from '@/components/SectionHeader'
 import SectionCard from '@/components/SectionCard'
+import WorldMapSection from '@/components/WorldMapSection'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -228,25 +229,32 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       </p>
 
       {/* Need To Know */}
-      <SectionCard accent="#3b82f6" className="mb-8">
-        <SectionHeader variant="need-to-know" title="Need To Know" subtitle="The stories that matter most today — verified, sourced, in context" />
-        <div className="divide-y divide-white/10">
-          {content.needToKnow.map((item, i) => (
-            <div key={item.slug}>
-              <NeedToKnowStory item={item} storyMap={storyMap} />
-              {i === 0 && content.needToKnow.length > 1 && (
-                <div className="py-4 px-1 border-t border-white/10">
-                  <EmailCaptureInline placement="post-ntk" />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </SectionCard>
+      <WorldMapSection
+        title="Need To Know" icon="📌" accent="#3b82f6" mapMode="hero"
+        subtitle="The stories that matter most today — verified, sourced, in context"
+        stories={[]}
+        footer={
+          <div className="divide-y divide-white/10 -mt-2">
+            {content.needToKnow.map((item, i) => (
+              <div key={item.slug}>
+                <NeedToKnowStory item={item} storyMap={storyMap} />
+                {i === 0 && content.needToKnow.length > 1 && (
+                  <div className="py-4 border-t border-white/10">
+                    <EmailCaptureInline placement="post-ntk" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        }
+      />
 
       {/* In The Know */}
-      <SectionCard accent="#14b8a6" className="mb-8">
-        <SectionHeader variant="in-the-know" title="In The Know" subtitle="Curated briefings across politics, science, business, culture, and satire" />
+      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628' }}>
+        <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style={{ background: '#14b8a6' }} />
+        <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
+        <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#14b8a6]">🔍 In The Know</span>
+        <p className="text-xs text-white/50 mb-6">Curated briefings across politics, science, business, culture, and satire</p>
         <div className="space-y-8">
           {IN_THE_KNOW_CATEGORIES.map((cat) => {
             const items = content.inTheKnow[cat]
@@ -274,12 +282,15 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             )
           })}
         </div>
-      </SectionCard>
+        </div>
+      </div>
 
       {/* Etcetera */}
       {content.etcetera?.length > 0 && (
-        <SectionCard accent="#64748b" className="mb-8">
-          <SectionHeader variant="etcetera" title="Also Worth Knowing" />
+        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628' }}>
+          <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style={{ background: '#64748b' }} />
+          <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
+          <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-5 block text-white/40">··· Also Worth Knowing</span>
           <ul className="space-y-2 rounded-lg px-2 py-1">
             {content.etcetera.map((item: EtceteraItem | string, i: number) => {
               const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
@@ -302,13 +313,17 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               )
             })}
           </ul>
-        </SectionCard>
+          </div>
+        </div>
       )}
 
       {/* Mainstream Pulse */}
       {content.mainstreamPulse && content.mainstreamPulse.length > 0 && (
-        <SectionCard accent="#94a3b8" className="mb-8">
-          <SectionHeader variant="mainstream" title="Mainstream Pulse" subtitle="What the major outlets are leading with today" />
+        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628' }}>
+          <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style={{ background: '#94a3b8' }} />
+          <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
+          <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#94a3b8]">📺 Mainstream Pulse</span>
+          <p className="text-xs text-white/50 mb-4">What the major outlets are leading with today</p>
           <Link href="/corrections" className="block text-[10px] text-white/40 hover:text-white/80 transition-colors mb-3">
             ✓ No corrections today
           </Link>
@@ -334,7 +349,8 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               )
             })}
           </ul>
-        </SectionCard>
+          </div>
+        </div>
       )}
 
       {/* Global Blindspot — visual section using world map design */}
@@ -394,63 +410,32 @@ interface SectionProps {
   accentClass: string
 }
 
+const SECTION_CONFIG: Record<string, { accent: string; icon: string; mapMode: 'hero' | 'blindspot' }> = {
+  'Analysis':    { accent: '#f59e0b', icon: '🧠', mapMode: 'hero' },
+  'Reported':    { accent: '#22c55e', icon: '🔬', mapMode: 'hero' },
+  'Raw Footage': { accent: '#94a3b8', icon: '📹', mapMode: 'hero' },
+  'Latest':      { accent: '#3b82f6', icon: '📡', mapMode: 'hero' },
+}
+
 function Section({ title, subtitle, categorySlug, pinned, voices, stories }: SectionProps) {
-  const isEmpty = pinned.length === 0 && voices.length === 0 && stories.length === 0
   let voicesBudget = Math.max(0, SECTION_CAP - pinned.length)
   const cappedVoices = voices.slice(0, voicesBudget)
   voicesBudget = Math.max(0, voicesBudget - cappedVoices.length)
   const cappedStories = stories.slice(0, voicesBudget)
+  const allStories = [...pinned, ...cappedVoices, ...cappedStories]
 
-  const allCapped = [...cappedVoices, ...cappedStories]
-  const todayItems = allCapped.filter(s => isToday(s.created_at))
-  const earlierItems = allCapped.filter(s => !isToday(s.created_at))
-  const showFreshnessLabels = todayItems.length > 0 && earlierItems.length > 0
-  const variant = SECTION_VARIANT_MAP[title] ?? 'in-the-know'
-  const accent = VARIANT_CONFIG[variant].accent
+  const cfg = SECTION_CONFIG[title] ?? { accent: '#3b82f6', icon: '📌', mapMode: 'hero' as const }
 
   return (
-    <SectionCard accent={accent} className="mb-8">
-      <SectionHeader
-        variant={variant}
-        title={title}
-        subtitle={subtitle}
-        seeAllHref={categorySlug ? `/category/${categorySlug}` : undefined}
-      />
-      {isEmpty ? (
-        <p className="text-sm text-white/40 py-4">Stories being curated — check back soon.</p>
-      ) : (
-        <div>
-          {pinned.length > 0 && (
-            <>
-              <SubHeader label="Featured" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                {pinned.map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
-              </div>
-            </>
-          )}
-          {allCapped.length > 0 && (
-            <>
-              {showFreshnessLabels ? (
-                <>
-                  <FreshnessLabel label="Today" />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                    {todayItems.map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
-                  </div>
-                  <FreshnessLabel label="Earlier this week" />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {earlierItems.map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
-                  </div>
-                </>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {allCapped.map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </SectionCard>
+    <WorldMapSection
+      title={title}
+      subtitle={subtitle}
+      icon={cfg.icon}
+      accent={cfg.accent}
+      mapMode={cfg.mapMode}
+      stories={allStories}
+      seeAllHref={categorySlug ? `/category/${categorySlug}` : undefined}
+    />
   )
 }
 
@@ -625,12 +610,11 @@ export default async function HomePage({
               </Link>
             )}
             {msmBlackout.length > 0 && (
-              <SectionCard accent="#ef4444" className="mb-8">
-                <SectionHeader variant="limited" title="Limited Coverage" subtitle="Stories receiving little attention from mainstream outlets" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
-                </div>
-              </SectionCard>
+              <WorldMapSection
+                title="Limited Coverage" icon="⚠️" accent="#ef4444" mapMode="blindspot"
+                subtitle="Stories receiving little attention from mainstream outlets"
+                stories={msmBlackout.slice(0, 6)}
+              />
             )}
             {globalBlindspots.length > 0 && (
               <GlobalBlindspotSection stories={globalBlindspots} />
