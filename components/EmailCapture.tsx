@@ -59,7 +59,7 @@ export default function EmailCapture() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-background/10 border-background/20 text-background placeholder:text-background/40 focus-visible:ring-background/30"
+                className="bg-white border-white text-slate-950 placeholder:text-slate-500 focus-visible:ring-white/40"
               />
               <Button
                 type="submit"
