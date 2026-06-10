@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
-import TierMeter from './TierMeter'
+import TierBadge from './TierBadge'
 
 interface GlobalLensItem {
   slug: string
@@ -138,7 +138,7 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
                   )}
                   {(tier !== null) && (
                     <div className="mt-1">
-                      <TierMeter tier={tier} sourceType={sourceType} compact />
+                      <TierBadge tier={tier} sourceType={sourceType} compact />
                     </div>
                   )}
                 </div>

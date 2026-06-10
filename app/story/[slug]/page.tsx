@@ -31,7 +31,7 @@ import ShareButtons from '@/components/ShareButtons'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
 import ConfidenceBadge from '@/components/ConfidenceBadge'
-import TierMeter from '@/components/TierMeter'
+import TierBadge from '@/components/TierBadge'
 import SectionCard from '@/components/SectionCard'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
@@ -257,7 +257,7 @@ export default async function StoryPage({ params }: Props) {
 
             {/* Tier meter + share */}
             <div className="flex items-center gap-4 flex-wrap">
-              <TierMeter tier={badge.tier} sourceType={badge.sourceType} />
+              <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
               <div className="ml-auto">
                 <ShareButtons title={s.title} slug={s.slug} />
               </div>
@@ -371,7 +371,7 @@ export default async function StoryPage({ params }: Props) {
               {badge.sourceType && (
                 <div className="flex gap-3">
                   <span className="font-semibold text-white/40 w-28 shrink-0">Source type</span>
-                  <TierMeter tier={badge.tier} sourceType={badge.sourceType} />
+                  <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
                 </div>
               )}
               {contentTypeLabel && (

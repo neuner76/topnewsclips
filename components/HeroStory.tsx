@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
-import TierMeter from './TierMeter'
+import TierBadge from './TierBadge'
 import CategoryBadge from './CategoryBadge'
 
 interface HeroStoryProps {
@@ -89,7 +89,7 @@ export default function HeroStory({ story }: HeroStoryProps) {
 
         {/* Footer row */}
         <div className="flex items-center gap-4 flex-wrap">
-          <TierMeter tier={tier} sourceType={sourceType} />
+          <TierBadge tier={tier} sourceType={sourceType} />
           <Link
             href={`/story/${story.slug}`}
             target="_blank"
