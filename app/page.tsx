@@ -570,26 +570,28 @@ export default async function HomePage({
 
         {/* Tab switcher */}
         {digest && (
-          <div className="flex border border-border rounded-lg overflow-hidden mb-8 text-sm font-semibold">
+          <div className="flex rounded-xl overflow-hidden mb-6 text-sm font-semibold" style={{ background: '#0d1628', border: '1px solid rgba(59,130,246,0.15)' }}>
             <Link
               href="/"
-              className={`flex-1 text-center py-2.5 transition-colors ${
+              className={`flex-1 text-center py-3 transition-all ${
                 activeView === 'digest'
-                  ? 'bg-foreground text-background'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-white font-bold'
+                  : 'text-white/40 hover:text-white/70'
               }`}
+              style={activeView === 'digest' ? { background: 'rgba(59,130,246,0.15)', borderBottom: '2px solid #3b82f6' } : {}}
             >
-              Digest
+              📋 Digest
             </Link>
             <Link
               href="/?view=clips"
-              className={`flex-1 text-center py-2.5 transition-colors border-l border-border ${
+              className={`flex-1 text-center py-3 transition-all border-l border-white/10 ${
                 activeView === 'clips'
-                  ? 'bg-foreground text-background'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-white font-bold'
+                  : 'text-white/40 hover:text-white/70'
               }`}
+              style={activeView === 'clips' ? { background: 'rgba(59,130,246,0.15)', borderBottom: '2px solid #3b82f6' } : {}}
             >
-              All Clips
+              🎬 All Clips
             </Link>
           </div>
         )}
@@ -605,18 +607,19 @@ export default async function HomePage({
             {digest && (
               <Link
                 href="/"
-                className="block mb-8 p-4 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors group"
+                className="block mb-6 p-5 rounded-xl group transition-opacity hover:opacity-90"
+                style={{ background: '#0d1628', border: '1px solid rgba(59,130,246,0.2)' }}
               >
-                <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
-                  Today&apos;s Digest
+                <p className="text-[10px] font-bold tracking-[0.15em] text-[#3b82f6] uppercase mb-2">
+                  📋 Today&apos;s Digest
                 </p>
-                <p className="text-base font-bold leading-snug group-hover:underline underline-offset-2 mb-1">
+                <p className="text-base font-bold leading-snug text-white group-hover:underline underline-offset-2 mb-1">
                   {digest.content.needToKnow[0]?.sectionTitle}
                 </p>
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                <p className="text-sm text-white/50 line-clamp-2">
                   {digest.content.needToKnow[0]?.paragraphs[0]}
                 </p>
-                <p className="text-xs font-semibold mt-2 text-foreground">
+                <p className="text-xs font-semibold mt-3 text-[#3b82f6]">
                   Read full digest →
                 </p>
               </Link>

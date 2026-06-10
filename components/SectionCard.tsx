@@ -1,15 +1,6 @@
-'use client'
-
-import dynamic from 'next/dynamic'
-
-const WorldMap = dynamic(() => import('./WorldMap'), { ssr: false })
-
 /**
- * SectionCard — dark encapsulated card with world map watermark.
- * Used for every major section, mirroring GlobalBlindspotSection's visual language.
- *
- * accent:    left border + header color (hex or oklch)
- * mapMode:   which world map overlay to use
+ * SectionCard — dark encapsulated card with instant CSS globe-grid background.
+ * No dynamic JS — renders immediately on server and client.
  */
 
 interface SectionCardProps {
@@ -24,12 +15,23 @@ export default function SectionCard({ accent, children, className = '' }: Sectio
       className={`relative rounded-2xl overflow-hidden mb-8 dark ${className}`}
       style={{ background: '#0d1628' }}
     >
-      {/* World map watermark */}
-      <div className="absolute inset-0 pointer-events-none">
-        <WorldMap mode="watermark" className="w-full h-full" />
-        {/* Subtle gradient so content always reads */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0d1628cc] via-transparent to-[#0d162899]" />
-      </div>
+      {/* CSS globe grid — longitude/latitude lines as instant background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse at 60% 50%, rgba(59,130,246,0.06) 0%, transparent 70%),
+            linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px),
+            linear-gradient(rgba(59,130,246,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.02) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
+        }}
+      />
+
+      {/* Fade edges so grid doesn't fight content */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#0d1628bb] via-transparent to-[#0d162888]" />
 
       {/* Colored top accent bar */}
       <div
