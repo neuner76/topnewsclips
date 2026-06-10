@@ -40,6 +40,7 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
       />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1ecc] to-transparent" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
 
       {/* Content */}
       <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">

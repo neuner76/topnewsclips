@@ -67,7 +67,7 @@ export default function WorldMapSection({
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0d1628] via-transparent to-transparent" />
 
       {/* Colored top accent bar */}
-      <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style={{ background: accent }} />
+      <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: accent }} />
 
       {/* Content */}
       <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">

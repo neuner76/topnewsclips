@@ -35,7 +35,7 @@ export default function SectionCard({ accent, children, className = '' }: Sectio
 
       {/* Colored top accent bar */}
       <div
-        className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl"
+        className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl"
         style={{ background: accent }}
       />
 
