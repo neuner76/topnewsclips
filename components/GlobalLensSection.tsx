@@ -12,10 +12,10 @@ interface GlobalLensItem {
 }
 
 interface GlobalLensSectionProps {
-  // Accept either raw digest items (with summary) or full Story objects
   items?: GlobalLensItem[]
   stories?: Story[]
   storyMap?: Map<string, Story>
+  layout?: 'grid' | 'list'
 }
 
 function getYouTubeThumbnail(embedUrl: string): string | null {
@@ -27,7 +27,6 @@ function storyThumbnail(s: Story): string | null {
   return s.platform === 'youtube' ? getYouTubeThumbnail(s.embed_url) : s.thumbnail_url ?? null
 }
 
-// Region → flag emoji map
 const REGION_FLAGS: Record<string, string> = {
   'Europe': '🇪🇺', 'Asia': '🌏', 'Africa': '🌍', 'Middle East': '🌍',
   'Latin America': '🌎', 'South America': '🌎', 'Australia': '🇦🇺',
@@ -44,8 +43,7 @@ function regionFlag(region: string): string {
   return '🌐'
 }
 
-export default function GlobalLensSection({ items, stories, storyMap }: GlobalLensSectionProps) {
-  // Build a unified display list from whichever data source was provided
+export default function GlobalLensSection({ items, stories, storyMap, layout = 'list' }: GlobalLensSectionProps) {
   const displayItems: Array<{ story: Story | null; region: string; title: string; summary: string; slug: string }> = []
 
   if (items && storyMap) {
@@ -64,7 +62,7 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
 
-      {/* CSS globe grid, blue-tinted, instant */}
+      {/* CSS globe grid */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -85,15 +83,11 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
       </div>
       <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#3b82f6' }} />
 
-      {/* Content */}
       <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
 
         {/* Header */}
         <div className="mb-6">
-          <span
-            className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2"
-            style={{ color: '#3b82f6' }}
-          >
+          <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: '#3b82f6' }}>
             🌐 Global Lens
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
@@ -104,70 +98,84 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
           </p>
         </div>
 
-        {/* Story rows */}
-        <div className="flex flex-col gap-3">
-          {displayItems.map(({ story, region, title, summary, slug }) => {
-            const thumbnail = story ? storyThumbnail(story) : null
-            const { tier, sourceType } = story
-              ? getSourceTier(story.journalist_username, story.source ?? '', story.category)
-              : { tier: null, sourceType: null }
-
-            return (
-              <Link
-                key={slug}
-                href={`/story/${slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex gap-3 items-start rounded-xl p-3 transition-all"
-                style={{ borderLeft: '3px solid #3b82f6', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
-              >
-                {/* Thumbnail */}
-                {thumbnail && (
-                  <div className="shrink-0">
-                    <Image
-                      src={thumbnail} alt={title}
-                      width={80} height={48}
-                      className="rounded object-cover w-20 h-12 opacity-80 group-hover:opacity-100 transition-opacity"
-                      unoptimized
-                    />
-                  </div>
-                )}
-
-                {/* Text */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-sm">{regionFlag(region)}</span>
-                    <span
-                      className="text-[10px] font-bold tracking-wide uppercase"
-                      style={{ color: '#3b82f6' }}
-                    >
-                      {region}
+        {/* Grid layout — image above headline */}
+        {layout === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {displayItems.map(({ story, region, title, summary, slug }) => {
+              const thumb = story ? storyThumbnail(story) : null
+              const { tier, sourceType } = story
+                ? getSourceTier(story.journalist_username, story.source ?? '', story.category)
+                : { tier: null, sourceType: null }
+              return (
+                <Link
+                  key={slug}
+                  href={`/story/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
+                  style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <div className="relative aspect-video bg-white/5 overflow-hidden">
+                    {thumb ? (
+                      <Image src={thumb} alt={title} fill className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-300" unoptimized />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center"><span className="text-white/20 text-3xl">📰</span></div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
+                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(59,130,246,0.8)', color: 'white' }}>
+                      {regionFlag(region)} {region}
                     </span>
                   </div>
-                  <h3 className="text-sm font-semibold text-white line-clamp-2 group-hover:underline underline-offset-2">
-                    {title}
-                  </h3>
-                  {summary && (
-                    <p className="text-xs text-white/50 mt-0.5 line-clamp-1">{summary}</p>
-                  )}
-                  {(tier !== null) && (
-                    <div className="mt-1">
-                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                  <div className="flex flex-col flex-1 p-3">
+                    <h3 className="text-sm font-bold text-white/90 group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{title}</h3>
+                    {summary && <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{summary}</p>}
+                    {tier !== null && (
+                      <div className="mt-auto">
+                        <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          /* List layout — no thumbnails */
+          <div className="flex flex-col gap-1">
+            {displayItems.map(({ story, region, title, summary, slug }) => {
+              const { tier, sourceType } = story
+                ? getSourceTier(story.journalist_username, story.source ?? '', story.category)
+                : { tier: null, sourceType: null }
+              return (
+                <Link
+                  key={slug}
+                  href={`/story/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex gap-3 items-start rounded-xl p-3 transition-all"
+                  style={{ borderLeft: '3px solid #3b82f6', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-sm">{regionFlag(region)}</span>
+                      <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: '#3b82f6' }}>{region}</span>
                     </div>
-                  )}
-                </div>
-              </Link>
-            )
-          })}
-        </div>
+                    <h3 className="text-sm font-semibold text-white line-clamp-2 group-hover:underline underline-offset-2">{title}</h3>
+                    {summary && <p className="text-xs text-white/50 mt-0.5 line-clamp-1">{summary}</p>}
+                    {tier !== null && (
+                      <div className="mt-1">
+                        <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
 
-        {/* CTA */}
         <div className="mt-5">
-          <Link
-            href="/stories?filter=global"
-            className="text-sm font-semibold transition-opacity hover:opacity-80"
-            style={{ color: '#3b82f6' }}
-          >
+          <Link href="/stories?filter=global" className="text-sm font-semibold transition-opacity hover:opacity-80" style={{ color: '#3b82f6' }}>
             See all global coverage →
           </Link>
         </div>

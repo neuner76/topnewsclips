@@ -6,6 +6,7 @@ import TierBadge from './TierBadge'
 
 interface GlobalBlindspotSectionProps {
   stories: Story[]
+  layout?: 'grid' | 'list'
 }
 
 function getYouTubeThumbnail(embedUrl: string): string | null {
@@ -17,13 +18,13 @@ function storyThumbnail(s: Story): string | null {
   return s.platform === 'youtube' ? getYouTubeThumbnail(s.embed_url) : s.thumbnail_url ?? null
 }
 
-export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSectionProps) {
+export default function GlobalBlindspotSection({ stories, layout = 'list' }: GlobalBlindspotSectionProps) {
   if (!stories.length) return null
 
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid rgba(255,255,255,0.07)' }}>
 
-      {/* CSS globe grid, orange-tinted, instant */}
+      {/* CSS globe grid */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -42,15 +43,11 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent" />
       <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
 
-      {/* Content */}
       <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
 
         {/* Header */}
         <div className="mb-6">
-          <span
-            className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2"
-            style={{ color: 'var(--blindspot-orange)' }}
-          >
+          <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: 'var(--blindspot-orange)' }}>
             🌍 Global Blindspot
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
@@ -61,73 +58,80 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
           </p>
         </div>
 
-        {/* Story cards */}
-        <div className="flex flex-col gap-3">
-          {stories.slice(0, 4).map((story) => {
-            const thumbnail = storyThumbnail(story)
-            const { tier, sourceType } = getSourceTier(
-              story.journalist_username,
-              story.source ?? '',
-              story.category,
-            )
-            return (
-              <Link
-                key={story.id}
-                href={`/story/${story.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex gap-3 items-start rounded-xl p-3 transition-all"
-                style={{ borderLeft: '3px solid var(--blindspot-orange)', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
-              >
-                {/* Thumbnail */}
-                {thumbnail && (
-                  <div className="shrink-0">
-                    <Image
-                      src={thumbnail} alt={story.title}
-                      width={80} height={48}
-                      className="rounded object-cover w-20 h-12 opacity-80 group-hover:opacity-100 transition-opacity"
-                      unoptimized
-                    />
-                  </div>
-                )}
-
-                {/* Text */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-white line-clamp-2 group-hover:underline underline-offset-2">
-                    {story.title}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+        {/* Grid layout — image above headline */}
+        {layout === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {stories.slice(0, 4).map((story) => {
+              const thumb = storyThumbnail(story)
+              const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
+              return (
+                <Link
+                  key={story.id}
+                  href={`/story/${story.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
+                  style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <div className="relative aspect-video bg-white/5 overflow-hidden">
+                    {thumb ? (
+                      <Image src={thumb} alt={story.title} fill className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-300" unoptimized />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center"><span className="text-white/20 text-3xl">📰</span></div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
                     {story.region && (
-                      <span className="text-[10px] font-medium" style={{ color: 'var(--blindspot-orange)' }}>
+                      <span className="absolute top-2 left-2 text-[10px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.8)', color: 'white' }}>
                         {story.region}
                       </span>
                     )}
-                    <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-                    {/* Western coverage callout badge */}
-                    <span
-                      className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded"
-                      style={{
-                        background: 'rgba(249,115,22,0.15)',
-                        color: 'var(--blindspot-orange)',
-                        border: '1px solid rgba(249,115,22,0.3)',
-                      }}
-                    >
-                      Under-reported
-                    </span>
                   </div>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
+                  <div className="flex flex-col flex-1 p-3">
+                    <h3 className="text-sm font-bold text-white/90 group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{story.title}</h3>
+                    {story.description && <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>}
+                    <div className="mt-auto flex items-center gap-2 flex-wrap">
+                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
+                        Under-reported
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          /* List layout — no thumbnails */
+          <div className="flex flex-col gap-1">
+            {stories.slice(0, 4).map((story) => {
+              const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
+              return (
+                <Link
+                  key={story.id}
+                  href={`/story/${story.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex gap-3 items-start rounded-xl p-3 transition-all"
+                  style={{ borderLeft: '3px solid var(--blindspot-orange)', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-white line-clamp-2 group-hover:underline underline-offset-2 mb-1">{story.title}</h3>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {story.region && <span className="text-[10px] font-medium" style={{ color: 'var(--blindspot-orange)' }}>{story.region}</span>}
+                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
+                        Under-reported
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
 
-        {/* CTA */}
         <div className="mt-5">
-          <Link
-            href="/stories?filter=blindspot"
-            className="text-sm font-semibold transition-opacity hover:opacity-80"
-            style={{ color: 'var(--blindspot-orange)' }}
-          >
+          <Link href="/stories?filter=blindspot" className="text-sm font-semibold transition-opacity hover:opacity-80" style={{ color: 'var(--blindspot-orange)' }}>
             See all blindspot stories →
           </Link>
         </div>

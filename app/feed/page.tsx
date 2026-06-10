@@ -299,13 +299,13 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Global Blindspot, visual section using world map design */}
       {content.globalBlindspots && content.globalBlindspots.length > 0 && (
-        <GlobalBlindspotSection stories={content.globalBlindspots.map(item => storyMap.get(item.slug)).filter((s): s is Story => !!s)} />
+        <GlobalBlindspotSection stories={content.globalBlindspots.map(item => storyMap.get(item.slug)).filter((s): s is Story => !!s)} layout="list" />
       )}
 
 
       {/* Global Lens */}
       {content.globalLens && content.globalLens.length > 0 && (
-        <GlobalLensSection items={content.globalLens} storyMap={storyMap} />
+        <GlobalLensSection items={content.globalLens} storyMap={storyMap} layout="list" />
       )}
     </div>
   )
@@ -598,10 +598,10 @@ export default async function HomePage({
               />
             )}
             {globalBlindspots.length > 0 && (
-              <GlobalBlindspotSection stories={globalBlindspots} />
+              <GlobalBlindspotSection stories={globalBlindspots} layout="grid" />
             )}
             {globalLens.length > 0 && (
-              <GlobalLensSection stories={globalLens} />
+              <GlobalLensSection stories={globalLens} layout="grid" />
             )}
             <Section
               title="Analysis"
