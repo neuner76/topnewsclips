@@ -7,10 +7,10 @@ import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import CategoryBadge from './CategoryBadge'
 import MSMBadge from './MSMBadge'
+import TierBadge from './TierBadge'
 
 interface StoryCardProps {
   story: Story
-  /** layout='grid' renders image-first card (Ground.news style); 'list' renders compact row */
   layout?: 'grid' | 'list'
 }
 
@@ -32,51 +32,6 @@ function formatPublishedDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function getTierColor(tier: number): string {
-  if (tier <= 3) return '#22c55e'
-  if (tier <= 6) return '#f59e0b'
-  return '#ef4444'
-}
-
-function getTierLabel(tier: number): string {
-  if (tier <= 3) return 'High credibility'
-  if (tier <= 6) return 'Mid credibility'
-  return 'Low credibility'
-}
-
-function getBarsFilled(tier: number): number {
-  return Math.max(1, 11 - tier)
-}
-
-/** The trust bar, analogous to Ground.news's L/C/R bias bar */
-function TrustBar({ tier, sourceType }: { tier: number | null; sourceType: string | null }) {
-  if (!tier || !sourceType) return null
-  const color = getTierColor(tier)
-  const filled = getBarsFilled(tier)
-  const pct = (filled / 10) * 100
-
-  return (
-    <div className="mt-auto pt-3">
-      {/* Bar */}
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
-        <div
-          className="h-full rounded-full transition-all"
-          style={{ width: `${pct}%`, background: color }}
-        />
-      </div>
-      {/* Labels */}
-      <div className="flex items-center justify-between mt-1">
-        <span className="text-[10px] font-semibold" style={{ color }}>
-          {sourceType}
-        </span>
-        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          T{tier} · {getTierLabel(tier)}
-        </span>
-      </div>
-    </div>
-  )
-}
-
 export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
   const thumbnail =
     story.platform === 'youtube'
@@ -84,10 +39,8 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
       : story.thumbnail_url ?? null
 
   const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
-  const tierColor = tier ? getTierColor(tier) : 'rgba(255,255,255,0.2)'
 
   if (layout === 'list') {
-    // Compact list row, used in digest/detail views
     return (
       <article className="group py-3 border-b border-white/10 last:border-0">
         <div className="flex gap-3 items-start">
@@ -104,7 +57,9 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
                 {story.title}
               </h3>
             </Link>
-            <TrustBar tier={tier} sourceType={sourceType} />
+            <div className="mt-2">
+              <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+            </div>
           </div>
           {thumbnail && (
             <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
@@ -120,15 +75,11 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
     )
   }
 
-  // Grid card, image-first, Ground.news style
+  // Grid card — image above headline
   return (
     <article
       className="group relative flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
-      style={{
-        background: '#111827',
-        border: `1px solid ${tierColor}33`,
-        boxShadow: `0 0 0 1px ${tierColor}22`,
-      }}
+      style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}
     >
       {/* Image */}
       <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block relative aspect-video bg-white/5 overflow-hidden">
@@ -143,16 +94,11 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
             <span className="text-white/20 text-3xl">📰</span>
           </div>
         )}
-        {/* Gradient overlay so headline reads over image */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
-
-        {/* Badges over image */}
         <div className="absolute top-2 left-2 flex flex-wrap gap-1">
           <CategoryBadge category={story.category} />
           {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
         </div>
-
-        {/* Time */}
         <span className="absolute top-2 right-2 text-[10px] text-white/60 bg-black/40 px-1.5 py-0.5 rounded">
           {formatPublishedDate(story.created_at)}
         </span>
@@ -164,21 +110,18 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
           href={`/story/${story.slug}`}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => {
-            track('story_click', { slug: story.slug, platform: story.platform, category: story.category ?? 'unknown' })
-          }}
+          onClick={() => track('story_click', { slug: story.slug, platform: story.platform, category: story.category ?? 'unknown' })}
         >
           <h3 className="text-sm font-bold text-white/90 group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-1">
             {story.title}
           </h3>
         </Link>
-
         {story.description && (
           <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>
         )}
-
-        {/* Trust bar, the signature visual, like Ground.news's bias bar */}
-        <TrustBar tier={tier} sourceType={sourceType} />
+        <div className="mt-auto pt-1">
+          <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+        </div>
       </div>
     </article>
   )

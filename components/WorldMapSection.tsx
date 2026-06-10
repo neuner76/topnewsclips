@@ -41,11 +41,6 @@ function formatPublishedDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function getTierColor(tier: number): string {
-  if (tier <= 3) return '#22c55e'
-  if (tier <= 6) return '#f59e0b'
-  return '#ef4444'
-}
 
 export default function WorldMapSection({
   title, subtitle, icon, accent, mapMode = 'hero',
@@ -107,7 +102,6 @@ export default function WorldMapSection({
               {stories.map((story) => {
                 const thumb = storyThumbnail(story)
                 const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
-                const tierColor = tier ? getTierColor(tier) : 'rgba(255,255,255,0.2)'
                 return (
                   <Link
                     key={story.id}
@@ -117,7 +111,7 @@ export default function WorldMapSection({
                     className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
                     style={{
                       background: '#111827',
-                      border: `1px solid ${tierColor}33`,
+                      border: '1px solid rgba(255,255,255,0.08)',
                     }}
                   >
                     {/* Thumbnail */}
@@ -152,14 +146,7 @@ export default function WorldMapSection({
                       {story.description && (
                         <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>
                       )}
-                      {/* Trust bar */}
                       <div className="mt-auto pt-2">
-                        <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${Math.max(10, (11 - (tier ?? 10)) * 10)}%`, background: tierColor }}
-                          />
-                        </div>
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                       </div>
                     </div>
