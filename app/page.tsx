@@ -429,7 +429,9 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories }: Sec
           {pinned.length > 0 && (
             <>
               <SubHeader label="Featured" />
-              {pinned.map(s => <StoryCard key={s.id} story={s} />)}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                {pinned.map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
+              </div>
             </>
           )}
           {allCapped.length > 0 && (
@@ -437,12 +439,18 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories }: Sec
               {showFreshnessLabels ? (
                 <>
                   <FreshnessLabel label="Today" />
-                  {todayItems.map(s => <StoryCard key={s.id} story={s} />)}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    {todayItems.map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
+                  </div>
                   <FreshnessLabel label="Earlier this week" />
-                  {earlierItems.map(s => <StoryCard key={s.id} story={s} />)}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {earlierItems.map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
+                  </div>
                 </>
               ) : (
-                allCapped.map(s => <StoryCard key={s.id} story={s} />)
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {allCapped.map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
+                </div>
               )}
             </>
           )}
@@ -622,8 +630,8 @@ export default async function HomePage({
             {msmBlackout.length > 0 && (
               <SectionCard accent="#ef4444" className="mb-8">
                 <SectionHeader variant="limited" title="Limited Coverage" subtitle="Stories receiving little attention from mainstream outlets" />
-                <div>
-                  {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} />)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} layout="grid" />)}
                 </div>
               </SectionCard>
             )}
