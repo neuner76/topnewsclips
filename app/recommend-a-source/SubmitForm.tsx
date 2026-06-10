@@ -8,7 +8,7 @@ const TIERS = [
   { value: 3,  label: '3, Public Broadcaster (DW, Al Jazeera, France 24)' },
   { value: 4,  label: '4, Independent News Org (The Intercept, Drop Site)' },
   { value: 5,  label: '5, Wire Service (Reuters, AP)' },
-  { value: 6,  label: '6, Commercial Newsroom (CNN, BBC, Vox, 60 Minutes)' },
+  { value: 6,  label: '6, Newsroom (CNN, BBC, Vox, 60 Minutes)' },
   { value: 7,  label: '7, Independent Commentary' },
   { value: 8,  label: '8, State Media' },
   { value: 9,  label: '9, Raw Footage' },

@@ -7,7 +7,7 @@
  *
  * Band mapping:
  *   high  T1–T3  Nonprofit Investigative, OSINT, Public Broadcaster
- *   mid   T4–T6  Independent News, Wire Service, Commercial Newsroom
+ *   mid   T4–T6  Independent News, Wire Service, Newsroom
  *   low   T7–T10 Independent Commentary, State Media, Raw Footage, Community
  */
 
@@ -62,8 +62,8 @@ const SHORT_LABELS: Record<string, string> = {
   'Public Broadcaster':              'Public Media',
   'Independent News':                'Ind. News',
   'Wire Service':                    'Wire',
-  'Commercial Newsroom':             'Newsroom',
-  'Commercial Newsroom (Satire)':    'Satire',
+  'Newsroom':             'Newsroom',
+  'Newsroom (Satire)':    'Satire',
   'Independent Commentary':          'Commentary',
   'Independent Commentary (Satire)': 'Satire',
   'State Media':                     'State Media',

@@ -277,7 +277,7 @@ export default function StoryForm({ story }: StoryFormProps) {
                 <option value="3">3, Public Broadcaster</option>
                 <option value="4">4, Independent News</option>
                 <option value="5">5, Wire Service</option>
-                <option value="6">6, Commercial Newsroom</option>
+                <option value="6">6, Newsroom</option>
                 <option value="7">7, Independent Commentary</option>
                 <option value="8">8, State Media</option>
                 <option value="9">9, Raw Footage</option>

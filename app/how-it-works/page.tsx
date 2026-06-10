@@ -144,7 +144,7 @@ export default function HowItWorksPage() {
           <div className="px-5 py-4 space-y-4 text-[14px]">
             <div className="border-l-2 border-border pl-4">
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 1, Source identified</p>
-              <p>Channel: <span className="font-semibold">@60minutes</span>, Tier 6 (Commercial Newsroom)</p>
+              <p>Channel: <span className="font-semibold">@60minutes</span>, Tier 6 (Newsroom)</p>
               <p className="text-muted-foreground">Published: April 4, 2026</p>
             </div>
             <div className="border-l-2 border-border pl-4">
@@ -173,7 +173,7 @@ export default function HowItWorksPage() {
             <div className="bg-muted/50 rounded p-3 text-sm">
               <p className="font-semibold mb-1">Result: story appears in today&apos;s briefing with:</p>
               <ul className="space-y-0.5 text-muted-foreground">
-                <li>– Tier 6 badge (Commercial Newsroom)</li>
+                <li>– Tier 6 badge (Newsroom)</li>
                 <li>– @60minutes handle</li>
                 <li>– &ldquo;0 of 15 outlets&rdquo; coverage count</li>
                 <li>– Neutral, source-attributed summary</li>

@@ -62,7 +62,7 @@ const TIERS = [
   },
   {
     tier: 6,
-    name: 'Commercial Newsroom',
+    name: 'Newsroom',
     color: 'text-muted-foreground bg-muted border-border',
     definition: 'Established commercial news outlets and explainer-journalism brands. Ad-supported or subscription-funded with professional editorial teams and institutional editorial standards.',
     rationale: 'These outlets produce quality journalism but operate within commercial media structures. Their editorial decisions can be influenced by audience metrics, advertiser relationships, or corporate ownership, a structural constraint that doesn\'t apply to nonprofits or public broadcasters.',

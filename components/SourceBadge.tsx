@@ -5,7 +5,7 @@
  * without implying a trustworthiness ranking via color.
  *
  * Tiers describe editorial process, not credibility score:
- *   1 = Nonprofit Investigative   6 = Commercial Newsroom
+ *   1 = Nonprofit Investigative   6 = Newsroom
  *   2 = OSINT                     7 = Independent Commentary
  *   3 = Public Broadcaster        8 = State Media
  *   4 = Independent News          9 = Raw Footage
@@ -32,8 +32,8 @@ const BADGE_CONFIG: Record<string, BadgeConfig> = {
   'Public Broadcaster':                { icon: '📡', label: 'Public Media',    color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.2)' },
   'Independent News':                  { icon: '📰', label: 'Ind. News',       color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.2)' },
   'Wire Service':                      { icon: '🔗', label: 'Wire Service',    color: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.2)' },
-  'Commercial Newsroom':               { icon: '🏢', label: 'Newsroom',        color: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.2)' },
-  'Commercial Newsroom (Satire)':      { icon: '🎭', label: 'Satire',          color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.2)' },
+  'Newsroom':               { icon: '🏢', label: 'Newsroom',        color: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.2)' },
+  'Newsroom (Satire)':      { icon: '🎭', label: 'Satire',          color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.2)' },
   'Independent Commentary':            { icon: '💬', label: 'Commentary',      color: '#c084fc', bg: 'rgba(192,132,252,0.08)', border: 'rgba(192,132,252,0.2)' },
   'Independent Commentary (Satire)':   { icon: '🎭', label: 'Satire',          color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.2)' },
   'State Media':                       { icon: '🏛️',  label: 'State Media',    color: '#fb923c', bg: 'rgba(251,146,60,0.08)',  border: 'rgba(251,146,60,0.2)' },
