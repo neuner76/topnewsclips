@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { getLatestDigest, type DigestContent } from '@/lib/digest'
 import type { Story } from '@/lib/types'
-import { buildEmailHtml, buildStoryMap, formatDate, storyUrl, siteUrlUtm } from '@/lib/email/digest-html'
+import { buildEmailHtml, buildStoryMap, formatDate, formatPublishedDate, sourceHandle, storyUrl, siteUrlUtm } from '@/lib/email/digest-html'
 import { unsubscribeLink } from '@/lib/unsubscribe'
 import { requireCronSecret } from '@/lib/auth'
 
@@ -20,7 +20,15 @@ function firstSentence(text: string): string {
   return match ? match[0] : text
 }
 
-function buildEmailText(content: DigestContent, date: string, siteUrl: string): string {
+function globalTextMeta(story: Story | undefined): string {
+  if (!story) return ''
+  const parts = [formatPublishedDate(story.created_at)]
+  const handle = sourceHandle(story)
+  if (handle) parts.push(handle)
+  return parts.join(' · ')
+}
+
+function buildEmailText(content: DigestContent, date: string, siteUrl: string, storyMap: Map<string, Story>): string {
   const inTheKnowCategories = [
     'Politics & World Affairs',
     'Science & Technology',
@@ -108,8 +116,10 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push('Stories the rest of the world is covering that US media is ignoring.')
     lines.push('')
     for (const item of content.globalBlindspots) {
+      const meta = globalTextMeta(storyMap.get(item.slug))
       const sentence = firstSentence(item.summary)
       lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
+      if (meta) lines.push(meta)
       lines.push(sentence)
       lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
       lines.push('')
@@ -124,8 +134,10 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
     lines.push("How international outlets are covering today's stories — perspectives US media isn't amplifying.")
     lines.push('')
     for (const item of content.globalLens) {
+      const meta = globalTextMeta(storyMap.get(item.slug))
       const sentence = firstSentence(item.summary)
       lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
+      if (meta) lines.push(meta)
       lines.push(sentence)
       lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
       lines.push('')
@@ -193,7 +205,7 @@ export async function GET(request: Request) {
   )
 
   const baseHtml = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
-  const baseText = buildEmailText(digest.content, digest.date, siteUrl)
+  const baseText = buildEmailText(digest.content, digest.date, siteUrl, storyMap)
   const subject = `Your briefing — ${formatDate(digest.date)}`
 
   // Resend supports batch send up to 100 emails per request

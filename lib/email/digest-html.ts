@@ -13,6 +13,34 @@ export function formatDate(dateStr: string): string {
 export function storyUrl(siteUrl: string, slug: string) { return `${siteUrl}/story/${slug}?${DIGEST_UTM}` }
 export function siteUrlUtm(siteUrl: string) { return `${siteUrl}?${DIGEST_UTM}` }
 
+export function formatPublishedDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffHours < 1) return 'Just now'
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+export function sourceHandle(story: Story): string | null {
+  if (story.journalist_username) return `@${normalizeHandle(story.journalist_username)}`
+  const source = story.source?.replace(/^(YouTube|TikTok|Reddit)\/@?/i, '').trim()
+  return source ? `@${normalizeHandle(source)}` : null
+}
+
+function normalizeHandle(value: string): string {
+  const compact = value.replace(/^@/, '').replace(/\s+/g, '').toLowerCase()
+  const aliases: Record<string, string> = {
+    france24english: 'france24',
+    france24en: 'france24',
+    france24englishofficial: 'france24',
+  }
+  return aliases[compact] ?? compact
+}
+
 // ─── Email-safe badge helpers (inline styles only, no Tailwind/OKLCH) ────────
 
 const TIER_COLORS: Record<number, { text: string; bg: string; border: string }> = {
@@ -82,6 +110,13 @@ function renderBadgeRow(story: Story): string {
     parts.push(`<span style="font-size:10px;color:#9ca3af;">@${story.journalist_username}</span>`)
   }
   return `<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${parts.join('')}</div>`
+}
+
+function renderGlobalMeta(story: Story): string {
+  const parts = [formatPublishedDate(story.created_at)]
+  const handle = sourceHandle(story)
+  if (handle) parts.push(handle)
+  return `<p style="margin:4px 0 0;font-size:11px;color:#9ca3af;">${parts.join('<span style="margin:0 4px;opacity:0.45;">·</span>')}</p>`
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -207,11 +242,13 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
         const badges = story
           ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}</div>`
           : ''
+        const meta = story ? renderGlobalMeta(story) : ''
         return `
         <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #fde68a;">
           <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#92400e;text-transform:uppercase;margin-right:6px;">${item.region}</span>
           <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
           ${badges}
+          ${meta}
           <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#78716c;">${item.summary}</p>
         </div>`
       }).join('')}
@@ -227,11 +264,13 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
         const badges = story
           ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}</div>`
           : ''
+        const meta = story ? renderGlobalMeta(story) : ''
         return `
         <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #99f6e4;">
           <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#0e7490;text-transform:uppercase;margin-right:6px;">${item.region}</span>
           <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
           ${badges}
+          ${meta}
           <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#6b7280;">${item.summary}</p>
         </div>`
       }).join('')}

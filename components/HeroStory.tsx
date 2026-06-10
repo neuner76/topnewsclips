@@ -67,9 +67,6 @@ export default function HeroStory({ story }: HeroStoryProps) {
       <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12 max-w-xl">
         {/* Label row */}
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#3b82f6]">
-            Top Story
-          </span>
           <CategoryBadge category={story.category} />
         </div>
 
