@@ -10,6 +10,8 @@ import PlatformBadge from './PlatformBadge'
 import PressureScore from './PressureScore'
 import CategoryBadge from './CategoryBadge'
 import SourceTypeBadge from './SourceTypeBadge'
+import TierMeter from './TierMeter'
+import WorldMap from './WorldMap'
 
 interface StoryCardProps {
   story: Story
@@ -42,10 +44,15 @@ export default function StoryCard({ story }: StoryCardProps) {
   const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
 
   return (
-    <article className="group py-3 border-b border-border">
+    <article className="group py-3 border-b border-border relative overflow-hidden">
+
+      {/* World map watermark — dark mode only */}
+      <div className="absolute inset-0 hidden dark:block">
+        <WorldMap mode="watermark" className="absolute right-0 bottom-0 w-48 h-full" />
+      </div>
 
       {/* sm+: side-by-side | mobile: stacked */}
-      <div className="flex gap-3 items-start">
+      <div className="flex gap-3 items-start relative z-10">
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -75,8 +82,9 @@ export default function StoryCard({ story }: StoryCardProps) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center gap-3 mt-2">
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
             <PressureScore viewCount={story.view_count} shareCount={story.share_count} />
+            <TierMeter tier={tier} sourceType={sourceType} compact />
             <span className="text-xs text-muted-foreground">
               {formatPublishedDate(story.created_at)}
             </span>

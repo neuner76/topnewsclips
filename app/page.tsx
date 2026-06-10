@@ -9,6 +9,9 @@ import EmailCapture from '@/components/EmailCapture'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import SourceTypeBadge from '@/components/SourceTypeBadge'
+import TierMeter from '@/components/TierMeter'
+import HeroStory from '@/components/HeroStory'
+import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -81,6 +84,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />}
+          {(badge?.tier || badge?.sourceType) && <TierMeter tier={badge.tier} sourceType={badge.sourceType} compact />}
           {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
           {story?.journalist_username && (
             <span className="text-xs text-muted-foreground">@{story.journalist_username}</span>
@@ -614,25 +618,22 @@ export default async function HomePage({
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Masthead */}
-        <div className="mb-6">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-            Top News Clips
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            The full picture, not the profitable picture.
-          </p>
-          <p className="text-xs text-muted-foreground mt-3">A daily briefing founded by Eric Neuner with visible source labels, confidence markers, broader coverage, and clearer context. Built to help you understand what matters without drowning in noise.</p>
-          <EmailCaptureInline placement="hero" />
-          {digest && activeView === 'digest' && (
-            <a
-              href="#digest"
-              className="inline-block mt-3 text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2"
-            >
-              See today&apos;s digest ↓
-            </a>
-          )}
-        </div>
+        {/* Hero — world map + top story */}
+        {(() => {
+          const heroStory = all.find(s => s.pinned) ?? all[0]
+          return heroStory ? <HeroStory story={heroStory} /> : (
+            <div className="mb-6">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Top News Clips</h1>
+              <p className="text-sm text-muted-foreground mt-1">The full picture, not the profitable picture.</p>
+            </div>
+          )
+        })()}
+        <EmailCaptureInline placement="hero" />
+        {digest && activeView === 'digest' && (
+          <a href="#digest" className="inline-block mt-3 mb-4 text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2">
+            See today&apos;s digest ↓
+          </a>
+        )}
 
         {/* Tab switcher */}
         {digest && (
@@ -701,49 +702,7 @@ export default async function HomePage({
               </section>
             )}
             {globalBlindspots.length > 0 && (
-              <section className="mb-12">
-                <div className="border-l-4 border-[oklch(0.58_0.14_55)] pl-3 mb-3">
-                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-[oklch(0.52_0.14_55)]">
-                    Global Blindspot
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Stories the rest of the world is covering that haven&apos;t reached US headlines</p>
-                </div>
-                <div>
-                  {globalBlindspots.slice(0, SECTION_CAP).map(s => {
-                    const thumb = storyThumbnail(s)
-                    const badge = getSourceTier(s.journalist_username, s.source ?? '', s.category)
-                    return (
-                    <div key={s.id} className="group py-3 border-b border-border">
-                      <div className="flex gap-3 items-start">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                            <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{s.region}</span>
-                            <GlobalBlindspotBadge />
-                            <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />
-                          </div>
-                          <Link href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
-                            <h3 className="editorial-headline text-foreground group-hover/title:underline underline-offset-2">{s.title}</h3>
-                          </Link>
-                          {s.description && (
-                            <p className="text-base text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
-                          )}
-                          <div className="flex items-center gap-3 mt-2">
-                            <PressureScore viewCount={s.view_count} shareCount={s.share_count} />
-                            <span className="text-xs text-muted-foreground">{formatDate(s.created_at)}</span>
-                            <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2 ml-auto py-1 px-0.5 -my-1">Full story →</a>
-                          </div>
-                        </div>
-                        {thumb && (
-                          <a href={`/story/${s.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                            <Image src={thumb} alt={s.title} width={96} height={56} className="rounded object-cover w-20 h-12 sm:w-24 sm:h-14 opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    )
-                  })}
-                </div>
-              </section>
+              <GlobalBlindspotSection stories={globalBlindspots} />
             )}
             {globalLens.length > 0 && (
               <section className="mb-12">
