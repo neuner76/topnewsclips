@@ -25,6 +25,7 @@ create table if not exists public.stories (
 create table if not exists public.subscribers (
   id uuid primary key default gen_random_uuid(),
   email text not null unique,
+  unsubscribe_token text not null unique default translate(rtrim(encode(gen_random_bytes(24), 'base64'), '='), '+/', '-_'),
   confirmed boolean not null default false,
   created_at timestamptz not null default now()
 );

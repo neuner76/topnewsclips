@@ -103,7 +103,7 @@ export default function DigestAdminPage() {
       <div className="p-5 border border-border rounded-md bg-card space-y-4">
         <div>
           <p className="text-sm font-semibold mb-0.5">Preview Email</p>
-          <p className="text-xs text-muted-foreground">Renders today's digest using the current template.</p>
+          <p className="text-xs text-muted-foreground">Renders today&apos;s digest using the current template.</p>
         </div>
 
         <a

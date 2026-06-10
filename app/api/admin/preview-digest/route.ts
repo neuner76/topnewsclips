@@ -15,7 +15,8 @@ function getServiceSupabase() {
 
 async function isAuthorized(request: NextRequest): Promise<boolean> {
   const auth = request.headers.get('Authorization')
-  if (auth === `Bearer ${process.env.CRON_SECRET}`) return true
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret && auth === `Bearer ${cronSecret}`) return true
   const supabase = await createSessionClient()
   const { data: { user } } = await supabase.auth.getUser()
   return !!user
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     const resend = new Resend(resendKey)
     const html = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
-      .replace('{{email}}', encodeURIComponent(sendTo))
+      .replace('{{unsubscribe}}', `${siteUrl}/api/unsubscribe?token=preview`)
 
     await resend.emails.send({
       from: 'TopNewsClips <digest@topnewsclips.com>',
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
   // Browser preview — return raw HTML
   const html = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
-    .replace('{{email}}', encodeURIComponent('preview@example.com'))
+    .replace('{{unsubscribe}}', `${siteUrl}/api/unsubscribe?token=preview`)
 
   return new NextResponse(html, {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },

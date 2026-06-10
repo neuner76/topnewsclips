@@ -1,21 +1,18 @@
 import { Resend } from 'resend'
+import { unsubscribeLink } from '@/lib/unsubscribe'
 
 const SITE_URL = 'https://www.topnewsclips.com'
 const UTM = 'utm_source=email&utm_medium=email&utm_campaign=welcome'
 
 const FROM = 'TopNewsClips <digest@topnewsclips.com>'
 
-function unsubscribeLink(email: string) {
-  return `${SITE_URL}/api/unsubscribe?email=${encodeURIComponent(email)}`
-}
-
-function footer(email: string) {
+function footer(unsubUrl: string) {
   return `
     <div style="padding:24px 32px;border-top:1px solid #e5e7eb;text-align:center;">
       <a href="${SITE_URL}" style="font-size:13px;font-weight:700;color:#0e7490;text-decoration:none;">topnewsclips.com</a>
       <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">
         You're receiving this because you subscribed at topnewsclips.com.<br>
-        <a href="${unsubscribeLink(email)}" style="color:#9ca3af;">Unsubscribe</a>
+        <a href="${unsubUrl}" style="color:#9ca3af;">Unsubscribe</a>
       </p>
     </div>`
 }
@@ -30,7 +27,7 @@ function header() {
     </div>`
 }
 
-function wrap(body: string, email: string) {
+function wrap(body: string, unsubUrl: string) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -38,7 +35,7 @@ function wrap(body: string, email: string) {
   <div style="max-width:620px;margin:0 auto;background:#ffffff;">
     ${header()}
     <div style="padding:32px;">${body}</div>
-    ${footer(email)}
+    ${footer(unsubUrl)}
   </div>
 </body>
 </html>`
@@ -54,7 +51,7 @@ const cta = (text: string, href: string) =>
 
 // ─── Email 1: Welcome (immediate) ────────────────────────────────────────────
 
-function email1Html(email: string) {
+function email1Html(unsubUrl: string) {
   return wrap(`
     ${p("Welcome to Top News Clips.")}
     ${p("You just joined a daily briefing that does something simple but surprisingly rare: it shows you what's actually happening.")}
@@ -73,10 +70,10 @@ function email1Html(email: string) {
     ${p("Your first daily briefing arrives tomorrow morning.")}
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
     <p style="margin:24px 0 0;font-size:13px;color:#9ca3af;padding-top:16px;border-top:1px solid #f3f4f6;">P.S. Curious how we classify our sources? We publish a 10-tier Source Credibility Taxonomy so you never have to guess. <a href="${SITE_URL}/taxonomy?${UTM}" style="color:#0e7490;">See how it works →</a></p>
-  `, email)
+  `, unsubUrl)
 }
 
-function email1Text(email: string) {
+function email1Text(unsubUrl: string) {
   return `Welcome to Top News Clips.
 
 You just joined a daily briefing that does something simple but surprisingly rare: it shows you what's actually happening.
@@ -110,12 +107,12 @@ Independent News. No Agenda.
 P.S. Curious how we classify our sources? We publish a 10-tier Source Credibility Taxonomy so you never have to guess. See how it works: ${SITE_URL}/taxonomy?${UTM}
 
 ---
-Unsubscribe: ${unsubscribeLink(email)}`
+Unsubscribe: ${unsubUrl}`
 }
 
 // ─── Email 2: How to read your briefing (day 2) ──────────────────────────────
 
-function email2Html(email: string) {
+function email2Html(unsubUrl: string) {
   return wrap(`
     ${p("Quick guide to reading Top News Clips — takes 60 seconds.")}
     ${p("<strong>Source tier badges</strong> tell you who produced the story and what kind of outlet they are. A story from ProPublica carries a \"Nonprofit Investigative\" badge. A story from DW News carries \"Public Broadcaster.\" A story from Johnny Harris carries \"Independent Commentary.\" You're never guessing where the information comes from.")}
@@ -126,10 +123,10 @@ function email2Html(email: string) {
     ${p("That's it. Now you know how to read every section.")}
     ${cta("Read this morning's briefing →", `${SITE_URL}/?${UTM}`)}
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
-  `, email)
+  `, unsubUrl)
 }
 
-function email2Text(email: string) {
+function email2Text(unsubUrl: string) {
   return `Quick guide to reading Top News Clips — takes 60 seconds.
 
 Source tier badges tell you who produced the story and what kind of outlet they are. A story from ProPublica carries a "Nonprofit Investigative" badge. A story from DW News carries "Public Broadcaster." A story from Johnny Harris carries "Independent Commentary." You're never guessing where the information comes from.
@@ -151,12 +148,12 @@ ${SITE_URL}/?${UTM}
 Independent News. No Agenda.
 
 ---
-Unsubscribe: ${unsubscribeLink(email)}`
+Unsubscribe: ${unsubUrl}`
 }
 
 // ─── Email 2.5: Four days in (day 4) ─────────────────────────────────────────
 
-function email25Html(email: string) {
+function email25Html(unsubUrl: string) {
   return wrap(`
     ${p("Four days in. Here's what just happened.")}
     ${p("This week your briefing included stories from ProPublica, Bellingcat, Al Jazeera, DW News, The Intercept, Drop Site News, the Associated Press, and a dozen independent journalists — all labeled by credibility tier so you knew exactly what you were reading.")}
@@ -166,10 +163,10 @@ function email25Html(email: string) {
     ${p("Most people get their news from whatever the algorithm surfaces. You're now getting the layer underneath — the one built for citizens who want the full picture, not the profitable picture.")}
     ${cta("This morning's briefing →", `${SITE_URL}/?${UTM}`)}
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
-  `, email)
+  `, unsubUrl)
 }
 
-function email25Text(email: string) {
+function email25Text(unsubUrl: string) {
   return `Four days in. Here's what just happened.
 
 This week your briefing included stories from ProPublica, Bellingcat, Al Jazeera, DW News, The Intercept, Drop Site News, the Associated Press, and a dozen independent journalists — all labeled by credibility tier so you knew exactly what you were reading.
@@ -189,7 +186,7 @@ ${SITE_URL}/?${UTM}
 Independent News. No Agenda.
 
 ---
-Unsubscribe: ${unsubscribeLink(email)}`
+Unsubscribe: ${unsubUrl}`
 }
 
 // ─── Email 3: One ask (day 5) ─────────────────────────────────────────────────
@@ -198,7 +195,7 @@ function referralUrl(referralCode: string) {
   return `${SITE_URL}?ref=${referralCode}&utm_source=email&utm_medium=referral&utm_campaign=email3`
 }
 
-function email3Html(email: string, referralCode: string) {
+function email3Html(unsubUrl: string, referralCode: string) {
   const refUrl = referralUrl(referralCode)
   const tweetText = encodeURIComponent(`I've been reading TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that actually keeps you informed.\n\n${refUrl}`)
   return wrap(`
@@ -215,10 +212,10 @@ function email3Html(email: string, referralCode: string) {
     </div>
     ${p("That's it. See you tomorrow morning.")}
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">— Top News Clips<br><em>Independent News. No Agenda.</em></p>
-  `, email)
+  `, unsubUrl)
 }
 
-function email3Text(email: string, referralCode: string) {
+function email3Text(unsubUrl: string, referralCode: string) {
   const refUrl = referralUrl(referralCode)
   const tweetText = encodeURIComponent(`I've been reading TopNewsClips every morning — stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that actually keeps you informed.\n\n${refUrl}`)
   return `Five days in.
@@ -245,19 +242,20 @@ That's it. See you tomorrow morning.
 Independent News. No Agenda.
 
 ---
-Unsubscribe: ${unsubscribeLink(email)}`
+Unsubscribe: ${unsubUrl}`
 }
 
 // ─── Trigger all three ────────────────────────────────────────────────────────
 
-export async function sendWelcomeSequence(email: string, referralCode: string): Promise<void> {
+export async function sendWelcomeSequence(email: string, referralCode: string, unsubscribeToken: string): Promise<void> {
   const resendKey = process.env.RESEND_API_KEY
   if (!resendKey) return
 
   const resend = new Resend(resendKey)
 
+  const unsubUrl = unsubscribeLink(SITE_URL, unsubscribeToken)
   const unsubHeaders = {
-    'List-Unsubscribe': `<${unsubscribeLink(email)}>`,
+    'List-Unsubscribe': `<${unsubUrl}>`,
     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
   }
 
@@ -270,16 +268,16 @@ export async function sendWelcomeSequence(email: string, referralCode: string): 
       from: FROM,
       to: email,
       subject: "You're in — here's what changes tomorrow morning",
-      html: email1Html(email),
-      text: email1Text(email),
+      html: email1Html(unsubUrl),
+      text: email1Text(unsubUrl),
       headers: unsubHeaders,
     }),
     resend.emails.send({
       from: FROM,
       to: email,
       subject: '60 seconds: how to read your briefing',
-      html: email2Html(email),
-      text: email2Text(email),
+      html: email2Html(unsubUrl),
+      text: email2Text(unsubUrl),
       headers: unsubHeaders,
       scheduledAt: day2,
     }),
@@ -287,8 +285,8 @@ export async function sendWelcomeSequence(email: string, referralCode: string): 
       from: FROM,
       to: email,
       subject: "Four days of briefings. Here's what that looks like.",
-      html: email25Html(email),
-      text: email25Text(email),
+      html: email25Html(unsubUrl),
+      text: email25Text(unsubUrl),
       headers: unsubHeaders,
       scheduledAt: day4,
     }),
@@ -296,8 +294,8 @@ export async function sendWelcomeSequence(email: string, referralCode: string): 
       from: FROM,
       to: email,
       subject: 'One ask after five days',
-      html: email3Html(email, referralCode),
-      text: email3Text(email, referralCode),
+      html: email3Html(unsubUrl, referralCode),
+      text: email3Text(unsubUrl, referralCode),
       headers: unsubHeaders,
       scheduledAt: day5,
     }),

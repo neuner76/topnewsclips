@@ -9,17 +9,17 @@ function getSupabase() {
 }
 
 export async function GET(req: NextRequest) {
-  const email = req.nextUrl.searchParams.get('email')
+  const token = req.nextUrl.searchParams.get('token')
 
-  if (!email || !email.includes('@')) {
-    return NextResponse.json({ error: 'Valid email required.' }, { status: 400 })
+  if (!token) {
+    return NextResponse.json({ error: 'Unsubscribe token required.' }, { status: 400 })
   }
 
   const supabase = getSupabase()
   const { error } = await supabase
     .from('subscribers')
     .delete()
-    .eq('email', email.toLowerCase().trim())
+    .eq('unsubscribe_token', token)
 
   if (error) {
     return NextResponse.json({ error: 'Failed to unsubscribe.' }, { status: 500 })

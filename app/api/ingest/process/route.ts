@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server'
 import { runProcess } from '@/lib/ingest/pipeline'
+import { requireCronSecret } from '@/lib/auth'
 
 export async function GET(request: Request) {
-  const cronSecret = process.env.CRON_SECRET
-  const authHeader = request.headers.get('Authorization')
-  if (cronSecret && authHeader && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const unauthorized = requireCronSecret(request)
+  if (unauthorized) return unauthorized
 
   try {
     const result = await runProcess()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,18 +27,23 @@ export default function JournalistsPage() {
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
-  async function load() {
+  const load = useCallback(async () => {
     const { data } = await supabase
       .from('featured_journalists')
       .select('*')
       .order('created_at', { ascending: false })
     setJournalists(data ?? [])
     setLoading(false)
-  }
+  }, [supabase])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void load()
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [load])
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()

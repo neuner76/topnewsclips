@@ -46,16 +46,15 @@ interface WorldMapProps {
   className?: string
 }
 
+type GeographyShape = {
+  rsmKey: string
+}
+
 export default function WorldMap({ mode, className = '' }: WorldMapProps) {
-  const [mounted, setMounted] = useState(false)
   const frameRef = useRef<number>(0)
   const [dotPhases, setDotPhases] = useState<number[]>(() =>
     CITY_DOTS.map((_, i) => i * (1 / CITY_DOTS.length))
   )
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // Animate city dots with staggered pulses
   useEffect(() => {
@@ -79,8 +78,6 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
   const strokeColor = isBlindspot ? 'rgba(59,130,246,0.4)' : isWatermark ? 'rgba(59,130,246,0.5)' : 'rgba(59,130,246,0.5)'
   const fillColor = isBlindspot ? 'rgba(29,78,216,0.15)' : isWatermark ? 'rgba(17,24,39,0.0)' : 'rgba(29,78,216,0.12)'
 
-  if (!mounted) return null
-
   return (
     <div
       className={`pointer-events-none select-none ${className}`}
@@ -92,7 +89,7 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
         style={{ width: '100%', height: '100%' }}
       >
         <Geographies geography={GEO_URL}>
-          {({ geographies }: { geographies: any[] }) =>
+          {({ geographies }: { geographies: GeographyShape[] }) =>
             geographies.map((geo) => (
               <Geography
                 key={geo.rsmKey}

@@ -417,10 +417,6 @@ export async function runProcess(): Promise<PipelineResult> {
   const MAINSTREAM_PULSE_HANDLES = new Set([
     'nytimes', 'associatedpress', 'wsj', 'foxnews', 'npr', 'reuters',
   ])
-  const MAINSTREAM_PULSE_LABEL: Record<string, string> = {
-    'nytimes': 'NYT', 'associatedpress': 'AP', 'wsj': 'WSJ', 'foxnews': 'Fox News',
-    'npr': 'NPR', 'reuters': 'Reuters',
-  }
   // Source name substrings for satire channels — matches when video arrives via YouTube search
   // without a journalistUsername (e.g. "YouTube/Saturday Night Live")
   const SATIRE_BYPASS_SOURCES = [

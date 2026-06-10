@@ -1037,7 +1037,6 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     for (const item of misplacedSatire) {
       const story = cappedStories.find(s => s.slug === item.slug)
       if (!story) continue
-      const ct = getContentType(story)
       // Politics & World Affairs is the fallback for anything ambiguous
       const targetCat: keyof typeof content.inTheKnow =
         story.category === 'science' || story.category === 'technology' ? 'Science & Technology' :
@@ -1110,7 +1109,6 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     if (commentaryItems.length <= 1) continue
     // Keep the commentary item with the best (lowest) source tier; drop the rest
     commentaryItems.sort((a, b) => (storyTierMap.get(a.slug ?? '') ?? 99) - (storyTierMap.get(b.slug ?? '') ?? 99))
-    const keepSlug = commentaryItems[0].slug
     const dropSlugs = new Set(commentaryItems.slice(1).map(i => i.slug).filter(Boolean))
     content.inTheKnow[cat] = items.filter(item => !item.slug || !dropSlugs.has(item.slug))
   }

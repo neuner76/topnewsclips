@@ -22,9 +22,10 @@ function Badge({ label, color }: { label: string; color: 'green' | 'amber' | 're
 
 export default async function PipelinePage() {
   const supabase = getSupabase()
-  const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const now = new Date()
+  const todayCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
   // Candidates may have been fetched slightly before the 24h window, use 36h to catch today's run
-  const candidateCutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString()
+  const candidateCutoff = new Date(now.getTime() - 36 * 60 * 60 * 1000).toISOString()
 
   const [
     { data: candidates },

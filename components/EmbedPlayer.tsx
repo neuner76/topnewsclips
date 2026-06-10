@@ -92,7 +92,6 @@ export default function EmbedPlayer({ embedUrl, platform, title }: EmbedPlayerPr
         >
           <section />
         </blockquote>
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script async src="https://www.tiktok.com/embed.js" />
       </div>
     )
@@ -107,7 +106,6 @@ export default function EmbedPlayer({ embedUrl, platform, title }: EmbedPlayerPr
         <blockquote className="twitter-tweet" data-dnt="true">
           <a href={embedUrl} />
         </blockquote>
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script async src="https://platform.twitter.com/widgets.js" />
       </div>
     )

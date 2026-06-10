@@ -88,7 +88,7 @@ export default function TierBadge({ tier, sourceType, compact = false, asLink = 
 
       {/* Pill */}
       <span
-        className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+        className={`inline-flex items-center gap-1 rounded-full py-0.5 text-[11px] font-medium ${compact ? 'px-2' : 'px-2.5'}`}
         style={{
           background: styles.bg,
           border: `1px solid ${styles.border}`,

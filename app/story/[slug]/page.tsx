@@ -109,7 +109,8 @@ export default async function StoryPage({ params }: Props) {
   let worldView: RelatedStory[] = []
 
   if (s.region) {
-    const recentCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+    const now = new Date()
+    const recentCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString()
     const { data: relatedPool } = await supabase
       .from('stories')
       .select('id, title, slug, description, region, msm_gap')

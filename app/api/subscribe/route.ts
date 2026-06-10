@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { sendWelcomeSequence } from '@/lib/email/welcome'
+import { generateUnsubscribeToken } from '@/lib/unsubscribe'
 
 function generateReferralCode(): string {
   return randomBytes(4).toString('hex').toUpperCase()
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   const referralCode = generateReferralCode()
+  const unsubscribeToken = generateUnsubscribeToken()
 
   // Validate the referring code exists before storing it
   let referredBy: string | null = null
@@ -43,13 +45,18 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabase
     .from('subscribers')
-    .insert({ email: normalizedEmail, referral_code: referralCode, referred_by: referredBy })
+    .insert({
+      email: normalizedEmail,
+      referral_code: referralCode,
+      referred_by: referredBy,
+      unsubscribe_token: unsubscribeToken,
+    })
 
   if (error) {
     return NextResponse.json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 })
   }
 
-  await sendWelcomeSequence(normalizedEmail, referralCode).catch(() => {})
+  await sendWelcomeSequence(normalizedEmail, referralCode, unsubscribeToken).catch(() => {})
 
   return NextResponse.json({ message: 'Subscribed.' })
 }

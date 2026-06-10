@@ -1,52 +1,25 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLatestDigest } from '@/lib/digest'
-import type { DigestContent, NeedToKnowItem, InTheKnowItem, EtceteraItem, HowWorldSeesItItem, GlobalLensItem, MainstreamPulseItem } from '@/lib/digest'
+import type { DigestContent, NeedToKnowItem, EtceteraItem, HowWorldSeesItItem, MainstreamPulseItem } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import StoryCard from '@/components/StoryCard'
 import EmailCapture from '@/components/EmailCapture'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
-import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
 import TierBadge from '@/components/TierBadge'
 import HeroStory from '@/components/HeroStory'
 import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
 import GlobalLensSection from '@/components/GlobalLensSection'
-import SectionHeader, { VARIANT_CONFIG } from '@/components/SectionHeader'
-import SectionCard from '@/components/SectionCard'
 import WorldMapSection from '@/components/WorldMapSection'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
-import Image from 'next/image'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
 import { getOutletDescriptor } from '@/lib/outlet-descriptors'
 import ConfidenceBadge from '@/components/ConfidenceBadge'
-import PressureScore from '@/components/PressureScore'
 import MSMBadge from '@/components/MSMBadge'
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffHours < 1) return 'Just now'
-  if (diffHours < 24) return `${diffHours}h ago`
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays}d ago`
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
 export const revalidate = 300
-
-function getYouTubeThumbnail(embedUrl: string): string | null {
-  const m = embedUrl?.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-  return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null
-}
-
-function storyThumbnail(s: Story): string | null {
-  return s.platform === 'youtube' ? getYouTubeThumbnail(s.embed_url) : s.thumbnail_url ?? null
-}
 
 const IN_THE_KNOW_CATEGORIES = [
   'Politics & World Affairs',
@@ -143,23 +116,6 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
       )}
     </article>
   )
-}
-
-// Convert a raw source handle/string to a human-readable display name.
-// E.g. "YouTube/GlennGreenwald" → "Glenn Greenwald", "glenngreenwald" → "Glenn Greenwald"
-function getDisplayName(story: Story): string | null {
-  // Prefer the source field (e.g. "YouTube/60 Minutes" → "60 Minutes")
-  const src = story.source ?? ''
-  const stripped = src.replace(/^(YouTube|TikTok|Reddit)\/(@)?/i, '').trim()
-  if (stripped) return stripped
-  // Fall back to journalist handle with basic title-casing
-  const handle = story.journalist_username ?? ''
-  if (!handle) return null
-  // Split camelCase handle into words and capitalize each
-  return handle
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-    .replace(/^./, c => c.toUpperCase())
 }
 
 // Per-category config for In The Know
@@ -311,38 +267,8 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
   )
 }
 
-// ─── Clips components (existing view) ────────────────────────────────────────
-
-function SubHeader({ label }: { label: string }) {
-  return (
-    <p className="text-xs font-bold tracking-widest text-white/40 uppercase mt-5 mb-2">
-      {label}
-    </p>
-  )
-}
-
-function FreshnessLabel({ label }: { label: string }) {
-  return (
-    <p className="text-[10px] font-bold tracking-widest text-white/30 uppercase mt-4 mb-2 first:mt-0">
-      {label}
-    </p>
-  )
-}
-
-function isToday(dateStr: string): boolean {
-  const date = new Date(dateStr)
-  const now = new Date()
-  return (now.getTime() - date.getTime()) < 24 * 60 * 60 * 1000
-}
-
 const SECTION_CAP = 6
 const MIN_TRENDING_VIEWS = 1000
-
-const SECTION_VARIANT_MAP: Record<string, 'analysis' | 'reported' | 'raw' | 'in-the-know'> = {
-  'Analysis':    'analysis',
-  'Reported':    'reported',
-  'Raw Footage': 'raw',
-}
 
 interface SectionProps {
   title: string
@@ -394,7 +320,8 @@ export default async function HomePage({
   const { view } = await searchParams
 
   const supabase = await createClient()
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const now = new Date()
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   const [digest, usResult, regionalResult] = await Promise.all([
     getLatestDigest(),

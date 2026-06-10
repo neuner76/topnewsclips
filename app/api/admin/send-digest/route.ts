@@ -4,6 +4,8 @@ import { Resend } from 'resend'
 import { getLatestDigest, type DigestContent } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import { buildEmailHtml, buildStoryMap, formatDate, storyUrl, siteUrlUtm } from '@/lib/email/digest-html'
+import { unsubscribeLink } from '@/lib/unsubscribe'
+import { requireCronSecret } from '@/lib/auth'
 
 function getSupabase() {
   return createClient(
@@ -139,10 +141,8 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string): 
 }
 
 export async function GET(request: Request) {
-  const auth = request.headers.get('Authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const unauthorized = requireCronSecret(request)
+  if (unauthorized) return unauthorized
 
   const resendKey = process.env.RESEND_API_KEY
   if (!resendKey) {
@@ -174,7 +174,7 @@ export async function GET(request: Request) {
   }
   const { data: subscribers, error } = await supabase
     .from('subscribers')
-    .select('email')
+    .select('email, unsubscribe_token')
 
   if (error) {
     return NextResponse.json({ error: `Failed to fetch subscribers: ${error.message}` }, { status: 500 })
@@ -192,7 +192,6 @@ export async function GET(request: Request) {
     digest.content
   )
 
-  const emails = subscribers.map((s: { email: string }) => s.email)
   const baseHtml = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
   const baseText = buildEmailText(digest.content, digest.date, siteUrl)
   const subject = `Your briefing — ${formatDate(digest.date)}`
@@ -203,21 +202,24 @@ export async function GET(request: Request) {
   let sent = 0
   const errors: string[] = []
 
-  for (let i = 0; i < emails.length; i += BATCH_SIZE) {
-    const batch = emails.slice(i, i + BATCH_SIZE)
+  for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
+    const batch = subscribers.slice(i, i + BATCH_SIZE)
     try {
       await resend.batch.send(
-        batch.map(email => ({
-          from: 'TopNewsClips <digest@topnewsclips.com>',
-          to: email,
-          subject,
-          html: baseHtml.replace('{{email}}', encodeURIComponent(email)),
-          text: baseText.replace('{{unsubscribe}}', `${siteUrl}/api/unsubscribe?email=${encodeURIComponent(email)}`),
-          headers: {
-            'List-Unsubscribe': `<${siteUrl}/api/unsubscribe?email=${encodeURIComponent(email)}>`,
-            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-          },
-        }))
+        batch.map((subscriber: { email: string; unsubscribe_token: string }) => {
+          const unsubUrl = unsubscribeLink(siteUrl, subscriber.unsubscribe_token)
+          return {
+            from: 'TopNewsClips <digest@topnewsclips.com>',
+            to: subscriber.email,
+            subject,
+            html: baseHtml.replace('{{unsubscribe}}', unsubUrl),
+            text: baseText.replace('{{unsubscribe}}', unsubUrl),
+            headers: {
+              'List-Unsubscribe': `<${unsubUrl}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
+          }
+        })
       )
       sent += batch.length
     } catch (err) {
@@ -229,5 +231,5 @@ export async function GET(request: Request) {
     await supabase.from('digests').update({ email_sent_at: new Date().toISOString() }).eq('id', digest.id)
   }
 
-  return NextResponse.json({ sent, total: emails.length, errors })
+  return NextResponse.json({ sent, total: subscribers.length, errors })
 }

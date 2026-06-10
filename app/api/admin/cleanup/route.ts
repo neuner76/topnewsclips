@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireCronSecret } from '@/lib/auth'
 
 function getSupabase() {
   return createClient(
@@ -10,11 +11,8 @@ function getSupabase() {
 
 // Called by Vercel cron or GitHub Action — authenticated via CRON_SECRET
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const unauthorized = requireCronSecret(req)
+  if (unauthorized) return unauthorized
 
   const supabase = getSupabase()
 

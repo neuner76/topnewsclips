@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
+import { requireAdminSession } from '@/lib/auth'
 
 function getSupabase() {
   return createClient(
@@ -10,6 +11,9 @@ function getSupabase() {
 }
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminSession()
+  if (unauthorized) return unauthorized
+
   const { storyId } = await request.json()
   if (!storyId) return NextResponse.json({ error: 'Missing storyId' }, { status: 400 })
 

@@ -49,6 +49,7 @@ export default function WorldMapSection({
   return (
     <section
       className="relative rounded-2xl overflow-hidden mb-8"
+      data-map-mode={mapMode}
       style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
     >
       {/* CSS globe grid */}

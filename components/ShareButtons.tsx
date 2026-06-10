@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { track } from '@/lib/analytics'
 
 interface ShareButtonsProps {
@@ -10,11 +10,7 @@ interface ShareButtonsProps {
 
 export default function ShareButtons({ title, slug }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false)
-  const [canNativeShare, setCanNativeShare] = useState(false)
-
-  useEffect(() => {
-    setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share)
-  }, [])
+  const [canNativeShare] = useState(() => typeof navigator !== 'undefined' && !!navigator.share)
 
   const baseUrl = `https://www.topnewsclips.com/story/${slug}`
   const shareUrl = `${baseUrl}?utm_source=social&utm_medium=share&utm_campaign=story`

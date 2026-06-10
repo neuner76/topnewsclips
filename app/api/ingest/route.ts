@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runIngestionPipeline } from '@/lib/ingest/pipeline'
+import { requireCronSecret } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
-  // Verify cron secret (Vercel sets this automatically for cron jobs)
-  const authHeader = req.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-
-  if (cronSecret && authHeader && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const unauthorized = requireCronSecret(req)
+  if (unauthorized) return unauthorized
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })

@@ -1,6 +1,11 @@
 declare module 'react-simple-maps' {
   import { ComponentType, SVGProps } from 'react'
 
+  export interface GeographyObject {
+    rsmKey: string
+    [key: string]: unknown
+  }
+
   export interface ComposableMapProps {
     projectionConfig?: Record<string, unknown>
     style?: React.CSSProperties
@@ -10,11 +15,11 @@ declare module 'react-simple-maps' {
 
   export interface GeographiesProps {
     geography: string
-    children: (props: { geographies: any[] }) => React.ReactNode
+    children: (props: { geographies: GeographyObject[] }) => React.ReactNode
   }
 
   export interface GeographyProps extends SVGProps<SVGPathElement> {
-    geography: any
+    geography: GeographyObject
     [key: string]: unknown
   }
 
