@@ -13,7 +13,8 @@ import TierMeter from '@/components/TierMeter'
 import HeroStory from '@/components/HeroStory'
 import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
 import GlobalLensSection from '@/components/GlobalLensSection'
-import SectionHeader from '@/components/SectionHeader'
+import SectionHeader, { VARIANT_CONFIG } from '@/components/SectionHeader'
+import SectionCard from '@/components/SectionCard'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -231,24 +232,24 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       </p>
 
       {/* Need To Know */}
-      <section className="mb-10">
+      <SectionCard accent="#3b82f6" className="mb-8">
         <SectionHeader variant="need-to-know" title="Need To Know" subtitle="The stories that matter most today — verified, sourced, in context" />
-        <div className="divide-y divide-border">
+        <div className="divide-y divide-white/10">
           {content.needToKnow.map((item, i) => (
             <div key={item.slug}>
               <NeedToKnowStory item={item} storyMap={storyMap} />
               {i === 0 && content.needToKnow.length > 1 && (
-                <div className="py-4 px-1 border-t border-border/40">
+                <div className="py-4 px-1 border-t border-white/10">
                   <EmailCaptureInline placement="post-ntk" />
                 </div>
               )}
             </div>
           ))}
         </div>
-      </section>
+      </SectionCard>
 
       {/* In The Know */}
-      <section className="mb-10">
+      <SectionCard accent="#14b8a6" className="mb-8">
         <SectionHeader variant="in-the-know" title="In The Know" subtitle="Curated briefings across politics, science, business, culture, and satire" />
         <div className="space-y-8">
           {IN_THE_KNOW_CATEGORIES.map((cat) => {
@@ -277,13 +278,13 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             )
           })}
         </div>
-      </section>
+      </SectionCard>
 
       {/* Etcetera */}
       {content.etcetera?.length > 0 && (
-        <section className="mb-10">
+        <SectionCard accent="#64748b" className="mb-8">
           <SectionHeader variant="etcetera" title="Also Worth Knowing" />
-          <ul className="space-y-2 bg-muted/30 rounded-lg px-4 py-3">
+          <ul className="space-y-2 rounded-lg px-2 py-1">
             {content.etcetera.map((item: EtceteraItem | string, i: number) => {
               const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
               const story = etc.slug ? storyMap.get(etc.slug) : null
@@ -305,14 +306,14 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               )
             })}
           </ul>
-        </section>
+        </SectionCard>
       )}
 
       {/* Mainstream Pulse */}
       {content.mainstreamPulse && content.mainstreamPulse.length > 0 && (
-        <section className="mb-10">
+        <SectionCard accent="#94a3b8" className="mb-8">
           <SectionHeader variant="mainstream" title="Mainstream Pulse" subtitle="What the major outlets are leading with today" />
-          <Link href="/corrections" className="block text-[10px] text-muted-foreground/70 hover:text-foreground transition-colors mb-3">
+          <Link href="/corrections" className="block text-[10px] text-white/40 hover:text-white/80 transition-colors mb-3">
             ✓ No corrections today
           </Link>
           <ul className="space-y-2">
@@ -339,7 +340,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               )
             })}
           </ul>
-        </section>
+        </SectionCard>
       )}
 
       {/* Global Blindspot — visual section using world map design */}
@@ -411,9 +412,10 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories }: Sec
   const earlierItems = allCapped.filter(s => !isToday(s.created_at))
   const showFreshnessLabels = todayItems.length > 0 && earlierItems.length > 0
   const variant = SECTION_VARIANT_MAP[title] ?? 'in-the-know'
+  const accent = VARIANT_CONFIG[variant].accent
 
   return (
-    <section className="mb-12">
+    <SectionCard accent={accent} className="mb-8">
       <SectionHeader
         variant={variant}
         title={title}
@@ -421,7 +423,7 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories }: Sec
         seeAllHref={categorySlug ? `/category/${categorySlug}` : undefined}
       />
       {isEmpty ? (
-        <p className="text-sm text-muted-foreground py-6">Stories being curated — check back soon.</p>
+        <p className="text-sm text-white/40 py-4">Stories being curated — check back soon.</p>
       ) : (
         <div>
           {pinned.length > 0 && (
@@ -446,7 +448,7 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories }: Sec
           )}
         </div>
       )}
-    </section>
+    </SectionCard>
   )
 }
 
@@ -618,12 +620,12 @@ export default async function HomePage({
               </Link>
             )}
             {msmBlackout.length > 0 && (
-              <section className="mb-12">
+              <SectionCard accent="#ef4444" className="mb-8">
                 <SectionHeader variant="limited" title="Limited Coverage" subtitle="Stories receiving little attention from mainstream outlets" />
                 <div>
                   {msmBlackout.slice(0, 6).map(s => <StoryCard key={s.id} story={s} />)}
                 </div>
-              </section>
+              </SectionCard>
             )}
             {globalBlindspots.length > 0 && (
               <GlobalBlindspotSection stories={globalBlindspots} />

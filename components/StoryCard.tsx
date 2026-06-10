@@ -42,7 +42,7 @@ export default function StoryCard({ story }: StoryCardProps) {
   const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
 
   return (
-    <article className="group py-3 border-b border-border">
+    <article className="group py-3 border-b border-border last:border-0">
       <div className="flex gap-3 items-start">
 
         {/* Content */}
