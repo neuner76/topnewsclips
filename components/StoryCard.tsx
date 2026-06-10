@@ -9,9 +9,7 @@ import MSMBadge from './MSMBadge'
 import PlatformBadge from './PlatformBadge'
 import PressureScore from './PressureScore'
 import CategoryBadge from './CategoryBadge'
-import SourceTypeBadge from './SourceTypeBadge'
 import TierMeter from './TierMeter'
-import WorldMap from './WorldMap'
 
 interface StoryCardProps {
   story: Story
@@ -44,24 +42,17 @@ export default function StoryCard({ story }: StoryCardProps) {
   const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
 
   return (
-    <article className="group py-3 border-b border-border relative overflow-hidden">
-
-      {/* World map watermark — dark mode only */}
-      <div className="absolute inset-0 hidden dark:block">
-        <WorldMap mode="watermark" className="absolute right-0 bottom-0 w-48 h-full" />
-      </div>
-
-      {/* sm+: side-by-side | mobile: stacked */}
-      <div className="flex gap-3 items-start relative z-10">
+    <article className="group py-3 border-b border-border">
+      <div className="flex gap-3 items-start">
 
         {/* Content */}
         <div className="flex-1 min-w-0">
+
           {/* Badges row */}
           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
             <PlatformBadge platform={story.platform} />
             <CategoryBadge category={story.category} />
             {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
-            <SourceTypeBadge tier={tier} sourceType={sourceType} />
             {story.journalist_username && (
               <span className="text-[10px] font-medium text-muted-foreground">
                 @{story.journalist_username}
@@ -81,13 +72,13 @@ export default function StoryCard({ story }: StoryCardProps) {
             <p className="text-base text-muted-foreground mt-1 line-clamp-2">{story.description}</p>
           )}
 
-          {/* Footer */}
+          {/* Footer — tier meter is the visual anchor */}
           <div className="flex items-center gap-3 mt-2 flex-wrap">
-            <PressureScore viewCount={story.view_count} shareCount={story.share_count} />
-            <TierMeter tier={tier} sourceType={sourceType} compact />
+            <TierMeter tier={tier} sourceType={sourceType} />
             <span className="text-xs text-muted-foreground">
               {formatPublishedDate(story.created_at)}
             </span>
+            <PressureScore viewCount={story.view_count} shareCount={story.share_count} />
             <a
               href={`/story/${story.slug}`}
               target="_blank"
@@ -103,7 +94,7 @@ export default function StoryCard({ story }: StoryCardProps) {
           </div>
         </div>
 
-        {/* Thumbnail — right side, responsive size */}
+        {/* Thumbnail */}
         {thumbnail && (
           <a href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
             <Image

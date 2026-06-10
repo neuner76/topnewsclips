@@ -83,8 +83,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
     <article className="py-6 border-b border-border last:border-0">
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          {(badge?.tier || badge?.sourceType) && <SourceTypeBadge tier={badge.tier} sourceType={badge.sourceType} />}
-          {(badge?.tier || badge?.sourceType) && <TierMeter tier={badge.tier} sourceType={badge.sourceType} compact />}
+            {(badge?.tier || badge?.sourceType) && <TierMeter tier={badge.tier} sourceType={badge.sourceType} />}
           {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
           {story?.journalist_username && (
             <span className="text-xs text-muted-foreground">@{story.journalist_username}</span>
@@ -349,9 +348,14 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
         </section>
       )}
 
-      {/* Global Blindspot */}
+      {/* Global Blindspot — visual section using world map design */}
       {content.globalBlindspots && content.globalBlindspots.length > 0 && (
-        <section>
+        <GlobalBlindspotSection stories={content.globalBlindspots.map(item => storyMap.get(item.slug)).filter((s): s is Story => !!s)} />
+      )}
+
+      {/* Global Blindspot — text fallback for digest items not in storyMap */}
+      {content.globalBlindspots && content.globalBlindspots.length > 0 && (
+        <section className="hidden">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 border-t border-border" />
             <span className="text-xs font-bold tracking-widest text-[oklch(0.52_0.14_55)] uppercase shrink-0">
@@ -478,18 +482,20 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories, accen
   const showFreshnessLabels = todayItems.length > 0 && earlierItems.length > 0
   return (
     <section className="mb-12">
-      <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3 mb-3">
-        <div className="flex items-baseline gap-3">
-          <h2 className={`text-2xl sm:text-3xl font-black tracking-tight uppercase ${accentClass}`}>
-            {title}
-          </h2>
-          {categorySlug && (
-            <Link href={`/category/${categorySlug}`} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium">
-              See all →
-            </Link>
-          )}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex-1">
+          <div className="flex items-baseline gap-3">
+            <h2 className={`text-2xl sm:text-3xl font-black tracking-tight uppercase ${accentClass}`}>
+              {title}
+            </h2>
+            {categorySlug && (
+              <Link href={`/category/${categorySlug}`} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium">
+                See all →
+              </Link>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
       </div>
       {isEmpty ? (
         <p className="text-sm text-muted-foreground py-6">Stories being curated — check back soon.</p>
