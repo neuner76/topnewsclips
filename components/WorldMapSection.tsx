@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
-import SourceBadge from './SourceBadge'
+import TierMeter from './TierMeter'
 import CategoryBadge from './CategoryBadge'
 import MSMBadge from './MSMBadge'
 
@@ -157,7 +157,7 @@ export default function WorldMapSection({
 
                     {/* Metadata row */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <SourceBadge tier={tier} sourceType={sourceType} compact />
+                      <TierMeter tier={tier} sourceType={sourceType} compact />
                       <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
                       {story.journalist_username && (
                         <span className="text-[10px] text-white/30">@{story.journalist_username}</span>
