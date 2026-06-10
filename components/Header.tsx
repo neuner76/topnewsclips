@@ -16,7 +16,7 @@ export default function Header() {
 
           <nav className="flex items-center gap-2 sm:gap-5 text-sm font-medium">
             <Link href="/feed" className="text-white/50 hover:text-white transition-colors hidden sm:block">
-              Feed
+              Today&apos;s Digest
             </Link>
             <Link href="/clips" className="text-white/50 hover:text-white transition-colors">
               Clips
