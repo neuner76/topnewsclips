@@ -411,9 +411,11 @@ export default async function HomePage({
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Hero, world map + top story */}
+        {/* Hero, world map + lead story */}
         {(() => {
-          const heroStory = all.find(s => s.pinned) ?? all[0]
+          const digestLeadSlug = digest?.content.needToKnow?.[0]?.slug
+          const digestLeadStory = digestLeadSlug ? storyMap.get(digestLeadSlug) : null
+          const heroStory = digestLeadStory ?? all.find(s => s.pinned) ?? all[0]
           return heroStory ? <HeroStory story={heroStory} /> : (
             <div className="mb-6">
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Top News Clips</h1>
