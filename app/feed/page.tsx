@@ -8,7 +8,6 @@ import StoryCard from '@/components/StoryCard'
 import EmailCapture from '@/components/EmailCapture'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
 import GlobalBlindspotBadge from '@/components/GlobalBlindspotBadge'
-import SourceTypeBadge from '@/components/SourceTypeBadge'
 import TierBadge from '@/components/TierBadge'
 import HeroStory from '@/components/HeroStory'
 import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
@@ -250,7 +249,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                   ) : text}
                   {story && (
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />
+                      <TierBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />
                       <ConfidenceBadge label={getConfidenceLabel(story)} />
                     </div>
                   )}
