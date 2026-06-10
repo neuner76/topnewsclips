@@ -156,16 +156,14 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                   style={{ borderLeft: '3px solid #3b82f6', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                       <span className="text-sm">{regionFlag(region)}</span>
                       <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: '#3b82f6' }}>{region}</span>
                     </div>
-                    <h3 className="text-sm font-semibold text-white line-clamp-2 group-hover:underline underline-offset-2">{title}</h3>
-                    {summary && <p className="text-xs text-white/50 mt-0.5 line-clamp-1">{summary}</p>}
+                    <h3 className="text-base font-bold text-white line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{title}</h3>
+                    {summary && <p className="text-sm text-white/60 mt-0.5 line-clamp-3 leading-relaxed mb-2">{summary}</p>}
                     {tier !== null && (
-                      <div className="mt-1">
-                        <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-                      </div>
+                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                     )}
                   </div>
                 </Link>

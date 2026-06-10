@@ -115,9 +115,14 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                   style={{ borderLeft: '3px solid var(--blindspot-orange)', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
                 >
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-white line-clamp-2 group-hover:underline underline-offset-2 mb-1">{story.title}</h3>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {story.region && <span className="text-[10px] font-medium" style={{ color: 'var(--blindspot-orange)' }}>{story.region}</span>}
+                    {story.region && (
+                      <span className="text-[10px] font-bold tracking-wide uppercase block mb-1" style={{ color: 'var(--blindspot-orange)' }}>{story.region}</span>
+                    )}
+                    <h3 className="text-base font-bold text-white line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{story.title}</h3>
+                    {story.description && (
+                      <p className="text-sm text-white/60 line-clamp-3 leading-relaxed mb-2">{story.description}</p>
+                    )}
+                    <div className="flex items-center gap-2 flex-wrap">
                       <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                       <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
                         Under-reported
