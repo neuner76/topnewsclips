@@ -412,24 +412,29 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // If ingest hasn't run recently and no stories fall within the window, fall back to last 48 hours (not full 7 days)
   const freshCandidates = sortByTierAndRecency(withinWindow.length >= 3 ? withinWindow : withinFallback)
 
+  function isNeedToKnowEligible(s: typeof cappedStories[0], minDescriptionLength = 150): boolean {
+    return (
+      (s.description?.length ?? 0) >= minDescriptionLength &&
+      !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)) &&
+      (s.source_tier ?? 99) < 10 &&
+      getContentType(s) !== 'footage' &&
+      s.category !== 'analysis' &&
+      s.category !== 'comedy' &&
+      s.category !== 'raw' &&
+      s.source_type !== 'Community Sourced' &&
+      !s.region
+    )
+  }
+
   // Filter promo-term stories from NeedToKnow candidates — channel descriptions and self-promos shouldn't be NeedToKnow
   // Minimum 150 chars ensures enough source material for Claude to write a real paragraph
   const needToKnowCandidates = freshCandidates
-    .filter(s => (s.description?.length ?? 0) >= 150 && !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t)))
-    .filter(s => (s.source_tier ?? 99) < 10)  // never offer Tier 10 sources as NeedToKnow candidates
-    .filter(s => getContentType(s) !== 'footage')  // raw footage belongs in InTheKnow, not NeedToKnow
-    .filter(s => s.category !== 'analysis')  // analysis belongs in InTheKnow, not NeedToKnow
-    .filter(s => s.category !== 'comedy')    // satire/comedy never in NeedToKnow
-    .filter(s => !s.region)  // international stories belong in Global sections, not NeedToKnow
+    .filter(s => isNeedToKnowEligible(s))
     .map(toPromptItem)
 
   // Build a set of valid NeedToKnow slugs for post-processing enforcement
   const validNtkSlugs = new Set(freshCandidates
-    .filter(s => (s.source_tier ?? 99) < 10)
-    .filter(s => getContentType(s) !== 'footage')
-    .filter(s => s.category !== 'analysis')
-    .filter(s => s.category !== 'comedy')
-    .filter(s => !s.region)
+    .filter(s => isNeedToKnowEligible(s, 80))
     .map(s => s.slug)
   )
   const storiesForPrompt = cappedStories
@@ -505,11 +510,12 @@ NEED TO KNOW (3 stories max):
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
 - RECENCY — HARD CONSTRAINT: Each story has a "hoursAgo" field. All NeedToKnow candidates have already been filtered to the last 18 hours. Prefer stories with lower hoursAgo — a story published 2 hours ago is fresher and more urgent than one published 16 hours ago.
 - IMPACT SIGNAL: Each story has a "viewCount" field. All else equal, prefer higher viewCount — it is a signal that the story has real-world resonance.
-- MIX RULE — HARD CONSTRAINT: Each story has a "contentType" field: "footage", "commentary", "investigation", or "report". You MUST NOT pick 3 stories that are all "commentary". Count your picks before finalizing: if all 3 are "commentary", replace the weakest commentary pick with the highest-impact "footage", "investigation", or "report" story in the candidates list — even if it seems less important. A digest of 3 talking-head videos fails the reader.
+- MIX RULE — HARD CONSTRAINT: Each story has a "contentType" field: "footage", "commentary", "investigation", or "report". NeedToKnow candidates should be "investigation" or "report". You MUST NOT pick 3 stories that are all "commentary". Count your picks before finalizing: if all 3 are "commentary", replace the weakest commentary pick with the highest-impact "investigation" or "report" story in the candidates list — even if it seems less important. A digest of 3 talking-head videos fails the reader.
 - TOPIC DIVERSITY: All 3 NeedToKnow stories must cover different topics. Do not pick 3 stories that all critique the same type of institution (e.g. 3 stories about government overreach, or 3 stories about corporate exploitation). Vary across: government/policy, health/science, economy/business, local accountability, foreign affairs.
 - CELEBRITY/ENTERTAINMENT EXCLUSION: Do not place celebrity arrests, DUI incidents, athlete legal trouble, or personal drama in NeedToKnow — even if the story includes bodycam footage. These belong in "Sports, Entertainment, & Culture". A famous person being arrested is not NeedToKnow unless the police conduct itself is the story (explicit misconduct documented on camera).
 - SATIRE/COMEDY EXCLUSION — HARD RULE: Never place a satire or comedy source in NeedToKnow. This includes The Daily Show, Last Week Tonight, Jonathan Pie, Some More News, Josh Johnson, The Juice Media, Saturday Night Live, and any other source whose contentType would be "commentary (satire)". NeedToKnow is the editorial standard-setter for the entire page — it must only contain straight reporting (Tiers 1–5) or non-satirical independent commentary (Tier 7). If the only source for a newsworthy topic is a comedy show, move that story to "Comedy & Satire" in InTheKnow and find a straight-reporting source to cover the same topic in NeedToKnow if one exists.
-- POLITICAL BALANCE — HARD CONSTRAINT: Before finalizing, label each pick as primarily appealing to: (A) left-leaning readers, (B) right-leaning readers, or (C) cross-partisan. You MUST have at least one (C) pick. Cross-partisan stories include: health costs, food prices, local crime/safety, natural disasters, scientific breakthroughs, personal finance. If all 3 are (A) or all 3 are (B), replace the weakest pick with the most cross-partisan story available in the candidates list.
+- POLITICAL BALANCE — HARD CONSTRAINT: Before finalizing, label each pick as primarily appealing to: (A) left-leaning readers, (B) right-leaning readers, or (C) cross-partisan. You MUST have at least one (C) pick. Cross-partisan stories include: health costs, food prices, natural disasters, scientific breakthroughs, public health, personal finance, or major infrastructure failures. If all 3 are (A) or all 3 are (B), replace the weakest pick with the most cross-partisan story available in the candidates list.
+- LOCAL POLICE / BODYCAM LIMIT: Do not place routine local police footage, crisis-intervention footage, dashcam/bodycam clips, or officer-response videos in NeedToKnow unless the story documents explicit misconduct, a policy change, institutional failure, or a broader accountability issue. Otherwise, place it in InTheKnow.
 - ONE STORY PER CARD — HARD RULE: Each NeedToKnow item must cover exactly one story. Do not bundle multiple unrelated developments into a single card even if they come from the same source or the same news cycle. If ABC News covers both a US blockade announcement AND JD Vance negotiations, those are two separate stories — write one card about the blockade, move the Vance item to InTheKnow. The word "Separately" in a NeedToKnow paragraph is a signal you have violated this rule. Test: write the sectionTitle first. If the summary requires "Separately" or "Also" or "Meanwhile" to cover the full card, split it.
 - "sectionTitle": 3-5 word punchy label (e.g. "Trump Boots Noem", "Moon Beans", "China Growth Slowdown")
 - "paragraphs": 2-4 full paragraphs expanding on ONE story — include key facts, numbers, context, and why it matters. Write like 1440 Daily Digest: smart, neutral, thorough. Never vague. The final paragraph must include a "Why this matters to you" sentence connecting the story to something tangible in an American's daily life — their wallet, their rights, their community, or their family. Make it specific and concrete, not generic. Wrong: "This could affect Americans." Right: "If you've driven past a license plate reader this week, your vehicle's location may already be in ICE's database." or "If you have a 401(k), the private equity fees documented here are likely embedded in funds you already own."
@@ -721,7 +727,7 @@ HOMEPAGE INCLUSION GATE — HARD RULES (apply BEFORE finalizing each section):
 
 NEED TO KNOW:
   - MUST be Tier 1-6 sources only (source_tier ≤ 6 in the input)
-  - MUST have contentType "footage", "investigation", or "report" — not "commentary"
+  - MUST have contentType "investigation" or "report" — not "footage" or "commentary"
   - Tier 7 commentary ONLY if: the underlying event is confirmed by a Tier 1-5 source AND no Tier 1-5 source covers the same event
   - NEVER satire sources
 
@@ -816,11 +822,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   // Homepage gate: NeedToKnow must not contain pure analysis/commentary — evict any that slipped through
   // Also evict Tier 10 sources and raw footage — these must never appear in NeedToKnow
   const ntkIneligibleSlugs = new Set(
-    freshCandidates.filter(s =>
-      (s.source_tier ?? 99) >= 10 ||    // Tier 10: community sourced, too low credibility
-      s.category === 'raw' ||            // raw footage: bodycam/dashcam belongs in InTheKnow
-      s.source_type === 'Community Sourced'  // belt-and-suspenders check on source_type
-    ).map(s => s.slug)
+    freshCandidates.filter(s => !isNeedToKnowEligible(s, 80)).map(s => s.slug)
   )
   // Also catch by slug lookup in all stories (not just freshCandidates) in case Claude pulled from storiesForPrompt
   const allStoriesBySlug = new Map(cappedStories.map(s => [s.slug, s]))
@@ -828,15 +830,12 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     if (ntkIneligibleSlugs.has(i.slug)) return true
     const s = allStoriesBySlug.get(i.slug)
     if (!s) return false
-    return (s.source_tier ?? 99) >= 10 || s.category === 'raw' || s.source_type === 'Community Sourced'
+    return !isNeedToKnowEligible(s, 80)
   })) {
     const currentNtkSlugs = new Set(content.needToKnow.map(i => i.slug))
     const replacement = freshCandidates.find(s =>
-      (s.source_tier ?? 99) < 10 &&
-      s.category !== 'raw' &&
-      s.source_type !== 'Community Sourced' &&
+      isNeedToKnowEligible(s, 80) &&
       !currentNtkSlugs.has(s.slug) &&
-      (s.description?.length ?? 0) >= 80 &&
       !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
     )
     if (replacement) {
@@ -862,10 +861,9 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   for (const violation of ntkCommentaryViolations) {
     const currentNtkSlugs = new Set(content.needToKnow.map(i => i.slug))
     const replacement = freshCandidates.find(s =>
+      isNeedToKnowEligible(s, 80) &&
       getContentType(s) !== 'commentary' &&
-      !currentNtkSlugs.has(s.slug) &&
-      (s.description?.length ?? 0) >= 80 &&
-      !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
+      !currentNtkSlugs.has(s.slug)
     )
     if (replacement) {
       content.needToKnow = content.needToKnow.filter(i => i.slug !== violation.slug)
@@ -892,10 +890,9 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const satireItems = content.needToKnow.filter(i => satireSlugs.has(i.slug))
   for (const satireItem of satireItems) {
     const replacement = freshCandidates.find(s =>
+      isNeedToKnowEligible(s, 80) &&
       !satireSlugs.has(s.slug) &&
-      !ntkSlugs.has(s.slug) &&
-      (s.description?.length ?? 0) >= 80 &&
-      !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
+      !ntkSlugs.has(s.slug)
     )
     content.needToKnow = content.needToKnow.filter(i => i.slug !== satireItem.slug)
     if (replacement) {
@@ -914,10 +911,9 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     // Find best non-commentary candidate not already in NeedToKnow
     // Require a real story description (≥80 chars) — reject channel descriptions and promo text
     const replacement = freshCandidates.find(s =>
+      isNeedToKnowEligible(s, 80) &&
       getContentType(s) !== 'commentary' &&
-      !ntkSlugs.has(s.slug) &&
-      (s.description?.length ?? 0) >= 80 &&
-      !PROMO_TERMS.some(t => (s.description ?? '').toLowerCase().includes(t))
+      !ntkSlugs.has(s.slug)
     )
     if (replacement) {
       // Drop the last (weakest) excess commentary item and add the replacement
@@ -934,16 +930,15 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   // Enforce cross-partisan balance: at least 1 NeedToKnow story must be cross-partisan
   const CROSS_PARTISAN_HANDLES = new Set([
-    'policeactivity', 'weathernation', 'revealnews', 'propublica', 'marshall',
+    'weathernation', 'revealnews', 'propublica', 'marshall',
     'calmatters', 'texastribune', 'frontlinepbs', 'icijorg', 'forensicarchitecture1967',
   ])
   const CROSS_PARTISAN_KEYWORDS = [
-    'police', 'bodycam', 'weather', 'health', 'food price', 'recall',
+    'weather', 'health', 'food price', 'recall',
     'earthquake', 'flood', 'fire', 'crash', 'accident', 'safety',
   ]
 
   function isCrossPartisan(s: typeof cappedStories[0]): boolean {
-    if (s.category === 'raw') return true
     const u = (s.journalist_username ?? '').toLowerCase()
     if (CROSS_PARTISAN_HANDLES.has(u)) return true
     const t = s.title.toLowerCase()
@@ -958,7 +953,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   if (!ntkHasCrossPartisan) {
     const ntkSlugsSet = new Set(content.needToKnow.map(i => i.slug))
     const replacement = freshCandidates.find(s =>
-      isCrossPartisan(s) && !ntkSlugsSet.has(s.slug)
+      isNeedToKnowEligible(s, 80) && isCrossPartisan(s) && !ntkSlugsSet.has(s.slug)
     )
     if (replacement) {
       // Remove the weakest pick: prefer removing commentary, otherwise remove last item
