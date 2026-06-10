@@ -138,7 +138,7 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
                   )}
                   {(tier !== null) && (
                     <div className="mt-1">
-                      <TierBadge tier={tier} sourceType={sourceType} compact />
+                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                     </div>
                   )}
                 </div>

@@ -89,7 +89,7 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
                         {story.region}
                       </span>
                     )}
-                    <TierBadge tier={tier} sourceType={sourceType} compact />
+                    <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                     {/* Western coverage callout badge */}
                     <span
                       className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded"

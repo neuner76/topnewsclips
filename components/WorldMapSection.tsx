@@ -143,7 +143,7 @@ export default function WorldMapSection({
 
                     {/* Metadata row */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <TierBadge tier={tier} sourceType={sourceType} compact />
+                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                       <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
                       {story.journalist_username && (
                         <span className="text-[10px] text-white/30">@{story.journalist_username}</span>
