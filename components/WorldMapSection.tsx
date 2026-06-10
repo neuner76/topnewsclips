@@ -75,27 +75,32 @@ export default function WorldMapSection({
       {/* Content */}
       <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
 
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block" style={{ color: accent }}>
-              {icon} {title}
-            </span>
-            {subtitle && (
-              <p className="text-xs text-white/50 max-w-sm leading-snug">{subtitle}</p>
+        {/* Header — matches GlobalBlindspotSection style */}
+        <div className="mb-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <span
+                className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2"
+                style={{ color: accent }}
+              >
+                {icon} {title}
+              </span>
+              {subtitle && (
+                <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+                  {subtitle}
+                </h2>
+              )}
+            </div>
+            {seeAllHref && (
+              <Link href={seeAllHref} className="text-xs font-semibold shrink-0 ml-4 mt-1 transition-opacity hover:opacity-70" style={{ color: accent }}>
+                See all →
+              </Link>
             )}
           </div>
-          {seeAllHref && (
-            <Link href={seeAllHref} className="text-xs font-semibold shrink-0 ml-4 transition-opacity hover:opacity-70" style={{ color: accent }}>
-              See all →
-            </Link>
-          )}
         </div>
 
-        {/* Stories */}
-        {stories.length === 0 ? (
-          <p className="text-sm text-white/30 py-4">{emptyMessage ?? 'Stories being curated — check back soon.'}</p>
-        ) : (
+        {/* Stories — hide section entirely if empty */}
+        {stories.length === 0 ? null : (
           <div className="flex flex-col gap-1">
             {stories.map((story, i) => {
               const thumbnail = storyThumbnail(story)

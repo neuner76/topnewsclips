@@ -164,12 +164,12 @@ function getDisplayName(story: Story): string | null {
 }
 
 // Per-category config for In The Know
-const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string }> = {
-  'Politics & World Affairs':        { color: '#3b82f6', icon: '🌐' },
-  'Science & Technology':            { color: '#a855f7', icon: '🔬' },
-  'Business & Markets':              { color: '#22c55e', icon: '📈' },
-  'Sports, Entertainment, & Culture':{ color: '#f97316', icon: '🎭' },
-  'Comedy & Satire':                 { color: '#eab308', icon: '🎤' },
+const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string; subtitle: string }> = {
+  'Politics & World Affairs':        { color: '#3b82f6', icon: '🌐', subtitle: 'What\'s moving in politics and around the world' },
+  'Science & Technology':            { color: '#a855f7', icon: '🔬', subtitle: 'Discoveries, breakthroughs, and what\'s changing fast' },
+  'Business & Markets':              { color: '#22c55e', icon: '📈', subtitle: 'Economic signals, market moves, and industry shifts' },
+  'Sports, Entertainment, & Culture':{ color: '#f97316', icon: '🎭', subtitle: 'Sports, culture, and the stories people are talking about' },
+  'Comedy & Satire':                 { color: '#eab308', icon: '🎤', subtitle: 'The week in news — through a different lens' },
 }
 
 function DigestView({ content, date, storyMap }: { content: DigestContent; date: string; storyMap: Map<string, Story> }) {
@@ -225,7 +225,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             accent={cfg.color}
             mapMode="hero"
             stories={stories}
-            emptyMessage="Stories being added — check back soon."
+            subtitle={cfg.subtitle}
           />
         )
       })}
