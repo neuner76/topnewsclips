@@ -108,7 +108,6 @@ export default function TierBadge({ tier, sourceType, compact = false, asLink = 
         href={`/taxonomy#tier-${tier}`}
         title={`${sourceType} (Tier ${tier}) — click to learn more`}
         className="inline-flex hover:opacity-70 transition-opacity"
-        onClick={e => e.stopPropagation()}
       >
         {pill}
       </a>
