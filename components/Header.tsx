@@ -39,7 +39,7 @@ export default function Header() {
               </svg>
             </Link>
             <Link
-              href="/#subscribe"
+              href="/"
               className="text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
               style={{ background: '#3b82f6' }}
             >

@@ -74,17 +74,21 @@ export default async function LandingPage() {
               The full picture,<br />
               <span style={{ color: '#3b82f6' }}>not the profitable one.</span>
             </h1>
-            <p className="text-base sm:text-lg text-white/60 mb-10 max-w-lg mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-white/60 mb-8 max-w-lg mx-auto leading-relaxed">
               Every source labeled by credibility tier. International context every morning. Stories mainstream media skips — surfaced daily.
             </p>
-            <div id="subscribe" className="max-w-sm mx-auto mb-6">
+
+            {/* Email form — the primary CTA */}
+            <div className="max-w-sm mx-auto mb-4">
               <EmailCaptureInline placement="landing-hero" />
             </div>
+            <p className="text-xs text-white/30 mb-6">Free. No spam. Unsubscribe any time.</p>
+
             <Link
               href="/feed"
               className="text-sm text-white/40 hover:text-white/70 transition-colors"
             >
-              Browse today&apos;s feed →
+              Browse today&apos;s feed without subscribing →
             </Link>
           </div>
         </section>
