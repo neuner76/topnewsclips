@@ -83,29 +83,29 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
   const badge = story ? resolvedBadge(story) : null
   const hasAttribution = badge?.tier || badge?.sourceType || story?.journalist_username
   return (
-    <article className="py-6 border-b border-border last:border-0">
+    <article className="py-6 border-b border-white/10 last:border-0">
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
-            {(badge?.tier || badge?.sourceType) && <TierMeter tier={badge.tier} sourceType={badge.sourceType} />}
+          {(badge?.tier || badge?.sourceType) && <TierMeter tier={badge.tier} sourceType={badge.sourceType} />}
           {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
           {story?.journalist_username && (
-            <span className="text-xs text-muted-foreground">@{story.journalist_username}</span>
+            <span className="text-xs text-white/40">@{story.journalist_username}</span>
           )}
           {story?.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
         </div>
       )}
       <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="group block mb-3">
-        <h2 className="text-2xl font-black tracking-tight leading-snug group-hover:underline underline-offset-2">
+        <h2 className="text-2xl font-black tracking-tight leading-snug text-white group-hover:underline underline-offset-2">
           {item.sectionTitle}
         </h2>
       </Link>
       <div className="space-y-4">
         {item.paragraphs.slice(0, 2).map((p, i) => (
           <div key={i}>
-            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">
+            <p className="text-[10px] font-bold tracking-widest text-white/40 uppercase mb-1">
               {PARA_LABELS[i]}
             </p>
-            <p className="editorial-body text-foreground/90">{p}</p>
+            <p className="editorial-body text-white/80">{p}</p>
           </div>
         ))}
       </div>
@@ -113,26 +113,26 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
         href={`/story/${item.slug}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block mt-4 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-block mt-4 text-xs font-semibold text-white/50 hover:text-white transition-colors"
       >
         Full story →
       </Link>
       {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-border/50">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-3">
+        <div className="mt-5 pt-4 border-t border-white/10">
+          <p className="text-[10px] font-bold tracking-widest text-white/40 uppercase mb-3">
             World view
           </p>
           <div className="space-y-2">
             {item.howWorldSeesIt.map((w: HowWorldSeesItItem, i: number) => (
               <div key={i} className="flex gap-2.5 items-start">
-                <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 pt-0.5 w-20">
+                <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase shrink-0 pt-0.5 w-20">
                   {w.region}
                 </span>
                 <Link
                   href={`/story/${w.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors leading-snug"
+                  className="text-sm text-white/60 hover:text-white transition-colors leading-snug"
                 >
                   {w.summary}
                 </Link>
@@ -179,30 +179,26 @@ function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Ma
   const totalChecked = (story?.msm_outlet_coverage?.covered?.length ?? 0) + (story?.msm_outlet_coverage?.notCovered?.length ?? 0)
   const coverageText = totalChecked > 0 ? `${coveredCount} of ${totalChecked} outlets` : null
 
-  const inner = <span className="text-[1.0rem] leading-relaxed">{item.text}</span>
+  const inner = <span className="text-[1.0rem] leading-relaxed text-white/85">{item.text}</span>
   return (
-    <li className="py-3 border-b border-border/50 last:border-0 group">
+    <li className="py-3 border-b border-white/10 last:border-0 group">
       <div className="flex gap-3">
-        {/* Colored dot bullet */}
-        <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-[oklch(0.52_0.14_196)] opacity-60 group-hover:opacity-100 transition-opacity" />
+        <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-[#14b8a6] opacity-60 group-hover:opacity-100 transition-opacity" />
         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-          {/* Story text */}
           {item.slug ? (
             <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
               {inner}
             </Link>
           ) : inner}
-
-          {/* Metadata row — TierMeter + source + coverage */}
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {(badge?.tier || badge?.sourceType) && (
               <TierMeter tier={badge.tier} sourceType={badge.sourceType} compact />
             )}
             {displayName && (
-              <span className="text-[11px] font-semibold text-foreground/60">{displayName}</span>
+              <span className="text-[11px] font-semibold text-white/50">{displayName}</span>
             )}
             {coverageText && (
-              <span className="text-[11px] text-muted-foreground">{coverageText}</span>
+              <span className="text-[11px] text-white/40">{coverageText}</span>
             )}
             {story?.msm_gap && (
               <span className="text-[10px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded"
@@ -227,7 +223,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
     <div>
       <TrackEvent name="digest_read" />
       {/* Date */}
-      <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-6">
+      <p className="text-xs font-bold tracking-widest text-white/40 uppercase mb-6">
         {formattedDate}
       </p>
 
@@ -259,7 +255,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             return (
               <div key={cat}>
                 {/* Category sub-header */}
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
                   <span className="text-sm">{cfg.icon}</span>
                   <span
                     className="text-[11px] font-bold tracking-[0.12em] uppercase"
@@ -288,9 +284,9 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             {content.etcetera.map((item: EtceteraItem | string, i: number) => {
               const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
               const story = etc.slug ? storyMap.get(etc.slug) : null
-              const text = <span className="text-[0.9rem] leading-relaxed text-muted-foreground">{etc.text}</span>
+              const text = <span className="text-[0.9rem] leading-relaxed text-white/70">{etc.text}</span>
               return (
-                <li key={i} className="flex flex-col gap-1 py-1.5 border-b border-border/30 last:border-0">
+                <li key={i} className="flex flex-col gap-1 py-1.5 border-b border-white/10 last:border-0">
                   {etc.slug ? (
                     <Link href={`/story/${etc.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
                       {text}
@@ -320,20 +316,18 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => {
               const standardizedDescriptor = getOutletDescriptor(item.source)
               return (
-              <li key={i} className="group flex gap-3 items-start py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
-                {/* Source badge */}
+              <li key={i} className="group flex gap-3 items-start py-2.5 border-b border-white/10 last:border-0 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">
                 <div className="shrink-0 w-20 pt-0.5">
-                  <span className="text-[11px] font-bold text-foreground/80 block leading-tight">{item.source}</span>
-                  <span className="text-[9px] text-muted-foreground/60 leading-none italic" title={item.descriptor}>{standardizedDescriptor}</span>
+                  <span className="text-[11px] font-bold text-white/80 block leading-tight">{item.source}</span>
+                  <span className="text-[9px] text-white/30 leading-none italic" title={item.descriptor}>{standardizedDescriptor}</span>
                 </div>
-                {/* Headline */}
                 <div className="flex-1 min-w-0">
                   {item.slug ? (
-                    <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug hover:underline underline-offset-2 font-medium">
+                    <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug text-white/80 hover:text-white hover:underline underline-offset-2 font-medium transition-colors">
                       {item.headline}
                     </Link>
                   ) : (
-                    <span className="text-sm leading-snug font-medium text-muted-foreground">{item.headline}</span>
+                    <span className="text-sm leading-snug font-medium text-white/60">{item.headline}</span>
                   )}
                 </div>
               </li>
@@ -361,7 +355,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
 function SubHeader({ label }: { label: string }) {
   return (
-    <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mt-5 mb-1">
+    <p className="text-xs font-bold tracking-widest text-white/40 uppercase mt-5 mb-2">
       {label}
     </p>
   )
@@ -369,7 +363,7 @@ function SubHeader({ label }: { label: string }) {
 
 function FreshnessLabel({ label }: { label: string }) {
   return (
-    <p className="text-[10px] font-bold tracking-widest text-muted-foreground/60 uppercase mt-4 mb-1 first:mt-0">
+    <p className="text-[10px] font-bold tracking-widest text-white/30 uppercase mt-4 mb-2 first:mt-0">
       {label}
     </p>
   )
