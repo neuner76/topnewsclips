@@ -379,6 +379,7 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories }: Sec
       mapMode={cfg.mapMode}
       stories={allStories}
       seeAllHref={categorySlug ? `/category/${categorySlug}` : undefined}
+      layout="grid"
     />
   )
 }
@@ -593,6 +594,7 @@ export default async function HomePage({
                 title="Limited Coverage" icon="⚠️" accent="#ef4444" mapMode="blindspot"
                 subtitle="Stories receiving little attention from mainstream outlets"
                 stories={msmBlackout.slice(0, 6)}
+                layout="grid"
               />
             )}
             {globalBlindspots.length > 0 && (
