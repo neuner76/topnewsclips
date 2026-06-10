@@ -89,16 +89,16 @@ export default async function StoriesPage({
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 text-white">
 
         {/* Header */}
         <div className="mb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
-            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
             {' › '}Stories
           </p>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">All Stories</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">All Stories</h1>
+          <p className="text-sm text-white/60 mt-1">
             {count ?? 0} stories, what mainstream media misses, what the world is watching
           </p>
         </div>
@@ -114,7 +114,7 @@ export default async function StoriesPage({
                 className={`text-xs font-semibold px-3 py-1.5 rounded border transition-colors ${
                   active
                     ? 'bg-[oklch(0.52_0.14_196)] text-white border-[oklch(0.52_0.14_196)]'
-                    : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground'
+                    : 'border-white/15 text-white/55 hover:text-white hover:border-white/50'
                 }`}
               >
                 {c.label}
@@ -125,7 +125,7 @@ export default async function StoriesPage({
 
         {/* Stories */}
         {stories.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-12 text-center">No stories found.</p>
+          <p className="text-sm text-white/60 py-12 text-center">No stories found.</p>
         ) : (
           <div>
             {stories.map(s => <StoryCard key={s.id} story={s} />)}
@@ -134,17 +134,17 @@ export default async function StoriesPage({
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/10">
             {page > 1 ? (
-              <Link href={pageUrl(page - 1)} className="text-sm font-semibold hover:underline underline-offset-2">
+              <Link href={pageUrl(page - 1)} className="text-sm font-semibold text-white hover:underline underline-offset-2">
                 ← Newer
               </Link>
             ) : <span />}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-white/50">
               Page {page} of {totalPages}
             </span>
             {page < totalPages ? (
-              <Link href={pageUrl(page + 1)} className="text-sm font-semibold hover:underline underline-offset-2">
+              <Link href={pageUrl(page + 1)} className="text-sm font-semibold text-white hover:underline underline-offset-2">
                 Older →
               </Link>
             ) : <span />}

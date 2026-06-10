@@ -63,7 +63,7 @@ const TIERS = [
   {
     tier: 6,
     name: 'Newsroom',
-    color: 'text-muted-foreground bg-muted border-border',
+    color: 'text-white/70 bg-white/10 border-white/15',
     definition: 'Established commercial news outlets and explainer-journalism brands. Ad-supported or subscription-funded with professional editorial teams and institutional editorial standards.',
     rationale: 'These outlets produce quality journalism but operate within commercial media structures. Their editorial decisions can be influenced by audience metrics, advertiser relationships, or corporate ownership, a structural constraint that doesn\'t apply to nonprofits or public broadcasters.',
     examples: 'CNN, ABC News, CBS News, CNBC, BBC News, 60 Minutes, Dateline NBC, Vox, Bloomberg Quicktake, Journeyman Pictures',
@@ -72,7 +72,7 @@ const TIERS = [
   {
     tier: 7,
     name: 'Independent Commentary',
-    color: 'text-muted-foreground bg-muted border-border',
+    color: 'text-white/70 bg-white/10 border-white/15',
     definition: 'Individual journalists, creator-led channels, and non-institutional commentary. Editorial accountability rests with the creator, not an institution.',
     rationale: 'Many of these creators do excellent work, but their editorial standards are self-imposed rather than institutionally enforced. There is no ombudsman, no corrections policy, and no editorial board.',
     examples: 'Breaking Points, CaspianReport, PolyMatter, Johnny Harris, Kyla Scanlon',
@@ -90,7 +90,7 @@ const TIERS = [
   {
     tier: 9,
     name: 'Raw Footage',
-    color: 'text-muted-foreground bg-muted border-border',
+    color: 'text-white/70 bg-white/10 border-white/15',
     definition: 'Bodycam, dashcam, security camera, and bystander video. No editorial layer. The footage is the story.',
     rationale: 'Raw footage is powerful because it removes the editorial middleman. But it also removes context. A 90-second clip can misrepresent a 90-minute encounter.',
     examples: 'Police bodycam releases, dashcam footage, bystander video',
@@ -99,7 +99,7 @@ const TIERS = [
   {
     tier: 10,
     name: 'Community Sourced',
-    color: 'text-muted-foreground bg-muted border-border',
+    color: 'text-white/70 bg-white/10 border-white/15',
     definition: 'Content surfaced from Reddit, social media, or other community platforms with no institutional origin and no editorial verification at the source.',
     rationale: 'Community-sourced content is how many stories first surface. It can be the earliest signal of a developing event. But it is also the most susceptible to misinformation, manipulation, and missing context.',
     examples: 'r/PublicFreakout, r/Bad_Cop_No_Donut, r/worldnews',
@@ -111,30 +111,30 @@ export default function TaxonomyPage() {
   return (
     <>
       <Header />
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-white">
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6">
-          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+        <nav className="flex items-center gap-1.5 text-xs text-white/45 mb-6">
+          <Link href="/" className="hover:text-white transition-colors">Home</Link>
           <span>›</span>
           <span>Source Taxonomy</span>
         </nav>
 
         <div className="mb-8">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">
             Editorial Framework, Version 1.0
           </p>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-white">
             Source Credibility Taxonomy
           </h1>
-          <p className="text-base text-muted-foreground leading-relaxed">
+          <p className="text-base text-white/70 leading-relaxed">
             Every source on Top News Clips is classified into a visible credibility tier. Each story carries a source-type badge so readers can instantly calibrate how much editorial weight to give each clip. The goal is transparency, not gatekeeping: every tier serves a purpose, but readers deserve to know the difference between a Pulitzer-winning nonprofit investigation and a bystander&apos;s phone video.
           </p>
         </div>
 
-        <div className="mb-10 p-4 bg-muted/50 border border-border rounded-lg">
-          <p className="text-sm font-semibold mb-2">How it works</p>
-          <ul className="text-sm text-muted-foreground space-y-1.5">
+        <div className="mb-10 p-4 bg-white/[0.03] border border-white/10 rounded-lg">
+          <p className="text-sm font-semibold mb-2 text-white">How it works</p>
+          <ul className="text-sm text-white/60 space-y-1.5">
             <li>Badges are assigned based on the originating channel, not the content of any individual video.</li>
             <li>If a source&apos;s classification is disputed or ambiguous, it defaults to the lower-credibility tier until reviewed.</li>
             <li>Stories from Tiers 8–10 are cross-referenced with at least one source from Tiers 1–5 before publication.</li>
@@ -144,22 +144,22 @@ export default function TaxonomyPage() {
 
         <div className="space-y-6">
           {TIERS.map(({ tier, name, color, definition, rationale, examples, note }) => (
-            <div key={tier} id={`tier-${tier}`} className="border border-border rounded-lg p-5">
+            <div key={tier} id={`tier-${tier}`} className="border border-white/10 bg-white/[0.03] rounded-lg p-5">
               <div className="flex items-center gap-3 mb-3">
-                <span className="text-xs font-bold text-muted-foreground w-10 shrink-0">
+                <span className="text-xs font-bold text-white/50 w-10 shrink-0">
                   Tier {tier}
                 </span>
                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide border ${color}`}>
                   {tier === 8 ? `⚠ ${name}` : name}
                 </span>
               </div>
-              <p className="text-sm font-semibold text-foreground mb-1">{definition}</p>
-              <p className="text-sm text-muted-foreground mb-2">{rationale}</p>
-              <p className="text-xs text-muted-foreground">
-                <span className="font-semibold">Examples:</span> {examples}
+              <p className="text-sm font-semibold text-white mb-1">{definition}</p>
+              <p className="text-sm text-white/65 mb-2">{rationale}</p>
+              <p className="text-xs text-white/55">
+                <span className="font-semibold text-white/75">Examples:</span> {examples}
               </p>
               {note && (
-                <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
+                <p className="text-xs text-white/55 mt-2 pt-2 border-t border-white/10">
                   ⚠ {note}
                 </p>
               )}
@@ -168,9 +168,9 @@ export default function TaxonomyPage() {
         </div>
 
         {/* Confidence Labels */}
-        <div id="confidence" className="mt-12 pt-8 border-t border-border">
-          <h2 className="text-xl font-black tracking-tight mb-2">Confidence Labels</h2>
-          <p className="text-sm text-muted-foreground mb-6">
+        <div id="confidence" className="mt-12 pt-8 border-t border-white/10">
+          <h2 className="text-xl font-black tracking-tight mb-2 text-white">Confidence Labels</h2>
+          <p className="text-sm text-white/60 mb-6">
             Every story carries a confidence label indicating how settled the underlying information is.
             Labels are assigned automatically based on source tier and coverage count, and may be updated
             as stories develop.
@@ -197,37 +197,37 @@ export default function TaxonomyPage() {
               },
               {
                 label: 'Single-source',
-                color: 'text-muted-foreground bg-muted border-border',
+                color: 'text-white/70 bg-white/10 border-white/15',
                 definition: 'One source, not yet independently verified. May be credible but has not been corroborated.',
                 when: 'Source is Tier 7–10 and fewer than 2 other outlets have covered the story.',
               },
               {
                 label: 'Analysis',
-                color: 'text-muted-foreground bg-muted border-border italic',
+                color: 'text-white/70 bg-white/10 border-white/15 italic',
                 definition: 'Interpretation or commentary, not original fact reporting.',
                 when: 'Content type is analysis or commentary, regardless of source tier.',
               },
             ].map(({ label, color, definition, when }) => (
-              <div key={label} className="border border-border rounded-lg p-4">
+              <div key={label} className="border border-white/10 bg-white/[0.03] rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide border ${color}`}>
                     {label}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-foreground mb-1">{definition}</p>
-                <p className="text-xs text-muted-foreground"><span className="font-semibold">Assigned when:</span> {when}</p>
+                <p className="text-sm font-semibold text-white mb-1">{definition}</p>
+                <p className="text-xs text-white/55"><span className="font-semibold text-white/75">Assigned when:</span> {when}</p>
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-4">
+          <p className="text-xs text-white/55 mt-4">
             Labels can change as stories develop, a &ldquo;Single-source&rdquo; story may move to &ldquo;Corroborated&rdquo; as more outlets confirm details.
           </p>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-border">
-          <p className="text-xs text-muted-foreground">
+        <div className="mt-10 pt-6 border-t border-white/10">
+          <p className="text-xs text-white/55">
             This taxonomy is reviewed quarterly. Sources may shift tiers based on changes to their funding, editorial independence, or track record.{' '}
-            <Link href="/contact" className="font-semibold text-foreground hover:underline underline-offset-2">
+            <Link href="/contact" className="font-semibold text-white hover:underline underline-offset-2">
               Dispute a classification →
             </Link>
           </p>

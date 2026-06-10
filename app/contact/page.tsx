@@ -24,20 +24,20 @@ export default function ContactPage() {
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-white">
 
         <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
-            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
             {' › '}Contact
           </p>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Contact</h1>
-          <p className="text-sm text-muted-foreground mt-2">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">Contact</h1>
+          <p className="text-sm text-white/60 mt-2">
             The full picture, not the profitable picture.
           </p>
         </div>
 
-        <div className="space-y-8 text-[15px] leading-relaxed">
+        <div className="space-y-8 text-[15px] leading-relaxed text-white/80">
 
           <div className="space-y-4">
             {[
@@ -57,12 +57,12 @@ export default function ContactPage() {
                 email: 'hello@topnewsclips.com',
               },
             ].map(({ label, body, email }) => (
-              <div key={label} className="p-5 border border-border rounded-lg">
+              <div key={label} className="p-5 border border-white/10 bg-white/[0.03] rounded-lg">
                 <p className="text-xs font-bold tracking-widest text-[oklch(0.52_0.14_196)] uppercase mb-1">{label}</p>
-                <p className="text-sm text-muted-foreground mb-3">{body}</p>
+                <p className="text-sm text-white/65 mb-3">{body}</p>
                 <a
                   href={`mailto:${email}`}
-                  className="text-sm font-semibold text-foreground hover:underline underline-offset-2"
+                  className="text-sm font-semibold text-white hover:underline underline-offset-2"
                 >
                   {email}
                 </a>

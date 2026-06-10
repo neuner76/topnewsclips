@@ -94,27 +94,27 @@ export default function FAQPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-white">
 
         <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
-            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
             {' › '}FAQ
           </p>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">FAQ</h1>
-          <p className="text-sm text-muted-foreground">Frequently asked questions about Top News Clips.</p>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2 text-white">FAQ</h1>
+          <p className="text-sm text-white/60">Frequently asked questions about Top News Clips.</p>
         </div>
 
         <dl className="space-y-6 text-[15px]">
           {FAQ.map(({ q, a }) => (
-            <div key={q} className="border-b border-border pb-6 last:border-0 last:pb-0">
-              <dt className="font-bold mb-2">{q}</dt>
-              <dd className="text-muted-foreground leading-relaxed">{a}</dd>
+            <div key={q} className="border-b border-white/10 pb-6 last:border-0 last:pb-0">
+              <dt className="font-bold mb-2 text-white">{q}</dt>
+              <dd className="text-white/65 leading-relaxed">{a}</dd>
             </div>
           ))}
         </dl>
 
-        <div className="mt-10 flex flex-wrap gap-4 text-sm border-t border-border pt-6">
+        <div className="mt-10 flex flex-wrap gap-4 text-sm border-t border-white/10 pt-6">
           <Link href="/how-it-works" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
             How it works →
           </Link>

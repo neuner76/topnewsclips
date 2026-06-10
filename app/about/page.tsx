@@ -26,20 +26,20 @@ export default function AboutPage() {
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-white">
 
         <div className="mb-10 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">About</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2 text-white">About</h1>
+          <p className="text-sm text-white/60">
             The full picture, not the profitable picture.
           </p>
         </div>
 
-        <div className="prose prose-sm max-w-none space-y-10 text-[15px] leading-relaxed">
+        <div className="space-y-10 text-[15px] leading-relaxed text-white/80">
 
           {/* About Top News Clips */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">About Top News Clips</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3 text-white">About Top News Clips</h2>
             <p>
               Top News Clips is an independent daily news briefing founded by Eric Neuner.
             </p>
@@ -66,7 +66,7 @@ export default function AboutPage() {
 
           {/* About Eric Neuner */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">About Eric Neuner</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3 text-white">About Eric Neuner</h2>
             <p>
               Eric Neuner is the founder of Top News Clips. He lives in Marin County, California, where
               he has spent over a decade building ventures across media, real estate, and sustainable land
@@ -91,7 +91,7 @@ export default function AboutPage() {
 
           {/* How it works */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">How it works</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3 text-white">How it works</h2>
             <p>
               Every morning, the pipeline pulls from 50+ sources across 10 credibility tiers, filters
               noise, classifies every source, checks coverage against 15 mainstream outlets,
@@ -110,7 +110,7 @@ export default function AboutPage() {
 
           {/* Editorial standard */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">Editorial standard</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3 text-white">Editorial standard</h2>
             <p>
               We look for stories that matter beyond one ideological lane and hold up under broader scrutiny.
             </p>
@@ -121,7 +121,7 @@ export default function AboutPage() {
 
           {/* Funding */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">How we&apos;re funded</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3 text-white">How we&apos;re funded</h2>
             <p>
               Top News Clips is independently operated and funded by its founder. No investors.
               No advertisers. No institutional backing. Revenue comes from voluntary subscriptions.
@@ -131,7 +131,7 @@ export default function AboutPage() {
 
           {/* Corrections */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-3">Corrections</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-3 text-white">Corrections</h2>
             <p>
               We&apos;re not perfect. If a story is mislabeled, a summary overstates the source material,
               or a tier badge is wrong, we want to know. Trust is not built by pretending nothing ever goes
@@ -146,8 +146,8 @@ export default function AboutPage() {
           </section>
 
           {/* Further reading */}
-          <section className="border-t border-border pt-8">
-            <h2 className="text-lg font-black tracking-tight uppercase mb-4">Further reading</h2>
+          <section className="border-t border-white/10 pt-8">
+            <h2 className="text-lg font-black tracking-tight uppercase mb-4 text-white">Further reading</h2>
             <ul className="space-y-3 text-sm">
               {[
                 { href: '/how-it-works', label: 'How It Works', desc: 'The full 7-step pipeline process' },
@@ -160,7 +160,7 @@ export default function AboutPage() {
                   <Link href={href} className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline shrink-0">
                     {label}
                   </Link>
-                  <span className="text-muted-foreground"> {desc}</span>
+                  <span className="text-white/55"> {desc}</span>
                 </li>
               ))}
             </ul>

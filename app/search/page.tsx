@@ -62,14 +62,14 @@ export default async function SearchPage({
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 text-white">
 
         <div className="mb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
-            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
             {' › '}Search
           </p>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-4">Search</h1>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-4 text-white">Search</h1>
 
           <form method="GET" action="/search">
             <div className="flex gap-2">
@@ -80,7 +80,7 @@ export default async function SearchPage({
                 placeholder="Search stories, topics, journalists..."
                 autoFocus
                 autoComplete="off"
-                className="flex-1 text-base px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)] focus:ring-1 focus:ring-[oklch(0.52_0.14_196)]"
+                className="flex-1 text-base px-4 py-2.5 rounded-lg border border-white/20 bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[oklch(0.52_0.14_196)] focus:ring-1 focus:ring-[oklch(0.52_0.14_196)]"
               />
               <button
                 type="submit"
@@ -94,7 +94,7 @@ export default async function SearchPage({
 
         {query.length >= 2 ? (
           <>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-white/60 mb-4">
               {total === 0
                 ? `No results for "${query}"`
                 : `${total} result${total !== 1 ? 's' : ''} for "${query}"`}
@@ -102,14 +102,14 @@ export default async function SearchPage({
 
             {stories.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-muted-foreground text-sm mb-4">No stories matched your search.</p>
-                <p className="text-xs text-muted-foreground">Try different keywords or browse by category:</p>
+                <p className="text-white/65 text-sm mb-4">No stories matched your search.</p>
+                <p className="text-xs text-white/50">Try different keywords or browse by category:</p>
                 <div className="flex justify-center gap-3 mt-3">
                   {(['analysis', 'reported', 'raw'] as const).map(c => (
                     <Link
                       key={c}
                       href={`/category/${c}`}
-                      className="text-xs font-semibold px-3 py-1.5 rounded border border-border hover:bg-muted transition-colors capitalize"
+                      className="text-xs font-semibold px-3 py-1.5 rounded border border-white/15 text-white/70 hover:bg-white/10 hover:text-white transition-colors capitalize"
                     >
                       {c === 'raw' ? 'Raw Footage' : c.charAt(0).toUpperCase() + c.slice(1)}
                     </Link>
@@ -123,17 +123,17 @@ export default async function SearchPage({
             )}
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+              <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/10">
                 {page > 1 ? (
-                  <Link href={pageUrl(page - 1)} className="text-sm font-semibold hover:underline underline-offset-2">
+                  <Link href={pageUrl(page - 1)} className="text-sm font-semibold text-white hover:underline underline-offset-2">
                     ← Previous
                   </Link>
                 ) : <span />}
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-white/50">
                   Page {page} of {totalPages}
                 </span>
                 {page < totalPages ? (
-                  <Link href={pageUrl(page + 1)} className="text-sm font-semibold hover:underline underline-offset-2">
+                  <Link href={pageUrl(page + 1)} className="text-sm font-semibold text-white hover:underline underline-offset-2">
                     Next →
                   </Link>
                 ) : <span />}
@@ -141,9 +141,9 @@ export default async function SearchPage({
             )}
           </>
         ) : query.length > 0 ? (
-          <p className="text-sm text-muted-foreground">Enter at least 2 characters to search.</p>
+          <p className="text-sm text-white/60">Enter at least 2 characters to search.</p>
         ) : (
-          <div className="py-8 text-center text-sm text-muted-foreground">
+          <div className="py-8 text-center text-sm text-white/60">
             <p>Search across all stories, topics, and journalists.</p>
           </div>
         )}

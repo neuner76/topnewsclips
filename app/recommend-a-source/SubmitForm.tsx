@@ -69,7 +69,7 @@ export default function SubmitForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="block text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1.5">
+        <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-1.5">
           Channel or outlet URL <span className="text-red-500">*</span>
         </label>
         <input
@@ -78,13 +78,13 @@ export default function SubmitForm() {
           onChange={e => setChannelUrl(e.target.value)}
           placeholder="https://www.youtube.com/@channelname"
           required
-          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
+          className="w-full text-sm px-3 py-2.5 rounded border border-white/20 bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
         />
-        <p className="text-xs text-muted-foreground mt-1">YouTube channel, website, or social profile URL.</p>
+        <p className="text-xs text-white/50 mt-1">YouTube channel, website, or social profile URL.</p>
       </div>
 
       <div>
-        <label className="block text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1.5">
+        <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-1.5">
           Why it belongs <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -95,42 +95,42 @@ export default function SubmitForm() {
           minLength={10}
           maxLength={500}
           rows={3}
-          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)] resize-none"
+          className="w-full text-sm px-3 py-2.5 rounded border border-white/20 bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[oklch(0.52_0.14_196)] resize-none"
         />
-        <p className="text-xs text-muted-foreground mt-1 text-right">{reason.length}/500</p>
+        <p className="text-xs text-white/50 mt-1 text-right">{reason.length}/500</p>
       </div>
 
       <div>
-        <label className="block text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1.5">
-          Suggested tier <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span>
+        <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-1.5">
+          Suggested tier <span className="text-white/40 normal-case font-normal">(optional)</span>
         </label>
         <select
           value={suggestedTier}
           onChange={e => setSuggestedTier(e.target.value)}
-          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
+          className="w-full text-sm px-3 py-2.5 rounded border border-white/20 bg-white text-slate-950 focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
         >
           <option value=""> Not sure</option>
           {TIERS.map(t => (
             <option key={t.value} value={t.value}>{t.label}</option>
           ))}
         </select>
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-xs text-white/50 mt-1">
           We&apos;ll evaluate this independently, your suggestion helps us understand how you see the source.
         </p>
       </div>
 
       <div>
-        <label className="block text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1.5">
-          Your email <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span>
+        <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-1.5">
+          Your email <span className="text-white/40 normal-case font-normal">(optional)</span>
         </label>
         <input
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-background focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
+          className="w-full text-sm px-3 py-2.5 rounded border border-white/20 bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
         />
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-xs text-white/50 mt-1">
           We&apos;ll notify you when your submission is reviewed. Not shared or used for anything else.
         </p>
       </div>
