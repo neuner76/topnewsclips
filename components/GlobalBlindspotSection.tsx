@@ -1,14 +1,8 @@
-'use client'
-
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import TierMeter from './TierMeter'
-
-// Load WorldMap client-side only (uses browser APIs)
-const WorldMap = dynamic(() => import('./WorldMap'), { ssr: false })
 
 interface GlobalBlindspotSectionProps {
   stories: Story[]
@@ -29,13 +23,23 @@ export default function GlobalBlindspotSection({ stories }: GlobalBlindspotSecti
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)' }}>
 
-      {/* World map — blindspot mode, fills entire section */}
-      <div className="absolute inset-0">
-        <WorldMap mode="blindspot" className="w-full h-full" />
-        {/* Dark gradient overlay — ensures text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1ecc] to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent" />
-      </div>
+      {/* CSS globe grid — orange-tinted, instant */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse at 65% 45%, rgba(249,115,22,0.15) 0%, transparent 60%),
+            radial-gradient(ellipse at 25% 75%, rgba(249,115,22,0.06) 0%, transparent 50%),
+            linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px),
+            linear-gradient(rgba(59,130,246,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.02) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
+        }}
+      />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1ecc] to-transparent" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent" />
 
       {/* Content */}
       <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">

@@ -1,22 +1,17 @@
-'use client'
-
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import TierMeter from './TierMeter'
 import CategoryBadge from './CategoryBadge'
 import MSMBadge from './MSMBadge'
 
-const WorldMap = dynamic(() => import('./WorldMap'), { ssr: false })
-
 interface WorldMapSectionProps {
   title: string
   subtitle?: string
   icon: string
   accent: string          // hex color
-  mapMode?: 'hero' | 'watermark' | 'blindspot'
+  mapMode?: 'hero' | 'watermark' | 'blindspot' // kept for API compat, CSS renders now
   stories: Story[]
   seeAllHref?: string
   emptyMessage?: string
@@ -52,12 +47,24 @@ export default function WorldMapSection({
   return (
     <section className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628' }}>
 
-      {/* World map background */}
-      <div className="absolute inset-0">
-        <WorldMap mode={mapMode} className="w-full h-full" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0d1628] via-[#0d1628cc] to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1628] via-transparent to-transparent" />
-      </div>
+      {/* Instant CSS globe grid — renders server-side, no JS wait */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse at 70% 40%, ${accent}18 0%, transparent 60%),
+            radial-gradient(ellipse at 20% 80%, ${accent}08 0%, transparent 50%),
+            linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px),
+            linear-gradient(rgba(59,130,246,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.02) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
+        }}
+      />
+      {/* Edge fades */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#0d1628bb] via-transparent to-[#0d162888]" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0d1628] via-transparent to-transparent" />
 
       {/* Colored top accent bar */}
       <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style={{ background: accent }} />

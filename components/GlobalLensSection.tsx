@@ -1,13 +1,8 @@
-'use client'
-
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import TierMeter from './TierMeter'
-
-const WorldMap = dynamic(() => import('./WorldMap'), { ssr: false })
 
 interface GlobalLensItem {
   slug: string
@@ -69,10 +64,22 @@ export default function GlobalLensSection({ items, stories, storyMap }: GlobalLe
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#0d1628' }}>
 
-      {/* World map — hero mode, electric blue tones */}
-      <div className="absolute inset-0">
-        <WorldMap mode="hero" className="w-full h-full" />
-        {/* Gradient: left column stays dark for text, right side shows map */}
+      {/* CSS globe grid — blue-tinted, instant */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse at 65% 45%, rgba(59,130,246,0.18) 0%, transparent 60%),
+            radial-gradient(ellipse at 25% 75%, rgba(59,130,246,0.07) 0%, transparent 50%),
+            linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px),
+            linear-gradient(rgba(59,130,246,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.02) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
+        }}
+      />
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-[#0d1628] via-[#0d1628cc] to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d1628] via-transparent to-transparent" />
       </div>
