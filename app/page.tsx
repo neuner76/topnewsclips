@@ -161,55 +161,55 @@ function getDisplayName(story: Story): string | null {
     .replace(/^./, c => c.toUpperCase())
 }
 
+// Color + icon per In The Know category
+const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string }> = {
+  'Politics & World Affairs':        { color: '#3b82f6', icon: '🌐' },
+  'Science & Technology':            { color: '#a855f7', icon: '🔬' },
+  'Business & Markets':              { color: '#22c55e', icon: '📈' },
+  'Sports, Entertainment, & Culture':{ color: '#f97316', icon: '🎭' },
+  'Comedy & Satire':                 { color: '#eab308', icon: '🎤' },
+}
+
 function InTheKnowBullet({ item, storyMap }: { item: InTheKnowItem; storyMap: Map<string, Story> }) {
   const story = item.slug ? storyMap.get(item.slug) : null
   const badge = story ? resolvedBadge(story) : null
   const displayName = story ? getDisplayName(story) : null
-  const confidence = story ? getConfidenceLabel(story) : null
-  const confidenceLabel = confidence ? confidence.charAt(0) + confidence.slice(1).toLowerCase() : null
   const coveredCount = story?.msm_outlet_coverage?.covered?.length ?? 0
   const totalChecked = (story?.msm_outlet_coverage?.covered?.length ?? 0) + (story?.msm_outlet_coverage?.notCovered?.length ?? 0)
   const coverageText = totalChecked > 0 ? `${coveredCount} of ${totalChecked} outlets` : null
-  const hasMetadata = displayName || badge?.sourceType || confidenceLabel || coverageText
 
   const inner = <span className="text-[1.0rem] leading-relaxed">{item.text}</span>
   return (
-    <li className="py-3 border-b border-border/50 last:border-0">
-      <div className="flex gap-2">
-        <span className="text-muted-foreground shrink-0 mt-0.5">›</span>
-        <div className="flex flex-col gap-2">
+    <li className="py-3 border-b border-border/50 last:border-0 group">
+      <div className="flex gap-3">
+        {/* Colored dot bullet */}
+        <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-[oklch(0.52_0.14_196)] opacity-60 group-hover:opacity-100 transition-opacity" />
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+          {/* Story text */}
           {item.slug ? (
             <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
               {inner}
             </Link>
           ) : inner}
-          {hasMetadata && (
-            <p className="text-[11px] text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-              {displayName && (
-                <span className="font-semibold text-foreground/70">{displayName}</span>
-              )}
-              {displayName && badge?.sourceType && <span className="opacity-40">·</span>}
-              {badge?.sourceType && (
-                <span>{badge.sourceType}{badge.tier ? ` (Tier ${badge.tier})` : ''}</span>
-              )}
-              {(displayName || badge?.sourceType) && confidenceLabel && <span className="opacity-40">·</span>}
-              {confidenceLabel && (
-                <span className="italic">{confidenceLabel}</span>
-              )}
-              {(displayName || badge?.sourceType || confidenceLabel) && coverageText && <span className="opacity-40">·</span>}
-              {coverageText && (
-                <span>{coverageText}</span>
-              )}
-              {story?.msm_gap && (
-                <span
-                  className="font-semibold text-[oklch(0.45_0.22_24)]"
-                  title="Limited Coverage: This story is receiving attention from fewer than 3 of 15 tracked mainstream outlets"
-                >
-                  Limited Coverage
-                </span>
-              )}
-            </p>
-          )}
+
+          {/* Metadata row — TierMeter + source + coverage */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {(badge?.tier || badge?.sourceType) && (
+              <TierMeter tier={badge.tier} sourceType={badge.sourceType} compact />
+            )}
+            {displayName && (
+              <span className="text-[11px] font-semibold text-foreground/60">{displayName}</span>
+            )}
+            {coverageText && (
+              <span className="text-[11px] text-muted-foreground">{coverageText}</span>
+            )}
+            {story?.msm_gap && (
+              <span className="text-[10px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded"
+                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+                Limited coverage
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </li>
@@ -254,11 +254,20 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           {IN_THE_KNOW_CATEGORIES.map((cat) => {
             const items = content.inTheKnow[cat]
             if (!items?.length) return null
+            const cfg = ITK_CATEGORY_CONFIG[cat] ?? { color: 'oklch(0.52 0.14 196)', icon: '📌' }
             return (
               <div key={cat}>
-                <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-2">
-                  {cat}
-                </p>
+                {/* Category sub-header */}
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+                  <span className="text-sm">{cfg.icon}</span>
+                  <span
+                    className="text-[11px] font-bold tracking-[0.12em] uppercase"
+                    style={{ color: cfg.color }}
+                  >
+                    {cat}
+                  </span>
+                  <div className="flex-1 h-px" style={{ background: `${cfg.color}22` }} />
+                </div>
                 <ul>
                   {items.map((item, i) => (
                     <InTheKnowBullet key={i} item={item} storyMap={storyMap} />
@@ -310,18 +319,22 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => {
               const standardizedDescriptor = getOutletDescriptor(item.source)
               return (
-              <li key={i} className="flex gap-3 items-baseline py-1.5 border-b border-border/50 last:border-0">
-                <div className="shrink-0 w-24">
-                  <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block">{item.source}</span>
-                  <span className="text-[9px] text-muted-foreground/60 leading-none" title={item.descriptor}>{standardizedDescriptor}</span>
+              <li key={i} className="group flex gap-3 items-start py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
+                {/* Source badge */}
+                <div className="shrink-0 w-20 pt-0.5">
+                  <span className="text-[11px] font-bold text-foreground/80 block leading-tight">{item.source}</span>
+                  <span className="text-[9px] text-muted-foreground/60 leading-none italic" title={item.descriptor}>{standardizedDescriptor}</span>
                 </div>
-                {item.slug ? (
-                  <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-relaxed hover:underline underline-offset-2">
-                    {item.headline}
-                  </Link>
-                ) : (
-                  <span className="text-sm leading-relaxed">{item.headline}</span>
-                )}
+                {/* Headline */}
+                <div className="flex-1 min-w-0">
+                  {item.slug ? (
+                    <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug hover:underline underline-offset-2 font-medium">
+                      {item.headline}
+                    </Link>
+                  ) : (
+                    <span className="text-sm leading-snug font-medium text-muted-foreground">{item.headline}</span>
+                  )}
+                </div>
               </li>
               )
             })}
@@ -334,42 +347,6 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
         <GlobalBlindspotSection stories={content.globalBlindspots.map(item => storyMap.get(item.slug)).filter((s): s is Story => !!s)} />
       )}
 
-      {/* Global Blindspot — text fallback for digest items not in storyMap */}
-      {content.globalBlindspots && content.globalBlindspots.length > 0 && (
-        <section className="hidden">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 border-t border-border" />
-            <span className="text-xs font-bold tracking-widest text-[oklch(0.52_0.14_55)] uppercase shrink-0">
-              🌍 Global Blindspot
-            </span>
-            <div className="flex-1 border-t border-border" />
-          </div>
-          <p className="text-xs text-muted-foreground mb-4">Stories the rest of the world is covering that haven&apos;t reached US headlines.</p>
-          <ul className="space-y-4">
-            {content.globalBlindspots.map((item, i) => {
-              const story = storyMap.get(item.slug)
-              return (
-              <li key={i} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                  <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase">{item.region}</span>
-                  {story && <SourceTypeBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />}
-                  {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
-                </div>
-                <Link
-                  href={`/story/${item.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-base font-semibold text-foreground hover:underline underline-offset-2 leading-snug block mb-1"
-                >
-                  {item.title}
-                </Link>
-                <p className="text-base text-muted-foreground">{item.summary}</p>
-              </li>
-              )
-            })}
-          </ul>
-        </section>
-      )}
 
       {/* Global Lens */}
       {content.globalLens && content.globalLens.length > 0 && (
