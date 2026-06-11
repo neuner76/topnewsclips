@@ -99,6 +99,12 @@ Respond ONLY with JSON matching this schema:
 
 Rules:
 - Run all checks C1-C8 and include all eight in "checks".
+- "result" must match the conclusion stated in "reason". If you reconsider
+  mid-explanation and conclude a check actually passes (e.g. "this is a
+  pass", "label is correct", "no fail"), set "result" to "pass" — never
+  leave "result" as "fail" after your own reasoning concludes pass. Do not
+  show a "wait, re-evaluating" back-and-forth in "reason"; reason once to a
+  final conclusion and report that conclusion in both fields.
 - Any blocking check (C1-C4) fail that cannot be fixed by rewriting -> HOLD.
 - A C2 fail where the name exists in the source -> FIX with the name inserted.
 - A C4 fail -> FIX summary framing AND set routing_note to move/drop the card.
