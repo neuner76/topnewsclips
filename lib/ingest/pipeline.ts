@@ -24,6 +24,12 @@ export interface FetchResult {
   errors: string[]
 }
 
+// Strips unpaired Unicode surrogates that can break JSON serialization
+// over the Supabase REST API (e.g. malformed emoji in YouTube metadata).
+function sanitize(s: string): string {
+  return s.replace(/[\uD800-\uDFFF]/g, '')
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -303,11 +309,11 @@ export async function runFetch(): Promise<FetchResult> {
     const slug = makeSlug(c.platform, c.videoId, c.title)
     const { error } = await supabase.from('candidates').insert({
       slug,
-      title: c.title,
+      title: sanitize(c.title),
       video_url: c.videoUrl,
       platform: c.platform,
       video_id: c.videoId,
-      description: c.description,
+      description: sanitize(c.description ?? ''),
       viral_score: c.viralScore,
       source: c.source,
       thumbnail_url: (c as { thumbnailUrl?: string | null }).thumbnailUrl ?? null,
