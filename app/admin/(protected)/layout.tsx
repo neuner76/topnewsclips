@@ -29,6 +29,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <Link href="/admin/pipeline" className="hover:text-background transition-colors">
                 Pipeline
               </Link>
+              <Link href="/admin/personalization" className="hover:text-background transition-colors">
+                Personalization
+              </Link>
               <Link href="/admin/submissions" className="hover:text-background transition-colors">
                 Submissions
               </Link>
