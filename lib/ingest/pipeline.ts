@@ -30,6 +30,29 @@ function sanitize(s: string): string {
   return s.replace(/[\uD800-\uDFFF]/g, '')
 }
 
+// Strips promo/junk patterns from raw YouTube/TikTok descriptions before they're
+// used as a draft summary (satire/comedy bypass skips Claude summarization, so
+// the raw description would otherwise reach the QC gate as-is and fail C1).
+function cleanDescriptionForSummary(description: string): string {
+  let text = description
+    // chapter timestamp lines, e.g. "0:00 Intro" or "1:23:45 Segment Title"
+    .replace(/^\s*\d{1,2}(:\d{2}){1,2}\s+.*$/gm, '')
+    // URLs
+    .replace(/https?:\/\/\S+/g, '')
+    // hashtags
+    .replace(/#\S+/g, '')
+    // @-handles
+    .replace(/@\w+/g, '')
+    // common subscribe/sponsor CTAs
+    .replace(/Subscribe[^.\n]*\.?/gi, '')
+    .replace(/Get the world's news at[^.\n]*\.?/gi, '')
+
+  // Drop trailing production-credit block (Hosted by / Executive Producer / Directed by / Written by)
+  text = text.replace(/\n\s*(Hosted by|Executive Producer|Directed by|Written by|Produced by)[\s\S]*$/i, '')
+
+  return text.replace(/[ \t]+/g, ' ').replace(/\n{2,}/g, '\n').trim()
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -482,7 +505,7 @@ export async function runProcess(): Promise<PipelineResult> {
           {
             title: candidate.title,
             slug: candidate.slug,
-            description: candidate.description ?? '',
+            description: cleanDescriptionForSummary(candidate.description ?? ''),
             embed_url: candidate.video_url,
             platform: candidate.platform,
             view_count: candidate.viral_score,
