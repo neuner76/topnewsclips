@@ -411,8 +411,8 @@ export default async function HomePage({
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Hero, world map + lead story */}
-        {(() => {
+        {/* Hero, world map + lead story — digest view only; the Clips view has its own hero below */}
+        {activeView === 'digest' && (() => {
           const digestLeadSlug = digest?.content.needToKnow?.[0]?.slug
           const digestLeadStory = digestLeadSlug ? storyMap.get(digestLeadSlug) : null
           const heroStory = digestLeadStory ?? all.find(s => s.pinned) ?? all[0]
