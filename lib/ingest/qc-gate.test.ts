@@ -86,13 +86,16 @@ describe('QC gate (rubric C1-C8)', () => {
   })
 
   it('T4: a clean, well-attributed story passes with no changes', async () => {
+    const today = new Date().toISOString().slice(0, 10)
     const result = await runQCGate(
       {
         ...base,
         storyId: 't4-screwworm',
-        coverageCount: 8,
+        coverageCount: 1,
+        videoPublishDate: today,
+        eventDateEstimate: today,
         headline: 'New World Screwworm Detected in South Texas Cattle, Texas Tribune Reports',
-        summary: 'The Texas Tribune reports that the New World screwworm parasite was confirmed in cattle in South Texas for the first time in decades, prompting state agriculture officials to expand livestock inspection checkpoints near the border.',
+        summary: 'The Texas Tribune reports that the New World screwworm parasite was confirmed in cattle in South Texas, prompting state agriculture officials to expand livestock inspection checkpoints near the border.',
         rawSourceDescription: 'The Texas Tribune reports that the New World screwworm parasite was confirmed in cattle in South Texas, prompting state agriculture officials to expand livestock inspection checkpoints near the border.',
       },
       apiKey!
