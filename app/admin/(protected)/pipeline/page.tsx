@@ -46,7 +46,7 @@ export default async function PipelinePage() {
       .limit(200),
     supabase
       .from('stories')
-      .select('slug, title, source, journalist_username, display_order, created_at')
+      .select('slug, title, source, journalist_username, display_order, created_at, qc_status')
       .gte('created_at', todayCutoff)
       .order('created_at', { ascending: false })
       .limit(100),
@@ -56,10 +56,13 @@ export default async function PipelinePage() {
   const publishedSlugs = new Map((publishedToday ?? []).map(s => [s.slug, s]))
 
   // Classify each candidate
-  type Decision = 'published' | 'review' | 'rejected' | 'pending'
+  type Decision = 'published' | 'review' | 'hold' | 'rejected' | 'pending'
   function getDecision(slug: string, processed: boolean): Decision {
     const pub = publishedSlugs.get(slug)
-    if (pub) return pub.display_order === 75 ? 'review' : 'published'
+    if (pub) {
+      if (pub.qc_status === 'hold') return 'hold'
+      return pub.display_order === 75 ? 'review' : 'published'
+    }
     if (rejectedSlugs.has(slug)) return 'rejected'
     if (processed) return 'rejected' // processed but not in stories or rejected_slugs = rejected without reason
     return 'pending'
@@ -70,8 +73,9 @@ export default async function PipelinePage() {
 
   const stats = {
     fetched: candidates?.length ?? 0,
-    published: publishedFromCandidates.filter(s => s.display_order !== 75).length,
-    review: publishedFromCandidates.filter(s => s.display_order === 75).length,
+    published: publishedFromCandidates.filter(s => s.qc_status !== 'hold' && s.display_order !== 75).length,
+    review: publishedFromCandidates.filter(s => s.qc_status !== 'hold' && s.display_order === 75).length,
+    held: publishedFromCandidates.filter(s => s.qc_status === 'hold').length,
     rejected: rejected?.length ?? 0,
     pending: (candidates ?? []).filter(c => !c.processed).length,
   }
@@ -84,11 +88,12 @@ export default async function PipelinePage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-5 gap-3 mb-8">
+      <div className="grid grid-cols-6 gap-3 mb-8">
         {[
           { label: 'Fetched', value: stats.fetched, color: 'gray' as const },
           { label: 'Published', value: stats.published, color: 'green' as const },
           { label: 'Review', value: stats.review, color: 'amber' as const },
+          { label: 'QC Hold', value: stats.held, color: 'red' as const },
           { label: 'Rejected', value: stats.rejected, color: 'red' as const },
           { label: 'Pending', value: stats.pending, color: 'gray' as const },
         ].map(s => (
@@ -117,7 +122,7 @@ export default async function PipelinePage() {
             {(candidates ?? []).map((c, i) => {
               const decision = getDecision(c.slug, c.processed)
               const reason = rejectedSlugs.get(c.slug) ?? ''
-              const badgeColor = { published: 'green', review: 'amber', rejected: 'red', pending: 'gray' }[decision] as 'green' | 'amber' | 'red' | 'gray'
+              const badgeColor = { published: 'green', review: 'amber', hold: 'red', rejected: 'red', pending: 'gray' }[decision] as 'green' | 'amber' | 'red' | 'gray'
               return (
                 <tr key={c.slug} className="hover:bg-muted/20 transition-colors">
                   <td className="px-3 py-2 text-muted-foreground tabular-nums">{i + 1}</td>
@@ -141,6 +146,10 @@ export default async function PipelinePage() {
                   <td className="px-3 py-2 text-muted-foreground leading-snug max-w-xs">
                     {reason ? (
                       <span className="line-clamp-2">{reason}</span>
+                    ) : decision === 'hold' ? (
+                      <a href="/admin/qc-holds" className="text-[oklch(0.52_0.14_196)] hover:underline">
+                        Review in QC Holds →
+                      </a>
                     ) : decision === 'published' ? (
                       <a href={`/story/${c.slug}`} className="text-[oklch(0.52_0.14_196)] hover:underline" target="_blank" rel="noopener noreferrer">
                         View story →

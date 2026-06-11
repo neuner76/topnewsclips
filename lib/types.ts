@@ -31,6 +31,9 @@ export interface Story {
     interpretation: string[]
     headerNote?: string
   } | null
+  qc_status: 'pass' | 'hold' | null
+  qc_failed_checks: { id: string; result: 'pass' | 'fail'; reason: string }[] | null
+  qc_routing_note: string | null
 }
 
 export interface Subscriber {

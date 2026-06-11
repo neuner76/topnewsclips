@@ -6,11 +6,15 @@ import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
 import { pingIndexNow } from './indexnow'
 import { getSourceTier } from './source-tier'
+import { runQCAndInsert } from './qc-publish'
+import { getConfidenceLabel, CONFIDENCE_META } from '@/lib/confidence'
+import type { QCConfidenceLabel } from './qc-gate'
 
 export interface PipelineResult {
   inserted: number
   needsReview: number
   rejected: number
+  held: number
   errors: string[]
   stories: Array<{ title: string; slug: string; decision: string }>
 }
@@ -342,7 +346,7 @@ function isCrisisTopic(title: string): boolean {
 export async function runProcess(): Promise<PipelineResult> {
   const supabase = getSupabase()
   const anthropicKey = process.env.ANTHROPIC_API_KEY!
-  const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, errors: [], stories: [] }
+  const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, held: 0, errors: [], stories: [] }
 
   const { data: pending, error: fetchError } = await supabase
     .from('candidates')
@@ -465,41 +469,58 @@ export async function runProcess(): Promise<PipelineResult> {
           await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
           continue
         }
-        const { error: satirErr } = await supabase.from('stories').insert({
-          title: candidate.title,
-          slug: candidate.slug,
-          description: candidate.description ?? '',
-          embed_url: candidate.video_url,
-          platform: candidate.platform,
-          view_count: candidate.viral_score,
-          share_count: 0,
-          msm_gap: false,
-          msm_outlet_coverage: { covered: [], notCovered: [] },
-          source: candidate.source,
-          msm_notes: `Source: ${candidate.source} | Satire bypass`,
-          published: true,
-          display_order: 80,
-          category: 'comedy',
-          thumbnail_url: candidate.thumbnail_url ?? null,
-          journalist_username: candidate.journalist_username ?? (
-            sourceLower.includes('saturday night live') ? 'saturdaynightlive' :
-            sourceLower.includes('the daily show') ? 'thedailyshow' :
-            sourceLower.includes('last week tonight') ? 'lastweektonight' :
-            sourceLower.includes('jonathan pie') ? 'jonathanpie' :
-            sourceLower.includes('some more news') ? 'smn' :
-            sourceLower.includes('josh johnson') ? 'joshjohnsoncomedy' :
-            sourceLower.includes('the juice media') ? 'thejuicemedia' :
-            null
-          ),
-          region: null,
-          duration: candidate.duration ?? null,
-          source_tier: getSourceTier(candidate.journalist_username ?? null, candidate.source ?? '', 'comedy').tier,
-          source_type: 'satire',
-          verified_interpretation: null,
-        })
+        const satireSourceTier = getSourceTier(candidate.journalist_username ?? null, candidate.source ?? '', 'comedy').tier
+        const satireQC = await runQCAndInsert(
+          supabase,
+          anthropicKey,
+          {
+            title: candidate.title,
+            slug: candidate.slug,
+            description: candidate.description ?? '',
+            embed_url: candidate.video_url,
+            platform: candidate.platform,
+            view_count: candidate.viral_score,
+            share_count: 0,
+            msm_gap: false,
+            msm_outlet_coverage: { covered: [], notCovered: [] },
+            source: candidate.source,
+            msm_notes: `Source: ${candidate.source} | Satire bypass`,
+            published: true,
+            display_order: 80,
+            category: 'comedy',
+            thumbnail_url: candidate.thumbnail_url ?? null,
+            journalist_username: candidate.journalist_username ?? (
+              sourceLower.includes('saturday night live') ? 'saturdaynightlive' :
+              sourceLower.includes('the daily show') ? 'thedailyshow' :
+              sourceLower.includes('last week tonight') ? 'lastweektonight' :
+              sourceLower.includes('jonathan pie') ? 'jonathanpie' :
+              sourceLower.includes('some more news') ? 'smn' :
+              sourceLower.includes('josh johnson') ? 'joshjohnsoncomedy' :
+              sourceLower.includes('the juice media') ? 'thejuicemedia' :
+              null
+            ),
+            region: null,
+            duration: candidate.duration ?? null,
+            source_tier: satireSourceTier,
+            source_type: 'satire',
+            verified_interpretation: null,
+          },
+          {
+            section: 'comedy',
+            contentType: 'satire',
+            confidenceLabel: 'Satire',
+            sourceName: candidate.source ?? '',
+            sourceTier: satireSourceTier,
+            coverageCount: 0,
+            rawSourceDescription: candidate.description ?? '',
+          }
+        )
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
-        if (satirErr) {
-          result.errors.push(`Satire insert error: ${satirErr.message}`)
+        if (satireQC.error) {
+          result.errors.push(`Satire insert error: ${satireQC.error}`)
+        } else if (satireQC.held) {
+          result.held++
+          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'hold' })
         } else {
           result.inserted++
           result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })
@@ -517,32 +538,48 @@ export async function runProcess(): Promise<PipelineResult> {
           await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
           continue
         }
-        const { error: msmErr } = await supabase.from('stories').insert({
-          title: candidate.title,
-          slug: candidate.slug,
-          description: candidate.description ?? '',
-          embed_url: candidate.video_url,
-          platform: candidate.platform,
-          view_count: candidate.viral_score,
-          share_count: 0,
-          msm_gap: false,
-          msm_outlet_coverage: { covered: [], notCovered: [] },
-          source: candidate.source,
-          msm_notes: `Source: ${candidate.source} | Mainstream Pulse bypass`,
-          published: true,
-          display_order: 90,
-          category: 'reported',
-          thumbnail_url: candidate.thumbnail_url ?? null,
-          journalist_username: handle || null,
-          region: null,
-          duration: candidate.duration ?? null,
-          source_tier: 6,
-          source_type: 'Mainstream Pulse',
-          verified_interpretation: null,
-        })
+        const mainstreamQC = await runQCAndInsert(
+          supabase,
+          anthropicKey,
+          {
+            title: candidate.title,
+            slug: candidate.slug,
+            description: candidate.description ?? '',
+            embed_url: candidate.video_url,
+            platform: candidate.platform,
+            view_count: candidate.viral_score,
+            share_count: 0,
+            msm_gap: false,
+            msm_outlet_coverage: { covered: [], notCovered: [] },
+            source: candidate.source,
+            msm_notes: `Source: ${candidate.source} | Mainstream Pulse bypass`,
+            published: true,
+            display_order: 90,
+            category: 'reported',
+            thumbnail_url: candidate.thumbnail_url ?? null,
+            journalist_username: handle || null,
+            region: null,
+            duration: candidate.duration ?? null,
+            source_tier: 6,
+            source_type: 'Mainstream Pulse',
+            verified_interpretation: null,
+          },
+          {
+            section: 'reported',
+            contentType: 'reported',
+            confidenceLabel: 'Reported',
+            sourceName: candidate.source ?? '',
+            sourceTier: 6,
+            coverageCount: 0,
+            rawSourceDescription: candidate.description ?? '',
+          }
+        )
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
-        if (msmErr) {
-          result.errors.push(`Mainstream insert error: ${msmErr.message}`)
+        if (mainstreamQC.error) {
+          result.errors.push(`Mainstream insert error: ${mainstreamQC.error}`)
+        } else if (mainstreamQC.held) {
+          result.held++
+          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'hold' })
         } else {
           result.inserted++
           result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })
@@ -614,46 +651,71 @@ export async function runProcess(): Promise<PipelineResult> {
         continue
       }
 
-      const { error } = await supabase.from('stories').insert({
-        title: verification.headline,
-        slug: candidate.slug,
-        description: verification.summary,
-        embed_url: candidate.video_url,
-        platform: candidate.platform,
-        view_count: candidate.viral_score,
-        share_count: 0,
-        msm_gap: verification.msmGap,
-        msm_outlet_coverage: { covered: msm.coveredBy, notCovered: msm.notCoveredBy },
-        source: candidate.source,
-        msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}`,
-        published: verification.decision === 'publish' || verification.decision === 'needs_review',
-        display_order: verification.decision === 'publish' ? (verification.msmGap ? 30 : 50) : verification.decision === 'needs_review' ? 75 : 99,
-        category: verification.category,
-        thumbnail_url: candidate.thumbnail_url ?? null,
-        journalist_username: candidate.journalist_username ?? null,
-        region: candidateRegion,
-        duration: candidate.duration ?? null,
-        verified_interpretation: verification.verifiedInterpretation ?? null,
-        ...(() => {
-          const { tier, sourceType } = getSourceTier(candidate.journalist_username ?? null, candidate.source, verification.category ?? null)
-          // If the static lookup returned null or the generic Tier 7 handle catch-all,
-          // prefer the DB-stored tier from featured_journalists (set when a community
-          // submission was accepted with a specific tier assigned by the editor)
-          const handle = (candidate.journalist_username ?? '').toLowerCase()
-          const dbOverride = handle ? journalistTierMap.get(handle) : undefined
-          const isGenericFallback = tier === null || (tier === 7 && sourceType === 'Independent Commentary' && dbOverride)
-          const finalTier = isGenericFallback && dbOverride ? dbOverride.tier : tier
-          const finalSourceType = isGenericFallback && dbOverride ? dbOverride.sourceType : sourceType
-          return { source_tier: finalTier, source_type: finalSourceType }
-        })(),
-      })
+      // Resolve source tier — prefer the static lookup, falling back to a
+      // DB-stored override from featured_journalists (set when a community
+      // submission was accepted with a specific tier assigned by the editor)
+      const { tier, sourceType } = getSourceTier(candidate.journalist_username ?? null, candidate.source, verification.category ?? null)
+      const handleLower = (candidate.journalist_username ?? '').toLowerCase()
+      const dbOverride = handleLower ? journalistTierMap.get(handleLower) : undefined
+      const isGenericFallback = tier === null || (tier === 7 && sourceType === 'Independent Commentary' && dbOverride)
+      const finalTier = isGenericFallback && dbOverride ? dbOverride.tier : tier
+      const finalSourceType = isGenericFallback && dbOverride ? dbOverride.sourceType : sourceType
 
-      if (error) {
-        result.errors.push(`Failed to insert ${candidate.slug}: ${error.message}`)
+      const coverageCount = msm.coveredBy.length
+      const confidenceLabel = CONFIDENCE_META[getConfidenceLabel({
+        category: verification.category,
+        source_tier: finalTier,
+        msm_outlet_coverage: { covered: msm.coveredBy, notCovered: msm.notCoveredBy },
+        msm_gap: verification.msmGap,
+      })].label as QCConfidenceLabel
+      // QC content_type only distinguishes reported/analysis/satire — "raw" footage is QC'd as "reported"
+      const qcContentType = verification.category === 'analysis' ? 'analysis' : 'reported'
+
+      const qc = await runQCAndInsert(
+        supabase,
+        anthropicKey,
+        {
+          title: verification.headline,
+          slug: candidate.slug,
+          description: verification.summary,
+          embed_url: candidate.video_url,
+          platform: candidate.platform,
+          view_count: candidate.viral_score,
+          share_count: 0,
+          msm_gap: verification.msmGap,
+          msm_outlet_coverage: { covered: msm.coveredBy, notCovered: msm.notCoveredBy },
+          source: candidate.source,
+          msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}`,
+          published: verification.decision === 'publish' || verification.decision === 'needs_review',
+          display_order: verification.decision === 'publish' ? (verification.msmGap ? 30 : 50) : 75,
+          category: verification.category,
+          thumbnail_url: candidate.thumbnail_url ?? null,
+          journalist_username: candidate.journalist_username ?? null,
+          region: candidateRegion,
+          duration: candidate.duration ?? null,
+          verified_interpretation: verification.verifiedInterpretation ?? null,
+          source_tier: finalTier,
+          source_type: finalSourceType,
+        },
+        {
+          section: verification.category,
+          contentType: qcContentType,
+          confidenceLabel,
+          sourceName: candidate.source ?? '',
+          sourceTier: finalTier,
+          coverageCount,
+          rawSourceDescription: candidate.description ?? '',
+        }
+      )
+
+      if (qc.error) {
+        result.errors.push(`Failed to insert ${candidate.slug}: ${qc.error}`)
         continue
       }
 
-      if (verification.decision === 'needs_review') {
+      if (qc.held) {
+        result.held++
+      } else if (verification.decision === 'needs_review') {
         result.needsReview++
       } else {
         result.inserted++
