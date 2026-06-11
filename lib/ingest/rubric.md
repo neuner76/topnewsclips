@@ -33,6 +33,8 @@ The assigned label (Corroborated / Reported / Analysis / Single-source / Satire 
 - "Analysis" and "Satire" are content-type labels, always correct for their respective content types regardless of coverage_count.
 `content_type`/`section` (reported / analysis / satire) and `confidence_label` are independent fields — a `content_type: reported` story can correctly carry any confidence_label (Single-source, Reported, Developing, or Corroborated) depending on `source_tier` and `coverage_count`. Do not fail C6 merely because `confidence_label` and `content_type` "don't match" — only check the label against `source_tier`/`coverage_count` per the rules above.
 
+`confidence_label` is computed once for the story as a whole from `source_tier`/`coverage_count` — it is not a per-claim or per-sentence rating, and there is no mechanism to assign a different label to individual claims within the summary. For compound stories that combine a well-covered headline event with a secondary claim or angle that is less corroborated: if `coverage_count`/`source_tier` meet the threshold for the assigned label on the story as a whole, AND the secondary claim is properly attributed to its source per C5 (e.g., "according to X," "X reports"), this is NOT a C6 fail — attribution of the secondary claim is sufficient; do not downgrade or flag the overall label just because one claim within the story is less corroborated than the headline claim.
+
 **C7. Headline ↔ summary ↔ source alignment.**
 Headline claims nothing the summary doesn't support; summary claims nothing the source doesn't support. No escalation of certainty at any step (source says "claims" → headline cannot say "achieves").
 
