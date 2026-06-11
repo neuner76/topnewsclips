@@ -32,7 +32,9 @@ export async function runQCAndInsert(
   let headline = storyData.title
   let summary = storyData.description
 
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const MAX_ATTEMPTS = 3 // initial pass + up to 2 revise-and-recheck cycles
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const result = await runQCGate(
       {
         storyId: storyData.slug,
@@ -57,7 +59,7 @@ export async function runQCAndInsert(
       story_slug: storyData.slug,
       verdict: result.verdict,
       failed_checks: failedChecks,
-      revision_applied: attempt === 1,
+      revision_applied: attempt > 0,
       raw_result: result,
     })
 
@@ -73,7 +75,7 @@ export async function runQCAndInsert(
       return { inserted: !error, held: false, error: error?.message }
     }
 
-    if (result.verdict === 'FIX' && attempt === 0 && (result.revisedHeadline || result.revisedSummary)) {
+    if (result.verdict === 'FIX' && attempt < MAX_ATTEMPTS - 1 && (result.revisedHeadline || result.revisedSummary)) {
       headline = result.revisedHeadline ?? headline
       summary = result.revisedSummary ?? summary
       continue
