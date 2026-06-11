@@ -10,6 +10,7 @@ export interface QCContext {
   coverageCount: number
   rawSourceDescription: string
   videoPublishDate?: string | null
+  eventDateEstimate?: string | null
 }
 
 export interface QCPublishResult {
@@ -43,6 +44,7 @@ export async function runQCAndInsert(
         sourceName: qc.sourceName,
         sourceTier: qc.sourceTier,
         videoPublishDate: qc.videoPublishDate ?? null,
+        eventDateEstimate: qc.eventDateEstimate ?? null,
         coverageCount: qc.coverageCount,
         rawSourceDescription: qc.rawSourceDescription,
       },

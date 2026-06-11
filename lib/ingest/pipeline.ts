@@ -513,6 +513,7 @@ export async function runProcess(): Promise<PipelineResult> {
             sourceTier: satireSourceTier,
             coverageCount: 0,
             rawSourceDescription: candidate.description ?? '',
+            eventDateEstimate: candidate.fetched_at ? candidate.fetched_at.slice(0, 10) : null,
           }
         )
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
@@ -572,6 +573,7 @@ export async function runProcess(): Promise<PipelineResult> {
             sourceTier: 6,
             coverageCount: 0,
             rawSourceDescription: candidate.description ?? '',
+            eventDateEstimate: candidate.fetched_at ? candidate.fetched_at.slice(0, 10) : null,
           }
         )
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
@@ -705,6 +707,7 @@ export async function runProcess(): Promise<PipelineResult> {
           sourceTier: finalTier,
           coverageCount,
           rawSourceDescription: candidate.description ?? '',
+          eventDateEstimate: candidate.fetched_at ? candidate.fetched_at.slice(0, 10) : null,
         }
       )
 

@@ -101,7 +101,6 @@ describe('QC gate (rubric C1-C8)', () => {
       apiKey!
     )
 
-    if (result.verdict !== 'PASS') console.log('T4 DEBUG', JSON.stringify(result, null, 2))
     expect(result.verdict).toBe('PASS')
     expect(failedIds(result.checks)).toEqual([])
   })
