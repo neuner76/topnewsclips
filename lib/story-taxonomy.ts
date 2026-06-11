@@ -12,6 +12,11 @@ interface TagMatch {
   confidence: number
 }
 
+interface ScoredTagMatch extends TagMatch {
+  slug: string
+  score: number
+}
+
 interface BackfillResult {
   scanned: number
   taggedStories: number
@@ -74,6 +79,27 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
   ],
 }
 
+const TOPIC_PRIORITY = [
+  'education',
+  'health',
+  'justice-courts',
+  'climate-environment',
+  'science',
+  'technology-ai',
+  'business-markets',
+  'media-information',
+  'sports',
+  'culture-society',
+  'world-affairs',
+  'politics-government',
+]
+
+const US_LENS_KEYWORDS = [
+  'united states', 'u.s.', ' us ', 'america', 'american', 'trump', 'biden',
+  'white house', 'congress', 'senate', 'federal reserve', 'wall street',
+  'pentagon', 'washington',
+]
+
 const REGION_KEYWORDS: Record<string, string[]> = {
   'north-america': ['united states', 'u.s.', 'us ', 'america', 'canada', 'mexico'],
   'latin-america': ['latin america', 'brazil', 'argentina', 'chile', 'colombia', 'venezuela', 'mexico'],
@@ -87,11 +113,18 @@ const REGION_KEYWORDS: Record<string, string[]> = {
 
 const REGION_ALIASES: Record<string, string> = {
   canada: 'north-america',
+  'north america': 'north-america',
+  'latin america': 'latin-america',
+  mexico: 'latin-america',
   australia: 'east-asia-pacific',
   world: 'global-multi-region',
   global: 'global-multi-region',
   europe: 'europe',
+  'middle east': 'middle-east',
   africa: 'africa',
+  'south asia': 'south-asia',
+  'east asia': 'east-asia-pacific',
+  pacific: 'east-asia-pacific',
   japan: 'east-asia-pacific',
   korea: 'east-asia-pacific',
 }
@@ -102,6 +135,11 @@ function textFor(story: StoryForTagging): string {
     story.description,
     story.category,
     story.region,
+  ].filter(Boolean).join(' ').toLowerCase()
+}
+
+function sourceTextFor(story: StoryForTagging): string {
+  return [
     story.source_type,
     story.journalist_username,
     story.source,
@@ -112,15 +150,40 @@ function scoreKeywords(text: string, keywords: string[]): number {
   return keywords.reduce((score, keyword) => score + (text.includes(keyword) ? 1 : 0), 0)
 }
 
-function chooseBest(slugToId: Map<string, string>, scores: Record<string, number>): TagMatch | null {
+function chooseBest(slugToId: Map<string, string>, scores: Record<string, number>, minScore = 1): ScoredTagMatch | null {
+  const priorityIndex = (slug: string) => {
+    const index = TOPIC_PRIORITY.indexOf(slug)
+    return index === -1 ? 999 : index
+  }
   const best = Object.entries(scores)
-    .filter(([, score]) => score > 0)
-    .sort((a, b) => b[1] - a[1])
+    .filter(([, score]) => score >= minScore)
+    .sort((a, b) => b[1] - a[1] || priorityIndex(a[0]) - priorityIndex(b[0]))
     .find(([slug]) => slugToId.has(slug))
   if (!best) return null
 
   const taxonomyId = slugToId.get(best[0])!
-  return { taxonomyId, confidence: Math.min(0.95, 0.55 + best[1] * 0.12) }
+  return { slug: best[0], score: best[1], taxonomyId, confidence: Math.min(0.95, 0.55 + best[1] * 0.12) }
+}
+
+function isInternationalStory(story: StoryForTagging, text: string): boolean {
+  return !!story.region || [
+    'gaza', 'israel', 'iran', 'ukraine', 'russia', 'china', 'nato', 'united nations',
+    'ceasefire', 'missile', 'sanction', 'foreign minister', 'afghanistan', 'pakistan',
+    'india', 'nigeria', 'congo', 'sudan',
+  ].some(keyword => text.includes(keyword))
+}
+
+function isGlobalLensCandidate(story: StoryForTagging, text: string): boolean {
+  if (!story.region || story.msm_gap) return false
+  const source = sourceTextFor(story)
+  const isPublicBroadcaster = source.includes('public broadcaster')
+  const isGlobalOutlet = [
+    'france24', 'france 24', 'dwnews', 'dw news', 'aljazeera', 'al jazeera',
+    'abcnewsaustralia', 'abc news australia', 'bbcworldservice', 'channel4news',
+    'trtworld', 'wion', 'nhkworld', 'arirangnews',
+  ].some(handle => source.includes(handle))
+  const hasUsFrame = US_LENS_KEYWORDS.some(keyword => text.includes(keyword))
+  return (isPublicBroadcaster || isGlobalOutlet) && hasUsFrame
 }
 
 export function inferStoryTags(story: StoryForTagging, taxonomy: TaxonomyItem[]): TagMatch[] {
@@ -133,22 +196,23 @@ export function inferStoryTags(story: StoryForTagging, taxonomy: TaxonomyItem[])
   )
   if (story.category === 'comedy') topicScores['culture-society'] += 2
   if (story.category === 'analysis') topicScores['media-information'] += 1
-  const topic = chooseBest(slugToId, topicScores)
+  if (!isInternationalStory(story, text)) topicScores['world-affairs'] = 0
+  const topic = chooseBest(slugToId, topicScores, 1)
   if (topic) tags.push(topic)
 
   const rawRegion = (story.region ?? '').toLowerCase()
   const explicitRegionSlug = REGION_ALIASES[rawRegion]
   const region = explicitRegionSlug && slugToId.has(explicitRegionSlug)
     ? { taxonomyId: slugToId.get(explicitRegionSlug)!, confidence: 0.9 }
-    : chooseBest(slugToId, Object.fromEntries(
+    : isInternationalStory(story, text) ? chooseBest(slugToId, Object.fromEntries(
       Object.entries(REGION_KEYWORDS).map(([slug, keywords]) => [slug, scoreKeywords(text, keywords)])
-    ))
+    ), 1) : null
   if (region) tags.push(region)
 
   if (story.region && slugToId.has('global-blindspot') && story.msm_gap) {
     tags.push({ taxonomyId: slugToId.get('global-blindspot')!, confidence: 0.95 })
   }
-  if (story.region && slugToId.has('global-lens') && !story.msm_gap) {
+  if (slugToId.has('global-lens') && isGlobalLensCandidate(story, text)) {
     tags.push({ taxonomyId: slugToId.get('global-lens')!, confidence: 0.75 })
   }
   if (story.msm_gap && slugToId.has('limited-coverage')) {
@@ -206,6 +270,8 @@ export async function backfillStoryTags(supabase: SupabaseClient, days = 14): Pr
 
   for (const story of (stories ?? []) as StoryForTagging[]) {
     try {
+      const { error: deleteError } = await supabase.from('story_tags').delete().eq('story_id', story.id)
+      if (deleteError) throw new Error(`Failed to clear existing tags for ${story.id}: ${deleteError.message}`)
       const count = await tagStory(supabase, story, taxonomy)
       if (count > 0) result.taggedStories++
       result.tagRows += count

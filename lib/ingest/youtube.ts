@@ -47,6 +47,13 @@ const NEWS_SEARCH_QUERIES = [
   // Politics — specific enough to avoid press briefings
   { q: 'senate hearing testimony investigation 2026', label: 'politics' },
   { q: 'congressional hearing whistleblower accountability', label: 'politics' },
+  // Underfilled beats — targeted toward reported/accountability clips rather than generic explainers
+  { q: 'health care investigation hospital patient costs 2026', label: 'health' },
+  { q: 'education investigation school district accountability 2026', label: 'education' },
+  { q: 'climate environment investigation pollution extreme weather 2026', label: 'climate' },
+  { q: 'science research discovery public health space 2026', label: 'science' },
+  { q: 'court ruling lawsuit justice investigation 2026', label: 'justice' },
+  { q: 'Latin America investigation corruption climate economy 2026', label: 'latin-america' },
   // Incident footage — US-anchored terms reduce international CCTV noise
   { q: 'bodycam footage US police department 2026', label: 'incident' },
   { q: 'police bodycam shooting arrest american', label: 'incident' },

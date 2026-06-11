@@ -36,6 +36,8 @@ function Pill({
   count: number
   onClick: () => void
 }) {
+  const countLabel = count === 0 ? 'No recent stories' : `${count} recent ${count === 1 ? 'story' : 'stories'}`
+
   return (
     <button
       type="button"
@@ -47,7 +49,7 @@ function Pill({
       }`}
     >
       <span className="block font-semibold">{item.label}</span>
-      <span className="text-xs text-white/45">{count} stories this week</span>
+      <span className="text-xs text-white/45">{countLabel}</span>
     </button>
   )
 }
@@ -117,10 +119,17 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
 
   const grouped = useMemo(() => {
     const taxonomy = data?.taxonomy ?? []
+    const sortByVolume = (items: TaxonomyItem[]) => [...items].sort((a, b) => {
+      const countA = data?.volumes[a.id] ?? 0
+      const countB = data?.volumes[b.id] ?? 0
+      if (countA === 0 && countB > 0) return 1
+      if (countB === 0 && countA > 0) return -1
+      return countB - countA || a.label.localeCompare(b.label)
+    })
     return {
-      topics: taxonomy.filter(i => i.kind === 'topic'),
-      regions: taxonomy.filter(i => i.kind === 'region'),
-      sections: taxonomy.filter(i => i.kind === 'section'),
+      topics: sortByVolume(taxonomy.filter(i => i.kind === 'topic')),
+      regions: sortByVolume(taxonomy.filter(i => i.kind === 'region')),
+      sections: sortByVolume(taxonomy.filter(i => i.kind === 'section')),
     }
   }, [data])
 
