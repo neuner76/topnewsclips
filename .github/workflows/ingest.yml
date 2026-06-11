@@ -44,6 +44,18 @@ jobs:
           curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
+      - name: Process (batch 6)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 7)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
       - name: Cleanup Old Stories
         if: always()
         run: |
