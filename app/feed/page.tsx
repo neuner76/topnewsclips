@@ -7,7 +7,6 @@ import Footer from '@/components/Footer'
 import EmailCapture from '@/components/EmailCapture'
 import EmailCaptureInline from '@/components/EmailCaptureInline'
 import TierBadge from '@/components/TierBadge'
-import HeroStory from '@/components/HeroStory'
 import GlobalBlindspotSection from '@/components/GlobalBlindspotSection'
 import GlobalLensSection from '@/components/GlobalLensSection'
 import WorldMapSection from '@/components/WorldMapSection'
@@ -411,24 +410,8 @@ export default async function HomePage({
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Hero, world map + lead story — digest view only; the Clips view has its own hero below */}
-        {activeView === 'digest' && (() => {
-          const digestLeadSlug = digest?.content.needToKnow?.[0]?.slug
-          const digestLeadStory = digestLeadSlug ? storyMap.get(digestLeadSlug) : null
-          const heroStory = digestLeadStory ?? all.find(s => s.pinned) ?? all[0]
-          return heroStory ? <HeroStory story={heroStory} /> : (
-            <div className="mb-6">
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Top News Clips</h1>
-              <p className="text-sm text-muted-foreground mt-1">The full picture, not the profitable picture.</p>
-            </div>
-          )
-        })()}
-        <EmailCaptureInline placement="hero" />
-        {digest && activeView === 'digest' && (
-          <a href="#digest" className="inline-block mt-3 mb-4 text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline underline-offset-2">
-            See today&apos;s digest ↓
-          </a>
-        )}
+        {/* Hero + email capture — Clips view only; the Digest view jumps straight into headlines */}
+        {activeView !== 'digest' && <EmailCaptureInline placement="hero" />}
 
         {/* Tab switcher */}
         {digest && (
