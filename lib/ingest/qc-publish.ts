@@ -17,6 +17,11 @@ export interface QCPublishResult {
   inserted: boolean
   held: boolean
   error?: string
+  duplicate?: boolean
+}
+
+function isDuplicateStorySlug(error: { code?: string; message?: string } | null): boolean {
+  return error?.code === '23505' && (error.message ?? '').includes('stories_slug_key')
 }
 
 // Runs the pre-publish QC gate on a story payload, applies at most one
@@ -72,6 +77,7 @@ export async function runQCAndInsert(
         qc_failed_checks: null,
         qc_routing_note: result.routingNote,
       })
+      if (isDuplicateStorySlug(error)) return { inserted: false, held: false, duplicate: true }
       return { inserted: !error, held: false, error: error?.message }
     }
 
@@ -92,6 +98,7 @@ export async function runQCAndInsert(
       qc_failed_checks: failedChecks,
       qc_routing_note: result.routingNote,
     })
+    if (isDuplicateStorySlug(error)) return { inserted: false, held: false, duplicate: true }
     return { inserted: !error, held: true, error: error?.message }
   }
 

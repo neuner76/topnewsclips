@@ -547,7 +547,9 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           }
         )
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
-        if (satireQC.error) {
+        if (satireQC.duplicate) {
+          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'duplicate' })
+        } else if (satireQC.error) {
           result.errors.push(`Satire insert error: ${satireQC.error}`)
         } else if (satireQC.held) {
           result.held++
@@ -610,7 +612,9 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           }
         )
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
-        if (mainstreamQC.error) {
+        if (mainstreamQC.duplicate) {
+          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'duplicate' })
+        } else if (mainstreamQC.error) {
           result.errors.push(`Mainstream insert error: ${mainstreamQC.error}`)
         } else if (mainstreamQC.held) {
           result.held++
@@ -746,6 +750,11 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           eventDateEstimate: candidate.fetched_at ? candidate.fetched_at.slice(0, 10) : null,
         }
       )
+
+      if (qc.duplicate) {
+        result.stories.push({ title: verification.headline, slug: candidate.slug, decision: 'duplicate' })
+        continue
+      }
 
       if (qc.error) {
         result.errors.push(`Failed to insert ${candidate.slug}: ${qc.error}`)
