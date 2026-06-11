@@ -3,6 +3,7 @@ import { verifyPreferenceToken } from '@/lib/preference-tokens'
 import { getPreferences, resetPersonalization, upsertPreferences } from '@/lib/personalization'
 import type { FormatPreference, PreferencePayload } from '@/lib/personalization-types'
 import { getActiveTaxonomy, getStoryVolumeByTaxonomy } from '@/lib/taxonomy'
+import { normalizeKeywordList } from '@/lib/keyword-preferences'
 
 const FORMATS = new Set<FormatPreference>(['digest', 'clips', 'both'])
 
@@ -19,12 +20,7 @@ function cleanIds(ids: unknown): string[] {
 
 function cleanKeywords(keywords: unknown): string[] {
   if (!Array.isArray(keywords)) return []
-  return [...new Set(
-    keywords
-      .filter((keyword): keyword is string => typeof keyword === 'string')
-      .map(keyword => keyword.trim().replace(/\s+/g, ' ').toLowerCase())
-      .filter(keyword => keyword.length >= 2 && keyword.length <= 80)
-  )].slice(0, 12)
+  return normalizeKeywordList(keywords.filter((keyword): keyword is string => typeof keyword === 'string'))
 }
 
 export async function GET(req: NextRequest) {

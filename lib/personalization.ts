@@ -6,10 +6,10 @@ import type {
   SubscriberPreferences,
   TaxonomyItem,
 } from '@/lib/personalization-types'
+import { normalizeKeywordList } from '@/lib/keyword-preferences'
 
 const DEFAULT_FORMAT: FormatPreference = 'both'
 const DEFAULT_PACE: PacePreference = 'full'
-const MAX_KEYWORDS = 12
 
 function splitFollows(taxonomy: TaxonomyItem[], followedIds: string[]) {
   const byId = new Map(taxonomy.map(item => [item.id, item]))
@@ -50,7 +50,7 @@ export async function getPreferences(subscriberId: string, taxonomy: TaxonomyIte
     subscriberId,
     formatPreference: (pref?.format_preference as FormatPreference | undefined) ?? DEFAULT_FORMAT,
     pacePreference: (pref?.pace_preference as PacePreference | undefined) ?? DEFAULT_PACE,
-    keywords: (keywords ?? []).map(row => (row as { phrase: string }).phrase),
+    keywords: normalizeKeywordList((keywords ?? []).map(row => (row as { phrase: string }).phrase)),
     ...split,
   }
 }
@@ -134,9 +134,5 @@ export async function unfollow(subscriberId: string, taxonomyId: string): Promis
 }
 
 function normalizeKeywords(keywords: string[]): string[] {
-  return [...new Set(
-    keywords
-      .map(keyword => keyword.trim().replace(/\s+/g, ' ').toLowerCase())
-      .filter(keyword => keyword.length >= 2 && keyword.length <= 80)
-  )].slice(0, MAX_KEYWORDS)
+  return normalizeKeywordList(keywords)
 }

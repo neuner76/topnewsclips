@@ -8,6 +8,7 @@ import type {
   NeedToKnowItem,
 } from './digest'
 import type { FormatPreference, PacePreference } from './personalization-types'
+import { keywordMatchesText, normalizeKeywordList } from './keyword-preferences'
 
 interface SubscriberPreferenceRow {
   format_preference: FormatPreference | null
@@ -103,7 +104,7 @@ export async function getPersonalizationProfile(
 
   return {
     followedTaxonomyIds: new Set((follows ?? []).map((row: { taxonomy_id: string }) => row.taxonomy_id)),
-    customKeywords: (keywords ?? []).map((row: { phrase: string }) => row.phrase),
+    customKeywords: normalizeKeywordList((keywords ?? []).map((row: { phrase: string }) => row.phrase)),
     formatPreference: ((pref as SubscriberPreferenceRow | null)?.format_preference ?? DEFAULT_PROFILE.formatPreference),
     pacePreference: DEFAULT_PROFILE.pacePreference,
   }
@@ -144,7 +145,7 @@ export async function personalizeDigestContent(
     let score = slug ? (slugScores.get(slug) ?? 0) : 0
     if (hasKeywordPreferences) {
       const text = itemSearchText(item)
-      score += profile.customKeywords.filter(keyword => text.includes(keyword)).length * 2
+      score += profile.customKeywords.filter(keyword => keywordMatchesText(text, keyword)).length * 2
     }
     return score
   }

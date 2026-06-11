@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { track } from '@/lib/analytics'
+import { normalizeKeywordPhrase } from '@/lib/keyword-preferences'
 import type {
   FormatPreference,
   SubscriberPreferences,
@@ -22,10 +23,6 @@ type SaveState = 'idle' | 'loading' | 'saved' | 'error'
 
 function toggleId(ids: string[], id: string) {
   return ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]
-}
-
-function normalizeKeyword(value: string): string {
-  return value.trim().replace(/\s+/g, ' ').toLowerCase()
 }
 
 function Pill({
@@ -52,6 +49,36 @@ function Pill({
       <span className="block font-semibold">{item.label}</span>
       <span className="text-xs text-white/45">{count} stories this week</span>
     </button>
+  )
+}
+
+function SectionHeader({
+  title,
+  items,
+  selectedIds,
+  onChange,
+}: {
+  title: string
+  items: TaxonomyItem[]
+  selectedIds: string[]
+  onChange: (ids: string[]) => void
+}) {
+  const itemIds = items.map(item => item.id)
+  const allSelected = itemIds.length > 0 && itemIds.every(id => selectedIds.includes(id))
+
+  return (
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <h2 className="text-sm font-black uppercase tracking-widest text-white">{title}</h2>
+      {itemIds.length > 0 && (
+        <button
+          type="button"
+          onClick={() => onChange(allSelected ? [] : itemIds)}
+          className="rounded-md border border-white/10 px-2.5 py-1 text-xs font-bold text-white/55 hover:border-white/30 hover:text-white"
+        >
+          {allSelected ? 'Clear' : 'Select all'}
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -150,8 +177,8 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
   }
 
   function addKeyword() {
-    const keyword = normalizeKeyword(keywordDraft)
-    if (!keyword || keyword.length < 2 || keyword.length > 80 || keywords.includes(keyword) || keywords.length >= 12) return
+    const keyword = normalizeKeywordPhrase(keywordDraft)
+    if (!keyword || keyword.length < 3 || keyword.length > 80 || keywords.includes(keyword) || keywords.length >= 12) return
     setKeywords(items => [...items, keyword])
     setKeywordDraft('')
   }
@@ -159,7 +186,12 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-sm font-black uppercase tracking-widest text-white mb-3">Topics</h2>
+        <SectionHeader
+          title="Topics"
+          items={grouped.topics}
+          selectedIds={topicIds}
+          onChange={setTopicIds}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {grouped.topics.map(item => (
             <Pill
@@ -174,7 +206,12 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
       </section>
 
       <section>
-        <h2 className="text-sm font-black uppercase tracking-widest text-white mb-3">Regions</h2>
+        <SectionHeader
+          title="Regions"
+          items={grouped.regions}
+          selectedIds={regionIds}
+          onChange={setRegionIds}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {grouped.regions.map(item => (
             <Pill
@@ -189,7 +226,12 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
       </section>
 
       <section>
-        <h2 className="text-sm font-black uppercase tracking-widest text-white mb-3">Sections</h2>
+        <SectionHeader
+          title="Sections"
+          items={grouped.sections}
+          selectedIds={sectionIds}
+          onChange={setSectionIds}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {grouped.sections.map(item => (
             <Pill
