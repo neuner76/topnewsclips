@@ -359,7 +359,7 @@ export async function runProcess(): Promise<PipelineResult> {
     .select('*')
     .eq('processed', false)
     .order('fetched_at', { ascending: true })
-    .limit(20)
+    .limit(5)
 
   if (fetchError) {
     result.errors.push(`Failed to fetch candidates queue: ${fetchError.message}`)

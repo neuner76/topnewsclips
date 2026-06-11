@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { runProcess } from '@/lib/ingest/pipeline'
 import { requireCronSecretOrAdminSession } from '@/lib/auth'
 
+export const maxDuration = 300 // 5 minutes — Vercel Pro/Enterprise only; Hobby cap is 60s
+
 export async function GET(request: Request) {
   const unauthorized = await requireCronSecretOrAdminSession(request)
   if (unauthorized) return unauthorized
