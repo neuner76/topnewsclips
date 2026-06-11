@@ -192,7 +192,7 @@ export function runStaticQCChecks(input: QCInput): QCCheckResult[] {
     })
   }
 
-  const retrospectivePattern = /\b(retrospective|from the archives?|archive documentary|documentary|anniversary|looking back|history of|in 20\d{2}|filmed in 20\d{2})\b/i
+  const retrospectivePattern = /\b(retrospective|from the archives?|archive documentary|documentary|anniversary|looking back|history of)\b/i
   const dailySectionPattern = /\b(need to know|politics|world|daily|global lens|global blindspot|reported)\b/i
   const retrospectiveText = `${rawText}\n${publishedText}`
   if (retrospectivePattern.test(retrospectiveText) && dailySectionPattern.test(input.section)) {
