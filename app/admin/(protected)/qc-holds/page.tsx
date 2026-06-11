@@ -32,7 +32,10 @@ export default async function QCHoldsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-bold">QC Hold Queue</h1>
-        <span className="text-xs text-muted-foreground">{holds.length} held</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground">{holds.length} held</span>
+          {holds.length > 0 && <RecheckAllButton storyIds={holds.map(s => s.id)} />}
+        </div>
       </div>
 
       {holds.length === 0 && (
