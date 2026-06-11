@@ -102,7 +102,12 @@ const US_LENS_KEYWORDS = [
 
 const REGION_KEYWORDS: Record<string, string[]> = {
   'north-america': ['united states', 'u.s.', 'us ', 'america', 'canada', 'mexico'],
-  'latin-america': ['latin america', 'brazil', 'argentina', 'chile', 'colombia', 'venezuela', 'mexico'],
+  'latin-america': [
+    'latin america', 'brazil', 'argentina', 'chile', 'colombia', 'venezuela', 'mexico',
+    'el salvador', 'guatemala', 'honduras', 'nicaragua', 'costa rica', 'panama',
+    'peru', 'ecuador', 'bolivia', 'paraguay', 'uruguay', 'cuba', 'haiti',
+    'dominican republic', 'caribbean', 'bukele',
+  ],
   europe: ['europe', 'uk', 'britain', 'france', 'germany', 'italy', 'spain', 'russia', 'ukraine', 'nato'],
   'middle-east': ['middle east', 'israel', 'gaza', 'iran', 'iraq', 'syria', 'lebanon', 'qatar', 'saudi'],
   africa: ['africa', 'kenya', 'nigeria', 'south africa', 'sudan', 'ethiopia'],
