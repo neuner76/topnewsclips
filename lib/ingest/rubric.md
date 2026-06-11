@@ -25,7 +25,13 @@ If the underlying video is a retrospective, documentary, anniversary piece, or c
 Every claim attributed to its actual source ("According to CBS News…", "The Texas Tribune interviewed…"). The summary never asserts a contested claim in TNC's own voice. Single-source stories must read as single-source.
 
 **C6. Confidence-label consistency.**
-The assigned label (Corroborated / Reported / Analysis / Single-source / Satire) must match the evidence. "Corroborated" requires the coverage count to actually show 3+ independent outlets. A mismatch between label and evidence is a brand-integrity failure.
+The assigned label (Corroborated / Reported / Analysis / Single-source / Satire / Developing) must match the evidence, per TNC's tier-based policy:
+- "Corroborated" requires 5+ independent outlets, OR 3+ outlets including a Tier 1-5 source.
+- "Reported" is correct for any Tier 1-6 source — including with `coverage_count: 0` — because the source itself carries editorial oversight and a corrections policy. **Do not fail C6 solely because a Tier 1-6 source has `coverage_count: 0`; "Reported" is the correct label in that case, not "Single-source."**
+- "Single-source" applies to Tier 7-10 sources with `coverage_count: 0`.
+- "Developing" applies to Tier 7-10 sources with `coverage_count` >= 2.
+- "Analysis" and "Satire" are content-type labels, always correct for their respective content types regardless of coverage_count.
+`content_type`/`section` (reported / analysis / satire) and `confidence_label` are independent fields — a `content_type: reported` story can correctly carry any confidence_label (Single-source, Reported, Developing, or Corroborated) depending on `source_tier` and `coverage_count`. Do not fail C6 merely because `confidence_label` and `content_type` "don't match" — only check the label against `source_tier`/`coverage_count` per the rules above.
 
 **C7. Headline ↔ summary ↔ source alignment.**
 Headline claims nothing the summary doesn't support; summary claims nothing the source doesn't support. No escalation of certainty at any step (source says "claims" → headline cannot say "achieves").
