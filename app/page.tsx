@@ -21,6 +21,7 @@ const FEATURES = [
   { icon: '🌍', label: 'Global Blindspot', detail: 'Stories with wide international coverage that major US outlets are skipping.' },
   { icon: '🌐', label: 'Global Lens', detail: 'How outlets in Europe, Asia, and the Middle East are covering the same events differently.' },
   { icon: '⚠️', label: 'Limited coverage alerts', detail: 'When fewer than 3 of 15 major outlets have touched a story, we flag it.' },
+  { icon: '🎛️', label: 'Tune your briefing', detail: 'After you subscribe, choose topics, regions, sections, and custom interests to surface more of what matters to you.' },
 ]
 
 export default async function LandingPage() {
@@ -72,7 +73,7 @@ export default async function LandingPage() {
               <span style={{ color: '#3b82f6' }}>not the profitable one.</span>
             </h1>
             <p className="text-base sm:text-lg text-white/60 mb-8 max-w-lg mx-auto leading-relaxed">
-              Every source labeled by source tier. International context every morning. Undercovered stories surfaced daily.
+              Every source labeled by source tier. International context every morning. Undercovered stories surfaced daily, with preferences you can tune after subscribing.
             </p>
             <div className="max-w-sm mx-auto mb-6">
               <EmailCaptureInline placement="landing-hero" />
@@ -139,7 +140,7 @@ export default async function LandingPage() {
             <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
             <div className="relative z-10 px-6 py-10 sm:px-8 text-center">
               <p className="text-2xl font-black text-white mb-2">Free. Daily. No agenda.</p>
-              <p className="text-sm text-white/50 mb-6">Join readers who want the full picture.</p>
+              <p className="text-sm text-white/50 mb-6">Get the morning briefing, then tune it around the topics, regions, and industries you follow.</p>
               <div className="max-w-sm mx-auto">
                 <EmailCaptureInline placement="landing-bottom" />
               </div>

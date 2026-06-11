@@ -36,6 +36,8 @@ export interface QCGateResult {
   routingNote: string | null
 }
 
+const QC_CHECK_IDS = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8']
+
 let cachedRubric: string | null = null
 
 function loadRubric(): string {
@@ -137,11 +139,90 @@ function holdFallback(storyId: string, reason: string): QCGateResult {
   }
 }
 
+function sentenceContaining(text: string, pattern: RegExp): string | null {
+  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [text]
+  return sentences.find(sentence => pattern.test(sentence))?.trim() ?? null
+}
+
+function namedPresidentInSource(raw: string): string | null {
+  const names = [
+    'Joe Biden',
+    'Donald Trump',
+    'Barack Obama',
+    'George W. Bush',
+    'Bill Clinton',
+    'George H. W. Bush',
+    'Jimmy Carter',
+  ]
+  return names.find(name => new RegExp(`\\b${name.replace(/\./g, '\\.')}\\b`, 'i').test(raw)) ?? null
+}
+
+export function runStaticQCChecks(input: QCInput): QCCheckResult[] {
+  const publishedText = `${input.headline}\n${input.summary}`
+  const rawText = input.rawSourceDescription ?? ''
+  const checks: QCCheckResult[] = []
+
+  const promoPattern = /\b(check out|subscribe|follow me|hit me on|link in bio|tour tickets?|tour dates?|merch|patreon|joshjohnsoncomedy\.com|@[a-z0-9_]{3,})\b|#[\w-]+/i
+  const promoSentence = sentenceContaining(publishedText, promoPattern)
+  if (promoSentence) {
+    checks.push({
+      id: 'C1',
+      result: 'fail',
+      reason: `Published copy appears to include source promo/social text: "${promoSentence.slice(0, 160)}"`,
+    })
+  }
+
+  const unnamedPrincipalPattern = /\b(a|the)\s+former\s+(?:u\.s\.\s+)?president\b/i
+  const presidentName = namedPresidentInSource(rawText)
+  if (unnamedPrincipalPattern.test(publishedText) && presidentName) {
+    checks.push({
+      id: 'C2',
+      result: 'fail',
+      reason: `Published copy says "former U.S. president" even though the source names ${presidentName}.`,
+    })
+  }
+
+  const mushPattern = /\b(under these circumstances|in this way|reportedly significant|raises questions|sparks concerns|critics say|some say|many believe|in a notable development)\b/i
+  const mushSentence = sentenceContaining(input.summary, mushPattern)
+  if (mushSentence) {
+    checks.push({
+      id: 'C3',
+      result: 'fail',
+      reason: `Summary contains vague filler instead of a concrete fact: "${mushSentence.slice(0, 160)}"`,
+    })
+  }
+
+  const retrospectivePattern = /\b(retrospective|from the archives?|archive documentary|documentary|anniversary|looking back|history of|in 20\d{2}|filmed in 20\d{2})\b/i
+  const dailySectionPattern = /\b(need to know|politics|world|daily|global lens|global blindspot|reported)\b/i
+  const retrospectiveText = `${rawText}\n${publishedText}`
+  if (retrospectivePattern.test(retrospectiveText) && dailySectionPattern.test(input.section)) {
+    checks.push({
+      id: 'C4',
+      result: 'fail',
+      reason: 'Story appears to be archival/retrospective content in a daily news section.',
+    })
+  }
+
+  return checks
+}
+
+function mergeStaticChecks(checks: QCCheckResult[], staticFailures: QCCheckResult[]): QCCheckResult[] {
+  if (!staticFailures.length) return checks
+  const byId = new Map<string, QCCheckResult>()
+  for (const check of checks) byId.set(check.id, check)
+  for (const check of staticFailures) byId.set(check.id, check)
+
+  return QC_CHECK_IDS
+    .map(id => byId.get(id))
+    .filter((check): check is QCCheckResult => !!check)
+}
+
 export async function runQCGate(input: QCInput, apiKey: string): Promise<QCGateResult> {
   const rubric = loadRubric()
   const staticPrompt = buildStaticPrompt(rubric)
   const storyDataPrompt = buildStoryDataPrompt(input)
   const client = new Anthropic({ apiKey })
+  const staticFailures = runStaticQCChecks(input)
 
   let raw: string
   try {
@@ -175,10 +256,12 @@ export async function runQCGate(input: QCInput, apiKey: string): Promise<QCGateR
       revised_summary: string | null
       routing_note: string | null
     }
+    const checks = mergeStaticChecks(parsed.checks ?? [], staticFailures)
+    const verdict = parsed.verdict === 'PASS' && staticFailures.length > 0 ? 'HOLD' : parsed.verdict
     return {
       storyId: parsed.story_id ?? input.storyId,
-      verdict: parsed.verdict,
-      checks: parsed.checks ?? [],
+      verdict,
+      checks,
       revisedHeadline: parsed.revised_headline ?? null,
       revisedSummary: parsed.revised_summary ?? null,
       routingNote: parsed.routing_note ?? null,
