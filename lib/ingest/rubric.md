@@ -15,6 +15,8 @@ Every person who is the subject of the story must be named if the source names t
 **C3. Precision of claims.**
 No mush. Flags: "under these circumstances," "in this way," "notably," "reportedly significant," any sentence whose meaning survives deletion. Every sentence must carry a concrete fact: who, what, number, date, or place.
 
+Self-referential statements about the story's own sourcing or corroboration level — e.g., "This account is corroborated by four independent outlets," "This story is currently single-source," "X is the sole source for this report," "(Single-source: X)" — are always a C3 fail, regardless of whether they're accurate. The confidence_label badge already conveys this in the UI; it must never be restated in the summary prose. If a revision for C5/C6 would add such a sentence, do not add it — fix attribution/labeling by other means, or leave the summary as-is if no other fix is needed.
+
 **C4. Freshness honesty.**
 If the underlying video is a retrospective, documentary, anniversary piece, or covers events older than 72 hours, the summary must say so in the first sentence (e.g., "In a retrospective on its 2016 reporting…") and the card must not appear in Need To Know or daily news sections. Retrospectives route to a clearly labeled section or are dropped.
 *Real failure this catches: VICE South China Sea documentary presented alongside same-day news.*
