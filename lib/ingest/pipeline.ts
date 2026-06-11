@@ -235,7 +235,8 @@ export async function runFetch(): Promise<FetchResult> {
   const NOISE_TERMS = [
     '#scary', 'skinwalker', '#paranormal', '#horror', '#learnontiktok', '#scienceexperiments',
     'science activity for kids', 'fun science activity', 'bumblebee edition', 'underwater test',
-    'dirty soda', 'panini sticker', 'heart-shaped skid marks',
+    'dirty soda', 'panini sticker', 'heart-shaped skid marks', '#fyp', '#viral',
+    'good samaritan', 'helps disabled', 'helps homeless', 'disabled person',
   ]
   const SOFT_NEWS_PATTERNS = [
     /\bworld cup\b.*\b(arrive|arrival|prediction|predictions|winner|sticker|panini)\b/i,
@@ -243,6 +244,9 @@ export async function runFetch(): Promise<FetchResult> {
     /\bfootball\b.*\bsoccer\b/i,
     /\biphone\b.*\bgalaxy\b/i,
     /\bpopemobile\b|\bgreets faithful\b/i,
+    /\b(scariest|craziest|best|top)\b.*\b(caught on camera|caught on video)\b/i,
+    /\b(tsunamis?|tornadoes|storms|accidents)\b.*\b(caught on camera|caught on video)\b/i,
+    /\b(ai-powered robots?|ethical hacker|dirty sodas?)\b/i,
   ]
   const filteredCandidates = candidates.filter(c => {
     const username = ((c as { journalistUsername?: string | null }).journalistUsername ?? '').toLowerCase()
@@ -258,6 +262,16 @@ export async function runFetch(): Promise<FetchResult> {
     // Block paranormal/horror/kids-science noise
     if (NOISE_TERMS.some(t => titleLower.includes(t))) return false
     if (SOFT_NEWS_PATTERNS.some(pattern => pattern.test(c.title))) return false
+
+    // WION/Gravitas is useful for hard international news, but its feature/commentary
+    // segments create a lot of processing churn. Keep only hard-news titles.
+    if (source.includes('wion') && ![
+      'war', 'strike', 'missile', 'attack', 'ceasefire', 'protest', 'election',
+      'court', 'tariff', 'sanction', 'summit', 'minister', 'military', 'refugee',
+      'killed', 'dead', 'detained', 'corruption', 'crisis',
+    ].some(term => titleLower.includes(term))) {
+      return false
+    }
 
     // Block LIVE streams and BREAKING duplicates — unfinished broadcasts
     if (/\bLIVE\b[:\s]|\|\s*LIVE\s*$|\bBREAKING\b/i.test(c.title)) return false

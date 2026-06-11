@@ -39,26 +39,21 @@ export async function resolveYouTubeChannelId(handle: string, apiKey: string): P
   return null
 }
 
-// Search queries targeting each digest category.
-// Each costs 100 API units. With a 10k/day quota this leaves room for ~14 pipeline runs/day.
-// Note: science/tech is intentionally omitted — journalist RSS (Veritasium, SciShow, Dr. Campbell)
-// produces far cleaner results than search, which floods with clickbait and international content.
+// Search queries for high-yield accountability beats only.
+// Each costs 100 API units, so keep this narrow: broad search floods the queue
+// with soft features, explainers, product promos, and viral hashtag clips.
 const NEWS_SEARCH_QUERIES = [
   // Politics — specific enough to avoid press briefings
   { q: 'senate hearing testimony investigation 2026', label: 'politics' },
   { q: 'congressional hearing whistleblower accountability', label: 'politics' },
-  // Underfilled beats — targeted toward reported/accountability clips rather than generic explainers
+  // Underfilled beats — accountability/investigation only
   { q: 'health care investigation hospital patient costs 2026', label: 'health' },
   { q: 'education investigation school district accountability 2026', label: 'education' },
-  { q: 'climate environment investigation pollution extreme weather 2026', label: 'climate' },
-  { q: 'science research discovery public health space 2026', label: 'science' },
+  { q: 'climate environment investigation pollution lawsuit 2026', label: 'climate' },
   { q: 'court ruling lawsuit justice investigation 2026', label: 'justice' },
-  { q: 'Latin America investigation corruption climate economy 2026', label: 'latin-america' },
   // Incident footage — US-anchored terms reduce international CCTV noise
   { q: 'bodycam footage US police department 2026', label: 'incident' },
   { q: 'police bodycam shooting arrest american', label: 'incident' },
-  // Local US news with video
-  { q: 'local news caught on video american police fire', label: 'local' },
 ]
 
 const SEARCH_WINDOW_HOURS = 48
@@ -171,7 +166,7 @@ async function searchYouTubeNews(
         url.searchParams.set('publishedAfter', publishedAfter)
         url.searchParams.set('regionCode', 'US')
         url.searchParams.set('relevanceLanguage', 'en')
-        url.searchParams.set('maxResults', '10')
+        url.searchParams.set('maxResults', '4')
         url.searchParams.set('key', apiKey)
 
         const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8000) })
