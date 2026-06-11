@@ -232,7 +232,18 @@ export async function runFetch(): Promise<FetchResult> {
   // Block sources that always produce embed-blocked videos — no point queuing them
   // Match on source string containing "storyful" (case-insensitive) to catch all Storyful channel variants
   const GAMING_TERMS = ['gta', 'grand theft auto', 'minecraft', 'roblox', 'fortnite', 'call of duty', 'gameplay', "let's play", 'video game', 'gaming', 'twitch stream', 'esport']
-  const NOISE_TERMS = ['#scary', 'skinwalker', '#paranormal', '#horror', '#learnontiktok', '#scienceexperiments', 'science activity for kids', 'fun science activity']
+  const NOISE_TERMS = [
+    '#scary', 'skinwalker', '#paranormal', '#horror', '#learnontiktok', '#scienceexperiments',
+    'science activity for kids', 'fun science activity', 'bumblebee edition', 'underwater test',
+    'dirty soda', 'panini sticker', 'heart-shaped skid marks',
+  ]
+  const SOFT_NEWS_PATTERNS = [
+    /\bworld cup\b.*\b(arrive|arrival|prediction|predictions|winner|sticker|panini)\b/i,
+    /\b(arrive|arrival)\b.*\bworld cup\b/i,
+    /\bfootball\b.*\bsoccer\b/i,
+    /\biphone\b.*\bgalaxy\b/i,
+    /\bpopemobile\b|\bgreets faithful\b/i,
+  ]
   const filteredCandidates = candidates.filter(c => {
     const username = ((c as { journalistUsername?: string | null }).journalistUsername ?? '').toLowerCase()
     const source = (c.source ?? '').toLowerCase()
@@ -246,6 +257,7 @@ export async function runFetch(): Promise<FetchResult> {
 
     // Block paranormal/horror/kids-science noise
     if (NOISE_TERMS.some(t => titleLower.includes(t))) return false
+    if (SOFT_NEWS_PATTERNS.some(pattern => pattern.test(c.title))) return false
 
     // Block LIVE streams and BREAKING duplicates — unfinished broadcasts
     if (/\bLIVE\b[:\s]|\|\s*LIVE\s*$|\bBREAKING\b/i.test(c.title)) return false

@@ -30,6 +30,22 @@ function cleanTitle(title: string): string {
   return title.replace(/\s*[|\-–—]\s*(DW News|Al Jazeera English|FRANCE 24 English|FRANCE 24|NHK World|NHK|Arirang News|Arirang|TRT World|ABC News Australia|ABC News|CGTN|WION|TeleSUR English|TeleSUR)(\s+English)?\s*$/i, '').trim()
 }
 
+function isSoftGlobalFeature(title: string, description: string): boolean {
+  const text = `${title} ${description}`.toLowerCase()
+  const blockedPatterns = [
+    /\bworld cup\b.*\b(arrive|arrival|prediction|predictions|winner|sticker|panini|kicks off)\b/,
+    /\b(arrive|arrival)\b.*\bworld cup\b/,
+    /\bfootball\b.*\bsoccer\b/,
+    /\bpanini\b|\bsticker phenomenon\b/,
+    /\biphone\b.*\bgalaxy\b|\bunderwater test\b|\bredmagic\b|\bbumblebee edition\b/,
+    /\bdirty sodas?\b|\bmetabolic disaster\b/,
+    /\bpopemobile\b|\bgreets faithful\b|\bsagrada familia\b.*\bcelebration\b/,
+    /\btaxi\b.*\bheart-shaped skid marks\b/,
+    /\bai models?\b.*\bworld cup\b/,
+  ]
+  return blockedPatterns.some(pattern => pattern.test(text))
+}
+
 // Uses YouTube Data API playlistItems — 1 quota unit per channel, reliable from cloud IPs
 // Each channel's uploads playlist ID = 'UU' + channelId.slice(2)
 async function fetchGlobalYouTubeAPI(
@@ -66,6 +82,8 @@ async function fetchGlobalYouTubeAPI(
         if (published && published < cutoff) continue
 
         const cleanedTitle = cleanTitle(snippet?.title ?? '').slice(0, 200)
+        const description = (snippet?.description ?? '').slice(0, 500)
+        if (isSoftGlobalFeature(cleanedTitle, description)) continue
         // Do NOT filter US-topic coverage from public broadcaster YouTube channels —
         // international outlets covering US events are exactly what "How the World Sees It" needs.
         // (Reddit posts still get filtered via fetchGlobalSubreddit to reduce noise.)
@@ -79,7 +97,7 @@ async function fetchGlobalYouTubeAPI(
           source: `YouTube/${label}`,
           videoId,
           region,
-          description: (snippet?.description ?? '').slice(0, 500),
+          description,
         })
       }
     } catch (err) {
