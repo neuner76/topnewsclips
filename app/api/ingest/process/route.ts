@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { runProcess } from '@/lib/ingest/pipeline'
-import { requireCronSecret } from '@/lib/auth'
+import { requireCronSecretOrAdminSession } from '@/lib/auth'
 
 export async function GET(request: Request) {
-  const unauthorized = requireCronSecret(request)
+  const unauthorized = await requireCronSecretOrAdminSession(request)
   if (unauthorized) return unauthorized
 
   try {

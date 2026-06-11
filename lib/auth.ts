@@ -22,3 +22,16 @@ export async function requireAdminSession(): Promise<NextResponse | null> {
 
   return null
 }
+
+// Allows either a scheduled job presenting CRON_SECRET, or a logged-in admin
+// triggering the same endpoint from the admin UI.
+export async function requireCronSecretOrAdminSession(request: Request): Promise<NextResponse | null> {
+  const cronSecret = process.env.CRON_SECRET
+  const authHeader = request.headers.get('authorization')
+
+  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+    return null
+  }
+
+  return requireAdminSession()
+}
