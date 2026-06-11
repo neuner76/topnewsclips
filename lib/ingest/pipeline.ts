@@ -372,8 +372,8 @@ function isCrisisTopic(title: string): boolean {
   return CRISIS_KEYWORDS.some(k => t.includes(k))
 }
 
-// Phase 2: process next 10 pending candidates from the queue through Claude
-export async function runProcess(): Promise<PipelineResult> {
+// Phase 2: process the next pending candidates from the queue through Claude.
+export async function runProcess(limit = 3): Promise<PipelineResult> {
   const supabase = getSupabase()
   const anthropicKey = process.env.ANTHROPIC_API_KEY!
   const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, held: 0, errors: [], stories: [] }
@@ -383,7 +383,7 @@ export async function runProcess(): Promise<PipelineResult> {
     .select('*')
     .eq('processed', false)
     .order('fetched_at', { ascending: true })
-    .limit(3)
+    .limit(Math.min(Math.max(limit, 1), 10))
 
   if (fetchError) {
     result.errors.push(`Failed to fetch candidates queue: ${fetchError.message}`)

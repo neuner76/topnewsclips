@@ -50,6 +50,26 @@ export default function IngestButton() {
     }
   }
 
+  async function handleProcessBulk() {
+    setProcessPhase('running')
+    setProcessMsg(null)
+    try {
+      const res = await fetch('/api/ingest/process-bulk?batches=3&batchSize=3')
+      const data = await res.json()
+      if (!res.ok) {
+        setProcessPhase('error')
+        setProcessMsg(data.error ?? 'Unknown error')
+      } else {
+        const errStr = data.errors?.length ? ` | ${data.errors.join('; ')}` : ''
+        setProcessPhase('done')
+        setProcessMsg(`${data.batchesRun} batches: +${data.inserted} drafts, +${data.needsReview} review, ${data.held} hold, ${data.rejected} rejected${errStr}`)
+      }
+    } catch {
+      setProcessPhase('error')
+      setProcessMsg('Network error')
+    }
+  }
+
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2">
@@ -66,6 +86,13 @@ export default function IngestButton() {
           className="inline-flex items-center gap-1 bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           {processPhase === 'running' ? '⏳ Processing...' : '⚡ Process'}
+        </button>
+        <button
+          onClick={handleProcessBulk}
+          disabled={processPhase === 'running'}
+          className="inline-flex items-center gap-1 bg-indigo-600 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+        >
+          {processPhase === 'running' ? '⏳ Processing...' : '⚡ Process 9'}
         </button>
       </div>
       {fetchMsg && (
