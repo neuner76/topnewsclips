@@ -12,7 +12,7 @@ export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Top News Clips, The Full Picture, Not the Profitable Picture',
-  description: 'Free daily briefing. Every source labeled by credibility tier. International context. Global Blindspot. No agenda.',
+  description: 'Free daily briefing. Every source labeled by source tier. International context. Global Blindspot. No agenda.',
 }
 
 const FEATURES = [
@@ -72,7 +72,7 @@ export default async function LandingPage() {
               <span style={{ color: '#3b82f6' }}>not the profitable one.</span>
             </h1>
             <p className="text-base sm:text-lg text-white/60 mb-8 max-w-lg mx-auto leading-relaxed">
-              Every source labeled by credibility tier. International context every morning. Stories mainstream media skips, surfaced daily.
+              Every source labeled by source tier. International context every morning. Undercovered stories surfaced daily.
             </p>
             <div className="max-w-sm mx-auto mb-6">
               <EmailCaptureInline placement="landing-hero" />
