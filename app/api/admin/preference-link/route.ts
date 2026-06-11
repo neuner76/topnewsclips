@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: `Subscriber not found: ${email}` }, { status: 404 })
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://topnewsclips.com'
+  const siteUrl = request.nextUrl.origin
   return NextResponse.json({
     email: subscriber.email,
     preferenceUrl: preferenceLink(siteUrl, subscriber.id),
