@@ -63,6 +63,7 @@ RUBRIC:
 ${rubric}
 
 STORY DATA:
+current_date: ${new Date().toISOString().slice(0, 10)}
 story_id: ${input.storyId}
 section: ${input.section}
 content_type: ${input.contentType}
@@ -74,8 +75,23 @@ source_tier: ${input.sourceTier ?? 'unknown'}
 video_publish_date: ${input.videoPublishDate ?? 'unknown'}
 event_date_estimate: ${input.eventDateEstimate ?? 'unknown'}
 coverage_count: ${input.coverageCount}
-raw_source_description:
+raw_source_description (reference only — fact-check the summary against this,
+but it is never published verbatim, so its own promo links/hashtags/CTAs do
+NOT count as a C1 fail; only flag C1 if that junk appears in headline/summary):
 ${sanitize(input.rawSourceDescription).slice(0, 1000)}
+
+Notes:
+- "current_date" is today. Compare event_date_estimate against current_date
+  for the C4 72-hour freshness window — do not treat 2026 dates as "future"
+  or implausible just because they postdate your training data.
+- event_date_estimate is the date this content was discovered/queued by our
+  system, used as a freshness proxy when the underlying video's publish date
+  is unknown. If event_date_estimate is within 72 hours of current_date and
+  nothing in the summary/source indicates retrospective/archival framing,
+  C4 passes.
+- coverage_count is a pre-computed count of independently corroborating
+  outlets, already verified by our system. Trust it as given — do not fail
+  C6 merely because outlet names aren't enumerated in the story data.
 
 Respond ONLY with JSON matching this schema:
 {
