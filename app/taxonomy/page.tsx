@@ -48,7 +48,7 @@ const TIERS = [
     color: 'text-[oklch(0.45_0.10_230)] bg-[oklch(0.96_0.02_230)] border-[oklch(0.88_0.05_230)]',
     definition: 'Editorially staffed outlets with institutional standards and professional journalists, but not structured as traditional nonprofits or legacy outlets.',
     rationale: 'This tier captures outlets that don\'t fit cleanly into "nonprofit" or "legacy" but maintain newsroom-level editorial processes. They often employ award-winning journalists and operate with editorial independence from commercial pressures.',
-    examples: 'The Intercept, Drop Site News, Bureau of Investigative Journalism, VICE News',
+    examples: 'The Intercept, Drop Site News, Bureau of Investigative Journalism',
     note: 'The Intercept has a left-leaning editorial perspective and has faced some internal controversies. Drop Site News is new (2024) but staffed by experienced investigative reporters.',
   },
   {
@@ -84,8 +84,8 @@ const TIERS = [
     color: 'text-[oklch(0.48_0.12_85)] bg-[oklch(0.97_0.04_85)] border-[oklch(0.88_0.08_85)]',
     definition: 'Government-funded outlets where editorial direction is controlled or heavily influenced by the state. No structural independence from the funding government.',
     rationale: 'State media is included for perspective, not endorsement. In geopolitical stories, understanding how a government frames its own actions is itself newsworthy. But readers must know the source is state-directed.',
-    examples: 'CGTN (China), TeleSUR (Venezuela)',
-    note: 'Required label: "State Media, editorial direction influenced by [country] government." Always paired with independent sources from Tiers 1–6.',
+    examples: 'CGTN (China), TeleSUR (Venezuela), TRT World (Turkey)',
+    note: 'Required label: "State Media, editorial direction influenced by [country] government." TRT World is included for perspective, but its editorial direction is influenced by the Turkish government. Always paired with independent sources from Tiers 1–6.',
   },
   {
     tier: 9,

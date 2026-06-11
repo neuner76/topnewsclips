@@ -14,7 +14,6 @@ export interface TikTokClip {
 const HASHTAGS = [
   // Incident / accountability
   'bodycam',
-  'caughtoncamera',
   // Hero / rescue
   'rescue',
   'goodsamaritan',

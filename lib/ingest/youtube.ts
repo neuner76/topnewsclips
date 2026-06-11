@@ -53,7 +53,7 @@ const NEWS_SEARCH_QUERIES = [
   { q: 'court ruling lawsuit justice investigation 2026', label: 'justice' },
   // Incident footage — US-anchored terms reduce international CCTV noise
   { q: 'bodycam footage US police department 2026', label: 'incident' },
-  { q: 'police bodycam shooting arrest american', label: 'incident' },
+  { q: 'labor strike union workers investigation 2026', label: 'labor' },
 ]
 
 const SEARCH_WINDOW_HOURS = 48

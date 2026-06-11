@@ -28,7 +28,7 @@ const PUBLIC_BROADCASTER_JOURNALISTS = new Set([
   'pbsnewshour', 'frontlinepbs',
   'france24english', 'france24',
   'nhkworldjapan', 'nhkworld',
-  'arirangnews', 'trtworld', 'wion',
+  'arirangnews', 'wion',
   'africanews',
   'bbcworldservice', // BBC World Service
   'abcnewsaustralia', // ABC News Australia
@@ -95,7 +95,6 @@ const PUBLIC_BROADCASTER_PREFIXES = [
   'YouTube/Al Jazeera',
   'YouTube/France 24',
   'YouTube/NHK',
-  'YouTube/TRT ',
   'YouTube/Arirang',
   'YouTube/WION',
   'YouTube/ABC News Australia',
@@ -144,6 +143,14 @@ const COMMENTARY_SOURCES = new Set([
 // Tier 8: State Media
 const STATE_MEDIA_SOURCES = new Set([
   'YouTube/CGTN', 'YouTube/TeleSUR English',
+])
+
+const STATE_MEDIA_PREFIXES = [
+  'YouTube/TRT World',
+]
+
+const STATE_MEDIA_JOURNALISTS = new Set([
+  'trtworld',
 ])
 
 // Tier 5: Wire Service journalists
@@ -203,6 +210,9 @@ export function getSourceTier(
   if (COMMENTARY_JOURNALISTS.has(u))
     return { tier: 7, sourceType: 'Independent Commentary' }
 
+  if (STATE_MEDIA_JOURNALISTS.has(u))
+    return { tier: 8, sourceType: 'State Media' }
+
   if (RAW_FOOTAGE_JOURNALISTS.has(u))
     return { tier: 9, sourceType: 'Raw Footage' }
 
@@ -230,6 +240,9 @@ export function getSourceTier(
     return { tier: 7, sourceType: 'Independent Commentary' }
 
   if (STATE_MEDIA_SOURCES.has(source))
+    return { tier: 8, sourceType: 'State Media' }
+
+  if (STATE_MEDIA_PREFIXES.some(p => source.startsWith(p)))
     return { tier: 8, sourceType: 'State Media' }
 
   if (category === 'raw' || RAW_FOOTAGE_SUBREDDITS.has(source))
