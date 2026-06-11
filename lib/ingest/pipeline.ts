@@ -481,6 +481,22 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
     'africanews': 'Africa', 'reuters': 'World', 'afpnewsagency': 'World',
   }
 
+  const GLOBAL_SOURCE_REGION: Array<[string, string]> = [
+    ['france 24', 'Europe'],
+    ['france24', 'Europe'],
+    ['dw news', 'Europe'],
+    ['al jazeera', 'Middle East'],
+    ['trt world', 'Middle East'],
+    ['wion', 'South Asia'],
+    ['abc news australia', 'Australia'],
+    ['bbc world service', 'Europe'],
+    ['channel 4 news', 'Europe'],
+    ['cbc news', 'Canada'],
+    ['nhk world', 'Japan'],
+    ['arirang news', 'Korea'],
+    ['africanews', 'Africa'],
+  ]
+
   for (const candidate of pending) {
     try {
       const msm = await checkMSMCoverage(candidate.title)
@@ -488,10 +504,11 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
 
       const handle = (candidate.journalist_username ?? '').toLowerCase()
       const isGlobalJournalist = GLOBAL_JOURNALIST_HANDLES.has(handle)
-      const candidateRegion = candidate.region ?? (isGlobalJournalist ? (GLOBAL_JOURNALIST_REGION[handle] ?? 'World') : null)
+      const sourceLower = (candidate.source ?? '').toLowerCase()
+      const sourceRegion = GLOBAL_SOURCE_REGION.find(([source]) => sourceLower.includes(source))?.[1] ?? null
+      const candidateRegion = candidate.region ?? (isGlobalJournalist ? (GLOBAL_JOURNALIST_REGION[handle] ?? 'World') : sourceRegion)
 
       // Satire bypass — skip Claude verification for known comedy/satire creators
-      const sourceLower = (candidate.source ?? '').toLowerCase()
       const isSatireSource = SATIRE_BYPASS_HANDLES.has(handle) ||
         SATIRE_BYPASS_SOURCES.some(s => sourceLower.includes(s))
       if (isSatireSource) {
