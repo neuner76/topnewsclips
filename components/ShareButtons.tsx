@@ -69,7 +69,7 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
         href={tweetUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-xs font-medium px-3 py-2 rounded border border-border hover:bg-muted transition-colors"
+        className="text-xs font-medium px-3 py-2 rounded border border-white/15 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
         onClick={() => track('story_shared', { method: 'x', slug })}
       >
         Post on X
@@ -80,7 +80,7 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-xs font-medium px-3 py-2 rounded border border-border hover:bg-muted transition-colors"
+        className="text-xs font-medium px-3 py-2 rounded border border-white/15 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
         onClick={() => track('story_shared', { method: 'whatsapp', slug })}
       >
         WhatsApp
@@ -89,14 +89,14 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
       {/* Copy link */}
       <button
         onClick={copyLink}
-        className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded border border-border hover:bg-muted transition-colors"
+        className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded border border-white/15 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
       >
         {copied ? (
           <>
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400">
               <polyline points="20 6 9 17 4 12" />
             </svg>
-            <span className="text-green-600">Copied</span>
+            <span className="text-green-400">Copied</span>
           </>
         ) : (
           <>
