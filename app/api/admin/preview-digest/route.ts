@@ -5,6 +5,7 @@ import { Resend } from 'resend'
 import { getLatestDigest } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import { buildEmailHtml, buildStoryMap, formatDate } from '@/lib/email/digest-html'
+import { preferenceLink } from '@/lib/preference-tokens'
 
 function getServiceSupabase() {
   return createServiceClient(
@@ -46,8 +47,17 @@ export async function GET(request: NextRequest) {
     if (!resendKey) return new NextResponse('RESEND_API_KEY not set', { status: 500 })
 
     const resend = new Resend(resendKey)
+    const normalizedEmail = sendTo.trim().toLowerCase()
+    const { data: subscriber } = await supabase
+      .from('subscribers')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+    const prefsUrl = subscriber?.id
+      ? preferenceLink(siteUrl, subscriber.id)
+      : `${siteUrl}/newsletter`
     const html = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
-      .replace('{{preferences}}', `${siteUrl}/preferences/preview`)
+      .replace('{{preferences}}', prefsUrl)
       .replace('{{unsubscribe}}', `${siteUrl}/api/unsubscribe?token=preview`)
 
     await resend.emails.send({
@@ -62,7 +72,7 @@ export async function GET(request: NextRequest) {
 
   // Browser preview — return raw HTML
   const html = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
-    .replace('{{preferences}}', `${siteUrl}/preferences/preview`)
+    .replace('{{preferences}}', `${siteUrl}/newsletter`)
     .replace('{{unsubscribe}}', `${siteUrl}/api/unsubscribe?token=preview`)
 
   return new NextResponse(html, {

@@ -13,22 +13,31 @@ export default function HoldReviewForm({ storyId, initialTitle, initialDescripti
   const router = useRouter()
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
-  const [saving, setSaving] = useState<'publish' | 'discard' | null>(null)
+  const [saving, setSaving] = useState<'publish' | 'discard' | 'recheck' | null>(null)
   const [error, setError] = useState('')
+  const [recheckResult, setRecheckResult] = useState('')
 
-  async function act(action: 'publish' | 'discard') {
+  async function act(action: 'publish' | 'discard' | 'recheck') {
     if (action === 'discard' && !confirm('Discard this story permanently? This cannot be undone.')) return
     setSaving(action)
     setError('')
+    setRecheckResult('')
     try {
       const res = await fetch('/api/admin/qc-holds', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: storyId, action, title, description }),
       })
+      const d = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const d = await res.json()
         setError(d.error || 'Failed to save.')
+      } else if (action === 'recheck') {
+        if (d.verdict === 'PASS' || d.verdict === 'FIX') {
+          router.refresh()
+        } else {
+          setRecheckResult('Still HOLD — checks updated below.')
+          router.refresh()
+        }
       } else {
         router.refresh()
       }
@@ -60,8 +69,16 @@ export default function HoldReviewForm({ storyId, initialTitle, initialDescripti
       </div>
 
       {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {recheckResult && <p className="text-xs text-amber-700 dark:text-amber-400">{recheckResult}</p>}
 
       <div className="flex gap-2">
+        <button
+          onClick={() => act('recheck')}
+          disabled={saving !== null}
+          className="text-xs font-semibold px-4 py-1.5 rounded border border-border hover:bg-muted transition-colors disabled:opacity-50"
+        >
+          {saving === 'recheck' ? 'Re-checking…' : 'Re-check'}
+        </button>
         <button
           onClick={() => act('publish')}
           disabled={saving !== null}
