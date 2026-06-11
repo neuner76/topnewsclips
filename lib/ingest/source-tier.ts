@@ -131,6 +131,7 @@ const COMMENTARY_SOURCES = new Set([
   'YouTube/Wendover Productions',
   'YouTube/Veritasium',
   'YouTube/Kyle Scanlon',
+  'YouTube/Money & Macro',
   // Satire channels (arrive via search without journalist_username)
   'YouTube/The Daily Show',
   'YouTube/Last Week Tonight with John Oliver',

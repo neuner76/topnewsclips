@@ -23,11 +23,12 @@ const GLOBAL_YOUTUBE_CHANNELS: { channelId: string; region: string; label: strin
   { channelId: 'UCVgO39Bk5sMo66-6o6Spn6Q', region: 'Australia',     label: 'ABC News Australia' },
   { channelId: 'UC_gUM8rL-Lrg6O3adPW9K1g', region: 'South Asia',   label: 'WION' },
   { channelId: 'UC1_E8NeF5QHY2dtdLRBCCLA', region: 'Africa',       label: 'Africanews' },
+  { channelId: 'UCTLnqSB1f3CUN6ONip18Jbw', region: 'Europe',       label: 'Meduza in English' },
 ]
 
 // Strip common channel name suffixes from YouTube titles e.g. "Story title | DW News" → "Story title"
 function cleanTitle(title: string): string {
-  return title.replace(/\s*[|\-–—]\s*(DW News|Al Jazeera English|FRANCE 24 English|FRANCE 24|NHK World|NHK|Arirang News|Arirang|TRT World|ABC News Australia|ABC News|CGTN|WION|TeleSUR English|TeleSUR)(\s+English)?\s*$/i, '').trim()
+  return title.replace(/\s*[|\-–—]\s*(DW News|Al Jazeera English|FRANCE 24 English|FRANCE 24|NHK World|NHK|Arirang News|Arirang|TRT World|ABC News Australia|ABC News|CGTN|WION|TeleSUR English|TeleSUR|Africanews|Meduza in English|Meduza)(\s+English)?\s*$/i, '').trim()
 }
 
 function isSoftGlobalFeature(title: string, description: string): boolean {
