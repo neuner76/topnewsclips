@@ -7,6 +7,7 @@ import { verifyAndTitle } from './claude-verify'
 import { pingIndexNow } from './indexnow'
 import { getSourceTier } from './source-tier'
 import { runQCAndInsert } from './qc-publish'
+import { summarizeLight } from './summarize-light'
 import { getConfidenceLabel, CONFIDENCE_META } from '@/lib/confidence'
 import type { QCConfidenceLabel } from './qc-gate'
 import { tagStoryBySlug } from '@/lib/story-taxonomy'
@@ -31,33 +32,6 @@ function sanitize(s: string): string {
   return s.replace(/[\uD800-\uDFFF]/g, '')
 }
 
-// Strips promo/junk patterns from raw YouTube/TikTok descriptions before they're
-// used as a draft summary (satire/comedy bypass skips Claude summarization, so
-// the raw description would otherwise reach the QC gate as-is and fail C1).
-function cleanDescriptionForSummary(description: string): string {
-  let text = description
-    // HTML numeric entities (e.g. "&#13;" carriage returns leaked from feeds)
-    .replace(/&#\d+;/g, ' ')
-    // chapter timestamp lines, e.g. "0:00 Intro" or "1:23:45 Segment Title"
-    .replace(/^\s*\d{1,2}(:\d{2}){1,2}\s+.*$/gm, '')
-    // URLs (including markdown-style [url] links)
-    .replace(/\[?https?:\/\/\S+\]?/g, '')
-    // hashtags
-    .replace(/#\S+/g, '')
-    // @-handles
-    .replace(/@\w+/g, '')
-    // common subscribe/sponsor/CTA boilerplate
-    .replace(/Subscribe[^.\n]*\.?/gi, '')
-    .replace(/Read more[^.\n]*\.?/gi, '')
-    .replace(/Get the world's news at[^.\n]*\.?/gi, '')
-    .replace(/This (?:video|content) may be available for archive licensing[^.\n]*\.?/gi, '')
-
-  // Drop trailing production-credit block (Hosted by / Executive Producer / Directed by / Written by)
-  text = text.replace(/\n\s*(Hosted by|Executive Producer|Directed by|Written by|Produced by)[\s\S]*$/i, '')
-
-  return text.replace(/[ \t]+/g, ' ').replace(/\n{2,}/g, '\n').trim()
-}
-
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -73,6 +47,31 @@ function makeSlug(platform: string, id: string | null, title: string): string {
 
 function delay(ms: number) {
   return new Promise(r => setTimeout(r, ms))
+}
+
+// Rejection reasons that are about coverage/diversity at this moment, not the
+// content itself — the story may legitimately re-enter once it gets more
+// pickup, so these expire after 24h. Everything else (junk, embed-blocked,
+// content-based Claude rejections) is permanent (expires_at: null).
+const TTL_REJECTION_PATTERNS = [
+  /coverage/i,
+  /mainstream media articles?/i,
+  /\bmsm\b/i,
+  /topic_cap/i,
+  /fewer than \d+/i,
+]
+
+const REJECTION_TTL_MS = 24 * 60 * 60 * 1000
+
+function rejectionExpiresAt(reason: string): string | null {
+  if (TTL_REJECTION_PATTERNS.some(p => p.test(reason))) {
+    return new Date(Date.now() + REJECTION_TTL_MS).toISOString()
+  }
+  return null
+}
+
+async function upsertRejection(supabase: ReturnType<typeof getSupabase>, slug: string, reason: string) {
+  await supabase.from('rejected_slugs').upsert({ slug, reason, expires_at: rejectionExpiresAt(reason) })
 }
 
 // Returns false if YouTube has blocked this video from third-party embedding
@@ -115,6 +114,40 @@ function isSameIncident(a: string, b: string, threshold = 3): boolean {
 }
 
 const JOURNALIST_DAILY_CAP = 3
+
+// Satire/comedy handles — exempt from the daily journalist cap (gated to Comedy &
+// Satire, so the cap was silently dropping newer episodes) and given a longer
+// freshness window (A3) to account for weekly show cadence.
+const SATIRE_CAP_EXEMPT = new Set([
+  'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
+])
+
+const SATIRE_CAP_EXEMPT_SOURCES = [
+  'the daily show', 'last week tonight', 'jonathan pie', 'some more news',
+  'josh johnson', 'the juice media', 'saturday night live',
+]
+
+// A3: freshness gate — reject candidates whose upload date is older than this
+// window. Trending surfaces can resurface old documentaries/retrospectives
+// alongside same-day news; satire shows get a longer window for weekly cadence.
+const FRESHNESS_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+const SATIRE_FRESHNESS_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
+
+function isSatireCandidate(c: { journalistUsername?: string | null; source?: string | null }): boolean {
+  const username = (c.journalistUsername ?? '').toLowerCase()
+  const source = (c.source ?? '').toLowerCase()
+  return SATIRE_CAP_EXEMPT.has(username) || SATIRE_CAP_EXEMPT_SOURCES.some(s => source.includes(s))
+}
+
+// True if the candidate is too old to run alongside same-day news. Candidates
+// without a known upload date (TikTok/Global, which don't expose one) pass
+// through unfiltered — we can't penalize what we can't measure.
+export function isFresh(c: { uploadedAt?: string | null; journalistUsername?: string | null; source?: string | null }): boolean {
+  if (!c.uploadedAt) return true
+  const age = Date.now() - new Date(c.uploadedAt).getTime()
+  const window = isSatireCandidate(c) ? SATIRE_FRESHNESS_WINDOW_MS : FRESHNESS_WINDOW_MS
+  return age <= window
+}
 
 // Keep only the highest-viral-score version when multiple candidates cover the same incident
 function deduplicateByTitle<T extends { title: string; viralScore: number }>(candidates: T[]): T[] {
@@ -200,6 +233,7 @@ export async function runFetch(): Promise<FetchResult> {
       source: `YouTube/${c.channelTitle}`,
       journalistUsername: c.journalistUsername ?? null,
       duration: c.duration ?? null,
+      uploadedAt: c.publishedAt || null,
     })),
     ...tiktokResult.clips.map((c: TikTokClip) => ({
       title: c.title,
@@ -288,8 +322,17 @@ export async function runFetch(): Promise<FetchResult> {
     return isJournalist
   })
 
+  // A3: freshness gate — reject candidates whose upload date is too old to run
+  // alongside same-day news. Record as a permanent rejection so they aren't
+  // re-queued on the next fetch.
+  const freshCandidates = filteredCandidates.filter(isFresh)
+  const staleCandidates = filteredCandidates.filter(c => !isFresh(c))
+  for (const c of staleCandidates) {
+    await upsertRejection(supabase, makeSlug(c.platform, c.videoId, c.title), 'stale')
+  }
+
   // Deduplicate across sources — same incident covered by multiple channels keeps highest view count
-  const titleDeduped = deduplicateByTitle(filteredCandidates)
+  const titleDeduped = deduplicateByTitle(freshCandidates)
 
   // Cross-platform journalist dedup — if a journalist appears on both YouTube and Reddit,
   // keep only the highest viral score version across all platforms
@@ -312,7 +355,7 @@ export async function runFetch(): Promise<FetchResult> {
   const [{ data: existingStories }, { data: existingRejected }, { data: existingCandidates }, { data: todayStories }, { data: todayCandidates }] =
     await Promise.all([
       supabase.from('stories').select('slug').in('slug', slugsToCheck),
-      supabase.from('rejected_slugs').select('slug').in('slug', slugsToCheck),
+      supabase.from('rejected_slugs').select('slug, expires_at').in('slug', slugsToCheck),
       supabase.from('candidates').select('slug').in('slug', slugsToCheck),
       supabase.from('stories').select('journalist_username').not('journalist_username', 'is', null).gte('created_at', todayCutoff),
       supabase.from('candidates').select('journalist_username').not('journalist_username', 'is', null).gte('fetched_at', todayCutoff),
@@ -325,9 +368,14 @@ export async function runFetch(): Promise<FetchResult> {
     todayJournalistCounts.set(u, (todayJournalistCounts.get(u) ?? 0) + 1)
   }
 
+  const now = Date.now()
+  const nonExpiredRejected = (existingRejected ?? []).filter(
+    (r: { slug: string; expires_at: string | null }) => !r.expires_at || new Date(r.expires_at).getTime() > now
+  )
+
   const knownSlugs = new Set([
     ...(existingStories ?? []).map((r: { slug: string }) => r.slug),
-    ...(existingRejected ?? []).map((r: { slug: string }) => r.slug),
+    ...nonExpiredRejected.map((r: { slug: string }) => r.slug),
     ...(existingCandidates ?? []).map((r: { slug: string }) => r.slug),
   ])
 
@@ -335,16 +383,6 @@ export async function runFetch(): Promise<FetchResult> {
   const sortedCandidates = [...dedupedCandidates].sort((a, b) =>
     (b.viralScore ?? 0) - (a.viralScore ?? 0)
   )
-  // Satire handles are exempt from the daily journalist cap — they're gated to Comedy & Satire
-  // and the cap was silently dropping newer episodes when older ones already filled the 3-slot limit
-  const SATIRE_CAP_EXEMPT = new Set([
-    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
-  ])
-
-  const SATIRE_CAP_EXEMPT_SOURCES = [
-    'the daily show', 'last week tonight', 'jonathan pie', 'some more news',
-    'josh johnson', 'the juice media', 'saturday night live',
-  ]
 
   const newCandidates = sortedCandidates.filter(c => {
     if (knownSlugs.has(makeSlug(c.platform, c.videoId, c.title))) return false
@@ -374,6 +412,7 @@ export async function runFetch(): Promise<FetchResult> {
       journalist_username: (c as { journalistUsername?: string | null }).journalistUsername ?? null,
       region: (c as { region?: string | null }).region ?? null,
       duration: (c as { duration?: string | null }).duration ?? null,
+      uploaded_at: (c as { uploadedAt?: string | null }).uploadedAt ?? null,
     })
     if (!error) {
       added++
@@ -525,6 +564,19 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
 
   for (const candidate of pending) {
     try {
+      // A3: oEmbed check first — it's free, so reject embed-blocked videos
+      // before spending anything on MSM lookups or Claude calls.
+      if (candidate.platform === 'youtube') {
+        const embeddable = await isYouTubeEmbeddable(candidate.video_url)
+        if (!embeddable) {
+          result.rejected++
+          result.errors.push(`Embed blocked: "${candidate.title.slice(0, 50)}" — YouTube embed disabled by rights holder`)
+          await upsertRejection(supabase, candidate.slug, 'youtube_embed_blocked')
+          await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
+          continue
+        }
+      }
+
       const msm = await checkMSMCoverage(candidate.title)
       await delay(200)
 
@@ -538,22 +590,24 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       const isSatireSource = SATIRE_BYPASS_HANDLES.has(handle) ||
         SATIRE_BYPASS_SOURCES.some(s => sourceLower.includes(s))
       if (isSatireSource) {
-        const embeddable = candidate.platform === 'youtube' ? await isYouTubeEmbeddable(candidate.video_url) : true
-        if (!embeddable) {
-          result.rejected++
-          result.errors.push(`Embed blocked (satire): "${candidate.title.slice(0, 50)}"`)
-          await supabase.from('rejected_slugs').upsert({ slug: candidate.slug, reason: 'youtube_embed_blocked' })
-          await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
-          continue
-        }
         const satireSourceTier = getSourceTier(candidate.journalist_username ?? null, candidate.source ?? '', 'comedy').tier
+        const satireSummary = await summarizeLight(
+          {
+            title: candidate.title,
+            channel: candidate.source ?? '',
+            description: candidate.description ?? '',
+            duration: candidate.duration ?? null,
+            category: 'comedy',
+          },
+          anthropicKey
+        )
         const satireQC = await runQCAndInsert(
           supabase,
           anthropicKey,
           {
-            title: candidate.title,
+            title: satireSummary.headline,
             slug: candidate.slug,
-            description: cleanDescriptionForSummary(candidate.description ?? ''),
+            description: satireSummary.summary,
             embed_url: candidate.video_url,
             platform: candidate.platform,
             view_count: candidate.viral_score,
@@ -591,19 +645,20 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
             coverageCount: 0,
             rawSourceDescription: candidate.description ?? '',
             eventDateEstimate: candidate.fetched_at ? candidate.fetched_at.slice(0, 10) : null,
+            videoPublishDate: candidate.uploaded_at ? candidate.uploaded_at.slice(0, 10) : null,
           }
         )
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
         if (satireQC.duplicate) {
-          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'duplicate' })
+          result.stories.push({ title: satireSummary.headline, slug: candidate.slug, decision: 'duplicate' })
         } else if (satireQC.error) {
           result.errors.push(`Satire insert error: ${satireQC.error}`)
         } else if (satireQC.held) {
           result.held++
-          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'hold' })
+          result.stories.push({ title: satireSummary.headline, slug: candidate.slug, decision: 'hold' })
         } else {
           result.inserted++
-          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })
+          result.stories.push({ title: satireSummary.headline, slug: candidate.slug, decision: 'publish' })
           await tagStoryBySlug(supabase, candidate.slug).catch(err => {
             result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
           })
@@ -613,21 +668,23 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
 
       // Mainstream Pulse bypass — skip Claude verification; MSM gap check is circular for these sources
       if (MAINSTREAM_PULSE_HANDLES.has(handle)) {
-        const embeddable = candidate.platform === 'youtube' ? await isYouTubeEmbeddable(candidate.video_url) : true
-        if (!embeddable) {
-          result.rejected++
-          result.errors.push(`Embed blocked (mainstream): "${candidate.title.slice(0, 50)}"`)
-          await supabase.from('rejected_slugs').upsert({ slug: candidate.slug, reason: 'youtube_embed_blocked' })
-          await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
-          continue
-        }
+        const mainstreamSummary = await summarizeLight(
+          {
+            title: candidate.title,
+            channel: candidate.source ?? '',
+            description: candidate.description ?? '',
+            duration: candidate.duration ?? null,
+            category: 'mainstream_pulse',
+          },
+          anthropicKey
+        )
         const mainstreamQC = await runQCAndInsert(
           supabase,
           anthropicKey,
           {
-            title: candidate.title,
+            title: mainstreamSummary.headline,
             slug: candidate.slug,
-            description: cleanDescriptionForSummary(candidate.description ?? ''),
+            description: mainstreamSummary.summary,
             embed_url: candidate.video_url,
             platform: candidate.platform,
             view_count: candidate.viral_score,
@@ -656,19 +713,20 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
             coverageCount: 0,
             rawSourceDescription: candidate.description ?? '',
             eventDateEstimate: candidate.fetched_at ? candidate.fetched_at.slice(0, 10) : null,
+            videoPublishDate: candidate.uploaded_at ? candidate.uploaded_at.slice(0, 10) : null,
           }
         )
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
         if (mainstreamQC.duplicate) {
-          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'duplicate' })
+          result.stories.push({ title: mainstreamSummary.headline, slug: candidate.slug, decision: 'duplicate' })
         } else if (mainstreamQC.error) {
           result.errors.push(`Mainstream insert error: ${mainstreamQC.error}`)
         } else if (mainstreamQC.held) {
           result.held++
-          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'hold' })
+          result.stories.push({ title: mainstreamSummary.headline, slug: candidate.slug, decision: 'hold' })
         } else {
           result.inserted++
-          result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })
+          result.stories.push({ title: mainstreamSummary.headline, slug: candidate.slug, decision: 'publish' })
           await tagStoryBySlug(supabase, candidate.slug).catch(err => {
             result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
           })
@@ -707,25 +765,8 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         result.errors.push(
           `Rejected: "${candidate.title.slice(0, 50)}" — ${verification.rejectReason ?? 'no reason'}`
         )
-        await supabase
-          .from('rejected_slugs')
-          .upsert({ slug: candidate.slug, reason: verification.rejectReason ?? '' })
+        await upsertRejection(supabase, candidate.slug, verification.rejectReason ?? '')
         continue
-      }
-
-      // YouTube embed check — reject videos blocked from third-party embedding
-      if (candidate.platform === 'youtube') {
-        const embeddable = await isYouTubeEmbeddable(candidate.video_url)
-        if (!embeddable) {
-          result.rejected++
-          result.errors.push(
-            `Embed blocked: "${candidate.title.slice(0, 50)}" — YouTube embed disabled by rights holder`
-          )
-          await supabase
-            .from('rejected_slugs')
-            .upsert({ slug: candidate.slug, reason: 'youtube_embed_blocked' })
-          continue
-        }
       }
 
       // Topic diversity cap — skip if this topic already has TOPIC_DAILY_CAP stories published today
@@ -734,9 +775,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         result.errors.push(
           `Topic cap: "${verification.headline.slice(0, 50)}" — too many similar stories today`
         )
-        await supabase
-          .from('rejected_slugs')
-          .upsert({ slug: candidate.slug, reason: 'topic_cap: too many similar stories today' })
+        await upsertRejection(supabase, candidate.slug, 'topic_cap: too many similar stories today')
         continue
       }
 

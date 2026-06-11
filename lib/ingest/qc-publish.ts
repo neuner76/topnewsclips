@@ -37,7 +37,7 @@ export async function runQCAndInsert(
   let headline = storyData.title
   let summary = storyData.description
 
-  const MAX_ATTEMPTS = 3 // initial pass + up to 2 revise-and-recheck cycles
+  const MAX_ATTEMPTS = 2 // initial pass + at most 1 revise-and-recheck cycle
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const result = await runQCGate(

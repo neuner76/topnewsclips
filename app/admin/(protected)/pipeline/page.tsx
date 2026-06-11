@@ -26,11 +26,13 @@ export default async function PipelinePage() {
   const todayCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
   // Candidates may have been fetched slightly before the 24h window, use 36h to catch today's run
   const candidateCutoff = new Date(now.getTime() - 36 * 60 * 60 * 1000).toISOString()
+  const qcLogCutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
     { data: candidates },
     { data: rejected },
     { data: publishedToday },
+    { data: qcLog },
   ] = await Promise.all([
     supabase
       .from('candidates')
@@ -50,7 +52,20 @@ export default async function PipelinePage() {
       .gte('created_at', todayCutoff)
       .order('created_at', { ascending: false })
       .limit(100),
+    supabase
+      .from('qc_log')
+      .select('verdict, revision_applied')
+      .eq('revision_applied', true)
+      .gte('created_at', qcLogCutoff),
   ])
+
+  // Of stories that needed a revise-and-recheck cycle, what fraction passed on
+  // that retry vs. fell through to HOLD? Stays under ~30% -> the tighter
+  // single-retry limit (B1) costs little.
+  const retryRows = qcLog ?? []
+  const passOnRetryRate = retryRows.length > 0
+    ? retryRows.filter(r => r.verdict === 'PASS').length / retryRows.length
+    : null
 
   const rejectedSlugs = new Map((rejected ?? []).map(r => [r.slug, r.reason as string]))
   const publishedSlugs = new Map((publishedToday ?? []).map(s => [s.slug, s]))
@@ -102,7 +117,7 @@ export default async function PipelinePage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-6 gap-3 mb-8">
+      <div className="grid grid-cols-6 gap-3 mb-2">
         {[
           { label: 'Fetched', value: stats.fetched, color: 'gray' as const },
           { label: 'Published', value: stats.published, color: 'green' as const },
@@ -116,6 +131,11 @@ export default async function PipelinePage() {
             <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mb-8 text-xs text-muted-foreground">
+        QC pass-on-retry rate (7d): {passOnRetryRate === null ? 'n/a' : `${Math.round(passOnRetryRate * 100)}%`}
+        {' '}({retryRows.length} retried)
       </div>
 
       {/* Candidate table */}
