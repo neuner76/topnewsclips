@@ -91,7 +91,6 @@ describe('QC gate (rubric C1-C8)', () => {
       {
         ...base,
         storyId: 't4-screwworm',
-        coverageCount: 1,
         videoPublishDate: today,
         eventDateEstimate: today,
         headline: 'New World Screwworm Detected in South Texas Cattle, Texas Tribune Reports',
