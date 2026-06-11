@@ -68,6 +68,20 @@ export default async function PipelinePage() {
     return 'pending'
   }
 
+  const decisionPriority: Record<Decision, number> = {
+    hold: 0,
+    review: 1,
+    published: 2,
+    rejected: 3,
+    pending: 4,
+  }
+  const orderedCandidates = [...(candidates ?? [])].sort((a, b) => {
+    const decisionA = getDecision(a.slug, a.processed)
+    const decisionB = getDecision(b.slug, b.processed)
+    return decisionPriority[decisionA] - decisionPriority[decisionB]
+      || new Date(a.fetched_at).getTime() - new Date(b.fetched_at).getTime()
+  })
+
   const candidateSlugSet = new Set((candidates ?? []).map(c => c.slug))
   const publishedFromCandidates = (publishedToday ?? []).filter(s => candidateSlugSet.has(s.slug))
 
@@ -119,7 +133,7 @@ export default async function PipelinePage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {(candidates ?? []).map((c, i) => {
+            {orderedCandidates.map((c, i) => {
               const decision = getDecision(c.slug, c.processed)
               const reason = rejectedSlugs.get(c.slug) ?? ''
               const badgeColor = { published: 'green', review: 'amber', hold: 'red', rejected: 'red', pending: 'gray' }[decision] as 'green' | 'amber' | 'red' | 'gray'
