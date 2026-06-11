@@ -5,6 +5,8 @@ import { getLatestDigest, type DigestContent } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import { buildEmailHtml, buildStoryMap, formatDate, formatPublishedDate, sourceHandle, storyUrl, siteUrlUtm } from '@/lib/email/digest-html'
 import { unsubscribeLink } from '@/lib/unsubscribe'
+import { preferenceLink } from '@/lib/preference-tokens'
+import { getPersonalizationProfile, personalizeDigestContent } from '@/lib/personalized-digest'
 import { requireCronSecret } from '@/lib/auth'
 
 function getSupabase() {
@@ -147,6 +149,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string, s
   lines.push('━'.repeat(60))
   lines.push(`${siteUrlUtm(siteUrl)}`)
   lines.push('You\'re receiving this because you subscribed at topnewsclips.com.')
+  lines.push('Tune your briefing: {{preferences}}')
   lines.push('Unsubscribe: {{unsubscribe}}')
 
   return lines.join('\n')
@@ -186,7 +189,7 @@ export async function GET(request: Request) {
   }
   const { data: subscribers, error } = await supabase
     .from('subscribers')
-    .select('email, unsubscribe_token')
+    .select('id, email, unsubscribe_token')
 
   if (error) {
     return NextResponse.json({ error: `Failed to fetch subscribers: ${error.message}` }, { status: 500 })
@@ -204,12 +207,10 @@ export async function GET(request: Request) {
     digest.content
   )
 
-  const baseHtml = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
-  const baseText = buildEmailText(digest.content, digest.date, siteUrl, storyMap)
   const subject = `Your briefing — ${formatDate(digest.date)}`
 
   // Resend supports batch send up to 100 emails per request
-  // Each email gets a personalized unsubscribe link
+  // Each email gets personalized account links.
   const BATCH_SIZE = 100
   let sent = 0
   const errors: string[] = []
@@ -217,21 +218,29 @@ export async function GET(request: Request) {
   for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
     const batch = subscribers.slice(i, i + BATCH_SIZE)
     try {
-      await resend.batch.send(
-        batch.map((subscriber: { email: string; unsubscribe_token: string }) => {
+      const emails = await Promise.all(
+        batch.map(async (subscriber: { id: string; email: string; unsubscribe_token: string }) => {
+          const profile = await getPersonalizationProfile(supabase, subscriber.id)
+          const personalizedContent = await personalizeDigestContent(supabase, digest.content, profile)
+          const html = buildEmailHtml(personalizedContent, digest.date, siteUrl, storyMap)
+          const text = buildEmailText(personalizedContent, digest.date, siteUrl, storyMap)
           const unsubUrl = unsubscribeLink(siteUrl, subscriber.unsubscribe_token)
+          const prefsUrl = preferenceLink(siteUrl, subscriber.id)
           return {
             from: 'TopNewsClips <digest@topnewsclips.com>',
             to: subscriber.email,
             subject,
-            html: baseHtml.replace('{{unsubscribe}}', unsubUrl),
-            text: baseText.replace('{{unsubscribe}}', unsubUrl),
+            html: html.replace('{{preferences}}', prefsUrl).replace('{{unsubscribe}}', unsubUrl),
+            text: text.replace('{{preferences}}', prefsUrl).replace('{{unsubscribe}}', unsubUrl),
             headers: {
               'List-Unsubscribe': `<${unsubUrl}>`,
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
             },
           }
         })
+      )
+      await resend.batch.send(
+        emails
       )
       sent += batch.length
     } catch (err) {

@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
 
     const resend = new Resend(resendKey)
     const html = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
+      .replace('{{preferences}}', `${siteUrl}/preferences/preview`)
       .replace('{{unsubscribe}}', `${siteUrl}/api/unsubscribe?token=preview`)
 
     await resend.emails.send({
@@ -61,6 +62,7 @@ export async function GET(request: NextRequest) {
 
   // Browser preview — return raw HTML
   const html = buildEmailHtml(digest.content, digest.date, siteUrl, storyMap)
+    .replace('{{preferences}}', `${siteUrl}/preferences/preview`)
     .replace('{{unsubscribe}}', `${siteUrl}/api/unsubscribe?token=preview`)
 
   return new NextResponse(html, {

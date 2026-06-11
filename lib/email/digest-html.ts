@@ -323,6 +323,8 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
       <a href="${siteUrlUtm(siteUrl)}" style="font-size:13px;font-weight:700;color:#0e7490;text-decoration:none;">topnewsclips.com</a>
       <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">
         You're receiving this because you subscribed at topnewsclips.com.<br>
+        <a href="{{preferences}}" style="color:#9ca3af;">Tune your briefing</a>
+        <span style="color:#d1d5db;"> · </span>
         <a href="{{unsubscribe}}" style="color:#9ca3af;">Unsubscribe</a>
       </p>
     </div>

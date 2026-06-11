@@ -9,6 +9,7 @@ import { getSourceTier } from './source-tier'
 import { runQCAndInsert } from './qc-publish'
 import { getConfidenceLabel, CONFIDENCE_META } from '@/lib/confidence'
 import type { QCConfidenceLabel } from './qc-gate'
+import { tagStoryBySlug } from '@/lib/story-taxonomy'
 
 export interface PipelineResult {
   inserted: number
@@ -554,6 +555,9 @@ export async function runProcess(): Promise<PipelineResult> {
         } else {
           result.inserted++
           result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })
+          await tagStoryBySlug(supabase, candidate.slug).catch(err => {
+            result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
+          })
         }
         continue
       }
@@ -614,6 +618,9 @@ export async function runProcess(): Promise<PipelineResult> {
         } else {
           result.inserted++
           result.stories.push({ title: candidate.title, slug: candidate.slug, decision: 'publish' })
+          await tagStoryBySlug(supabase, candidate.slug).catch(err => {
+            result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
+          })
         }
         continue
       }
@@ -752,6 +759,9 @@ export async function runProcess(): Promise<PipelineResult> {
       } else {
         result.inserted++
         publishedSlugs.push(candidate.slug)
+        await tagStoryBySlug(supabase, candidate.slug).catch(err => {
+          result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
+        })
       }
 
       // Add to in-memory published list so topic cap applies within this run too
