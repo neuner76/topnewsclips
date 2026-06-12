@@ -33,8 +33,11 @@ import EmailCaptureInline from '@/components/EmailCaptureInline'
 import ConfidenceBadge from '@/components/ConfidenceBadge'
 import TierBadge from '@/components/TierBadge'
 import SectionCard from '@/components/SectionCard'
+import StayWithThisStory from '@/components/StayWithThisStory'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
+import { getResponseEligibility } from '@/lib/response-eligibility'
+import { getApprovedResponseResources } from '@/lib/response-resources'
 import Image from 'next/image'
 
 export const revalidate = 300
@@ -148,6 +151,15 @@ export default async function StoryPage({ params }: Props) {
   const contentTypeLabel = s.category === 'raw' ? 'Raw Footage' : s.category === 'analysis' ? 'Analysis' : s.category === 'reported' ? 'Reported' : null
   const publishedLabel = new Date(s.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles', timeZoneName: 'short' })
   const updatedLabel = s.updated_at !== s.created_at ? new Date(s.updated_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles', timeZoneName: 'short' }) : null
+  const responseEligibility = getResponseEligibility(s)
+  const responseResources = responseEligibility.eligibility === 'none'
+    ? []
+    : await getApprovedResponseResources({
+      responseTypes: responseEligibility.allowedTypes,
+      storyCategory: responseEligibility.storyCategory,
+      region: s.region ?? undefined,
+      limit: 3,
+    })
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -411,6 +423,8 @@ export default async function StoryPage({ params }: Props) {
             </div>
           </details>
         </SectionCard>
+
+        <StayWithThisStory story={s} resources={responseResources} />
 
         {/* Subscribe nudge */}
         {s.published && (
