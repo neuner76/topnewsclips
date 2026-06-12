@@ -23,6 +23,17 @@ export async function generateMetadata({
 
 const PAGE_SIZE = 30
 
+function searchTokens(query: string): string[] {
+  return [...new Set(
+    query
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(token => token.length >= 3)
+      .slice(0, 5)
+  )]
+}
+
 export default async function SearchPage({
   searchParams,
 }: {
@@ -38,11 +49,15 @@ export default async function SearchPage({
 
   if (query.length >= 2) {
     const supabase = await createClient()
+    const tokens = searchTokens(query)
+    const searchFilter = tokens.length > 1
+      ? tokens.flatMap(token => [`title.ilike.%${token}%`, `description.ilike.%${token}%`]).join(',')
+      : `title.ilike.%${query}%,description.ilike.%${query}%`
     const { data, count } = await supabase
       .from('stories')
       .select('*', { count: 'exact' })
       .lt('display_order', 99)
-      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+      .or(searchFilter)
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1)
 
