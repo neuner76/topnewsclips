@@ -138,6 +138,7 @@ export default function TaxonomyPage() {
             <li>Badges are assigned based on the originating channel, not the content of any individual video.</li>
             <li>If a source&apos;s classification is disputed or ambiguous, it defaults to the lower-credibility tier until reviewed.</li>
             <li>Every story — regardless of tier — is checked against coverage from 15 major US outlets and verified through our Claude-powered pipeline before publication; stories that fail verification are rejected or held for review. Stories with limited corroboration are labeled Single-source or Developing rather than presented as confirmed.</li>
+            <li>Tier 8–10 stories with no independent outlet coverage are held for human review before publication rather than being published with a Single-source label.</li>
             <li>Dual-fit sources (e.g. Bellingcat as both OSINT and independent news) are assigned the higher-credibility tier.</li>
           </ul>
         </div>
