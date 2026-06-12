@@ -39,7 +39,7 @@ const TIERS = [
     color: 'text-[oklch(0.45_0.10_230)] bg-[oklch(0.96_0.02_230)] border-[oklch(0.88_0.05_230)]',
     definition: 'Government-funded but editorially independent by statute or charter. Subject to public accountability mechanisms.',
     rationale: 'Public broadcasters are funded by governments but legally required to maintain editorial independence. They typically have large international correspondent networks and rigorous editorial standards.',
-    examples: 'DW News, France 24, NHK World, ABC News Australia, Arirang News',
+    examples: 'DW News, France 24, NHK World, ABC News Australia, ABC News In-depth (Four Corners), Arirang News',
     note: 'Al Jazeera is funded by Qatar. Editorial independence has been debated, particularly on Gulf affairs. The label "Public Broadcaster" is applied because of its institutional structure and international editorial standards, not as a blanket endorsement.',
   },
   {
@@ -75,8 +75,8 @@ const TIERS = [
     color: 'text-white/70 bg-white/10 border-white/15',
     definition: 'Individual journalists, creator-led channels, and non-institutional commentary. Editorial accountability rests with the creator, not an institution.',
     rationale: 'Many of these creators do excellent work, but their editorial standards are self-imposed rather than institutionally enforced. There is no ombudsman, no corrections policy, and no editorial board.',
-    examples: 'Breaking Points, CaspianReport, PolyMatter, Johnny Harris, Kyla Scanlon',
-    note: 'This is the current backbone of Top News Clips\' source library. These channels bring audience and engagement; the library also draws on Tier 1–5 institutional sources, and every story\'s coverage count and confidence label show how much independent corroboration it has.',
+    examples: 'Breaking Points, CaspianReport, PolyMatter, Johnny Harris, Kyla Scanlon, VICE News, The Print',
+    note: 'This is the current backbone of Top News Clips\' source library. These channels bring audience and engagement; the library also draws on Tier 1–5 institutional sources, and every story\'s coverage count and confidence label show how much independent corroboration it has. VICE News relaunched in 2026 under new ownership and is classified here rather than Tier 4 (Independent News) pending a track record under its new editorial structure.',
   },
   {
     tier: 8,

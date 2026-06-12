@@ -32,13 +32,14 @@ const PUBLIC_BROADCASTER_JOURNALISTS = new Set([
   'africanews',
   'bbcworldservice', // BBC World Service
   'abcnewsaustralia', // ABC News Australia
+  'abcnewsindepth',   // ABC News In-depth — produces Four Corners
   'cbcnews',          // CBC News (Canada)
   'channel4news',     // Channel 4 News (UK)
 ])
 
 // Tier 4: Independent News Organization
 const INDEPENDENT_NEWS_JOURNALISTS = new Set([
-  'theintercept', 'investigativejournalismbureau', 'dropsitenews', 'vicenews', 'moreperfectunion',
+  'theintercept', 'investigativejournalismbureau', 'dropsitenews', 'moreperfectunion',
   'democracynow', 'theguardian',
   'taskandpurpose', // Military news and veteran affairs
 ])
@@ -74,6 +75,8 @@ const COMMENTARY_JOURNALISTS = new Set([
   'veritasium', 'audittheaudit', 'glenngreenwald', 'geohussar', 'iancarrollshow',
   'whitneywebb', 'jamesfreeman', 'undecidedtechnology', 'tanglenews', 'patrickboyleonfinance',
   'drmyriamfrancois1', // Community nominated — accepted 2026-04-04
+  'vicenews',     // Relaunched 2026 under new ownership — moved from Tier 4 (Independent News)
+  'theprintindia', // The Print (India) — institutional but editorially independent of any newsroom
 ])
 
 // ── Source-string lookups (for YouTube search results with no journalist username) ──
