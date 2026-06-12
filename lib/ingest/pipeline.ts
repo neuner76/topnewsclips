@@ -58,6 +58,7 @@ const TTL_REJECTION_PATTERNS = [
   /mainstream media articles?/i,
   /\bmsm\b/i,
   /topic_cap/i,
+  /channel_cap/i,
   /fewer than \d+/i,
 ]
 
@@ -445,6 +446,13 @@ export async function runFetch(): Promise<FetchResult> {
 const TOPIC_DAILY_CAP = 4
 const TOPIC_DAILY_CAP_CRISIS = 8  // higher cap for major developing international stories
 
+// Per-channel daily cap. The 24/7 international broadcasters upload 10-30
+// clips/day and were supplying ~68% of all published stories (AJE, DW,
+// France 24, WION, TRT, ABC AU, Arirang alone = 479 of 709 in one week),
+// crowding US and low-volume institutional sources out of every surface.
+// Capping per channel forces breadth across the source library.
+const CHANNEL_DAILY_CAP = 5
+
 // Keywords that indicate a fast-moving international crisis — these stories get a higher cap
 // and a lower MSM bypass threshold so breaking developments don't get silenced
 const CRISIS_KEYWORDS = [
@@ -502,15 +510,24 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       ])
   )
 
-  // Fetch today's published story titles for topic diversity enforcement
+  // Fetch today's published stories for topic diversity + per-channel caps
   const todayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const { data: todayPublished } = await supabase
     .from('stories')
-    .select('title')
+    .select('title, source')
     .eq('published', true)
     .gte('created_at', todayCutoff)
 
   const publishedTitles: string[] = (todayPublished ?? []).map((r: { title: string }) => r.title)
+
+  // Published-story count per channel in the last 24h — enforces CHANNEL_DAILY_CAP
+  const channelCounts = new Map<string, number>()
+  for (const r of (todayPublished ?? []) as { source: string | null }[]) {
+    if (r.source) channelCounts.set(r.source, (channelCounts.get(r.source) ?? 0) + 1)
+  }
+  function bumpChannelCount(source: string | null | undefined) {
+    if (source) channelCounts.set(source, (channelCounts.get(source) ?? 0) + 1)
+  }
 
   // Count topic clusters already published today — used to enforce TOPIC_DAILY_CAP
   // Rules:
@@ -582,6 +599,17 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
 
   for (const candidate of pending) {
     try {
+      // Per-channel daily cap — free check, runs before any paid lookups.
+      // TTL'd rejection: the cap is about today's volume, not the content.
+      const channelKey = candidate.source ?? ''
+      if ((channelCounts.get(channelKey) ?? 0) >= CHANNEL_DAILY_CAP) {
+        result.rejected++
+        result.errors.push(`Channel cap: "${candidate.title.slice(0, 50)}" — ${channelKey} already has ${CHANNEL_DAILY_CAP} published stories in 24h`)
+        await upsertRejection(supabase, candidate.slug, `channel_cap: ${channelKey} reached ${CHANNEL_DAILY_CAP} published stories in 24h`)
+        await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
+        continue
+      }
+
       // A3: oEmbed check first — it's free, so reject embed-blocked videos
       // before spending anything on MSM lookups or Claude calls.
       if (candidate.platform === 'youtube') {
@@ -676,6 +704,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           result.stories.push({ title: satireSummary.headline, slug: candidate.slug, decision: 'hold' })
         } else {
           result.inserted++
+          bumpChannelCount(candidate.source)
           result.stories.push({ title: satireSummary.headline, slug: candidate.slug, decision: 'publish' })
           await tagStoryBySlug(supabase, candidate.slug).catch(err => {
             result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
@@ -744,6 +773,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           result.stories.push({ title: mainstreamSummary.headline, slug: candidate.slug, decision: 'hold' })
         } else {
           result.inserted++
+          bumpChannelCount(candidate.source)
           result.stories.push({ title: mainstreamSummary.headline, slug: candidate.slug, decision: 'publish' })
           await tagStoryBySlug(supabase, candidate.slug).catch(err => {
             result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
@@ -880,6 +910,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         result.needsReview++
       } else {
         result.inserted++
+        bumpChannelCount(candidate.source)
         publishedSlugs.push(candidate.slug)
         await tagStoryBySlug(supabase, candidate.slug).catch(err => {
           result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
