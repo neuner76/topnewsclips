@@ -837,6 +837,17 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       const finalTier = isGenericFallback && dbOverride ? dbOverride.tier : tier
       const finalSourceType = isGenericFallback && dbOverride ? dbOverride.sourceType : sourceType
 
+      // Third-party reposts of newsroom content never enter the lanes — we
+      // surface the publisher of record, not the reposter. Only applies when
+      // the account itself doesn't resolve to a known publisher (an outlet
+      // posting its own content on TikTok resolves to its real tier above).
+      if (verification.repostSuspected && (finalTier === null || finalTier >= 9)) {
+        result.rejected++
+        result.errors.push(`Repost suspected: "${candidate.title.slice(0, 50)}" — third-party repost of newsroom content (${candidate.source})`)
+        await upsertRejection(supabase, candidate.slug, 'repost_suspected: third-party repost of newsroom content')
+        continue
+      }
+
       const coverageCount = msm.coveredBy.length
 
       // Tier 8-10 / unrecognized sources with zero outlet coverage are held

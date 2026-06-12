@@ -182,14 +182,13 @@ const MAINSTREAM_PULSE_JOURNALISTS = new Set([
   'nytimes', 'associatedpress', 'wsj', 'foxnews',
 ])
 
-export function getSourceTier(
-  journalistUsername: string | null,
-  source: string,
-  category: string | null,
-): SourceTierResult {
-  const u = journalistUsername?.toLowerCase() ?? ''
+// Looks up a publisher handle in the curated tier lists. Used for both
+// journalist_username and for handles extracted from platform account
+// names (e.g. TikTok/@60minutes) — the tier follows the publisher of
+// record, never the distribution platform.
+function lookupPublisherHandle(handle: string): SourceTierResult | null {
+  const u = handle.toLowerCase()
 
-  // ── Journalist-username checks (highest confidence — manually curated) ──
   if (OSINT_JOURNALISTS.has(u))
     return { tier: 2, sourceType: 'OSINT' }
 
@@ -226,9 +225,21 @@ export function getSourceTier(
   if (MAINSTREAM_PULSE_JOURNALISTS.has(u))
     return { tier: 6, sourceType: 'Mainstream Pulse' }
 
-  // Any other known journalist handle → Independent Commentary by default
-  if (journalistUsername)
+  return null
+}
+
+export function getSourceTier(
+  journalistUsername: string | null,
+  source: string,
+  category: string | null,
+): SourceTierResult {
+  // ── Journalist-username checks (highest confidence — manually curated) ──
+  if (journalistUsername) {
+    const byHandle = lookupPublisherHandle(journalistUsername)
+    if (byHandle) return byHandle
+    // Any other known journalist handle → Independent Commentary by default
     return { tier: 7, sourceType: 'Independent Commentary' }
+  }
 
   // ── Source-string checks (for channels that arrive via search with no journalist_username) ──
   if (NONPROFIT_SOURCES.has(source))
@@ -259,9 +270,15 @@ export function getSourceTier(
   if (source.startsWith('r/'))
     return { tier: 10, sourceType: 'Community Sourced' }
 
-  // TikTok sources — trending hashtag content from unverified creators
-  // Raw footage TikToks (bodycam, dashcam) → Tier 9; everything else → Tier 10
+  // TikTok sources — the tier follows the publisher of record, never the
+  // platform. An official newsroom account (e.g. TikTok/@60minutes) inherits
+  // that publisher's tier; the platform is metadata only.
   if (source.startsWith('TikTok/')) {
+    const account = source.slice('TikTok/'.length).replace(/^@/, '')
+    const byPublisher = lookupPublisherHandle(account)
+    if (byPublisher) return byPublisher
+    // Genuinely community-sourced: trending content from unverified creators.
+    // Raw footage TikToks (bodycam, dashcam) → Tier 9; everything else → Tier 10.
     if (category === 'raw') return { tier: 9, sourceType: 'Raw Footage' }
     return { tier: 10, sourceType: 'Community Sourced' }
   }

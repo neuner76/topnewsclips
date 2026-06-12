@@ -30,6 +30,9 @@ export interface VerificationResult {
   decision: 'publish' | 'needs_review' | 'reject'
   rejectReason?: string
   verifiedInterpretation?: VerifiedInterpretation
+  /** True when the posting account appears to be a third-party reposter of
+   *  another outlet's content (account ≠ publisher of record). */
+  repostSuspected?: boolean
 }
 
 // Wraps untrusted source text (title/description) in explicit delimiters with
@@ -171,6 +174,7 @@ Respond with this exact JSON structure:
   "category": "raw" or "reported" or "analysis",
   "decision": "publish" or "needs_review" or "reject",
   "rejectReason": "reason if rejected or needs_review, otherwise null",
+  "repostSuspected": true or false — true ONLY if the posting account appears to be a third party redistributing another news organization's produced content (e.g. the title/description credits or watermarks a known outlet like 60 Minutes, CBS, CNN, but the Source account is not that outlet's official account). False for original footage, false for an outlet posting its own content on any platform.,
   "verifiedClaims": ["List each factual claim from the summary that is confirmable — confirmed by 2+ sources, official records, or direct observation. Format: 'Claim. (Source: X)' — e.g. 'Gen. George was fired on April 3. (AP, Reuters)'"],
   "interpretiveClaims": ["List each analytical or causal claim from the summary. Format: 'Claim. (Source argument, not verified finding)' — e.g. 'The removals signal political consolidation. (Al Jazeera analysis, not independently confirmed)'"],
   "confidenceNote": "For ANALYSIS category: 'This item is classified as Analysis. Claims reflect the source's arguments, not independently verified findings.' For single-source with no MSM corroboration: 'This story is based on a single source. Key claims have not been independently corroborated.' For developing stories with conflicting details: 'This story is developing. Specific details may change.' Otherwise: null"
