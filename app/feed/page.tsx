@@ -342,36 +342,28 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 }
 
 const SECTION_CAP = 6
-const MIN_TRENDING_VIEWS = 1000
 const HIDDEN_STORY_SLUGS = new Set([
   'tiktok-7395615642138791210',
 ])
 
-interface SectionProps {
+interface LaneProps {
   title: string
   subtitle: string
   categorySlug?: string
-  pinned: Story[]
-  voices: Story[]
   stories: Story[]
-  accentClass: string
 }
 
-const SECTION_CONFIG: Record<string, { accent: string; icon: string; mapMode: 'hero' | 'blindspot' }> = {
-  'Analysis':    { accent: '#f59e0b', icon: '🧠', mapMode: 'hero' },
-  'Reported':    { accent: '#22c55e', icon: '🔬', mapMode: 'hero' },
-  'Raw Footage': { accent: '#94a3b8', icon: '📹', mapMode: 'hero' },
-  'Latest':      { accent: '#3b82f6', icon: '📡', mapMode: 'hero' },
+const LANE_CONFIG: Record<string, { accent: string; icon: string; mapMode: 'hero' | 'blindspot' }> = {
+  'Verified Reporting':  { accent: '#22c55e', icon: '✅', mapMode: 'hero' },
+  'Context / Analysis':  { accent: '#f59e0b', icon: '🧠', mapMode: 'hero' },
+  'Raw Footage':         { accent: '#94a3b8', icon: '📹', mapMode: 'hero' },
+  'More Clips':          { accent: '#3b82f6', icon: '📡', mapMode: 'hero' },
+  'Limited Coverage':    { accent: '#ef4444', icon: '⚠️', mapMode: 'blindspot' },
 }
 
-function Section({ title, subtitle, categorySlug, pinned, voices, stories }: SectionProps) {
-  let voicesBudget = Math.max(0, SECTION_CAP - pinned.length)
-  const cappedVoices = voices.slice(0, voicesBudget)
-  voicesBudget = Math.max(0, voicesBudget - cappedVoices.length)
-  const cappedStories = stories.slice(0, voicesBudget)
-  const allStories = [...pinned, ...cappedVoices, ...cappedStories]
-
-  const cfg = SECTION_CONFIG[title] ?? { accent: '#3b82f6', icon: '📌', mapMode: 'hero' as const }
+function Lane({ title, subtitle, categorySlug, stories }: LaneProps) {
+  if (stories.length === 0) return null
+  const cfg = LANE_CONFIG[title] ?? { accent: '#3b82f6', icon: '📌', mapMode: 'hero' as const }
 
   return (
     <WorldMapSection
@@ -380,7 +372,7 @@ function Section({ title, subtitle, categorySlug, pinned, voices, stories }: Sec
       icon={cfg.icon}
       accent={cfg.accent}
       mapMode={cfg.mapMode}
-      stories={allStories}
+      stories={stories}
       seeAllHref={categorySlug ? `/category/${categorySlug}` : undefined}
       layout="grid"
     />
@@ -446,29 +438,42 @@ export default async function HomePage({
   // Default to digest view when one exists, unless user explicitly chose clips
   const activeView = view === 'clips' ? 'clips' : (digest ? 'digest' : 'clips')
 
-  function splitSection(category: 'raw' | 'reported' | 'analysis') {
-    const section = all.filter(s => s.category === category && !s.region)
-    // Cap any single journalist/channel at 2 stories per section
+  // Cap any single journalist/channel at 2 stories per lane, pinned stories first
+  function curateLane(stories: Story[]): Story[] {
+    const sorted = [...stories].sort((a, b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1))
     const channelCounts = new Map<string, number>()
-    const capped = section.filter(s => {
+    const capped = sorted.filter(s => {
       if (!s.journalist_username) return true
       const n = channelCounts.get(s.journalist_username) ?? 0
       if (n >= 2) return false
       channelCounts.set(s.journalist_username, n + 1)
       return true
     })
-    return {
-      pinned:  capped.filter(s => s.pinned),
-      voices:  capped.filter(s => !s.pinned && !!s.journalist_username),
-      stories: capped.filter(s => !s.pinned && !s.journalist_username && s.view_count >= MIN_TRENDING_VIEWS),
-    }
+    return capped.slice(0, SECTION_CAP)
   }
 
-  const raw      = splitSection('raw')
-  const reported = splitSection('reported')
-  const analysis = splitSection('analysis')
-  const uncategorized = all.filter(s => !s.category && !s.region)
-  const msmBlackout = all.filter(s => s.msm_gap && !s.region)
+  // Clips lanes — Limited Coverage takes priority over every other lane,
+  // regardless of category or tier.
+  const limitedCoverage = curateLane(all.filter(s => coverageCount(s) < 3))
+  const limitedSlugs = new Set(limitedCoverage.map(s => s.id))
+
+  const verifiedReporting: Story[] = []
+  const contextAnalysis: Story[] = []
+  const rawFootage: Story[] = []
+  const moreClips: Story[] = []
+  for (const s of all) {
+    if (limitedSlugs.has(s.id)) continue
+    const { tier } = resolvedBadge(s)
+    if (tier !== null && tier <= 6 && (s.category === 'reported' || s.category === 'analysis')) {
+      verifiedReporting.push(s)
+    } else if (tier === 7 && s.category === 'analysis') {
+      contextAnalysis.push(s)
+    } else if (tier === 9) {
+      rawFootage.push(s)
+    } else {
+      moreClips.push(s)
+    }
+  }
 
   // Global Lens, one top story per region, excluding Blindspot stories
   const globalStories = all.filter(s => !!s.region)
@@ -561,6 +566,14 @@ export default async function HomePage({
               </div>
             </div>
 
+            {/* Intro: set expectations vs. the digest */}
+            <p className="text-xs text-white/40 mb-6">
+              Clips are a fast scan of visual signal. For the structured briefing,{' '}
+              <Link href="/feed" className="text-white/60 hover:text-white underline underline-offset-2 transition-colors">
+                read the digest
+              </Link>.
+            </p>
+
             {/* Why Clips? explainer */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
               {[
@@ -579,57 +592,42 @@ export default async function HomePage({
                 </div>
               ))}
             </div>
-            {msmBlackout.length > 0 && (
-              <WorldMapSection
-                title="Limited Coverage" icon="⚠️" accent="#ef4444" mapMode="blindspot"
-                subtitle="Stories receiving little attention from mainstream outlets"
-                stories={msmBlackout.slice(0, 6)}
-                layout="grid"
-              />
-            )}
+
+            {/* Lanes — Verified Reporting always first; raw/limited-coverage never lead */}
+            <Lane
+              title="Verified Reporting"
+              subtitle="Independent and institutional reporting with broad corroboration"
+              categorySlug="reported"
+              stories={verifiedReporting}
+            />
             {globalBlindspots.length > 0 && (
               <GlobalBlindspotSection stories={globalBlindspots} layout="grid" />
             )}
             {globalLens.length > 0 && (
               <GlobalLensSection stories={globalLens} layout="grid" />
             )}
-            <Section
-              title="Analysis"
+            <Lane
+              title="Context / Analysis"
               subtitle="Independent voices making sense of what's happening and why it matters"
               categorySlug="analysis"
-              pinned={analysis.pinned}
-              voices={analysis.voices}
-              stories={analysis.stories}
-              accentClass="text-[oklch(0.52_0.14_196)]"
+              stories={contextAnalysis}
             />
-            <Section
-              title="Reported"
-              subtitle="Independent journalists investigating what institutions don't want you to see"
-              categorySlug="reported"
-              pinned={reported.pinned}
-              voices={reported.voices}
-              stories={reported.stories}
-              accentClass="text-[oklch(0.38_0.13_145)]"
-            />
-            <Section
+            <Lane
               title="Raw Footage"
               subtitle="Bodycam, dashcam, security cam, bystander video, unfiltered and unedited"
               categorySlug="raw"
-              pinned={raw.pinned}
-              voices={raw.voices}
-              stories={raw.stories}
-              accentClass="text-foreground"
+              stories={rawFootage}
             />
-            {uncategorized.length > 0 && (
-              <Section
-                title="Latest"
-                subtitle="Recently added"
-                pinned={[]}
-                voices={[]}
-                stories={uncategorized}
-                accentClass="text-muted-foreground"
-              />
-            )}
+            <Lane
+              title="Limited Coverage"
+              subtitle="Fewer than 3 outlets have covered these stories so far"
+              stories={limitedCoverage}
+            />
+            <Lane
+              title="More Clips"
+              subtitle="Other stories from the wider feed"
+              stories={moreClips}
+            />
           </div>
         )}
 
