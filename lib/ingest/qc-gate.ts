@@ -99,12 +99,17 @@ Respond ONLY with JSON matching this schema:
 
 Rules:
 - Run all checks C1-C8 and include all eight in "checks".
-- "result" must match the conclusion stated in "reason". If you reconsider
-  mid-explanation and conclude a check actually passes (e.g. "this is a
-  pass", "label is correct", "no fail"), set "result" to "pass" — never
-  leave "result" as "fail" after your own reasoning concludes pass. Do not
-  show a "wait, re-evaluating" back-and-forth in "reason"; reason once to a
-  final conclusion and report that conclusion in both fields.
+- "result" must match the conclusion stated in "reason" in EITHER direction.
+  If you reconsider mid-explanation and conclude a check actually passes
+  (e.g. "this is a pass", "label is correct", "no fail"), set "result" to
+  "pass" — never leave "result" as "fail" after your own reasoning concludes
+  pass. Conversely, if your reasoning concludes the check actually fails
+  (e.g. "the label must be changed," "this does not meet the threshold,"
+  "this is incorrect"), set "result" to "fail" — never leave "result" as
+  "pass" after your own reasoning concludes fail, even if a fix for it is
+  already captured elsewhere (another check's revision, or routing_note). Do
+  not show a "wait, re-evaluating" back-and-forth in "reason"; reason once to
+  a final conclusion and report that conclusion in both fields.
 - Any blocking check (C1-C4) fail that cannot be fixed by rewriting -> HOLD.
 - C3 precision failures are usually fixable by deleting filler or replacing
   vague wording with concrete facts already present in the story data. If C3

@@ -27,7 +27,8 @@ If the underlying video is a retrospective, documentary, anniversary piece, or c
 Every claim attributed to its actual source ("According to CBS News…", "The Texas Tribune interviewed…"). The summary never asserts a contested claim in TNC's own voice. Single-source stories must read as single-source.
 
 **C6. Confidence-label consistency.**
-The assigned label (Corroborated / Reported / Analysis / Single-source / Satire / Developing) must match the evidence, per TNC's tier-based policy:
+The assigned label (Corroborated / Reported / Analysis / Single-source / Satire / Developing) must match the evidence, per TNC's tier-based policy. The numeric thresholds below are real failure conditions, not just hypotheticals — if the assigned `confidence_label` does not satisfy the rule for that label given `source_tier`/`coverage_count`, C6 **fails** with `result: "fail"` and the reason must state the correct label.
+*Real failure this catches: a story assigned "Corroborated" with `coverage_count: 1` and `source_tier: 5` — 1 outlet meets neither the 5+ threshold nor the 3+-with-Tier-1-5 threshold, so the correct label is "Reported," and C6 must fail.*
 - "Corroborated" requires 5+ independent outlets, OR 3+ outlets including a Tier 1-5 source.
 - "Reported" is correct for any Tier 1-6 source — including with `coverage_count: 0` — because the source itself carries editorial oversight and a corrections policy. **Do not fail C6 solely because a Tier 1-6 source has `coverage_count: 0`; "Reported" is the correct label in that case, not "Single-source."**
 - "Single-source" applies to Tier 7-10 sources with `coverage_count: 0`.
