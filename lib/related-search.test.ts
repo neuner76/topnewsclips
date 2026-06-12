@@ -20,6 +20,16 @@ describe('related search query', () => {
       region: null,
       source: 'Democracy Now',
       journalist_username: 'democracynow',
-    }, 'other')).toBe('nasa gutted')
+    }, 'other')).toBe('nasa jpl')
+  })
+
+  it('does not let generic political context override the concrete story subject', () => {
+    expect(getRelatedSearchQuery({
+      title: 'NASA JPL gutted by staffing cuts',
+      description: 'A former scientist said the Trump administration cuts reduced atmospheric monitoring capacity.',
+      region: null,
+      source: 'Democracy Now',
+      journalist_username: 'democracynow',
+    }, 'contested_partisan_politics')).toBe('nasa jpl')
   })
 })

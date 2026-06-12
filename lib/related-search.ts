@@ -16,7 +16,7 @@ const PRIORITY_TERMS_BY_CATEGORY: Partial<Record<StoryCategoryForResponse, strin
     'missile', 'sanctions', 'hormuz',
   ],
   contested_partisan_politics: [
-    'epstein', 'trump', 'biden', 'congress', 'senate', 'white house',
+    'epstein', 'congress', 'senate', 'white house',
     'supreme court', 'election', 'campaign',
   ],
   public_health_logistics: ['medicare', 'medicaid', 'vaccine', 'recall', 'hospital', 'clinic'],
@@ -34,7 +34,7 @@ export function getRelatedSearchQuery(story: StoryForSearch, storyCategory: Stor
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
-    .filter(word => word.length > 3 && !STOP_WORDS.has(word))
+    .filter(word => word.length >= 3 && !STOP_WORDS.has(word))
 
   const uniqueWords = [...new Set(words)]
   return uniqueWords.slice(0, 2).join(' ') || story.title.split(/\s+/).slice(0, 2).join(' ')
