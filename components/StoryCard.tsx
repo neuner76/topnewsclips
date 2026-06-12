@@ -5,9 +5,11 @@ import Image from 'next/image'
 import { track } from '@/lib/analytics'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
+import { getConfidenceLabel } from '@/lib/confidence'
 import CategoryBadge from './CategoryBadge'
 import MSMBadge from './MSMBadge'
 import TierBadge from './TierBadge'
+import ConfidenceBadge from './ConfidenceBadge'
 
 interface StoryCardProps {
   story: Story
@@ -18,6 +20,12 @@ function getYouTubeThumbnail(embedUrl: string): string | null {
   const m = embedUrl?.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
   if (!m) return null
   return `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`
+}
+
+function coverageText(story: Story): string {
+  const covered = story.msm_outlet_coverage?.covered?.length ?? 0
+  const total = covered + (story.msm_outlet_coverage?.notCovered?.length ?? 0)
+  return total > 0 ? `${covered} of ${total} outlets` : 'Coverage pending'
 }
 
 function formatPublishedDate(dateStr: string): string {
@@ -119,8 +127,10 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
         {story.description && (
           <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>
         )}
-        <div className="mt-auto pt-1">
+        <div className="mt-auto pt-1 flex flex-wrap items-center gap-2">
           <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+          <ConfidenceBadge label={getConfidenceLabel(story)} />
+          <span className="text-[10px] text-white/30">{coverageText(story)}</span>
         </div>
       </div>
     </article>

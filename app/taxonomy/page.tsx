@@ -2,14 +2,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import EmailCapture from '@/components/EmailCapture'
 
 export const metadata: Metadata = {
-  title: 'Source Credibility Taxonomy | Top News Clips',
-  description: 'How Top News Clips classifies every source into a visible credibility tier so readers can instantly calibrate editorial weight.',
+  title: 'Source Taxonomy | Top News Clips',
+  description: 'How Top News Clips classifies every source into a visible source tier so readers can instantly calibrate editorial weight.',
   alternates: { canonical: 'https://www.topnewsclips.com/taxonomy' },
   openGraph: {
-    title: 'Source Credibility Taxonomy | Top News Clips',
-    description: 'How Top News Clips classifies every source into a visible credibility tier.',
+    title: 'Source Taxonomy | Top News Clips',
+    description: 'How Top News Clips classifies every source into a visible source tier.',
     url: 'https://www.topnewsclips.com/taxonomy',
   },
 }
@@ -125,10 +126,13 @@ export default function TaxonomyPage() {
             Editorial Framework, Version 1.0
           </p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-white">
-            Source Credibility Taxonomy
+            Source Taxonomy
           </h1>
-          <p className="text-base text-white/70 leading-relaxed">
-            Every source on Top News Clips is classified into a visible credibility tier. Each story carries a source-type badge so readers can instantly calibrate how much editorial weight to give each clip. The goal is transparency, not gatekeeping: every tier serves a purpose, but readers deserve to know the difference between a Pulitzer-winning nonprofit investigation and a bystander&apos;s phone video.
+          <p className="text-base text-white/70 leading-relaxed mb-3">
+            Every source on Top News Clips is classified into a visible source tier. Each story carries a source-type badge so readers can instantly calibrate how much editorial weight to give each clip. The goal is transparency, not gatekeeping: every tier serves a purpose, but readers deserve to know the difference between a Pulitzer-winning nonprofit investigation and a bystander&apos;s phone video.
+          </p>
+          <p className="text-sm text-white/55 leading-relaxed italic">
+            These tiers are not a final judgment on truth. They describe each source&apos;s structure, incentives, and editorial accountability.
           </p>
         </div>
 
@@ -233,6 +237,8 @@ export default function TaxonomyPage() {
             </Link>
           </p>
         </div>
+
+        <EmailCapture />
 
       </main>
       <Footer />

@@ -259,9 +259,9 @@ export default function StoryForm({ story }: StoryFormProps) {
           )}
         </div>
 
-        {/* Source credibility */}
+        {/* Source tier */}
         <div className="space-y-3 p-4 bg-zinc-50 border border-border rounded-md">
-          <p className="text-sm font-semibold">Source Credibility</p>
+          <p className="text-sm font-semibold">Source Tier</p>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="sourceTier">Tier (1–10)</Label>

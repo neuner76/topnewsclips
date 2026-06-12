@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import EmailCapture from '@/components/EmailCapture'
 import StoryCard from '@/components/StoryCard'
 
 export const revalidate = 300
@@ -99,7 +100,7 @@ export default async function StoriesPage({
           </p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">All Stories</h1>
           <p className="text-sm text-white/60 mt-1">
-            {count ?? 0} stories, what mainstream media misses, what the world is watching
+            {count ?? 0} stories — undercovered stories, global context, and source-labeled coverage
           </p>
         </div>
 
@@ -127,7 +128,7 @@ export default async function StoriesPage({
         {stories.length === 0 ? (
           <p className="text-sm text-white/60 py-12 text-center">No stories found.</p>
         ) : (
-          <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {stories.map(s => <StoryCard key={s.id} story={s} />)}
           </div>
         )}
@@ -150,6 +151,8 @@ export default async function StoriesPage({
             ) : <span />}
           </div>
         )}
+
+        <EmailCapture />
 
       </main>
       <Footer />
