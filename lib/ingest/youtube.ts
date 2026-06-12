@@ -52,7 +52,6 @@ const NEWS_SEARCH_QUERIES = [
   { q: 'climate environment investigation pollution lawsuit 2026', label: 'climate' },
   { q: 'court ruling lawsuit justice investigation 2026', label: 'justice' },
   // Incident footage — US-anchored terms reduce international CCTV noise
-  { q: 'bodycam footage US police department 2026', label: 'incident' },
   { q: 'labor strike union workers investigation 2026', label: 'labor' },
 ]
 
