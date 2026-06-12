@@ -315,6 +315,10 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                     <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug text-white/80 hover:text-white hover:underline underline-offset-2 font-medium transition-colors">
                       {item.headline}
                     </Link>
+                  ) : item.url ? (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug text-white/80 hover:text-white hover:underline underline-offset-2 font-medium transition-colors">
+                      {item.headline}
+                    </a>
                   ) : (
                     <span className="text-sm leading-snug font-medium text-white/60">{item.headline}</span>
                   )}

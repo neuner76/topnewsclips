@@ -45,6 +45,7 @@ export interface MainstreamPulseItem {
   source: string
   descriptor: string
   slug?: string | null
+  url?: string | null
 }
 
 export interface DigestContent {
@@ -339,7 +340,7 @@ async function fetchMainstreamPulse(previousHeadlines?: Map<string, string>): Pr
         if (!res.ok) return null
         const xml = await res.text()
         const items = xml.split('<item>').slice(1, 9)
-        const candidates: { headline: string; pubDate: number }[] = []
+        const candidates: { headline: string; pubDate: number; url: string | null }[] = []
         for (const item of items) {
           const titleRaw = item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
           // Google News search titles are "Headline - Source Name" or "Headline | Source Name" — strip the trailing source
@@ -351,7 +352,8 @@ async function fetchMainstreamPulse(previousHeadlines?: Map<string, string>): Pr
           if (headline.length < 25) continue
           if (/print edition|wall street journal|subscribe|log in|news quiz/i.test(headline)) continue
           const pubDate = Date.parse(item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? '') || 0
-          candidates.push({ headline, pubDate })
+          const url = decodeHtml(item.match(/<link>([\s\S]*?)<\/link>/)?.[1] ?? '') || null
+          candidates.push({ headline, pubDate, url })
         }
         if (candidates.length === 0) return null
         // Newest first; prefer a headline that isn't a repeat of yesterday's
@@ -360,14 +362,15 @@ async function fetchMainstreamPulse(previousHeadlines?: Map<string, string>): Pr
         candidates.sort((a, b) => b.pubDate - a.pubDate)
         const previous = previousHeadlines?.get(label)
         const fresh = previous ? candidates.find(c => c.headline !== previous) : undefined
-        return { headline: (fresh ?? candidates[0]).headline, source: label, descriptor }
+        const selected = fresh ?? candidates[0]
+        return { headline: selected.headline, source: label, descriptor, url: selected.url }
       } catch {
         return null
       }
     })
   )
 
-  return results.filter((r): r is MainstreamPulseItem => r !== null)
+  return results.filter((r): r is Exclude<(typeof results)[number], null> => r !== null)
 }
 
 export async function generateAndStoreDigest(): Promise<Digest> {
@@ -1685,7 +1688,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     const db = dbPulseByHandle.get(handle)
     if (db) return [{ headline: db.title, source: label, descriptor, slug: db.slug }]
     const rss = rssByLabel.get(label)
-    if (rss) return [{ headline: rss.headline, source: rss.source, descriptor: rss.descriptor, slug: undefined }]
+    if (rss) return [{ headline: rss.headline, source: rss.source, descriptor: rss.descriptor, slug: undefined, url: rss.url }]
     return []
   })
 

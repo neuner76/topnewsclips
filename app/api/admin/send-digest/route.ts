@@ -105,7 +105,8 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string, s
     lines.push("What the major outlets are leading with today.")
     lines.push('')
     for (const item of content.mainstreamPulse) {
-      lines.push(`[${item.source.toUpperCase()} · ${item.descriptor}] ${item.headline}`)
+      const link = item.slug ? ` — ${storyUrl(siteUrl, item.slug)}` : item.url ? ` — ${item.url}` : ''
+      lines.push(`[${item.source.toUpperCase()} · ${item.descriptor}] ${item.headline}${link}`)
     }
     lines.push('')
   }

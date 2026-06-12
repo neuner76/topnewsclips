@@ -188,7 +188,17 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
                     </span>
                     <span className="text-[9px] text-muted-foreground/60 leading-none">{item.descriptor}</span>
                   </div>
-                  <span className="text-sm leading-relaxed">{item.headline}</span>
+                  {item.slug ? (
+                    <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-relaxed hover:underline underline-offset-2">
+                      {item.headline}
+                    </Link>
+                  ) : item.url ? (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm leading-relaxed hover:underline underline-offset-2">
+                      {item.headline}
+                    </a>
+                  ) : (
+                    <span className="text-sm leading-relaxed">{item.headline}</span>
+                  )}
                 </li>
               ))}
             </ul>
