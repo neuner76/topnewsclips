@@ -83,6 +83,25 @@ function orderedStories(title: string, stories: Story[]): Story[] {
   return [...stories].sort((a, b) => sectionSortScore(b) - sectionSortScore(a))
 }
 
+// Lanes whose premise IS low-tier content — the compact social-clip
+// treatment doesn't apply there, only in hard-news lanes where T9/T10
+// items must not visually compete with reported stories.
+const LOW_TIER_LANES = new Set(['Raw Footage', 'Limited Coverage'])
+
+function isSocialClip(tier: number | null, sectionTitle: string): boolean {
+  return tier !== null && tier >= 9 && !LOW_TIER_LANES.has(sectionTitle)
+}
+
+function SocialClipLabel({ story }: { story: Story }) {
+  // Only when the MSM check passed — otherwise the item shouldn't be in the lane
+  if (coverageCount(story) < 2) return null
+  return (
+    <span className="text-[9px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/45">
+      Social clip — corroborated by broader coverage
+    </span>
+  )
+}
+
 export default function WorldMapSection({
   title, subtitle, icon, accent, mapMode = 'hero',
   stories, seeAllHref, footer, layout = 'list',
@@ -148,6 +167,48 @@ export default function WorldMapSection({
                 const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
                 const confidence = getConfidenceLabel(story)
                 const lowerConfidence = isLowerConfidenceStory(story, sourceType)
+                // Compact treatment: community/social clips never render at
+                // full size inside a hard-news lane
+                if (isSocialClip(tier, title)) {
+                  return (
+                    <FeedStoryLink
+                      key={story.id}
+                      href={`/story/${story.slug}`}
+                      event="feed_clip_click"
+                      properties={{
+                        section: title,
+                        story_slug: story.slug,
+                        source_type: sourceType,
+                        source_tier: tier,
+                        confidence,
+                        coverage_count: coverageCount(story),
+                        position: index + 1,
+                        is_lower_confidence: true,
+                      }}
+                      className="group flex gap-3 items-center rounded-xl overflow-hidden p-2.5 transition-transform hover:-translate-y-0.5"
+                      style={{ background: 'rgba(17,24,39,0.72)', border: '1px solid rgba(255,255,255,0.05)' }}
+                    >
+                      <div className="relative w-24 aspect-video shrink-0 rounded-md bg-white/5 overflow-hidden">
+                        {thumb ? (
+                          <Image src={thumb} alt={story.title} fill className="object-cover opacity-80" unoptimized />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center"><span className="text-white/20 text-lg">📰</span></div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[13px] text-white/75 font-bold group-hover:underline underline-offset-2 truncate leading-snug mb-1.5">
+                          {story.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                          <ConfidenceBadge label={confidence} category={story.category} />
+                          <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                          <SocialClipLabel story={story} />
+                        </div>
+                      </div>
+                    </FeedStoryLink>
+                  )
+                }
                 return (
                   <FeedStoryLink
                     key={story.id}
@@ -218,6 +279,40 @@ export default function WorldMapSection({
                 const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
                 const confidence = getConfidenceLabel(story)
                 const lowerConfidence = isLowerConfidenceStory(story, sourceType)
+                // Compact treatment: community/social clips never render at
+                // full size inside a hard-news lane
+                if (isSocialClip(tier, title)) {
+                  return (
+                    <FeedStoryLink
+                      key={story.id}
+                      href={`/story/${story.slug}`}
+                      properties={{
+                        section: title,
+                        story_slug: story.slug,
+                        source_type: sourceType,
+                        source_tier: tier,
+                        confidence,
+                        coverage_count: coverageCount(story),
+                        position: index + 1,
+                        is_lower_confidence: true,
+                      }}
+                      className="group flex gap-3 items-start rounded-xl px-3 py-2 transition-all"
+                      style={{ borderLeft: '3px solid #64748b', background: 'rgba(255,255,255,0.018)', marginBottom: '6px' }}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[13px] text-white/70 font-semibold leading-snug truncate group-hover:underline underline-offset-2 mb-1">
+                          {story.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                          <ConfidenceBadge label={confidence} category={story.category} />
+                          <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                          <SocialClipLabel story={story} />
+                        </div>
+                      </div>
+                    </FeedStoryLink>
+                  )
+                }
                 return (
                   <FeedStoryLink
                     key={story.id}
