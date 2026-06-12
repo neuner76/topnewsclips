@@ -169,7 +169,7 @@ const PULSE_OUTLETS = [
   { domain: 'foxnews.com',  label: 'Fox News',  descriptor: 'conservative' },
 ]
 
-async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
+async function fetchMainstreamPulse(previousHeadlines?: Map<string, string>): Promise<MainstreamPulseItem[]> {
   function decodeHtml(s: string) {
     return s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim()
   }
@@ -177,13 +177,17 @@ async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
   const results = await Promise.all(
     PULSE_OUTLETS.map(async ({ domain, label, descriptor }) => {
       try {
+        // when:1d restricts to the last 24 hours — without it, Google News
+        // search RSS ranks by relevance and keeps surfacing yesterday's
+        // still-trending story at the top.
         const res = await fetch(
-          `https://news.google.com/rss/search?q=site:${domain}&hl=en-US&gl=US&ceid=US:en`,
+          `https://news.google.com/rss/search?q=site:${domain}+when:1d&hl=en-US&gl=US&ceid=US:en`,
           { headers: { 'User-Agent': 'TopNewsClips/1.0' }, signal: AbortSignal.timeout(8000), cache: 'no-store' }
         )
         if (!res.ok) return null
         const xml = await res.text()
-        const items = xml.split('<item>').slice(1, 6) // try up to 5 items to skip opinions
+        const items = xml.split('<item>').slice(1, 9)
+        const candidates: { headline: string; pubDate: number }[] = []
         for (const item of items) {
           const titleRaw = item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
           // Google News search titles are "Headline - Source Name" or "Headline | Source Name" — strip the trailing source
@@ -193,10 +197,18 @@ async function fetchMainstreamPulse(): Promise<MainstreamPulseItem[]> {
           if (/^(Opinion|Editorial|Letters?|Commentary)\s*[|:]/i.test(headline)) continue
           // Skip navigation/print pages — WSJ and others sometimes return site UI as headlines
           if (headline.length < 25) continue
-          if (/print edition|wall street journal|subscribe|log in/i.test(headline)) continue
-          return { headline, source: label, descriptor }
+          if (/print edition|wall street journal|subscribe|log in|news quiz/i.test(headline)) continue
+          const pubDate = Date.parse(item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? '') || 0
+          candidates.push({ headline, pubDate })
         }
-        return null
+        if (candidates.length === 0) return null
+        // Newest first; prefer a headline that isn't a repeat of yesterday's
+        // pulse for this outlet (an outlet can legitimately lead with the
+        // same story two days running, so repeats are a fallback, not a drop).
+        candidates.sort((a, b) => b.pubDate - a.pubDate)
+        const previous = previousHeadlines?.get(label)
+        const fresh = previous ? candidates.find(c => c.headline !== previous) : undefined
+        return { headline: (fresh ?? candidates[0]).headline, source: label, descriptor }
       } catch {
         return null
       }
@@ -238,6 +250,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   }
 
   const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
   // Mainstream Pulse outlet config — maps journalist_username to display label + descriptor
   const MAINSTREAM_PULSE_OUTLETS: Record<string, { label: string; descriptor: string }> = {
@@ -248,6 +261,12 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     'wsj':             { label: 'WSJ',      descriptor: 'business' },
     'foxnews':         { label: 'Fox News', descriptor: 'conservative' },
   }
+
+  // Yesterday's pulse headlines — passed to the RSS fetch so a
+  // still-trending headline doesn't repeat two digests in a row.
+  const previousPulse = new Map(
+    ((priorDigest?.content as DigestContent | undefined)?.mainstreamPulse ?? []).map(i => [i.source, i.headline])
+  )
 
   // Fetch US and regional stories separately to prevent regional volume crowding out US stories
   const [{ data: usStoriesRaw, error }, { data: satireStories }, { data: globalStories }, { data: worldViewStories }, { data: mainstreampulseStoriesRaw }, rssMainstreamPulse] = await Promise.all([
@@ -292,16 +311,18 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       .gte('created_at', twoDaysAgo)
       .order('created_at', { ascending: false })
       .limit(16),
-    // Mainstream Pulse stories — one per outlet, most recent
+    // Mainstream Pulse stories — one per outlet, most recent. 24h window:
+    // the pulse is "what outlets are leading with TODAY", so yesterday's
+    // batch must not be eligible to repeat.
     supabase
       .from('stories')
       .select('slug, title, journalist_username, source_type')
       .eq('published', true)
       .in('journalist_username', Object.keys(MAINSTREAM_PULSE_OUTLETS))
-      .gte('created_at', twoDaysAgo)
+      .gte('created_at', oneDayAgo)
       .order('created_at', { ascending: false })
       .limit(30),
-    fetchMainstreamPulse(),
+    fetchMainstreamPulse(previousPulse),
   ])
 
   // Cap satire to 1 per handle (most recent) before merging — prevents joshjohnsoncomedy etc. flooding the prompt
