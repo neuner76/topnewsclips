@@ -113,6 +113,15 @@ function isSameIncident(a: string, b: string, threshold = 3): boolean {
   return overlap >= threshold
 }
 
+export function isSoftAnimalStory(title: string, description = ''): boolean {
+  const text = `${title} ${description}`.toLowerCase()
+  const animalPattern = /\b(hawk|bird|eagle|owl|dog|cat|kitten|puppy|horse|cow|goat|deer|bear|wildlife|pet|zoo|farm animal)\b/
+  const softRescuePattern = /\b(rescue|rescues|rescued|saving|saved|injured|nursed back|rehab|regaining strength|scary)\b/
+  const publicInterestPattern = /\b(policy|investigation|lawsuit|charges|arrest|police|public health|disease|outbreak|endangered species act|animal cruelty)\b/
+
+  return animalPattern.test(text) && softRescuePattern.test(text) && !publicInterestPattern.test(text)
+}
+
 const JOURNALIST_DAILY_CAP = 3
 
 // Satire/comedy handles — exempt from the daily journalist cap (gated to Comedy &
@@ -296,6 +305,7 @@ export async function runFetch(): Promise<FetchResult> {
     // Block paranormal/horror/kids-science noise
     if (NOISE_TERMS.some(t => titleLower.includes(t))) return false
     if (SOFT_NEWS_PATTERNS.some(pattern => pattern.test(c.title))) return false
+    if (isSoftAnimalStory(c.title, c.description)) return false
 
     // WION/Gravitas is useful for hard international news, but its feature/commentary
     // segments create a lot of processing churn. Keep only hard-news titles.

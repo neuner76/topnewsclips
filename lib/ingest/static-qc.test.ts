@@ -1,5 +1,15 @@
-import { describe, expect, it } from 'vitest'
-import { runStaticQCChecks, type QCInput } from './qc-gate'
+import { describe, expect, it, vi } from 'vitest'
+import { runQCGate, runStaticQCChecks, type QCInput } from './qc-gate'
+
+const anthropicCreate = vi.hoisted(() => vi.fn())
+
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: vi.fn(() => ({
+    messages: {
+      create: anthropicCreate,
+    },
+  })),
+}))
 
 const base: QCInput = {
   storyId: 'static-test',
@@ -45,5 +55,53 @@ describe('static QC backstop', () => {
       summary: 'China has built military installations on artificial islands in the South China Sea.',
       rawSourceDescription: "From the VICE archives: this 2016 documentary investigates China's island-building program.",
     })).toContain('C4')
+  })
+
+  it('normalizes self-contradictory C6 failures that conclude the label is correct', async () => {
+    anthropicCreate.mockResolvedValueOnce({
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          story_id: 'static-test',
+          verdict: 'HOLD',
+          checks: [
+            { id: 'C6', result: 'fail', reason: "Reported is still the correct label for a Tier 3 source with coverage_count: 1 — this is a pass. Label is correct." },
+          ],
+          revised_headline: null,
+          revised_summary: null,
+          routing_note: null,
+        }),
+      }],
+    })
+
+    const result = await runQCGate(base, 'test-key')
+
+    expect(result.verdict).toBe('PASS')
+    expect(result.checks).toEqual([
+      expect.objectContaining({ id: 'C6', result: 'pass' }),
+    ])
+  })
+
+  it('turns fixable C7 holds with revised copy into FIX verdicts', async () => {
+    anthropicCreate.mockResolvedValueOnce({
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          story_id: 'static-test',
+          verdict: 'HOLD',
+          checks: [
+            { id: 'C7', result: 'fail', reason: "The summary omits a material headline claim, but the source data supports adding it." },
+          ],
+          revised_headline: null,
+          revised_summary: 'Germany approved what WION describes as the world\'s first cannabis-derived medicine specifically designed to treat chronic pain.',
+          routing_note: null,
+        }),
+      }],
+    })
+
+    const result = await runQCGate(base, 'test-key')
+
+    expect(result.verdict).toBe('FIX')
+    expect(result.revisedSummary).toContain("world's first")
   })
 })

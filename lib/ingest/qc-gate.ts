@@ -106,6 +106,12 @@ Rules:
   show a "wait, re-evaluating" back-and-forth in "reason"; reason once to a
   final conclusion and report that conclusion in both fields.
 - Any blocking check (C1-C4) fail that cannot be fixed by rewriting -> HOLD.
+- C3 precision failures are usually fixable by deleting filler or replacing
+  vague wording with concrete facts already present in the story data. If C3
+  is the only blocking failure and you can fix it by rewriting only the
+  headline/summary, verdict MUST be "FIX" with revised fields, not "HOLD".
+- C5 and C7 failures are revise-level checks. If the source data supports the
+  corrected wording, verdict MUST be "FIX" with revised fields, not "HOLD".
 - A C2 fail where the name exists in the source -> FIX with the name inserted.
 - A C4 fail -> FIX summary framing AND set routing_note to move/drop the card.
 - Never invent facts in a revision. If a fix requires information you don't
@@ -223,6 +229,32 @@ function mergeStaticChecks(checks: QCCheckResult[], staticFailures: QCCheckResul
     .filter((check): check is QCCheckResult => !!check)
 }
 
+function normalizeCheckResult(check: QCCheckResult): QCCheckResult {
+  if (
+    check.result === 'fail' &&
+    /\b(this is a pass|is a pass|label is correct|correct label|no fail|not a fail|squarely fits)\b/i.test(check.reason)
+  ) {
+    return { ...check, result: 'pass' }
+  }
+  return check
+}
+
+function normalizeVerdict(
+  verdict: QCVerdict,
+  checks: QCCheckResult[],
+  revisedHeadline: string | null,
+  revisedSummary: string | null,
+): QCVerdict {
+  const failedIds = checks.filter(c => c.result === 'fail').map(c => c.id)
+  if (failedIds.length === 0) return 'PASS'
+  const fixableIds = new Set(['C3', 'C5', 'C7', 'C8'])
+  const hasRevision = !!(revisedHeadline || revisedSummary)
+  if (verdict === 'HOLD' && hasRevision && failedIds.every(id => fixableIds.has(id))) {
+    return 'FIX'
+  }
+  return verdict
+}
+
 export async function runQCGate(input: QCInput, apiKey: string): Promise<QCGateResult> {
   const rubric = loadRubric()
   const staticPrompt = buildStaticPrompt(rubric)
@@ -262,8 +294,14 @@ export async function runQCGate(input: QCInput, apiKey: string): Promise<QCGateR
       revised_summary: string | null
       routing_note: string | null
     }
-    const checks = mergeStaticChecks(parsed.checks ?? [], staticFailures)
-    const verdict = parsed.verdict === 'PASS' && staticFailures.length > 0 ? 'HOLD' : parsed.verdict
+    const checks = mergeStaticChecks(parsed.checks ?? [], staticFailures).map(normalizeCheckResult)
+    const parsedVerdict = parsed.verdict === 'PASS' && staticFailures.length > 0 ? 'HOLD' : parsed.verdict
+    const verdict = normalizeVerdict(
+      parsedVerdict,
+      checks,
+      parsed.revised_headline ?? null,
+      parsed.revised_summary ?? null,
+    )
     return {
       storyId: parsed.story_id ?? input.storyId,
       verdict,
