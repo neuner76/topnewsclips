@@ -44,7 +44,9 @@ export async function PATCH(request: Request) {
     }
 
     const coverageCount = story.msm_outlet_coverage?.covered?.length ?? 0
-    const confidenceLabel = CONFIDENCE_META[getConfidenceLabel(story as Story)].label as QCConfidenceLabel
+    // null label = comedy/satire (no confidence label) — QC under 'Satire'
+    const rawLabel = getConfidenceLabel(story as Story)
+    const confidenceLabel = (rawLabel ? CONFIDENCE_META[rawLabel].label : 'Satire') as QCConfidenceLabel
 
     const result = await runQCGate(
       {

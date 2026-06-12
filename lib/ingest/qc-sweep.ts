@@ -80,7 +80,10 @@ export async function runQCSweep(options: QCSweepOptions): Promise<QCSweepResult
     result.scanned++
 
     const coverageCount = story.msm_outlet_coverage?.covered?.length ?? 0
-    const confidenceLabel = CONFIDENCE_META[getConfidenceLabel(story)].label as QCConfidenceLabel
+    // getConfidenceLabel returns null for comedy (no confidence label on satire) —
+    // for QC purposes those stories are evaluated under the 'Satire' label.
+    const rawLabel = getConfidenceLabel(story)
+    const confidenceLabel = (rawLabel ? CONFIDENCE_META[rawLabel].label : 'Satire') as QCConfidenceLabel
 
     const gate = await runQCGate(
       {

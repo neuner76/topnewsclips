@@ -89,7 +89,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {(badge?.tier || badge?.sourceType) && <TierBadge tier={badge.tier} sourceType={badge.sourceType} />}
-          {confidence && <ConfidenceBadge label={confidence} />}
+          {story && <ConfidenceBadge label={confidence} category={story.category} />}
           {story && <span className="text-[10px] text-white/30">{coverageText(story)}</span>}
           {story?.journalist_username && (
             <span className="text-xs text-white/40">@{story.journalist_username}</span>
@@ -279,7 +279,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                   {story && (
                     <div className="flex flex-wrap items-center gap-1.5">
                       <TierBadge tier={badge?.tier ?? null} sourceType={badge?.sourceType ?? null} />
-                      {confidence && <ConfidenceBadge label={confidence} />}
+                      <ConfidenceBadge label={confidence} category={story.category} />
                       <span className="text-[10px] text-white/30">{coverageText(story)}</span>
                     </div>
                   )}

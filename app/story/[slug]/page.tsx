@@ -393,9 +393,10 @@ export default async function StoryPage({ params }: Props) {
                   <span className="text-white/80">{contentTypeLabel}</span>
                 </div>
               )}
+              {/* Confidence labels are reserved for news — satire shows Cultural lens */}
               <div className="flex gap-3">
-                <span className="font-semibold text-white/40 w-28 shrink-0">Confidence</span>
-                <ConfidenceBadge label={confidence} />
+                <span className="font-semibold text-white/40 w-28 shrink-0">{s.category === 'comedy' ? 'Content type' : 'Confidence'}</span>
+                <ConfidenceBadge label={confidence} category={s.category} />
               </div>
               <div className="flex gap-3">
                 <span className="font-semibold text-white/40 w-28 shrink-0">Coverage</span>

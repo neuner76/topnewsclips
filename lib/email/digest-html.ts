@@ -88,6 +88,10 @@ function renderSourceBadge(story: Story): string {
 
 function renderConfidenceBadge(story: Story): string {
   const label = getConfidenceLabel(story)
+  // Confidence labels are reserved for news — satire shows a content-type badge
+  if (label === null) {
+    return badge('Cultural lens', CONFIDENCE_COLORS['SINGLE-SOURCE'], true)
+  }
   const colors = CONFIDENCE_COLORS[label] ?? CONFIDENCE_COLORS['SINGLE-SOURCE']
   return badge(CONFIDENCE_LABELS[label] ?? label, colors, label === 'ANALYSIS')
 }
@@ -170,7 +174,9 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
           const meta = story ? (() => {
             const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
             const displayName = story.source?.replace(/^(YouTube|TikTok|Reddit)\/@?/i, '').trim() || story.journalist_username || null
-            const confidence = CONFIDENCE_LABELS[getConfidenceLabel(story)] ?? null
+            const confidenceLabel = getConfidenceLabel(story)
+            // Satire never carries a confidence label — content-type badge instead
+            const confidence = story.category === 'comedy' ? 'Cultural lens' : (confidenceLabel ? CONFIDENCE_LABELS[confidenceLabel] ?? null : null)
             const covered = story.msm_outlet_coverage?.covered?.length ?? null
             const total = story.msm_outlet_coverage
               ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length

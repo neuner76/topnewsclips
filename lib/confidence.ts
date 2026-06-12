@@ -2,7 +2,13 @@ import type { Story } from '@/lib/types'
 
 export type ConfidenceLabel = 'CORROBORATED' | 'REPORTED' | 'DEVELOPING' | 'SINGLE-SOURCE' | 'ANALYSIS'
 
-export function getConfidenceLabel(story: Pick<Story, 'category' | 'source_tier' | 'msm_outlet_coverage' | 'msm_gap'>): ConfidenceLabel {
+export function getConfidenceLabel(story: Pick<Story, 'category' | 'source_tier' | 'msm_outlet_coverage' | 'msm_gap'>): ConfidenceLabel | null {
+  // Confidence labels are reserved for news content. Satire/comedy never
+  // carries one — surfaces render a "Cultural lens" content-type badge
+  // instead (see ConfidenceBadge). Enforced here so every consumer
+  // (site, email, QC) inherits the rule.
+  if (story.category === 'comedy') return null
+
   // Analysis/commentary is always labeled as such regardless of coverage
   if (story.category === 'analysis') return 'ANALYSIS'
 

@@ -129,7 +129,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
         )}
         <div className="mt-auto pt-1 flex flex-wrap items-center gap-2">
           <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-          <ConfidenceBadge label={getConfidenceLabel(story)} />
+          <ConfidenceBadge label={getConfidenceLabel(story)} category={story.category} />
           <span className="text-[10px] text-white/30">{coverageText(story)}</span>
         </div>
       </div>

@@ -203,7 +203,7 @@ export default function WorldMapSection({
                       )}
                       <div className="mt-auto pt-2 flex flex-wrap items-center gap-2">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-                        <ConfidenceBadge label={confidence} />
+                        <ConfidenceBadge label={confidence} category={story.category} />
                         <span className="text-[10px] text-white/30">{coverageText(story)}</span>
                       </div>
                     </div>
@@ -255,7 +255,7 @@ export default function WorldMapSection({
                       )}
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-                        <ConfidenceBadge label={confidence} />
+                        <ConfidenceBadge label={confidence} category={story.category} />
                         <span className="text-[10px] text-white/30">{coverageText(story)}</span>
                         <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
                         {story.journalist_username && (

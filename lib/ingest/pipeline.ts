@@ -858,12 +858,14 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         if (entry) entry.decision = 'needs_review'
       }
 
+      // verification.category is raw/reported/analysis — never comedy — so the
+      // label is always non-null here; 'Reported' fallback satisfies the types.
       const confidenceLabel = CONFIDENCE_META[getConfidenceLabel({
         category: verification.category,
         source_tier: finalTier,
         msm_outlet_coverage: { covered: msm.coveredBy, notCovered: msm.notCoveredBy },
         msm_gap: verification.msmGap,
-      })].label as QCConfidenceLabel
+      }) ?? 'REPORTED'].label as QCConfidenceLabel
       // QC content_type only distinguishes reported/analysis/satire — "raw" footage is QC'd as "reported"
       const qcContentType = verification.category === 'analysis' ? 'analysis' : 'reported'
 
