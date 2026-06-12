@@ -2,7 +2,7 @@
 
 import posthog from 'posthog-js'
 
-export function track(event: string, properties?: Record<string, string>) {
+export function track(event: string, properties?: Record<string, string | number | boolean | null | undefined>) {
   try {
     posthog.capture(event, properties)
   } catch {

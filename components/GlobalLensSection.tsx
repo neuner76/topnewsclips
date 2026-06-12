@@ -3,6 +3,7 @@ import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import TierBadge from './TierBadge'
+import TrackEvent from './TrackEvent'
 
 interface GlobalLensItem {
   slug: string
@@ -79,6 +80,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
 
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
+      <TrackEvent name="feed_section_impression" properties={{ section: 'Global Lens', story_count: displayItems.length }} />
 
       {/* CSS globe grid */}
       <div
@@ -112,7 +114,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
             How the world sees it
           </h2>
           <p className="text-sm mt-1 text-white/60">
-            International perspectives that rarely make US headlines
+            How international outlets are framing major stories differently.
           </p>
         </div>
 

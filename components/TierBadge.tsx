@@ -57,20 +57,26 @@ const BAND_STYLES: Record<Band, {
   },
 }
 
-// Shorten long source type labels for compact display
-const SHORT_LABELS: Record<string, string> = {
+const PUBLIC_SOURCE_LABELS: Record<string, string> = {
   'Nonprofit Investigative':         'Investigative',
   'Public Broadcaster':              'Public Media',
   'Independent News':                'Ind. News',
   'Wire Service':                    'Wire',
-  'Newsroom':             'Newsroom',
-  'Newsroom (Satire)':    'Satire',
-  'Independent Commentary':          'Commentary',
+  'Newsroom':                       'General Newsroom',
+  'Commercial Newsroom':            'Commercial Newsroom',
+  'Newsroom (Satire)':              'Satire',
+  'Independent Commentary':          'Commentary / Analysis',
   'Independent Commentary (Satire)': 'Satire',
-  'State Media':                     'State Media',
+  'State Media':                     'State-Affiliated Media',
   'Raw Footage':                     'Raw',
   'Community Sourced':               'Community',
-  'Mainstream Pulse':                'Newsroom',
+  'Archive':                         'News Archive',
+  'Mainstream Pulse':                'General Newsroom',
+}
+
+export function getPublicSourceLabel(sourceType: string, tier?: number | null): string {
+  const label = PUBLIC_SOURCE_LABELS[sourceType] ?? sourceType
+  return tier ? `${label} · T${tier}` : label
 }
 
 export default function TierBadge({ tier, sourceType, compact = false, asLink = true }: TierBadgeProps) {
@@ -78,8 +84,7 @@ export default function TierBadge({ tier, sourceType, compact = false, asLink = 
 
   const band = getBand(tier)
   const styles = BAND_STYLES[band]
-  const label = SHORT_LABELS[sourceType] ?? sourceType
-  const tierLabel = `T${tier}`
+  const [label, tierLabel] = getPublicSourceLabel(sourceType, tier).split(' · ')
 
   const pill = (
     <span className="inline-flex items-center gap-1.5">

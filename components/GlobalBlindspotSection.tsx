@@ -3,6 +3,7 @@ import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import TierBadge from './TierBadge'
+import TrackEvent from './TrackEvent'
 
 interface GlobalBlindspotSectionProps {
   stories: Story[]
@@ -41,6 +42,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
 
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid rgba(255,255,255,0.07)' }}>
+      <TrackEvent name="feed_section_impression" properties={{ section: 'Global Blindspot', story_count: stories.length }} />
 
       {/* CSS globe grid */}
       <div
@@ -72,7 +74,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
             What the world is ignoring right now
           </h2>
           <p className="text-sm mt-1" style={{ color: 'rgba(156,163,175,0.9)' }}>
-            Stories covered by less than 5% of Western outlets
+            Important international stories receiving limited attention from major U.S. outlets.
           </p>
         </div>
 

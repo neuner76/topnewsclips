@@ -5,6 +5,10 @@ import { getSourceTier } from '@/lib/ingest/source-tier'
 import TierBadge from './TierBadge'
 import CategoryBadge from './CategoryBadge'
 import MSMBadge from './MSMBadge'
+import ConfidenceBadge from './ConfidenceBadge'
+import FeedStoryLink from './FeedStoryLink'
+import TrackEvent from './TrackEvent'
+import { getConfidenceLabel } from '@/lib/confidence'
 
 interface WorldMapSectionProps {
   title: string
@@ -41,17 +45,56 @@ function formatPublishedDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+function coverageCount(story: Story): number {
+  return story.msm_outlet_coverage?.covered?.length ?? 0
+}
+
+function coverageText(story: Story): string {
+  const covered = coverageCount(story)
+  const total = (story.msm_outlet_coverage?.covered?.length ?? 0) + (story.msm_outlet_coverage?.notCovered?.length ?? 0)
+  return total > 0 ? `${covered} of ${total} outlets` : 'Coverage pending'
+}
+
+function isLowerConfidenceStory(story: Story, sourceType: string | null): boolean {
+  const confidence = getConfidenceLabel(story)
+  return (
+    confidence === 'SINGLE-SOURCE' ||
+    sourceType === 'Raw Footage' ||
+    sourceType === 'Community Sourced' ||
+    coverageCount(story) === 0
+  )
+}
+
+function sectionSortScore(story: Story): number {
+  const { sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
+  const confidence = getConfidenceLabel(story)
+  let score = 0
+  if (confidence === 'CORROBORATED') score += 3
+  if (confidence === 'REPORTED') score += 2
+  if (confidence === 'ANALYSIS') score += 1
+  if (sourceType === 'Community Sourced') score -= 2
+  if (sourceType === 'Raw Footage') score -= 2
+  if (coverageCount(story) >= 3) score += 1
+  return score
+}
+
+function orderedStories(title: string, stories: Story[]): Story[] {
+  if (title !== 'Politics & World Affairs') return stories
+  return [...stories].sort((a, b) => sectionSortScore(b) - sectionSortScore(a))
+}
 
 export default function WorldMapSection({
   title, subtitle, icon, accent, mapMode = 'hero',
   stories, seeAllHref, footer, layout = 'list',
 }: WorldMapSectionProps) {
+  const displayStories = orderedStories(title, stories)
   return (
     <section
       className="relative rounded-2xl overflow-hidden mb-8"
       data-map-mode={mapMode}
       style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
     >
+      <TrackEvent name="feed_section_impression" properties={{ section: title, story_count: displayStories.length }} />
       {/* CSS globe grid */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -96,23 +139,34 @@ export default function WorldMapSection({
         </div>
 
         {/* Stories */}
-        {stories.length > 0 && (
+        {displayStories.length > 0 && (
           layout === 'grid' ? (
             /* Grid layout — thumbnail above headline (clips view) */
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {stories.map((story) => {
+              {displayStories.map((story, index) => {
                 const thumb = storyThumbnail(story)
                 const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
+                const confidence = getConfidenceLabel(story)
+                const lowerConfidence = isLowerConfidenceStory(story, sourceType)
                 return (
-                  <Link
+                  <FeedStoryLink
                     key={story.id}
                     href={`/story/${story.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    event="feed_clip_click"
+                    properties={{
+                      section: title,
+                      story_slug: story.slug,
+                      source_type: sourceType,
+                      source_tier: tier,
+                      confidence,
+                      coverage_count: coverageCount(story),
+                      position: index + 1,
+                      is_lower_confidence: lowerConfidence,
+                    }}
                     className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
                     style={{
-                      background: '#111827',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      background: lowerConfidence ? 'rgba(17,24,39,0.72)' : '#111827',
+                      border: lowerConfidence ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(255,255,255,0.08)',
                     }}
                   >
                     {/* Thumbnail */}
@@ -141,33 +195,49 @@ export default function WorldMapSection({
 
                     {/* Text below image */}
                     <div className="flex flex-col flex-1 p-3">
-                      <h3 className="text-sm font-bold text-white/90 group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">
+                      <h3 className={`${lowerConfidence ? 'text-[13px] text-white/75' : 'text-sm text-white/90'} font-bold group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2`}>
                         {story.title}
                       </h3>
                       {story.description && (
-                        <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>
+                        <p className={`text-xs ${lowerConfidence ? 'text-white/40 line-clamp-1' : 'text-white/50 line-clamp-2'} leading-relaxed mb-2`}>{story.description}</p>
                       )}
-                      <div className="mt-auto pt-2">
+                      <div className="mt-auto pt-2 flex flex-wrap items-center gap-2">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                        <ConfidenceBadge label={confidence} />
+                        <span className="text-[10px] text-white/30">{coverageText(story)}</span>
                       </div>
                     </div>
-                  </Link>
+                  </FeedStoryLink>
                 )
               })}
             </div>
           ) : (
             /* List layout — text rows (digest view) */
             <div className="flex flex-col gap-1">
-              {stories.map((story) => {
+              {displayStories.map((story, index) => {
                 const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
+                const confidence = getConfidenceLabel(story)
+                const lowerConfidence = isLowerConfidenceStory(story, sourceType)
                 return (
-                  <Link
+                  <FeedStoryLink
                     key={story.id}
                     href={`/story/${story.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    properties={{
+                      section: title,
+                      story_slug: story.slug,
+                      source_type: sourceType,
+                      source_tier: tier,
+                      confidence,
+                      coverage_count: coverageCount(story),
+                      position: index + 1,
+                      is_lower_confidence: lowerConfidence,
+                    }}
                     className="group flex gap-3 items-start rounded-xl px-3 py-3 transition-all"
-                    style={{ borderLeft: `3px solid ${accent}`, background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
+                    style={{
+                      borderLeft: `3px solid ${lowerConfidence ? '#64748b' : accent}`,
+                      background: lowerConfidence ? 'rgba(255,255,255,0.018)' : 'rgba(255,255,255,0.03)',
+                      marginBottom: '6px',
+                    }}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
@@ -177,21 +247,23 @@ export default function WorldMapSection({
                           <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: accent }}>{story.region}</span>
                         )}
                       </div>
-                      <h3 className="text-sm sm:text-[0.95rem] font-bold text-white/90 leading-snug line-clamp-2 group-hover:underline underline-offset-2 mb-1.5">
+                      <h3 className={`${lowerConfidence ? 'text-[13px] text-white/75' : 'text-sm sm:text-[0.95rem] text-white/90'} font-bold leading-snug line-clamp-2 group-hover:underline underline-offset-2 mb-1.5`}>
                         {story.title}
                       </h3>
                       {story.description && (
-                        <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>
+                        <p className={`text-xs ${lowerConfidence ? 'text-white/40 line-clamp-1' : 'text-white/50 line-clamp-2'} leading-relaxed mb-2`}>{story.description}</p>
                       )}
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                        <ConfidenceBadge label={confidence} />
+                        <span className="text-[10px] text-white/30">{coverageText(story)}</span>
                         <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
                         {story.journalist_username && (
                           <span className="text-[10px] text-white/30">@{story.journalist_username}</span>
                         )}
                       </div>
                     </div>
-                  </Link>
+                  </FeedStoryLink>
                 )
               })}
             </div>

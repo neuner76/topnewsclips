@@ -17,6 +17,7 @@ import { getConfidenceLabel } from '@/lib/confidence'
 import { getOutletDescriptor } from '@/lib/outlet-descriptors'
 import ConfidenceBadge from '@/components/ConfidenceBadge'
 import MSMBadge from '@/components/MSMBadge'
+import FeedStoryLink from '@/components/FeedStoryLink'
 
 export const revalidate = 300
 
@@ -50,52 +51,108 @@ function resolvedBadge(story: Story): { tier: number | null; sourceType: string 
 
 const PARA_LABELS = ['What happened', 'Why it matters'] as const
 
-function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: Map<string, Story> }) {
+function clampWords(text: string, maxWords = 65): string {
+  const words = text.trim().split(/\s+/).filter(Boolean)
+  if (words.length <= maxWords) return text
+  return `${words.slice(0, maxWords).join(' ')}...`
+}
+
+function coverageCount(story: Story): number {
+  return story.msm_outlet_coverage?.covered?.length ?? 0
+}
+
+function coverageText(story: Story): string {
+  const covered = coverageCount(story)
+  const total = (story.msm_outlet_coverage?.covered?.length ?? 0) + (story.msm_outlet_coverage?.notCovered?.length ?? 0)
+  return total > 0 ? `${covered} of ${total} outlets` : 'Coverage pending'
+}
+
+function getStoryCautionNote(story: Story): string | null {
+  const confidence = getConfidenceLabel(story)
+  const text = `${story.title} ${story.description ?? ''}`.toLowerCase()
+  const fluidPattern = /\b(war|military|strike|missile|diplomacy|ceasefire|conflict|iran|israel|ukraine|russia|gaza|hormuz|nuclear)\b/
+  if (confidence === 'DEVELOPING' || fluidPattern.test(text)) return 'Developing story - details may change'
+  if ((confidence === 'REPORTED' || confidence === 'CORROBORATED') && coverageCount(story) < 3) {
+    return 'Reported by limited sources - follow-up expected'
+  }
+  return null
+}
+
+function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; storyMap: Map<string, Story>; position: number }) {
   const story = storyMap.get(item.slug)
   const badge = story ? resolvedBadge(story) : null
   const hasAttribution = badge?.tier || badge?.sourceType || story?.journalist_username
+  const confidence = story ? getConfidenceLabel(story) : null
+  const cautionNote = story ? getStoryCautionNote(story) : null
   return (
     <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderLeft: '3px solid #3b82f6' }}>
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {(badge?.tier || badge?.sourceType) && <TierBadge tier={badge.tier} sourceType={badge.sourceType} />}
-          {story && <ConfidenceBadge label={getConfidenceLabel(story)} />}
+          {confidence && <ConfidenceBadge label={confidence} />}
+          {story && <span className="text-[10px] text-white/30">{coverageText(story)}</span>}
           {story?.journalist_username && (
             <span className="text-xs text-white/40">@{story.journalist_username}</span>
           )}
           {story?.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
         </div>
       )}
-      <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="group block mb-3">
+      <FeedStoryLink
+        href={`/story/${item.slug}`}
+        event="feed_story_click"
+        properties={{
+          section: 'Need To Know',
+          story_slug: item.slug,
+          source_type: badge?.sourceType,
+          source_tier: badge?.tier,
+          confidence,
+          coverage_count: story ? coverageCount(story) : null,
+          position,
+          is_lower_confidence: false,
+        }}
+        className="group block mb-3"
+      >
         <h2 className="text-2xl font-black tracking-tight leading-snug text-white group-hover:underline underline-offset-2">
           {item.sectionTitle}
         </h2>
-      </Link>
+      </FeedStoryLink>
       <div className="space-y-4">
         {item.paragraphs.slice(0, 2).map((p, i) => (
           <div key={i}>
             <p className="text-[10px] font-bold tracking-widest text-white/40 uppercase mb-1">
               {PARA_LABELS[i]}
             </p>
-            <p className="editorial-body text-white/80">{p}</p>
+            <p className="editorial-body text-white/80">{clampWords(p, i === 0 ? 65 : 55)}</p>
           </div>
         ))}
       </div>
-      <Link
+      {cautionNote && (
+        <p className="mt-3 text-[11px] text-white/40">{cautionNote}</p>
+      )}
+      <FeedStoryLink
         href={`/story/${item.slug}`}
-        target="_blank"
-        rel="noopener noreferrer"
+        event="feed_full_story_click"
+        properties={{
+          section: 'Need To Know',
+          story_slug: item.slug,
+          source_type: badge?.sourceType,
+          source_tier: badge?.tier,
+          confidence,
+          coverage_count: story ? coverageCount(story) : null,
+          position,
+          is_lower_confidence: false,
+        }}
         className="inline-block mt-4 text-xs font-semibold text-white/50 hover:text-white transition-colors"
       >
         Full story →
-      </Link>
+      </FeedStoryLink>
       {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
         <div className="mt-5 pt-4 border-t border-white/10">
           <p className="text-[10px] font-bold tracking-widest text-white/40 uppercase mb-3">
             World view
           </p>
           <div className="space-y-2">
-            {item.howWorldSeesIt.map((w: HowWorldSeesItItem, i: number) => (
+            {item.howWorldSeesIt.slice(0, 2).map((w: HowWorldSeesItItem, i: number) => (
               <div key={i} className="flex gap-2.5 items-start">
                 <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase shrink-0 pt-0.5 w-20">
                   {w.region}
@@ -106,7 +163,7 @@ function NeedToKnowStory({ item, storyMap }: { item: NeedToKnowItem; storyMap: M
                   rel="noopener noreferrer"
                   className="text-sm text-white/60 hover:text-white transition-colors leading-snug"
                 >
-                  {w.summary}
+                  {clampWords(w.summary, 40)}
                 </Link>
               </div>
             ))}
@@ -149,7 +206,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           <div className="divide-y divide-white/10 -mt-2">
             {content.needToKnow.map((item, i) => (
               <div key={item.slug}>
-                <NeedToKnowStory item={item} storyMap={storyMap} />
+                <NeedToKnowStory item={item} storyMap={storyMap} position={i + 1} />
                 {i === 0 && content.needToKnow.length > 1 && (
                   <div className="py-4 border-t border-white/10">
                     <EmailCaptureInline placement="post-ntk" />
@@ -187,25 +244,43 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       {/* Etcetera */}
       {content.etcetera?.length > 0 && (
         <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <TrackEvent name="feed_section_impression" properties={{ section: 'Also Worth Knowing', story_count: Math.min(content.etcetera.length, 3) }} />
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#64748b' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
-          <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-5 block text-white/40">··· Also Worth Knowing</span>
+          <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-white/40">··· Also Worth Knowing</span>
+          <p className="text-xs text-white/45 mb-4">Lower-stakes stories and visual moments from the wider news cycle.</p>
           <ul className="space-y-2 rounded-lg px-2 py-1">
-            {content.etcetera.map((item: EtceteraItem | string, i: number) => {
+            {content.etcetera.slice(0, 3).map((item: EtceteraItem | string, i: number) => {
               const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
               const story = etc.slug ? storyMap.get(etc.slug) : null
-              const text = <span className="text-[0.9rem] leading-relaxed text-white/70">{etc.text}</span>
+              const badge = story ? resolvedBadge(story) : null
+              const confidence = story ? getConfidenceLabel(story) : null
+              const text = <span className="text-[0.84rem] leading-relaxed text-white/62">{clampWords(etc.text, 34)}</span>
               return (
-                <li key={i} className="flex flex-col gap-1 px-3 py-2.5 rounded-xl mb-2 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #64748b' }}>
+                <li key={i} className="flex flex-col gap-1 px-3 py-2.5 rounded-xl mb-2 last:mb-0" style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid rgba(255,255,255,0.045)', borderLeft: '3px solid #64748b' }}>
                   {etc.slug ? (
-                    <Link href={`/story/${etc.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
+                    <FeedStoryLink
+                      href={`/story/${etc.slug}`}
+                      properties={{
+                        section: 'Also Worth Knowing',
+                        story_slug: etc.slug,
+                        source_type: badge?.sourceType,
+                        source_tier: badge?.tier,
+                        confidence,
+                        coverage_count: story ? coverageCount(story) : null,
+                        position: i + 1,
+                        is_lower_confidence: true,
+                      }}
+                      className="hover:underline underline-offset-2"
+                    >
                       {text}
-                    </Link>
+                    </FeedStoryLink>
                   ) : text}
                   {story && (
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <TierBadge tier={resolvedBadge(story).tier} sourceType={resolvedBadge(story).sourceType} />
-                      <ConfidenceBadge label={getConfidenceLabel(story)} />
+                      <TierBadge tier={badge?.tier ?? null} sourceType={badge?.sourceType ?? null} />
+                      {confidence && <ConfidenceBadge label={confidence} />}
+                      <span className="text-[10px] text-white/30">{coverageText(story)}</span>
                     </div>
                   )}
                 </li>
@@ -222,7 +297,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#94a3b8' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#94a3b8]">📺 Mainstream Pulse</span>
-          <p className="text-xs text-white/50 mb-4">What the major outlets are leading with today</p>
+          <p className="text-xs text-white/50 mb-4">What major U.S. outlets are leading with today.</p>
           <Link href="/corrections" className="block text-[10px] text-white/40 hover:text-white/80 transition-colors mb-3">
             ✓ No corrections today
           </Link>
