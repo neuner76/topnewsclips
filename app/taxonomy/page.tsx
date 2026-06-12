@@ -40,7 +40,7 @@ const TIERS = [
     color: 'text-[oklch(0.45_0.10_230)] bg-[oklch(0.96_0.02_230)] border-[oklch(0.88_0.05_230)]',
     definition: 'Government-funded but editorially independent by statute or charter. Subject to public accountability mechanisms.',
     rationale: 'Public broadcasters are funded by governments but legally required to maintain editorial independence. They typically have large international correspondent networks and rigorous editorial standards.',
-    examples: 'DW News, France 24, NHK World, ABC News Australia, ABC News In-depth (Four Corners), Arirang News',
+    examples: 'PBS NewsHour, C-SPAN, DW News, France 24, NHK World, ABC News Australia, ABC News In-depth (Four Corners), Arirang News',
     note: 'Al Jazeera is funded by Qatar. Editorial independence has been debated, particularly on Gulf affairs. The label "Public Broadcaster" is applied because of its institutional structure and international editorial standards, not as a blanket endorsement.',
   },
   {
@@ -67,7 +67,7 @@ const TIERS = [
     color: 'text-white/70 bg-white/10 border-white/15',
     definition: 'Established commercial news outlets and explainer-journalism brands. Ad-supported or subscription-funded with professional editorial teams and institutional editorial standards.',
     rationale: 'These outlets produce quality journalism but operate within commercial media structures. Their editorial decisions can be influenced by audience metrics, advertiser relationships, or corporate ownership, a structural constraint that doesn\'t apply to nonprofits or public broadcasters.',
-    examples: 'CNN, ABC News, CBS News, CNBC, BBC News, 60 Minutes, Dateline NBC, Vox, Bloomberg Quicktake, Journeyman Pictures',
+    examples: 'CNN, ABC News, CBS News, NBC News, Scripps News, NewsNation, CNBC, BBC News, 60 Minutes, Dateline NBC, Vox, Bloomberg Quicktake, Journeyman Pictures',
     note: null,
   },
   {

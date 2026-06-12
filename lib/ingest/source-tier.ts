@@ -35,6 +35,7 @@ const PUBLIC_BROADCASTER_JOURNALISTS = new Set([
   'abcnewsindepth',   // ABC News In-depth — produces Four Corners
   'cbcnews',          // CBC News (Canada)
   'channel4news',     // Channel 4 News (UK)
+  'cspan',            // C-SPAN — nonprofit public-service network, gavel-to-gavel US proceedings
 ])
 
 // Tier 4: Independent News Organization
@@ -52,6 +53,9 @@ const COMMERCIAL_JOURNALISTS = new Set([
   'cnn', 'bbcnews', 'cnbc',
   'bloombergquicktake',
   'abcnews', 'cbsnews',
+  'nbcnews',      // NBC News
+  'scrippsnews',  // Scripps News — 24/7 US national news
+  'newsnation',   // NewsNation
 ])
 
 // Tier 6: Commercial / Explainer (Satire) — institutional backing (Paramount, HBO)
