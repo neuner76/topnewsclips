@@ -4,6 +4,7 @@ import { getResponseEligibility } from '@/lib/response-eligibility'
 import SectionCard from './SectionCard'
 import ReaderQuestionBox from './ReaderQuestionBox'
 import ResponseActionLink from './ResponseActionLink'
+import ShareResponsiblyButton from './ShareResponsiblyButton'
 import TrackEvent from './TrackEvent'
 
 function sourceUrl(story: Story): string | null {
@@ -73,6 +74,12 @@ export default function StayWithThisStory({ story, resources = [] }: {
             <p className="text-xs text-white/45">
               Share the story with context, not outrage. Include what is known and what remains unclear.
             </p>
+            <ShareResponsiblyButton
+              title={story.title}
+              slug={story.slug}
+              storyCategory={eligibility.storyCategory}
+              eligibility={eligibility.eligibility}
+            />
           </div>
         )}
 
