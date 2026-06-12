@@ -69,6 +69,16 @@ export interface Digest {
   generated_at: string
 }
 
+interface DigestCandidateForRanking {
+  title: string
+  description?: string | null
+  source?: string | null
+  source_tier?: number | null
+  msm_outlet_coverage?: { covered?: unknown[] } | null
+  created_at?: string | null
+  view_count?: number | null
+}
+
 const IN_THE_KNOW_CATEGORIES = [
   'Politics & World Affairs',
   'Science & Technology',
@@ -193,6 +203,106 @@ export function fallbackSectionTitle(title: string, maxLength = 120): string {
   const clipped = normalized.slice(0, maxLength)
   const lastSpace = clipped.lastIndexOf(' ')
   return (lastSpace > 20 ? clipped.slice(0, lastSpace) : clipped).replace(/[,\-:;]+$/, '').trim()
+}
+
+function coverageCount(s: DigestCandidateForRanking): number {
+  return Array.isArray(s.msm_outlet_coverage?.covered) ? s.msm_outlet_coverage.covered.length : 0
+}
+
+const NEED_TO_KNOW_HARD_NEWS_TERMS = [
+  'abuse', 'accountability', 'airstrike', 'arrest', 'audit', 'bankruptcy', 'budget',
+  'charged', 'climate', 'conflict', 'congress', 'corruption', 'court', 'criminal',
+  'death', 'defense', 'disaster', 'election', 'evacuat', 'fired', 'forced to resign',
+  'fraud', 'government', 'investigation', 'killed', 'labor', 'lawsuit', 'layoff',
+  'military', 'nasa', 'policy', 'police', 'probe', 'prosecut', 'public health',
+  'regulator', 'resign', 'rights', 'safety', 'sanction', 'scientist', 'strike',
+  'supreme court', 'tax', 'trial', 'union', 'war', 'workers',
+]
+
+const NEED_TO_KNOW_SOFT_NEWS_TERMS = [
+  'botanic garden', 'botanical garden', 'forest therapy', 'garden trail',
+  'nature immersion', 'nature trail', 'opening celebration', 'well-being trail',
+  'wellbeing trail', 'wellness trail',
+]
+
+const US_RELEVANCE_DIRECT_TERMS = [
+  'america', 'american', 'americans', 'u.s.', 'us ', 'usa', 'united states',
+  'biden', 'trump', 'white house', 'congress', 'senate', 'house republicans',
+  'house democrats', 'supreme court', 'federal', 'state lawmakers', 'governor',
+  'ice ', 'fbi', 'doj', 'pentagon', 'nasa', 'irs', 'cdc', 'fda', 'epa',
+]
+
+const US_RELEVANCE_IMPACT_TERMS = [
+  '401(k)', 'border', 'budget', 'consumer', 'credit card', 'data privacy',
+  'electric bill', 'energy prices', 'food prices', 'gas prices', 'grocery',
+  'health insurance', 'healthcare', 'housing', 'inflation', 'interest rates',
+  'jobs', 'labor', 'layoff', 'medicare', 'mortgage', 'paycheck', 'public health',
+  'rent', 'retirement', 'rights', 'school', 'social security', 'student loan',
+  'supply chain', 'tax', 'tariff', 'travel', 'union', 'veterans', 'workers',
+]
+
+const US_RELEVANCE_GLOBAL_WITH_US_IMPACT_TERMS = [
+  'china', 'iran', 'israel', 'mexico', 'nato', 'north korea', 'russia',
+  'saudi', 'taiwan', 'ukraine',
+  'ceasefire', 'cyberattack', 'defense', 'diplomacy', 'hostage', 'military',
+  'missile', 'oil', 'sanctions', 'shipping', 'strait of hormuz', 'trade', 'war',
+]
+
+export function isSoftNeedToKnowStory(s: DigestCandidateForRanking): boolean {
+  const text = `${s.title} ${s.description ?? ''}`.toLowerCase()
+  const hasSoftSignal = NEED_TO_KNOW_SOFT_NEWS_TERMS.some(term => text.includes(term))
+  if (!hasSoftSignal) return false
+
+  const hasHardNewsSignal = NEED_TO_KNOW_HARD_NEWS_TERMS.some(term => text.includes(term))
+  const isWidelyCovered = coverageCount(s) >= 3
+  return !hasHardNewsSignal && !isWidelyCovered
+}
+
+export function usAudienceRelevanceScore(s: DigestCandidateForRanking): number {
+  const text = `${s.title} ${s.description ?? ''} ${s.source ?? ''}`.toLowerCase()
+  let score = 0
+
+  for (const term of US_RELEVANCE_DIRECT_TERMS) {
+    if (text.includes(term)) score += 3
+  }
+  for (const term of US_RELEVANCE_IMPACT_TERMS) {
+    if (text.includes(term)) score += 2
+  }
+
+  const globalMatches = US_RELEVANCE_GLOBAL_WITH_US_IMPACT_TERMS.filter(term => text.includes(term)).length
+  if (globalMatches >= 2) score += 2
+  else if (globalMatches === 1) score += 1
+
+  if (coverageCount(s) >= 3) score += 1
+  if (NEED_TO_KNOW_HARD_NEWS_TERMS.some(term => text.includes(term))) score += 1
+  if (isSoftNeedToKnowStory(s)) score -= 4
+
+  return score
+}
+
+export function needToKnowPriorityScore(s: DigestCandidateForRanking, now = Date.now()): number {
+  const tier = s.source_tier ?? 99
+  const ageHours = s.created_at ? Math.max(0, (now - new Date(s.created_at).getTime()) / 3600000) : 48
+  const coverage = coverageCount(s)
+  const text = `${s.title} ${s.description ?? ''}`.toLowerCase()
+  const hasHardNewsSignal = NEED_TO_KNOW_HARD_NEWS_TERMS.some(term => text.includes(term))
+  const usRelevance = usAudienceRelevanceScore(s)
+
+  let score = tier + Math.max(0, ageHours - 4) * 0.45
+  if (coverage >= 6) score -= 4
+  else if (coverage >= 3) score -= 2.5
+  else if (coverage >= 1) score -= 1
+  else score += 1.75
+
+  if (hasHardNewsSignal) score -= 1.5
+  if (usRelevance >= 6) score -= 3
+  else if (usRelevance >= 3) score -= 1.5
+  else if (usRelevance <= 0) score += 2.5
+  if (isSoftNeedToKnowStory(s)) score += 10
+  if ((s.view_count ?? 0) >= 10_000) score -= 0.75
+  if ((s.view_count ?? 0) === 0 && coverage === 0) score += 0.75
+
+  return score
 }
 
 function getSupabase() {
@@ -475,6 +585,10 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     })
   }
 
+  function sortForNeedToKnow<T extends typeof cappedStories[0]>(stories: T[]): T[] {
+    return [...stories].sort((a, b) => needToKnowPriorityScore(a) - needToKnowPriorityScore(b))
+  }
+
   const NEEDTOKNOW_FALLBACK_HOURS = 48  // fallback cap — never pull stories older than 2 days into NeedToKnow
 
   const nonYesterday = cappedStories.filter(s => !yesterdaySlugs.has(s.slug))
@@ -482,7 +596,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const withinFallback = nonYesterday.filter(s => storyAgeHours(s) <= NEEDTOKNOW_FALLBACK_HOURS)
 
   // If ingest hasn't run recently and no stories fall within the window, fall back to last 48 hours (not full 7 days)
-  const freshCandidates = sortByTierAndRecency(withinWindow.length >= 3 ? withinWindow : withinFallback)
+  const freshCandidates = sortForNeedToKnow(sortByTierAndRecency(withinWindow.length >= 3 ? withinWindow : withinFallback))
 
   function isNeedToKnowEligible(s: typeof cappedStories[0], minDescriptionLength = 150): boolean {
     return (
@@ -494,6 +608,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       s.category !== 'comedy' &&
       s.category !== 'raw' &&
       s.source_type !== 'Community Sourced' &&
+      !isSoftNeedToKnowStory(s) &&
       !s.region
     )
   }
@@ -582,6 +697,8 @@ NEED TO KNOW (3 stories max):
 - STRICT SOURCE DIVERSITY: Maximum 1 story per journalist/creator across the ENTIRE digest (NeedToKnow + InTheKnow + Etcetera combined). If a journalist appears in NeedToKnow, do not reference them anywhere else.
 - RECENCY — HARD CONSTRAINT: Each story has a "hoursAgo" field. All NeedToKnow candidates have already been filtered to the last 18 hours. Prefer stories with lower hoursAgo — a story published 2 hours ago is fresher and more urgent than one published 16 hours ago.
 - IMPACT SIGNAL: Each story has a "viewCount" field. All else equal, prefer higher viewCount — it is a signal that the story has real-world resonance.
+- EDITORIAL PRIORITY: The NEED TO KNOW CANDIDATES list is pre-ranked. Prefer earlier candidates unless a later candidate is clearly more consequential. Soft-interest stories, wellness openings, gardens/trails, and curiosity items do not belong in NeedToKnow unless they are tied to a major public-policy, safety, accountability, or widely covered hard-news development.
+- US AUDIENCE FIT — HARD CONSTRAINT: TopNewsClips is primarily for US readers. At least 2 of 3 NeedToKnow cards should be US-centered or directly relevant to US readers through rights, courts, government, health, labor, taxes, prices, jobs, safety, climate, technology, markets, immigration, US foreign policy, or US military/security stakes. International-only stories belong in Global Blindspot or Global Lens unless the US consequence is concrete and obvious.
 - MIX RULE — HARD CONSTRAINT: Each story has a "contentType" field: "footage", "commentary", "investigation", or "report". NeedToKnow candidates should be "investigation" or "report". You MUST NOT pick 3 stories that are all "commentary". Count your picks before finalizing: if all 3 are "commentary", replace the weakest commentary pick with the highest-impact "investigation" or "report" story in the candidates list — even if it seems less important. A digest of 3 talking-head videos fails the reader.
 - TOPIC DIVERSITY: All 3 NeedToKnow stories must cover different topics. Do not pick 3 stories that all critique the same type of institution (e.g. 3 stories about government overreach, or 3 stories about corporate exploitation). Vary across: government/policy, health/science, economy/business, local accountability, foreign affairs.
 - CELEBRITY/ENTERTAINMENT EXCLUSION: Do not place celebrity arrests, DUI incidents, athlete legal trouble, or personal drama in NeedToKnow — even if the story includes bodycam footage. These belong in "Sports, Entertainment, & Culture". A famous person being arrested is not NeedToKnow unless the police conduct itself is the story (explicit misconduct documented on camera).
