@@ -144,6 +144,15 @@ function sigWords(title: string): Set<string> {
   )
 }
 
+export function fallbackSectionTitle(title: string, maxLength = 120): string {
+  const normalized = title.replace(/\s+/g, ' ').trim()
+  if (normalized.length <= maxLength) return normalized
+
+  const clipped = normalized.slice(0, maxLength)
+  const lastSpace = clipped.lastIndexOf(' ')
+  return (lastSpace > 20 ? clipped.slice(0, lastSpace) : clipped).replace(/[,\-:;]+$/, '').trim()
+}
+
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -841,7 +850,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     if (replacement) {
       content.needToKnow = content.needToKnow.filter(i => i.slug !== violation.slug)
       content.needToKnow.push({
-        sectionTitle: replacement.title.slice(0, 60),
+        sectionTitle: fallbackSectionTitle(replacement.title),
         slug: replacement.slug,
         paragraphs: [replacement.description ?? ''],
       })
@@ -868,7 +877,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     if (replacement) {
       content.needToKnow = content.needToKnow.filter(i => i.slug !== violation.slug)
       content.needToKnow.push({
-        sectionTitle: replacement.title.slice(0, 60),
+        sectionTitle: fallbackSectionTitle(replacement.title),
         slug: replacement.slug,
         paragraphs: [replacement.description ?? ''],
       })
@@ -898,7 +907,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     if (replacement) {
       ntkSlugs.add(replacement.slug)
       content.needToKnow.push({
-        sectionTitle: replacement.title.slice(0, 60),
+        sectionTitle: fallbackSectionTitle(replacement.title),
         slug: replacement.slug,
         paragraphs: [replacement.description ?? ''],
       })
@@ -920,7 +929,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       const toRemove = commentaryItems[commentaryItems.length - 1]
       content.needToKnow = content.needToKnow.filter(i => i.slug !== toRemove.slug)
       content.needToKnow.push({
-        sectionTitle: replacement.title.slice(0, 60),
+        sectionTitle: fallbackSectionTitle(replacement.title),
         slug: replacement.slug,
         paragraphs: [replacement.description ?? ''],
       })
@@ -961,7 +970,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
         ?? content.needToKnow[content.needToKnow.length - 1]
       content.needToKnow = content.needToKnow.filter(i => i.slug !== weakest.slug)
       content.needToKnow.push({
-        sectionTitle: replacement.title.slice(0, 60),
+        sectionTitle: fallbackSectionTitle(replacement.title),
         slug: replacement.slug,
         paragraphs: [replacement.description ?? ''],
       })
