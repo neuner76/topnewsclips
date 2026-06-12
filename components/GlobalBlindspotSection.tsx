@@ -37,6 +37,13 @@ function sourceHandle(story: Story): string | null {
   return source ? `@${source.replace(/\s+/g, '').toLowerCase()}` : null
 }
 
+
+// Threshold-driven caution: a blindspot story corroborated by at most one
+// outlet is a single-source international report — flag it, don't hide it.
+function isSingleSourceReport(story: Story): boolean {
+  return (story.msm_outlet_coverage?.covered?.length ?? 0) <= 1
+}
+
 export default function GlobalBlindspotSection({ stories, layout = 'list' }: GlobalBlindspotSectionProps) {
   if (!stories.length) return null
 
@@ -118,6 +125,11 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                       <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
                         Under-reported
                       </span>
+                      {isSingleSourceReport(story) && (
+                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
+                          Single-source international report
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -155,6 +167,11 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                       <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
                         Under-reported
                       </span>
+                      {isSingleSourceReport(story) && (
+                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
+                          Single-source international report
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>
