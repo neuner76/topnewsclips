@@ -158,6 +158,14 @@ export function isFresh(c: { uploadedAt?: string | null; journalistUsername?: st
   return age <= window
 }
 
+// Trust gate: the lowest-credibility tiers (8-10, plus unrecognized sources,
+// which default to lower credibility until reviewed) must not auto-publish
+// with zero independent outlet coverage. The Single-source label discloses
+// the gap but is not corroboration — these route to review instead.
+export function needsCorroborationHold(tier: number | null, coverageCount: number): boolean {
+  return (tier === null || tier >= 8) && coverageCount === 0
+}
+
 // Keep only the highest-viral-score version when multiple candidates cover the same incident
 function deduplicateByTitle<T extends { title: string; viralScore: number }>(candidates: T[]): T[] {
   const result: T[] = []
@@ -800,6 +808,15 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       const finalSourceType = isGenericFallback && dbOverride ? dbOverride.sourceType : sourceType
 
       const coverageCount = msm.coveredBy.length
+
+      // Tier 8-10 / unrecognized sources with zero outlet coverage are held
+      // for human review instead of auto-publishing with a Single-source label.
+      const corroborationHold = needsCorroborationHold(finalTier, coverageCount)
+      if (corroborationHold) {
+        const entry = result.stories.find(s => s.slug === candidate.slug)
+        if (entry) entry.decision = 'needs_review'
+      }
+
       const confidenceLabel = CONFIDENCE_META[getConfidenceLabel({
         category: verification.category,
         source_tier: finalTier,
@@ -823,8 +840,8 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           msm_gap: verification.msmGap,
           msm_outlet_coverage: { covered: msm.coveredBy, notCovered: msm.notCoveredBy },
           source: candidate.source,
-          msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}`,
-          published: verification.decision === 'publish' || verification.decision === 'needs_review',
+          msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}${corroborationHold ? ` | Corroboration hold: tier ${finalTier ?? 'unknown'} with 0 outlet coverage` : ''}`,
+          published: (verification.decision === 'publish' || verification.decision === 'needs_review') && !corroborationHold,
           display_order: verification.decision === 'publish' ? (verification.msmGap ? 30 : 50) : 75,
           category: verification.category,
           thumbnail_url: candidate.thumbnail_url ?? null,
@@ -859,7 +876,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
 
       if (qc.held) {
         result.held++
-      } else if (verification.decision === 'needs_review') {
+      } else if (verification.decision === 'needs_review' || corroborationHold) {
         result.needsReview++
       } else {
         result.inserted++
