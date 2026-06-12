@@ -19,6 +19,8 @@ export interface QCInput {
   eventDateEstimate?: string | null
   coverageCount: number
   rawSourceDescription: string
+  /** True when headline/summary are a revision from a prior FIX verdict. */
+  isRevision?: boolean
 }
 
 export interface QCCheckResult {
@@ -57,9 +59,18 @@ function sanitize(s: string): string {
 // prompt-caching discount on these input tokens.
 function buildStaticPrompt(rubric: string): string {
   return `You are the pre-publish editorial QC gate for Top News Clips, a news digest
-whose entire brand is precision and sourcing transparency. You are strict.
-When uncertain, fail the check — a false HOLD costs minutes; a false PASS
-costs the brand.
+whose entire brand is precision and sourcing transparency.
+
+Calibration — severity differs by check:
+- Trust-critical checks (C1 promo/junk, C2 unnamed principals, C4 freshness
+  honesty, C6 confidence-label consistency): be strict. When uncertain, fail —
+  a false PASS here costs the brand.
+- Copy-quality checks (C3 precision, C5 attribution, C7 alignment, C8 tone):
+  fail only for clear violations a reasonable editor would insist on changing
+  before publication. Borderline judgment calls, mild hedging, or a single
+  closing sentence of modest background context are a pass. If the copy was
+  already revised once, do not fail it again for new stylistic nits — only
+  for clear violations that remain.
 
 You will receive story metadata and the draft headline/summary. Evaluate
 checks C1-C8 per the rubric below.
@@ -80,6 +91,10 @@ Notes:
 - coverage_count is a pre-computed count of independently corroborating
   outlets, already verified by our system. Trust it as given — do not fail
   C6 merely because outlet names aren't enumerated in the story data.
+- The numeric C6 thresholds (label vs. source_tier/coverage_count) are
+  verified deterministically by the system before your output is used.
+  For C6, only evaluate non-numeric label problems (e.g. an "Analysis"
+  label on straight fact reporting); otherwise report C6 as pass.
 - raw_source_description is reference only — fact-check the summary against
   it, but it is never published verbatim, so its own promo links/hashtags/CTAs
   do NOT count as a C1 fail; only flag C1 if that junk appears in the
@@ -141,6 +156,7 @@ source_tier: ${input.sourceTier ?? 'unknown'}
 video_publish_date: ${input.videoPublishDate ?? 'unknown'}
 event_date_estimate: ${input.eventDateEstimate ?? 'unknown'}
 coverage_count: ${input.coverageCount}
+already_revised: ${input.isRevision ? 'yes — this copy is a revision from a prior FIX; only fail remaining clear violations, not new stylistic nits' : 'no'}
 raw_source_description:
 ${sanitize(input.rawSourceDescription).slice(0, 600)}`
 }
@@ -217,6 +233,34 @@ export function runStaticQCChecks(input: QCInput): QCCheckResult[] {
       id: 'C4',
       result: 'fail',
       reason: 'Story appears to be archival/retrospective content in a daily news section.',
+    })
+  }
+
+  // C6 is arithmetic over (label, source_tier, coverage_count) — checked
+  // deterministically rather than left to the model. Only overstatement
+  // fails; a conservative label is never a trust problem.
+  const tier = input.sourceTier
+  const coverage = input.coverageCount
+  if (input.confidenceLabel === 'Corroborated') {
+    const meetsThreshold = coverage >= 5 || (coverage >= 3 && tier !== null && tier <= 5)
+    if (!meetsThreshold) {
+      checks.push({
+        id: 'C6',
+        result: 'fail',
+        reason: `"Corroborated" requires 5+ outlets, or 3+ with a Tier 1-5 source; coverage_count is ${coverage} (tier ${tier ?? 'unknown'}). Correct label is ${tier !== null && tier <= 6 ? '"Reported"' : coverage >= 2 ? '"Developing"' : '"Single-source"'}.`,
+      })
+    }
+  } else if (input.confidenceLabel === 'Reported' && tier !== null && tier >= 7) {
+    checks.push({
+      id: 'C6',
+      result: 'fail',
+      reason: `"Reported" requires an institutional Tier 1-6 source; source_tier is ${tier}. Correct label is ${coverage >= 2 ? '"Developing"' : '"Single-source"'}.`,
+    })
+  } else if (input.confidenceLabel === 'Developing' && tier !== null && tier >= 7 && coverage < 2) {
+    checks.push({
+      id: 'C6',
+      result: 'fail',
+      reason: `"Developing" requires 2+ covering outlets for a Tier 7-10 source; coverage_count is ${coverage}. Correct label is "Single-source".`,
     })
   }
 
@@ -299,7 +343,10 @@ export async function runQCGate(input: QCInput, apiKey: string): Promise<QCGateR
       revised_summary: string | null
       routing_note: string | null
     }
-    const checks = mergeStaticChecks(parsed.checks ?? [], staticFailures).map(normalizeCheckResult)
+    // Normalize the model's checks (self-contradictory reasoning) BEFORE
+    // merging — static failures are deterministic and must never be
+    // reinterpreted by the reason-text heuristic.
+    const checks = mergeStaticChecks((parsed.checks ?? []).map(normalizeCheckResult), staticFailures)
     const parsedVerdict = parsed.verdict === 'PASS' && staticFailures.length > 0 ? 'HOLD' : parsed.verdict
     const verdict = normalizeVerdict(
       parsedVerdict,

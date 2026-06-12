@@ -40,11 +40,16 @@ function contentTypeForCategory(category: Story['category']): QCContentType {
 }
 
 // A FIX is "high confidence" — safe to auto-apply without human review —
-// only when every failed check is a C1 (promo/junk strip) or C2 (named
-// principal insertion), and the gate produced a concrete revision.
+// when every failed check is fixable by rewriting the copy: C1 (promo/junk
+// strip), C2 (named principal insertion), or a copy-quality check
+// (C3 precision, C5 attribution, C7 alignment, C8 tone). C4 (freshness)
+// and C6 (confidence label) can't be fixed by a rewrite, so they still
+// unpublish the story for human review.
+const COPY_FIXABLE_CHECKS = new Set(['C1', 'C2', 'C3', 'C5', 'C7', 'C8'])
+
 export function isHighConfidenceFix(failedChecks: QCCheckResult[]): boolean {
   if (failedChecks.length === 0) return false
-  return failedChecks.every(c => c.id === 'C1' || c.id === 'C2')
+  return failedChecks.every(c => COPY_FIXABLE_CHECKS.has(c.id))
 }
 
 export async function runQCSweep(options: QCSweepOptions): Promise<QCSweepResult> {

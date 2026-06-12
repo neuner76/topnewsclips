@@ -57,6 +57,24 @@ describe('static QC backstop', () => {
     })).toContain('C4')
   })
 
+  it('flags overstated confidence labels deterministically (C6)', () => {
+    // Corroborated needs 5+ outlets, or 3+ with a Tier 1-5 source
+    expect(failedIds({ ...base, confidenceLabel: 'Corroborated', sourceTier: 5, coverageCount: 1 })).toContain('C6')
+    expect(failedIds({ ...base, confidenceLabel: 'Corroborated', sourceTier: 7, coverageCount: 4 })).toContain('C6')
+    expect(failedIds({ ...base, confidenceLabel: 'Corroborated', sourceTier: 5, coverageCount: 3 })).not.toContain('C6')
+    expect(failedIds({ ...base, confidenceLabel: 'Corroborated', sourceTier: 7, coverageCount: 5 })).not.toContain('C6')
+    // Reported requires an institutional Tier 1-6 source
+    expect(failedIds({ ...base, confidenceLabel: 'Reported', sourceTier: 7, coverageCount: 0 })).toContain('C6')
+    expect(failedIds({ ...base, confidenceLabel: 'Reported', sourceTier: 6, coverageCount: 0 })).not.toContain('C6')
+    // Developing requires 2+ outlets for Tier 7-10
+    expect(failedIds({ ...base, confidenceLabel: 'Developing', sourceTier: 9, coverageCount: 1 })).toContain('C6')
+    expect(failedIds({ ...base, confidenceLabel: 'Developing', sourceTier: 9, coverageCount: 2 })).not.toContain('C6')
+    // Conservative labels never fail: Single-source is always the safe floor
+    expect(failedIds({ ...base, confidenceLabel: 'Single-source', sourceTier: 3, coverageCount: 4 })).not.toContain('C6')
+    // Unknown tier — leave to the model
+    expect(failedIds({ ...base, confidenceLabel: 'Reported', sourceTier: null, coverageCount: 0 })).not.toContain('C6')
+  })
+
   it('normalizes self-contradictory C6 failures that conclude the label is correct', async () => {
     anthropicCreate.mockResolvedValueOnce({
       content: [{

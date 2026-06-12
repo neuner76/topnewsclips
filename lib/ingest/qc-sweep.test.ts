@@ -61,13 +61,19 @@ function buildSupabaseMock(stories: Record<string, unknown>[]) {
 }
 
 describe('isHighConfidenceFix', () => {
-  it('is true only when every failed check is C1 or C2', () => {
+  it('is true only when every failed check is fixable by rewriting (C1/C2/C3/C5/C7/C8)', () => {
     expect(isHighConfidenceFix([{ id: 'C1', result: 'fail', reason: 'x' }])).toBe(true)
     expect(isHighConfidenceFix([
       { id: 'C1', result: 'fail', reason: 'x' },
       { id: 'C2', result: 'fail', reason: 'y' },
     ])).toBe(true)
+    expect(isHighConfidenceFix([{ id: 'C3', result: 'fail', reason: 'x' }])).toBe(true)
+    expect(isHighConfidenceFix([
+      { id: 'C5', result: 'fail', reason: 'x' },
+      { id: 'C7', result: 'fail', reason: 'y' },
+    ])).toBe(true)
     expect(isHighConfidenceFix([{ id: 'C4', result: 'fail', reason: 'x' }])).toBe(false)
+    expect(isHighConfidenceFix([{ id: 'C6', result: 'fail', reason: 'x' }])).toBe(false)
     expect(isHighConfidenceFix([
       { id: 'C1', result: 'fail', reason: 'x' },
       { id: 'C4', result: 'fail', reason: 'y' },
