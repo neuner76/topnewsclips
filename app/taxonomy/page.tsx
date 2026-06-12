@@ -76,7 +76,7 @@ const TIERS = [
     definition: 'Individual journalists, creator-led channels, and non-institutional commentary. Editorial accountability rests with the creator, not an institution.',
     rationale: 'Many of these creators do excellent work, but their editorial standards are self-imposed rather than institutionally enforced. There is no ombudsman, no corrections policy, and no editorial board.',
     examples: 'Breaking Points, CaspianReport, PolyMatter, Johnny Harris, Kyla Scanlon',
-    note: 'This is the current backbone of Top News Clips\' source library. These channels bring audience and engagement, but sources from Tiers 1–5 provide institutional cross-referencing.',
+    note: 'This is the current backbone of Top News Clips\' source library. These channels bring audience and engagement; the library also draws on Tier 1–5 institutional sources, and every story\'s coverage count and confidence label show how much independent corroboration it has.',
   },
   {
     tier: 8,
@@ -85,7 +85,7 @@ const TIERS = [
     definition: 'Government-funded outlets where editorial direction is controlled or heavily influenced by the state. No structural independence from the funding government.',
     rationale: 'State media is included for perspective, not endorsement. In geopolitical stories, understanding how a government frames its own actions is itself newsworthy. But readers must know the source is state-directed.',
     examples: 'CGTN (China), TeleSUR (Venezuela), TRT World (Turkey)',
-    note: 'Required label: "State Media, editorial direction influenced by [country] government." TRT World is included for perspective, but its editorial direction is influenced by the Turkish government. Always paired with independent sources from Tiers 1–6.',
+    note: 'Required label: "State Media, editorial direction influenced by [country] government." TRT World is included for perspective, but its editorial direction is influenced by the Turkish government. State media stories carry the same coverage check and confidence labeling as every other source, and the State Media badge is always visible.',
   },
   {
     tier: 9,
@@ -94,7 +94,7 @@ const TIERS = [
     definition: 'Bodycam, dashcam, security camera, and bystander video. No editorial layer. The footage is the story.',
     rationale: 'Raw footage is powerful because it removes the editorial middleman. But it also removes context. A 90-second clip can misrepresent a 90-minute encounter.',
     examples: 'Police bodycam releases, dashcam footage, bystander video',
-    note: 'Raw footage is cross-referenced with at least one source from Tiers 1–6 via our MSM coverage check before publication.',
+    note: 'Raw footage is checked against coverage from 15 major US outlets and verified through our Claude-powered pipeline before publication; clips that fail verification are rejected or held for review, and clips with limited corroboration are labeled Single-source or Developing.',
   },
   {
     tier: 10,
@@ -103,7 +103,7 @@ const TIERS = [
     definition: 'Content surfaced from Reddit, social media, or other community platforms with no institutional origin and no editorial verification at the source.',
     rationale: 'Community-sourced content is how many stories first surface. It can be the earliest signal of a developing event. But it is also the most susceptible to misinformation, manipulation, and missing context.',
     examples: 'r/PublicFreakout, r/Bad_Cop_No_Donut, r/worldnews',
-    note: 'Community-sourced content is independently verified through our Claude-powered verification pipeline and MSM coverage check before publication.',
+    note: 'Community-sourced content is checked against coverage from 15 major US outlets and verified through our Claude-powered pipeline before publication; stories that fail verification are rejected or held for review, and stories with limited corroboration are labeled Single-source or Developing.',
   },
 ]
 
@@ -137,7 +137,7 @@ export default function TaxonomyPage() {
           <ul className="text-sm text-white/60 space-y-1.5">
             <li>Badges are assigned based on the originating channel, not the content of any individual video.</li>
             <li>If a source&apos;s classification is disputed or ambiguous, it defaults to the lower-credibility tier until reviewed.</li>
-            <li>Stories from Tiers 8–10 are cross-referenced with at least one source from Tiers 1–5 before publication.</li>
+            <li>Every story — regardless of tier — is checked against coverage from 15 major US outlets and verified through our Claude-powered pipeline before publication; stories that fail verification are rejected or held for review. Stories with limited corroboration are labeled Single-source or Developing rather than presented as confirmed.</li>
             <li>Dual-fit sources (e.g. Bellingcat as both OSINT and independent news) are assigned the higher-credibility tier.</li>
           </ul>
         </div>
