@@ -69,6 +69,48 @@ export interface Digest {
   generated_at: string
 }
 
+const IN_THE_KNOW_CATEGORIES = [
+  'Politics & World Affairs',
+  'Science & Technology',
+  'Business & Markets',
+  'Sports, Entertainment, & Culture',
+  'Comedy & Satire',
+] as const
+
+function emptyInTheKnow(): DigestContent['inTheKnow'] {
+  return {
+    'Politics & World Affairs': [],
+    'Science & Technology': [],
+    'Business & Markets': [],
+    'Sports, Entertainment, & Culture': [],
+    'Comedy & Satire': [],
+  }
+}
+
+export function normalizeDigestContent(content: Partial<DigestContent>): DigestContent {
+  const normalizedInTheKnow = emptyInTheKnow()
+  const inputInTheKnow = (content.inTheKnow ?? {}) as Partial<DigestContent['inTheKnow']>
+  for (const category of IN_THE_KNOW_CATEGORIES) {
+    const items = inputInTheKnow[category]
+    normalizedInTheKnow[category] = Array.isArray(items) ? items : []
+  }
+
+  const needToKnow = Array.isArray(content.needToKnow) ? content.needToKnow : []
+  for (const ntk of needToKnow) {
+    ntk.paragraphs = Array.isArray(ntk.paragraphs) ? ntk.paragraphs : []
+    if (ntk.howWorldSeesIt && !Array.isArray(ntk.howWorldSeesIt)) delete ntk.howWorldSeesIt
+  }
+
+  return {
+    needToKnow,
+    inTheKnow: normalizedInTheKnow,
+    etcetera: Array.isArray(content.etcetera) ? content.etcetera : [],
+    ...(Array.isArray(content.mainstreamPulse) ? { mainstreamPulse: content.mainstreamPulse } : {}),
+    ...(Array.isArray(content.globalBlindspots) ? { globalBlindspots: content.globalBlindspots } : {}),
+    ...(Array.isArray(content.globalLens) ? { globalLens: content.globalLens } : {}),
+  }
+}
+
 function validateDigest(content: DigestContent, validNtkSlugs: Set<string>): string[] {
   const issues: string[] = []
 
@@ -833,17 +875,9 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   let content: DigestContent
   try {
-    content = JSON.parse(text)
+    content = normalizeDigestContent(JSON.parse(text) as Partial<DigestContent>)
   } catch {
     throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`)
-  }
-
-  // Normalize — Claude occasionally omits or nulls a section on overloaded responses
-  content.needToKnow = content.needToKnow ?? []
-  content.inTheKnow = content.inTheKnow ?? { 'Politics & World Affairs': [], 'Science & Technology': [], 'Business & Markets': [], 'Sports, Entertainment, & Culture': [], 'Comedy & Satire': [] }
-  content.etcetera = content.etcetera ?? []
-  for (const ntk of content.needToKnow) {
-    ntk.paragraphs = ntk.paragraphs ?? []
   }
 
   // NeedToKnow slug whitelist — evict any item whose slug wasn't in the approved candidates list

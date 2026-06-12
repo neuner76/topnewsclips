@@ -12,5 +12,6 @@ generateAndStoreDigest()
   })
   .catch(err => {
     console.error('✗ Digest generation failed:', err instanceof Error ? err.message : String(err))
+    if (err instanceof Error && err.stack) console.error(err.stack)
     process.exit(1)
   })
