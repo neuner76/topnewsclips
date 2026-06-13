@@ -91,7 +91,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
     console.warn('Global Lens source validation failed', validationFailures)
   }
 
-  if (!displayItems.length) {
+  if (displayItems.length < 2) {
     return validationFailures.length > 0 ? (
       <>
         {validationFailures.map(failure => (

@@ -62,9 +62,9 @@ const SOURCE_CHANGES: { source: string; date: string; change: string; rationale:
     change: 'Reclassified Tier 4 (Independent News) → Tier 7 (Independent Commentary)',
     rationale: 'VICE relaunched in 2026 under new ownership. Pending a track record under its new editorial structure, it is classified as Independent Commentary rather than Independent News.',
   },
-  { source: 'ViralHog',     date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
-  { source: '20/20 (ABC)',  date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
-  { source: 'Dateline NBC', date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
+  { source: 'ViralHog',     date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: 'A licensing and clip-aggregation service rather than an original news source; our raw-footage tier is reserved for first-hand recordings.' },
+  { source: '20/20 (ABC)',  date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: 'A long-form newsmagazine centered on true-crime and human-interest features rather than current-day reporting, so it sits outside the daily-briefing scope.' },
+  { source: 'Dateline NBC', date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: 'A long-form newsmagazine centered on true-crime and human-interest features rather than current-day reporting, so it sits outside the daily-briefing scope.' },
 ]
 
 const STATUS_STYLES: Record<string, string> = {
