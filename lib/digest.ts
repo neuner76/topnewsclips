@@ -138,6 +138,19 @@ export function enforceWorldViewCap(content: DigestContent, maxWords = 40): stri
   return dropped
 }
 
+// Blocking QC for Global Blindspot (Task 5): a summary over 70 words is
+// dropped from the section rather than displayed bloated. No UI truncation.
+// Returns the slugs that were dropped (for logging).
+export function enforceBlindspotCap(content: DigestContent, maxWords = 70): string[] {
+  const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length
+  const before = content.globalBlindspots ?? []
+  const dropped = before.filter(i => wordCount(i.summary ?? '') > maxWords).map(i => i.slug)
+  if (dropped.length > 0) {
+    content.globalBlindspots = before.filter(i => wordCount(i.summary ?? '') <= maxWords)
+  }
+  return dropped
+}
+
 function validateDigest(content: DigestContent, validNtkSlugs: Set<string>): string[] {
   const issues: string[] = []
 
@@ -800,6 +813,7 @@ Structure every NeedToKnow paragraph sequence as:
   Paragraph 1: What happened. Plain facts. Attributed.
   Paragraph 2: What the source reports about context or significance. Clearly attributed as the source's framing.
 Never lead with the interpretation and use facts as evidence for a conclusion already drawn.
+DEAL/AGREEMENT PHRASING: Use the source's own term for a negotiated outcome — "agreement", "deal", "accord", "interim agreement", "ceasefire". Never compound two synonyms into a redundant phrase like "deal settlement" or "agreement accord". When a source characterizes it precisely (e.g. CNN calls it an "interim agreement"), use that exact term and stay consistent within the card; do not assert a more final term ("settlement", "treaty", "peace deal") than the sources support.
 
 RULE 4 — ONE STORY, ONE CLAIM:
 Each NeedToKnow card must have a single, unmistakable center of gravity — one event, one actor, one development. If you catch yourself writing a card that touches a blockade AND a diplomatic summit AND a naval warning AND a counter-threat from a second country, you have four stories, not one. Pick the single most significant development and cut the rest. The other developments belong in InTheKnow as separate bullets — not packed into the same card.
@@ -844,11 +858,13 @@ ETCETERA:
 - DEDUPLICATION: Never use a story that already appears in NeedToKnow or InTheKnow — each story slug must appear at most once across the entire digest
 - Each entry must be concrete: name the specific fact, number, place, or finding. Never vague.
 - EXCLUSION — HARD RULE: Military operations, airstrikes, conflict developments, casualties, prisoner/hostage situations, and humanitarian crises (evacuations, famine, civilian deaths) must NEVER appear in Etcetera. These belong in InTheKnow under "Politics & World Affairs". Etcetera is for genuinely odd, surprising, or quirky stories — not for serious conflict news that happens to be left over.
+- EXCLUSION — HARD RULE (substance): A story from a Tier 1-2 source (nonprofit investigative or OSINT) that is Corroborated or covered by 5+ outlets is too substantive for this "lower-stakes" shelf. Never place it in Etcetera — route it to the appropriate InTheKnow topic section (Science & Technology, Politics & World Affairs, etc.) instead.
 - QUALITY BAR — HARD RULE: Do not include brand statistics, marketing trivia, or promotional facts (e.g. "Brand X reports Y% of Americans do Z", "per [company], one in four bags contains..."). These are advertising data, not news. Etcetera must be genuinely surprising facts about the world — not a brand's self-reported statistics.
 - Each item: { "text": "...", "slug": "..." } — include the story's slug so we can link to it
 
 GLOBAL BLINDSPOT (only if GLOBAL STORIES are provided):
-- 1-sentence summary per global story
+- 1-sentence summary per global story, MAXIMUM 55 words. One observation, no second topic. Entries over 70 words are discarded by QC.
+- ONE ITEM = ONE STORY (hard rule): each blindspot entry covers a SINGLE story. Never bundle two unrelated stories into one item (e.g. "Zambian farmers face tariff barriers AND Nigeria adopts EVs"). If the source clip covers two unrelated topics, summarize only the primary one; never join them with "and" / "meanwhile" / "separately".
 - Use the slug, region, AND title fields from the input exactly as-is — do NOT rewrite or invent a title
 - Only include stories with coverage count ≤ 2 of 14 US outlets (these are the genuine blindspots)
 - US RELEVANCE GATE — MANDATORY: Before adding a "why this matters to Americans" frame, apply this test:
@@ -1690,9 +1706,25 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     'orban', 'orbán', 'magyar', 'blockade', 'ceasefire', 'war', 'killed', 'nuclear',
     'nato', 'supreme court', 'indicted', 'convicted', 'sentenced',
   ]
+  // Tier/coverage guard (Task 3): a Tier 1-2 source at Corroborated confidence
+  // (or 5+ outlet coverage) is too substantive for the "lower-stakes" Also
+  // Worth Knowing shelf — drop it here so it isn't mis-shelved. The prompt is
+  // also instructed to route these to a substantive section instead.
+  const etcBySlug = new Map(cappedStories.map(s => [s.slug, s]))
+  function tooSubstantiveForEtcetera(slug: string | null | undefined): boolean {
+    if (!slug) return false
+    const s = etcBySlug.get(slug)
+    if (!s) return false
+    const tier = s.source_tier ?? 99
+    const covered = s.msm_outlet_coverage?.covered?.length ?? 0
+    const label = getConfidenceLabel(s as Parameters<typeof getConfidenceLabel>[0])
+    return tier <= 2 && (label === 'CORROBORATED' || covered >= 5)
+  }
   content.etcetera = content.etcetera.filter(item => {
     const t = item.text.toLowerCase()
-    return !ETCETERA_TOO_SIGNIFICANT.some(k => t.includes(k))
+    if (ETCETERA_TOO_SIGNIFICANT.some(k => t.includes(k))) return false
+    if (typeof item !== 'string' && tooSubstantiveForEtcetera(item.slug)) return false
+    return true
   })
 
   // Cap Etcetera at 3 (homepage gate hard rule — applied after padding so minimum is still met first)
@@ -1722,6 +1754,12 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const droppedWorldViews = enforceWorldViewCap(content)
   if (droppedWorldViews.length > 0) {
     console.warn(`[digest] dropped over-length World view sections: ${droppedWorldViews.join(', ')}`)
+  }
+
+  // Blocking QC: drop any over-length Global Blindspot entry (Task 5)
+  const droppedBlindspots = enforceBlindspotCap(content)
+  if (droppedBlindspots.length > 0) {
+    console.warn(`[digest] dropped over-length Global Blindspot entries: ${droppedBlindspots.join(', ')}`)
   }
 
   // Validate digest quality before saving

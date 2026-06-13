@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { enforceWorldViewCap, type DigestContent } from './digest'
+import { enforceWorldViewCap, enforceBlindspotCap, type DigestContent } from './digest'
 
 const entry = (summary: string) => ({ region: 'DW News', slug: 'youtube-x', summary })
 
@@ -34,5 +34,23 @@ describe('enforceWorldViewCap (blocking QC)', () => {
     const dropped = enforceWorldViewCap(content)
     expect(dropped).toEqual([])
     expect(content.needToKnow[0].howWorldSeesIt).toHaveLength(1)
+  })
+})
+
+const seventyWords = Array.from({ length: 70 }, (_, i) => `w${i}`).join(' ')
+const eightyWords = Array.from({ length: 80 }, (_, i) => `w${i}`).join(' ')
+
+describe('enforceBlindspotCap (blocking QC)', () => {
+  it('drops a Global Blindspot entry over 70 words, keeps the rest', () => {
+    const content = {
+      needToKnow: [], inTheKnow: {}, etcetera: [],
+      globalBlindspots: [
+        { slug: 'keep', region: 'DW News', title: 't', summary: seventyWords },
+        { slug: 'drop', region: 'France 24', title: 't', summary: eightyWords },
+      ],
+    } as unknown as DigestContent
+    const dropped = enforceBlindspotCap(content)
+    expect(dropped).toEqual(['drop'])
+    expect(content.globalBlindspots!.map(i => i.slug)).toEqual(['keep'])
   })
 })
