@@ -62,8 +62,6 @@ const SOURCE_CHANGES: { source: string; date: string; change: string; rationale:
     change: 'Reclassified Tier 4 (Independent News) → Tier 7 (Independent Commentary)',
     rationale: 'VICE relaunched in 2026 under new ownership. Pending a track record under its new editorial structure, it is classified as Independent Commentary rather than Independent News.',
   },
-  { source: 'Ian Carroll',  date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
-  { source: 'Whitney Webb', date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
   { source: 'ViralHog',     date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
   { source: '20/20 (ABC)',  date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
   { source: 'Dateline NBC', date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
