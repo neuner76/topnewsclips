@@ -9,7 +9,30 @@ jobs:
   qc-sweep:
     runs-on: ubuntu-latest
     steps:
-      - name: Run QC reconciliation sweep (trailing 14 days)
+      # Each batch processes the next ~40 least-recently-swept stories (the
+      # endpoint stamps qc_swept_at, so batches don't overlap). Four sequential
+      # batches per run clears the backlog faster while keeping each call within
+      # the Vercel 300s function limit. if: always() so one timeout doesn't abort
+      # the rest.
+      - name: QC sweep (batch 1)
         run: |
-          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep" \
+          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: QC sweep (batch 2)
+        if: always()
+        run: |
+          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: QC sweep (batch 3)
+        if: always()
+        run: |
+          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: QC sweep (batch 4)
+        if: always()
+        run: |
+          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
