@@ -278,11 +278,51 @@ export default async function StoryPage({ params }: Props) {
           </div>
         </div>
 
+        {/* In context — major stories only, above the source video (Phase 3) */}
+        {s.in_context && (
+          <SectionCard accent="#a855f7" className="mb-4">
+            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#a855f7] mb-3">🧭 In Context</p>
+            <p className="text-sm text-white/80 leading-relaxed">{s.in_context}</p>
+          </SectionCard>
+        )}
+
         {/* Source Video */}
         <SectionCard accent="#3b82f6" className="mb-4">
           <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#3b82f6] mb-3">📹 Source Video</p>
           <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
         </SectionCard>
+
+        {/* What we know / What remains unclear — major stories only (Phase 3) */}
+        {((s.what_we_know && s.what_we_know.length > 0) || (s.what_remains_unclear && s.what_remains_unclear.length > 0)) && (
+          <SectionCard accent="#22c55e" className="mb-4">
+            {s.what_we_know && s.what_we_know.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[10px] font-bold tracking-widest text-[#22c55e] uppercase mb-2">What we know</p>
+                <ul className="space-y-1.5">
+                  {s.what_we_know.map((fact, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-white/80">
+                      <span className="text-[#22c55e] shrink-0">✓</span>
+                      <span>{fact}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {s.what_remains_unclear && s.what_remains_unclear.length > 0 && (
+              <div>
+                <p className="text-[10px] font-bold tracking-widest text-[#f59e0b] uppercase mb-2">What remains unclear</p>
+                <ul className="space-y-1.5">
+                  {s.what_remains_unclear.map((q, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-white/60">
+                      <span className="text-[#f59e0b] shrink-0">?</span>
+                      <span>{q}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </SectionCard>
+        )}
 
         {/* Verified vs Interpretation */}
         {s.verified_interpretation && (s.verified_interpretation.verified.length > 0 || s.verified_interpretation.interpretation.length > 0) && (

@@ -7,6 +7,7 @@ import { verifyAndTitle } from './claude-verify'
 import { pingIndexNow } from './indexnow'
 import { getSourceTier } from './source-tier'
 import { runQCAndInsert } from './qc-publish'
+import { runSectionQC } from './section-qc'
 import { summarizeLight } from './summarize-light'
 import { getConfidenceLabel, CONFIDENCE_META } from '@/lib/confidence'
 import type { QCConfidenceLabel } from './qc-gate'
@@ -782,6 +783,11 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         continue
       }
 
+      // Major story = Corroborated-threshold coverage (5+ independent outlets).
+      // Knowable pre-verify from the MSM check; triggers generation of the
+      // "In context" and "What we know / remains unclear" page sections.
+      const isMajorStory = msm.coveredBy.length >= 5
+
       const verification = await verifyAndTitle(
         {
           title: candidate.title,
@@ -794,6 +800,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           isJournalist: !!candidate.journalist_username,
           isGlobal: !!candidateRegion,
           region: candidateRegion,
+          isMajor: isMajorStory,
         },
         anthropicKey
       )
@@ -869,6 +876,27 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       // QC content_type only distinguishes reported/analysis/satire — "raw" footage is QC'd as "reported"
       const qcContentType = verification.category === 'analysis' ? 'analysis' : 'reported'
 
+      // Phase 3: blocking section QC for major-story page sections. Failed
+      // sections are stripped (null); the story still publishes. A story is
+      // "developing" when its confidence label is Developing or Single-source.
+      let majorSections = { inContext: null as string | null, whatWeKnow: null as string[] | null, whatRemainsUnclear: null as string[] | null }
+      if (isMajorStory) {
+        const isDeveloping = confidenceLabel === 'Developing' || confidenceLabel === 'Single-source'
+        const { sections, dropped } = runSectionQC({
+          inContext: verification.inContext,
+          whatWeKnow: verification.whatWeKnow,
+          whatRemainsUnclear: verification.whatRemainsUnclear,
+          isDeveloping,
+        })
+        majorSections = sections
+        if (dropped.length > 0) {
+          result.errors.push(`Section QC dropped [${dropped.join(', ')}] for "${candidate.slug}"`)
+        }
+        if (verification.usage) {
+          result.errors.push(`Major-story gen cost ${candidate.slug}: in=${verification.usage.inputTokens} out=${verification.usage.outputTokens} tokens`)
+        }
+      }
+
       const qc = await runQCAndInsert(
         supabase,
         anthropicKey,
@@ -892,6 +920,9 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           region: candidateRegion,
           duration: candidate.duration ?? null,
           verified_interpretation: verification.verifiedInterpretation ?? null,
+          in_context: majorSections.inContext,
+          what_we_know: majorSections.whatWeKnow,
+          what_remains_unclear: majorSections.whatRemainsUnclear,
           source_tier: finalTier,
           source_type: finalSourceType,
         },

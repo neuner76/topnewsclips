@@ -11,6 +11,8 @@ export interface ClipInput {
   isJournalist: boolean
   isGlobal?: boolean
   region?: string | null
+  /** Corroborated-threshold coverage — triggers major-story section generation */
+  isMajor?: boolean
 }
 
 export interface VerifiedInterpretation {
@@ -33,7 +35,22 @@ export interface VerificationResult {
   /** True when the posting account appears to be a third-party reposter of
    *  another outlet's content (account ≠ publisher of record). */
   repostSuspected?: boolean
+  // Major-story sections — present only when ClipInput.isMajor; subject to
+  // blocking section QC (lib/ingest/section-qc.ts) before storage
+  inContext?: string | null
+  whatWeKnow?: string[] | null
+  whatRemainsUnclear?: string[] | null
+  /** Token usage for the verification call — logged for major stories to
+   *  track the per-story cost increase of section generation. */
+  usage?: { inputTokens: number; outputTokens: number }
 }
+
+// Extra JSON fields requested only for major (Corroborated-threshold) stories.
+// Spliced into the prompt's JSON schema before the closing examples.
+const MAJOR_SECTIONS_FIELDS = `,
+  "inContext": "ONE short paragraph (60-120 words) explaining how this story fits the broader situation. EVERY sentence must attribute its claim ('According to X...', 'Reuters reports...', 'Officials said...'). One interpretive claim per sentence — never merge separate incidents or escalations into a single narrative sentence. No banned words (RULE 5) in site voice. If you cannot write this with full attribution from the available material, set null.",
+  "whatWeKnow": ["3-5 corroborated facts, one per entry, each WITH its coverage attribution — e.g. 'At least 13 people were killed, per Afghan authorities (AP, Reuters).' Only facts supported by the source data or the MSM coverage count. If fewer than 3 attributable facts exist, set null."],
+  "whatRemainsUnclear": ["2-4 genuinely open questions about this story, one per entry — e.g. 'Whether the strikes targeted military or civilian infrastructure is unconfirmed.' For any developing or single-source story this list MUST be non-empty. Set null only if the story is fully settled."]`
 
 // Wraps untrusted source text (title/description) in explicit delimiters with
 // a standing instruction so prompt injection embedded in creator-supplied
@@ -76,7 +93,7 @@ Respond with this exact JSON structure:
   "rejectReason": "reason if rejected or needs_review, otherwise null",
   "verifiedClaims": ["Each factual claim from the summary confirmed by 2+ sources or official records. Format: 'Claim. (Source: X)'"],
   "interpretiveClaims": ["Each analytical or causal claim from the summary. Format: 'Claim. (Source argument, not verified finding)'"],
-  "confidenceNote": "For ANALYSIS category: 'This item is classified as Analysis. Claims reflect the source's arguments, not independently verified findings.' For single-source with no MSM corroboration: 'This story is based on a single source. Key claims have not been independently corroborated.' Otherwise: null"
+  "confidenceNote": "For ANALYSIS category: 'This item is classified as Analysis. Claims reflect the source's arguments, not independently verified findings.' For single-source with no MSM corroboration: 'This story is based on a single source. Key claims have not been independently corroborated.' Otherwise: null"${clip.isMajor ? MAJOR_SECTIONS_FIELDS : ''}
 }
 
 msmGap rules:
@@ -112,7 +129,7 @@ export async function verifyAndTitle(
     const prompt = buildGlobalPrompt(clip, today)
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 600,
+      max_tokens: clip.isMajor ? 1200 : 600,
       messages: [{ role: 'user', content: prompt }],
     })
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
@@ -133,6 +150,7 @@ export async function verifyAndTitle(
           ...(parsed.confidenceNote ? { headerNote: parsed.confidenceNote } : {}),
         }
       }
+      parsed.usage = { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
       return parsed
     } catch {
       return {
@@ -177,7 +195,7 @@ Respond with this exact JSON structure:
   "repostSuspected": true or false — true ONLY if the posting account appears to be a third party redistributing another news organization's produced content (e.g. the title/description credits or watermarks a known outlet like 60 Minutes, CBS, CNN, but the Source account is not that outlet's official account). False for original footage, false for an outlet posting its own content on any platform.,
   "verifiedClaims": ["List each factual claim from the summary that is confirmable — confirmed by 2+ sources, official records, or direct observation. Format: 'Claim. (Source: X)' — e.g. 'Gen. George was fired on April 3. (AP, Reuters)'"],
   "interpretiveClaims": ["List each analytical or causal claim from the summary. Format: 'Claim. (Source argument, not verified finding)' — e.g. 'The removals signal political consolidation. (Al Jazeera analysis, not independently confirmed)'"],
-  "confidenceNote": "For ANALYSIS category: 'This item is classified as Analysis. Claims reflect the source's arguments, not independently verified findings.' For single-source with no MSM corroboration: 'This story is based on a single source. Key claims have not been independently corroborated.' For developing stories with conflicting details: 'This story is developing. Specific details may change.' Otherwise: null"
+  "confidenceNote": "For ANALYSIS category: 'This item is classified as Analysis. Claims reflect the source's arguments, not independently verified findings.' For single-source with no MSM corroboration: 'This story is based on a single source. Key claims have not been independently corroborated.' For developing stories with conflicting details: 'This story is developing. Specific details may change.' Otherwise: null"${clip.isMajor ? MAJOR_SECTIONS_FIELDS : ''}
 }
 
 CATEGORY RULES:
@@ -221,7 +239,7 @@ PUBLISH THRESHOLDS:
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
+    max_tokens: clip.isMajor ? 1600 : 1024,
     messages: [{ role: 'user', content: prompt }],
   })
 
@@ -242,6 +260,7 @@ PUBLISH THRESHOLDS:
         ...(parsed.confidenceNote ? { headerNote: parsed.confidenceNote } : {}),
       }
     }
+    parsed.usage = { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
     return parsed
   } catch {
     // Fallback if Claude returns malformed JSON

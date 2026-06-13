@@ -34,6 +34,11 @@ export interface Story {
   qc_status: 'pass' | 'hold' | null
   qc_failed_checks: { id: string; result: 'pass' | 'fail'; reason: string }[] | null
   qc_routing_note: string | null
+  // Major-story sections (Corroborated-threshold coverage only); null when
+  // not major or when the generation failed blocking section QC
+  in_context?: string | null
+  what_we_know?: string[] | null
+  what_remains_unclear?: string[] | null
 }
 
 export interface Subscriber {
