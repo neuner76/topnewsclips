@@ -55,7 +55,7 @@ export default async function IssuePage({
           <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">Track this issue</p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-white">{titleFromSlug(slug)}</h1>
           <p className="text-sm text-white/60 leading-relaxed">
-            We&apos;ll surface meaningful updates and related stories here. This page is a tracking aid, not an action campaign.
+            We&apos;ll surface meaningful updates and related stories here.
           </p>
           {story && (
             <p className="text-xs text-white/45 mt-3">
