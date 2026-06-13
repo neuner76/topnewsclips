@@ -15,6 +15,11 @@ export interface QCSweepOptions {
   // When true, log what would happen but never write to `stories`.
   dryRun: boolean
   source: QCSweepSource
+  // Max stories to process in one invocation. The sweep makes one LLM call
+  // per story, so the whole window can't fit a single request's time budget.
+  // Stories are processed never-swept-first, then least-recently-swept, and
+  // stamped with qc_swept_at so successive runs rotate through the backlog.
+  maxStories?: number
 }
 
 export interface QCSweepStoryResult {
@@ -53,17 +58,24 @@ export function isHighConfidenceFix(failedChecks: QCCheckResult[]): boolean {
 }
 
 export async function runQCSweep(options: QCSweepOptions): Promise<QCSweepResult> {
-  const { supabase, anthropicKey, sinceDays, dryRun, source } = options
+  const { supabase, anthropicKey, sinceDays, dryRun, source, maxStories } = options
 
   let query = supabase
     .from('stories')
     .select('*')
     .eq('published', true)
+    // Never-swept stories first, then least-recently-swept — guarantees new
+    // stories get reconciled quickly and the backlog rotates across runs.
+    .order('qc_swept_at', { ascending: true, nullsFirst: true })
     .order('created_at', { ascending: false })
 
   if (sinceDays !== null) {
     const since = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000).toISOString()
     query = query.gte('created_at', since)
+  }
+
+  if (maxStories && maxStories > 0) {
+    query = query.limit(maxStories)
   }
 
   const { data, error } = await query
@@ -157,6 +169,17 @@ export async function runQCSweep(options: QCSweepOptions): Promise<QCSweepResult
       routing_note: gate.routingNote,
     })
     if (logErr) result.errors.push(`Failed to log sweep result for ${story.slug}: ${logErr.message}`)
+  }
+
+  // Stamp every scanned story as swept so the next run advances to the rest
+  // of the backlog (auto_fix/hold already wrote rows, but 'none' did not).
+  if (!dryRun && stories.length > 0) {
+    const sweptAt = new Date().toISOString()
+    const { error: stampErr } = await supabase
+      .from('stories')
+      .update({ qc_swept_at: sweptAt })
+      .in('id', stories.map(s => s.id))
+    if (stampErr) result.errors.push(`Failed to stamp qc_swept_at: ${stampErr.message}`)
   }
 
   return result

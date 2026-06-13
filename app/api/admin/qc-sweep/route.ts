@@ -20,12 +20,19 @@ export async function GET(request: Request) {
   if (unauthorized) return unauthorized
 
   try {
+    // Bounded batch per run — one LLM call per story can't fit the whole
+    // 14-day window in a single request. ?limit= overrides for manual runs.
+    const url = new URL(request.url)
+    const limitParam = Number(url.searchParams.get('limit'))
+    const maxStories = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 40
+
     const result = await runQCSweep({
       supabase: getSupabase(),
       anthropicKey: process.env.ANTHROPIC_API_KEY!,
       sinceDays: 14,
       dryRun: false,
       source: 'nightly_sweep',
+      maxStories,
     })
     return NextResponse.json(result)
   } catch (err) {

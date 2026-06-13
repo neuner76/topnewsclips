@@ -29,6 +29,7 @@ function buildSupabaseMock(stories: Record<string, unknown>[]) {
     query.eq = vi.fn(() => query)
     query.order = vi.fn(() => query)
     query.gte = vi.fn(() => query)
+    query.limit = vi.fn(() => query)
     query.then = (resolve: (v: { data: unknown; error: null }) => void) =>
       resolve({ data: stories, error: null })
     return query
@@ -41,6 +42,11 @@ function buildSupabaseMock(stories: Record<string, unknown>[]) {
         update: (payload: Record<string, unknown>) => ({
           eq: (_col: string, id: string) => {
             updates.push({ table, id: String(id), payload })
+            return Promise.resolve({ error: null })
+          },
+          // Batch qc_swept_at stamp at the end of the sweep
+          in: (_col: string, ids: string[]) => {
+            for (const id of ids) updates.push({ table, id: String(id), payload })
             return Promise.resolve({ error: null })
           },
         }),
@@ -141,7 +147,8 @@ describe('runQCSweep', () => {
 
     expect(result.autoFixed).toBe(1)
     expect(result.held).toBe(0)
-    expect(supabaseMock.updates).toHaveLength(1)
+    // The auto-fix update plus the trailing qc_swept_at stamp
+    expect(supabaseMock.updates).toHaveLength(2)
     expect(supabaseMock.updates[0]).toMatchObject({
       table: 'stories',
       id: 'id-fix',
@@ -151,6 +158,7 @@ describe('runQCSweep', () => {
         qc_status: 'pass',
       }),
     })
+    expect(supabaseMock.updates[1].payload).toHaveProperty('qc_swept_at')
     expect(supabaseMock.sweepLogInserts[0]).toMatchObject({ action: 'auto_fix', dry_run: false })
   })
 
@@ -175,7 +183,8 @@ describe('runQCSweep', () => {
     })
 
     expect(result.held).toBe(1)
-    expect(supabaseMock.updates).toHaveLength(1)
+    // The hold/unpublish update plus the trailing qc_swept_at stamp
+    expect(supabaseMock.updates).toHaveLength(2)
     expect(supabaseMock.updates[0]).toMatchObject({
       table: 'stories',
       id: 'id-hold',
@@ -185,6 +194,7 @@ describe('runQCSweep', () => {
         qc_routing_note: 'Move to archive section',
       }),
     })
+    expect(supabaseMock.updates[1].payload).toHaveProperty('qc_swept_at')
     expect(supabaseMock.sweepLogInserts[0]).toMatchObject({ action: 'hold', dry_run: false })
   })
 })
