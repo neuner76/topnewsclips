@@ -26,16 +26,15 @@ import {
   isLimitedSourceNeedToKnow,
   isWeakPrimarySingleton,
 } from '@/lib/feed-editorial'
+import {
+  buildDigestEdition,
+  CANONICAL_IN_THE_KNOW_SECTIONS,
+  deriveMainstreamPulseSynthesis,
+  DIGEST_SECTION_LIMITS,
+  validateDigestEdition,
+} from '@/lib/digest-canonical'
 
 export const revalidate = 300
-
-const IN_THE_KNOW_CATEGORIES = [
-  'Politics & World Affairs',
-  'Science & Technology',
-  'Business & Markets',
-  'Sports, Entertainment, & Culture',
-  'Comedy & Satire',
-] as const
 
 // ─── Digest components ───────────────────────────────────────────────────────
 
@@ -186,26 +185,30 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
 // Per-category config for In The Know
 const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string; subtitle: string }> = {
   'Politics & World Affairs':        { color: '#3b82f6', icon: '🌐', subtitle: 'What\'s moving in politics and around the world' },
-  'Science & Technology':            { color: '#a855f7', icon: '🔬', subtitle: 'Discoveries, breakthroughs, and what\'s changing fast' },
+  'Science, Health & Environment':   { color: '#a855f7', icon: '🔬', subtitle: 'Science, health, climate, and environmental shifts' },
   'Business & Markets':              { color: '#22c55e', icon: '📈', subtitle: 'Economic signals, market moves, and industry shifts' },
-  'Sports, Entertainment, & Culture':{ color: '#f97316', icon: '🎭', subtitle: 'Sports, culture, and the stories people are talking about' },
-  'Comedy & Satire':                 { color: '#eab308', icon: '🎤', subtitle: 'The week in news, through a different lens' },
+  'Culture, Media & Society':        { color: '#f97316', icon: '🎭', subtitle: 'Culture, media, sports, and social stories people are talking about' },
 }
 
 function DigestView({ content, date, storyMap }: { content: DigestContent; date: string; storyMap: Map<string, Story> }) {
+  const edition = buildDigestEdition({ id: `feed-${date}`, date, content, generated_at: '' }, storyMap, 'https://www.topnewsclips.com')
+  const validation = validateDigestEdition(edition)
+  if (validation.errors.length > 0 || validation.warnings.length > 0) {
+    console.warn('[feed] canonical digest validation', validation)
+  }
   const formattedDate = new Date(`${date}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     timeZone: 'America/New_York',
   })
-  const categoryBlocks = IN_THE_KNOW_CATEGORIES.map((cat) => {
-    const items = content.inTheKnow[cat] ?? []
-    const cfg = ITK_CATEGORY_CONFIG[cat] ?? { color: '#3b82f6', icon: '📌', subtitle: '' }
+  const categoryBlocks = CANONICAL_IN_THE_KNOW_SECTIONS.map(({ name, sourceKeys }) => {
+    const items = sourceKeys.flatMap(key => content.inTheKnow[key] ?? [])
+    const cfg = ITK_CATEGORY_CONFIG[name] ?? { color: '#3b82f6', icon: '📌', subtitle: '' }
     const stories = items
       .filter(item => item.slug)
       .map(item => storyMap.get(item.slug!))
       .filter((s): s is Story => !!s)
     const shouldReassignSingleton = stories.length === 1 && isWeakPrimarySingleton(stories[0], resolvedBadge(stories[0]).sourceType)
-    return { cat, items, cfg, stories, shouldReassignSingleton }
+    return { cat: name, items, cfg, stories, shouldReassignSingleton }
   })
   const reassignedEtcetera: Array<EtceteraItem & { originalSection: string }> = categoryBlocks
     .filter(block => block.shouldReassignSingleton)
@@ -254,12 +257,9 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       {/* In The Know, one WorldMapSection per category */}
       {categoryBlocks.map(({ cat, cfg, stories, shouldReassignSingleton }) => {
         if (!stories.length || shouldReassignSingleton) return null
-        // Task 7: cap Politics & World Affairs density at 5 so the lane doesn't
-        // sprawl; the rest is reachable via the archive. (No topic-filtered
-        // archive exists yet, so "See all" links to the full archive.)
-        const POLITICS_CAP = 5
-        const isCapped = cat === 'Politics & World Affairs' && stories.length > POLITICS_CAP
-        const shownStories = isCapped ? stories.slice(0, POLITICS_CAP) : stories
+        const cap = DIGEST_SECTION_LIMITS[cat] ?? 4
+        const isCapped = stories.length > cap
+        const shownStories = isCapped ? stories.slice(0, cap) : stories
         return (
           <WorldMapSection
             key={cat}
@@ -335,6 +335,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#94a3b8]">📺 Mainstream Pulse</span>
           <p className="text-xs text-white/50 mb-1.5">What major U.S. outlets are leading with today.</p>
+          <p className="text-sm text-white/60 mb-3 leading-relaxed">{deriveMainstreamPulseSynthesis(content.mainstreamPulse)}</p>
           <p className="text-[11px] text-white/35 mb-4 italic">Headline selections from major tracked outlets — not TopNewsClips endorsements.</p>
           <Link href="/corrections" className="block text-[10px] text-white/40 hover:text-white/80 transition-colors mb-3">
             ✓ No corrections today

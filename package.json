@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "validate:digest": "vite-node scripts/validate-digest.ts",
     "verify:live-qc": "node scripts/verify-live-qc.mjs",
     "test": "vitest run"
   },

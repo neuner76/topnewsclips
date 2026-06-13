@@ -3,6 +3,11 @@ import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
 import { selectNewsletterNextStep } from '@/lib/newsletter-next-step'
+import {
+  buildDigestEdition,
+  formatDigestMetadata,
+  validateDigestEdition,
+} from '@/lib/digest-canonical'
 
 export const DIGEST_UTM = 'utm_source=email&utm_medium=email&utm_campaign=digest'
 
@@ -117,23 +122,14 @@ function renderBadgeRow(story: Story): string {
   return `<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${parts.join('')}</div>`
 }
 
-function renderGlobalMeta(story: Story): string {
-  const parts = [formatPublishedDate(story.created_at)]
-  const handle = sourceHandle(story)
-  if (handle) parts.push(handle)
-  return `<p style="margin:4px 0 0;font-size:11px;color:#9ca3af;">${parts.join('<span style="margin:0 4px;opacity:0.45;">·</span>')}</p>`
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function buildEmailHtml(content: DigestContent, date: string, siteUrl: string, storyMap: Map<string, Story>): string {
-  const inTheKnowCategories = [
-    'Politics & World Affairs',
-    'Science & Technology',
-    'Business & Markets',
-    'Sports, Entertainment, & Culture',
-    'Comedy & Satire',
-  ] as const
+  const edition = buildDigestEdition({ id: `email-${date}`, date, content, generated_at: '' }, storyMap, siteUrl)
+  const validation = validateDigestEdition(edition)
+  if (validation.errors.length > 0 || validation.warnings.length > 0) {
+    console.warn('[digest-email] canonical digest validation', validation)
+  }
 
   const needToKnowHtml = content.needToKnow.map(item => {
     const story = storyMap.get(item.slug)
@@ -170,71 +166,58 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
     </div>
   ` : ''
 
-  const inTheKnowHtml = inTheKnowCategories.map(cat => {
-    const items = content.inTheKnow[cat]
-    if (!items || items.length === 0) return ''
+  const inTheKnowHtml = edition.sections
+    .filter(section => section.name !== 'Also Worth Knowing')
+    .map(section => {
+    const items = section.items
+    if (items.length === 0) return ''
     return `
       <div style="margin-bottom:20px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6b7280;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;">${cat}</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6b7280;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;">${section.name}</div>
         ${items.map(item => {
-          const story = item.slug ? storyMap.get(item.slug) : null
-          const text = item.slug
-            ? `<a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="color:#111827;text-decoration:none;">${item.text}</a>`
-            : item.text
-          const meta = story ? (() => {
-            const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
-            const displayName = story.source?.replace(/^(YouTube|TikTok|Reddit)\/@?/i, '').trim() || story.journalist_username || null
-            const confidenceLabel = getConfidenceLabel(story)
-            // Satire never carries a confidence label — content-type badge instead
-            const confidence = story.category === 'comedy' ? 'Cultural lens' : (confidenceLabel ? CONFIDENCE_LABELS[confidenceLabel] ?? null : null)
-            const covered = story.msm_outlet_coverage?.covered?.length ?? null
-            const total = story.msm_outlet_coverage
-              ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length
-              : null
-            const parts: string[] = []
-            if (displayName) parts.push(`<span style="font-weight:600;color:#374151;">${displayName}</span>`)
-            if (sourceType) parts.push(`<span>${sourceType}${tier ? ` (Tier ${tier})` : ''}</span>`)
-            if (confidence) parts.push(`<span style="font-style:italic;">${confidence}</span>`)
-            if (covered !== null && total !== null) parts.push(`<span>${covered} of ${total} outlets</span>`)
-            if (story.msm_gap) parts.push(`<span style="font-weight:600;color:#b45309;">Limited Coverage</span>`)
-            return parts.length > 0
-              ? `<p style="margin:2px 0 6px;font-size:11px;color:#9ca3af;">${parts.join('<span style="margin:0 3px;opacity:0.4;">·</span>')}</p>`
-              : ''
-          })() : ''
+          const text = item.url
+            ? `<a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="color:#111827;text-decoration:none;">${item.summary}</a>`
+            : item.summary
+          const metaText = formatDigestMetadata(item.metadata, { includeTier: true, includeCaution: true })
+          const meta = metaText
+            ? `<p style="margin:2px 0 6px;font-size:11px;color:#9ca3af;">${metaText}</p>`
+            : ''
           return `<div style="margin-bottom:8px;">
             <p style="margin:0;font-size:14px;line-height:1.6;color:#374151;">• ${text}</p>
             ${meta}
           </div>`
         }).join('')}
+        ${section.omittedCount ? `<a href="${siteUrl}/stories?${DIGEST_UTM}" target="_blank" rel="noopener noreferrer" style="font-size:12px;font-weight:700;color:#64748b;text-decoration:none;">More in the full archive →</a>` : ''}
       </div>
     `
   }).join('')
 
-  const etceteraHtml = content.etcetera.length > 0 ? `
+  const alsoWorthKnowing = edition.sections.find(section => section.name === 'Also Worth Knowing')
+  const etceteraHtml = alsoWorthKnowing && alsoWorthKnowing.items.length > 0 ? `
     <div style="margin-top:28px;padding:20px 24px;background:#f9fafb;border-radius:8px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#6b7280;text-transform:uppercase;margin-bottom:12px;">Also worth knowing</div>
-      ${content.etcetera.map(item => {
-        const etc = typeof item === 'string' ? { text: item, slug: null } : item
-        const story = etc.slug ? storyMap.get(etc.slug) : null
-        const linked = etc.slug
-          ? `<a href="${storyUrl(siteUrl, etc.slug)}" target="_blank" rel="noopener noreferrer" style="color:#374151;text-decoration:none;">${etc.text}</a>`
-          : etc.text
-        const badges = story
-          ? `<div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}${story.msm_gap ? renderMsmBadge(story) : ''}</div>`
-          : ''
+      ${alsoWorthKnowing.items.map(item => {
+        const story = item.id ? storyMap.get(item.id) : null
+        const linked = item.url
+          ? `<a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="color:#374151;text-decoration:none;">${item.summary}</a>`
+          : item.summary
+        const meta = formatDigestMetadata(item.metadata, { includeCaution: true })
         return `<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #e5e7eb;">
           <p style="margin:0;font-size:13px;line-height:1.6;color:#6b7280;">• ${linked}</p>
-          ${badges}
+          ${story ? `<div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}${story.msm_gap ? renderMsmBadge(story) : ''}</div>` : ''}
+          ${meta ? `<p style="margin:2px 0 0;font-size:11px;color:#9ca3af;">${meta}</p>` : ''}
         </div>`
       }).join('')}
+      ${alsoWorthKnowing.omittedCount ? `<a href="${siteUrl}/stories?${DIGEST_UTM}" target="_blank" rel="noopener noreferrer" style="font-size:12px;font-weight:700;color:#64748b;text-decoration:none;">More in the full archive →</a>` : ''}
     </div>
   ` : ''
 
-  const mainstreamPulseHtml = content.mainstreamPulse && content.mainstreamPulse.length > 0 ? `
+  const mainstreamPulseHtml = edition.mainstreamPulse && edition.mainstreamPulse.items.length > 0 ? `
     <div style="margin-top:28px;padding:20px 24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#64748b;text-transform:uppercase;margin-bottom:4px;">Mainstream Pulse</div>
-      <div style="font-size:11px;color:#94a3b8;margin-bottom:14px;">What the major outlets are leading with today.</div>
-      ${content.mainstreamPulse.map(item => `
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;">What the major outlets are leading with today.</div>
+      <p style="margin:0 0 14px;font-size:12px;line-height:1.5;color:#64748b;">${edition.mainstreamPulse.synthesis}</p>
+      ${edition.mainstreamPulse.items.map(item => `
         <div style="display:flex;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">
           <div style="flex-shrink:0;width:72px;padding-top:2px;">
             <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#94a3b8;text-transform:uppercase;">${item.source}</div>
@@ -249,45 +232,45 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
     </div>
   ` : ''
 
-  const globalBlindspotHtml = content.globalBlindspots && content.globalBlindspots.length > 0 ? `
+  const globalBlindspotHtml = edition.globalBlindspot.length > 0 ? `
     <div style="margin-top:28px;padding:20px 24px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">🌍 Global Blindspot</div>
       <div style="font-size:11px;color:#78716c;margin-bottom:16px;">Stories the rest of the world is covering that US media is ignoring.</div>
-      ${content.globalBlindspots.map(item => {
-        const story = storyMap.get(item.slug)
+      ${edition.globalBlindspot.map(item => {
+        const story = storyMap.get(item.id)
         const badges = story
           ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}</div>`
           : ''
-        const meta = story ? renderGlobalMeta(story) : ''
+        const meta = formatDigestMetadata(item.metadata, { includeHandle: true, includeCaution: true })
         return `
         <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #fde68a;">
-          <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#92400e;text-transform:uppercase;margin-right:6px;">${item.region}</span>
-          <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
+          <a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
           ${badges}
-          ${meta}
+          ${meta ? `<p style="margin:4px 0 0;font-size:11px;color:#9ca3af;">${meta}</p>` : ''}
           <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#78716c;">${item.summary}</p>
+          <a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;font-weight:700;color:#92400e;text-decoration:none;">Full story →</a>
         </div>`
       }).join('')}
     </div>
   ` : ''
 
-  const globalLensHtml = content.globalLens && content.globalLens.length > 0 ? `
+  const globalLensHtml = edition.globalLens.length > 0 ? `
     <div style="margin-top:28px;padding:20px 24px;background:#f0fdfc;border:1px solid #99f6e4;border-radius:8px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">🌍 Global Lens</div>
       <div style="font-size:11px;color:#6b7280;margin-bottom:16px;">How international outlets are covering today's stories — perspectives US media isn't amplifying.</div>
-      ${content.globalLens.map(item => {
-        const story = storyMap.get(item.slug)
+      ${edition.globalLens.map(item => {
+        const story = storyMap.get(item.id)
         const badges = story
           ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}</div>`
           : ''
-        const meta = story ? renderGlobalMeta(story) : ''
+        const meta = formatDigestMetadata(item.metadata, { includeHandle: true, includeCaution: true })
         return `
         <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #99f6e4;">
-          <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:#0e7490;text-transform:uppercase;margin-right:6px;">${item.region}</span>
-          <a href="${storyUrl(siteUrl, item.slug)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
+          <a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
           ${badges}
-          ${meta}
+          ${meta ? `<p style="margin:4px 0 0;font-size:11px;color:#9ca3af;">${meta}</p>` : ''}
           <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#6b7280;">${item.summary}</p>
+          <a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;font-weight:700;color:#0e7490;text-decoration:none;">Full story →</a>
         </div>`
       }).join('')}
     </div>

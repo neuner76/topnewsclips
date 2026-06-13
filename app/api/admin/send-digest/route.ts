@@ -3,12 +3,13 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { getLatestDigest, type DigestContent } from '@/lib/digest'
 import type { Story } from '@/lib/types'
-import { buildEmailHtml, buildStoryMap, feedUrlUtm, formatDate, formatPublishedDate, sourceHandle, storyUrl } from '@/lib/email/digest-html'
+import { buildEmailHtml, buildStoryMap, feedUrlUtm, formatDate, storyUrl } from '@/lib/email/digest-html'
 import { unsubscribeLink } from '@/lib/unsubscribe'
 import { preferenceLink } from '@/lib/preference-tokens'
 import { getPersonalizationProfile, personalizeDigestContent } from '@/lib/personalized-digest'
 import { requireCronSecret } from '@/lib/auth'
 import { selectNewsletterNextStep } from '@/lib/newsletter-next-step'
+import { buildDigestEdition, formatDigestMetadata, validateDigestEdition } from '@/lib/digest-canonical'
 
 function getSupabase() {
   return createClient(
@@ -17,28 +18,12 @@ function getSupabase() {
   )
 }
 
-// Split at the first sentence boundary, skipping periods inside abbreviations like "U.S." or "Dr."
-function firstSentence(text: string): string {
-  const match = text.match(/^.*?(?<!\b[A-Z])\.(?=\s+[A-Z]|$)/)
-  return match ? match[0] : text
-}
-
-function globalTextMeta(story: Story | undefined): string {
-  if (!story) return ''
-  const parts = [formatPublishedDate(story.created_at)]
-  const handle = sourceHandle(story)
-  if (handle) parts.push(handle)
-  return parts.join(' · ')
-}
-
 function buildEmailText(content: DigestContent, date: string, siteUrl: string, storyMap: Map<string, Story>): string {
-  const inTheKnowCategories = [
-    'Politics & World Affairs',
-    'Science & Technology',
-    'Business & Markets',
-    'Sports, Entertainment, & Culture',
-    'Comedy & Satire',
-  ] as const
+  const edition = buildDigestEdition({ id: `text-${date}`, date, content, generated_at: '' }, storyMap, siteUrl)
+  const validation = validateDigestEdition(edition)
+  if (validation.errors.length > 0 || validation.warnings.length > 0) {
+    console.warn('[digest-email-text] canonical digest validation', validation)
+  }
 
   const lines: string[] = []
 
@@ -73,28 +58,32 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string, s
   // In the Know
   lines.push('IN THE KNOW')
   lines.push('')
-  for (const cat of inTheKnowCategories) {
-    const items = content.inTheKnow[cat]
-    if (!items || items.length === 0) continue
-    lines.push(cat.toUpperCase())
-    for (const item of items) {
-      const link = item.slug ? ` ${storyUrl(siteUrl, item.slug)}` : ''
-      lines.push(`• ${item.text}${link}`)
+  for (const section of edition.sections.filter(section => section.name !== 'Also Worth Knowing')) {
+    if (section.items.length === 0) continue
+    lines.push(section.name.toUpperCase())
+    for (const item of section.items) {
+      const link = item.url ? ` ${storyUrl(siteUrl, item.id)}` : ''
+      lines.push(`• ${item.summary}${link}`)
+      const meta = formatDigestMetadata(item.metadata, { includeTier: true, includeCaution: true })
+      if (meta) lines.push(`  ${meta}`)
     }
+    if (section.omittedCount) lines.push(`More in the full archive: ${siteUrl}/stories`)
     lines.push('')
   }
 
-  // Also worth knowing
-  if (content.etcetera.length > 0) {
+  const alsoWorthKnowing = edition.sections.find(section => section.name === 'Also Worth Knowing')
+  if (alsoWorthKnowing && alsoWorthKnowing.items.length > 0) {
     lines.push('─'.repeat(60))
     lines.push('')
     lines.push('ALSO WORTH KNOWING')
     lines.push('')
-    for (const item of content.etcetera) {
-      const etc = typeof item === 'string' ? { text: item, slug: null } : item
-      const link = etc.slug ? `  ${storyUrl(siteUrl, etc.slug)}` : ''
-      lines.push(`• ${etc.text}${link}`)
+    for (const item of alsoWorthKnowing.items) {
+      const link = item.url ? `  ${storyUrl(siteUrl, item.id)}` : ''
+      lines.push(`• ${item.summary}${link}`)
+      const meta = formatDigestMetadata(item.metadata, { includeCaution: true })
+      if (meta) lines.push(`  ${meta}`)
     }
+    if (alsoWorthKnowing.omittedCount) lines.push(`More in the full archive: ${siteUrl}/stories`)
     lines.push('')
   }
 
@@ -115,6 +104,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string, s
     lines.push('')
     lines.push('MAINSTREAM PULSE')
     lines.push("What the major outlets are leading with today.")
+    if (edition.mainstreamPulse?.synthesis) lines.push(edition.mainstreamPulse.synthesis)
     lines.push('')
     for (const item of content.mainstreamPulse) {
       const link = item.slug ? ` — ${storyUrl(siteUrl, item.slug)}` : item.url ? ` — ${item.url}` : ''
@@ -124,37 +114,35 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string, s
   }
 
   // Global Blindspot
-  if (content.globalBlindspots && content.globalBlindspots.length > 0) {
+  if (edition.globalBlindspot.length > 0) {
     lines.push('─'.repeat(60))
     lines.push('')
     lines.push('🌍 GLOBAL BLINDSPOT')
     lines.push('Stories the rest of the world is covering that US media is ignoring.')
     lines.push('')
-    for (const item of content.globalBlindspots) {
-      const meta = globalTextMeta(storyMap.get(item.slug))
-      const sentence = firstSentence(item.summary)
-      lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
+    for (const item of edition.globalBlindspot) {
+      const meta = formatDigestMetadata(item.metadata, { includeHandle: true, includeCaution: true })
+      lines.push(item.title)
       if (meta) lines.push(meta)
-      lines.push(sentence)
-      lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
+      lines.push(item.summary)
+      lines.push(`Full story: ${storyUrl(siteUrl, item.id)}`)
       lines.push('')
     }
   }
 
   // Global Lens
-  if (content.globalLens && content.globalLens.length > 0) {
+  if (edition.globalLens.length > 0) {
     lines.push('─'.repeat(60))
     lines.push('')
     lines.push('🌍 GLOBAL LENS')
     lines.push("How international outlets are covering today's stories — perspectives US media isn't amplifying.")
     lines.push('')
-    for (const item of content.globalLens) {
-      const meta = globalTextMeta(storyMap.get(item.slug))
-      const sentence = firstSentence(item.summary)
-      lines.push(`[${item.region.toUpperCase()}] ${item.title}`)
+    for (const item of edition.globalLens) {
+      const meta = formatDigestMetadata(item.metadata, { includeHandle: true, includeCaution: true })
+      lines.push(item.title)
       if (meta) lines.push(meta)
-      lines.push(sentence)
-      lines.push(`Watch: ${storyUrl(siteUrl, item.slug)}`)
+      lines.push(item.summary)
+      lines.push(`Full story: ${storyUrl(siteUrl, item.id)}`)
       lines.push('')
     }
   }
