@@ -11,7 +11,7 @@ interface FeedStoryLinkProps {
   children: ReactNode
   className?: string
   style?: CSSProperties
-  event?: 'feed_story_click' | 'feed_full_story_click' | 'feed_clip_click'
+  event?: 'feed_story_click' | 'feed_full_story_click' | 'feed_clip_click' | 'feed_emerging_signal_click' | 'feed_zero_coverage_story_click'
   properties: Record<string, TrackValue>
 }
 

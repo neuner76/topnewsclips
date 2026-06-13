@@ -18,6 +18,14 @@ import { getOutletDescriptor } from '@/lib/outlet-descriptors'
 import ConfidenceBadge from '@/components/ConfidenceBadge'
 import MSMBadge from '@/components/MSMBadge'
 import FeedStoryLink from '@/components/FeedStoryLink'
+import {
+  coverageCount,
+  coverageText,
+  displaySummary,
+  emergingSignalCopy,
+  isLimitedSourceNeedToKnow,
+  isWeakPrimarySingleton,
+} from '@/lib/feed-editorial'
 
 export const revalidate = 300
 
@@ -51,22 +59,6 @@ function resolvedBadge(story: Story): { tier: number | null; sourceType: string 
 
 const PARA_LABELS = ['What happened', 'Why it matters'] as const
 
-function clampWords(text: string, maxWords = 65): string {
-  const words = text.trim().split(/\s+/).filter(Boolean)
-  if (words.length <= maxWords) return text
-  return `${words.slice(0, maxWords).join(' ')}...`
-}
-
-function coverageCount(story: Story): number {
-  return story.msm_outlet_coverage?.covered?.length ?? 0
-}
-
-function coverageText(story: Story): string {
-  const covered = coverageCount(story)
-  const total = (story.msm_outlet_coverage?.covered?.length ?? 0) + (story.msm_outlet_coverage?.notCovered?.length ?? 0)
-  return total > 0 ? `${covered} of ${total} outlets` : 'Coverage pending'
-}
-
 function getStoryCautionNote(story: Story): string | null {
   const confidence = getConfidenceLabel(story)
   const text = `${story.title} ${story.description ?? ''}`.toLowerCase()
@@ -84,10 +76,20 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
   const hasAttribution = badge?.tier || badge?.sourceType || story?.journalist_username
   const confidence = story ? getConfidenceLabel(story) : null
   const cautionNote = story ? getStoryCautionNote(story) : null
+  const emergingSignal = story ? isLimitedSourceNeedToKnow(story, 'Need To Know') : false
+  const treatment = emergingSignal ? 'emerging_signal' : 'standard'
   return (
     <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderLeft: '3px solid #3b82f6' }}>
+      {emergingSignal && story && (
+        <TrackEvent name="feed_emerging_signal_impression" properties={{ story_slug: story.slug, section: 'Need To Know', position, coverage_count: coverageCount(story), coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: badge?.sourceType, source_tier: badge?.tier, confidence, treatment }} />
+      )}
       {(hasAttribution || story?.msm_gap) && (
         <div className="flex flex-wrap items-center gap-2 mb-2">
+          {emergingSignal && (
+            <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-400/30 text-amber-200/90">
+              Emerging signal
+            </span>
+          )}
           {(badge?.tier || badge?.sourceType) && <TierBadge tier={badge.tier} sourceType={badge.sourceType} />}
           {story && <ConfidenceBadge label={confidence} category={story.category} />}
           {story && <span className="text-[10px] text-white/30">{coverageText(story)}</span>}
@@ -99,7 +101,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
       )}
       <FeedStoryLink
         href={`/story/${item.slug}`}
-        event="feed_story_click"
+        event={emergingSignal ? 'feed_emerging_signal_click' : 'feed_story_click'}
         properties={{
           section: 'Need To Know',
           story_slug: item.slug,
@@ -109,6 +111,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
           coverage_count: story ? coverageCount(story) : null,
           position,
           is_lower_confidence: false,
+          treatment,
         }}
         className="group block mb-3"
       >
@@ -122,10 +125,15 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
             <p className="text-[10px] font-bold tracking-widest text-white/40 uppercase mb-1">
               {PARA_LABELS[i]}
             </p>
-            <p className="editorial-body text-white/80">{clampWords(p, i === 0 ? 65 : 55)}</p>
+            <p className="editorial-body text-white/80">{displaySummary(p, i === 0 ? 65 : 55)}</p>
           </div>
         ))}
       </div>
+      {emergingSignal && (
+        <p className="mt-3 rounded-lg border border-amber-400/15 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-100/75">
+          {emergingSignalCopy(position - 1)}
+        </p>
+      )}
       {cautionNote && (
         <p className="mt-3 text-[11px] text-white/40">{cautionNote}</p>
       )}
@@ -141,6 +149,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
           coverage_count: story ? coverageCount(story) : null,
           position,
           is_lower_confidence: false,
+          treatment,
         }}
         className="inline-block mt-4 text-xs font-semibold text-white/50 hover:text-white transition-colors"
       >
@@ -163,7 +172,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
                   rel="noopener noreferrer"
                   className="text-sm text-white/60 hover:text-white transition-colors leading-snug"
                 >
-                  {clampWords(w.summary, 40)}
+                  {displaySummary(w.summary, 40)}
                 </Link>
               </div>
             ))}
@@ -188,6 +197,30 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     timeZone: 'America/New_York',
   })
+  const categoryBlocks = IN_THE_KNOW_CATEGORIES.map((cat) => {
+    const items = content.inTheKnow[cat] ?? []
+    const cfg = ITK_CATEGORY_CONFIG[cat] ?? { color: '#3b82f6', icon: '📌', subtitle: '' }
+    const stories = items
+      .filter(item => item.slug)
+      .map(item => storyMap.get(item.slug!))
+      .filter((s): s is Story => !!s)
+    const shouldReassignSingleton = stories.length === 1 && isWeakPrimarySingleton(stories[0], resolvedBadge(stories[0]).sourceType)
+    return { cat, items, cfg, stories, shouldReassignSingleton }
+  })
+  const reassignedEtcetera: Array<EtceteraItem & { originalSection: string }> = categoryBlocks
+    .filter(block => block.shouldReassignSingleton)
+    .map(block => {
+      const item = block.items.find(i => i.slug === block.stories[0]?.slug)
+      return {
+        slug: block.stories[0].slug,
+        text: item?.text ?? block.stories[0].title,
+        originalSection: block.cat,
+      }
+    })
+  const etceteraItems: Array<EtceteraItem | string> = [
+    ...reassignedEtcetera,
+    ...(content.etcetera ?? []),
+  ]
 
   return (
     <div>
@@ -219,15 +252,8 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       />
 
       {/* In The Know, one WorldMapSection per category */}
-      {IN_THE_KNOW_CATEGORIES.map((cat) => {
-        const items = content.inTheKnow[cat]
-        if (!items?.length) return null
-        const cfg = ITK_CATEGORY_CONFIG[cat] ?? { color: '#3b82f6', icon: '📌' }
-        // Resolve Story objects for each item, filtering out missing ones
-        const stories = items
-          .filter(item => item.slug)
-          .map(item => storyMap.get(item.slug!))
-          .filter((s): s is Story => !!s)
+      {categoryBlocks.map(({ cat, cfg, stories, shouldReassignSingleton }) => {
+        if (!stories.length || shouldReassignSingleton) return null
         return (
           <WorldMapSection
             key={cat}
@@ -242,22 +268,26 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       })}
 
       {/* Etcetera */}
-      {content.etcetera?.length > 0 && (
+      {etceteraItems.length > 0 && (
         <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
-          <TrackEvent name="feed_section_impression" properties={{ section: 'Also Worth Knowing', story_count: Math.min(content.etcetera.length, 3) }} />
+          <TrackEvent name="feed_section_impression" properties={{ section: 'Also Worth Knowing', story_count: Math.min(etceteraItems.length, 3) }} />
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#64748b' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-white/40">··· Also Worth Knowing</span>
           <p className="text-xs text-white/45 mb-4">Lower-stakes stories and visual moments from the wider news cycle.</p>
           <ul className="space-y-2 rounded-lg px-2 py-1">
-            {content.etcetera.slice(0, 3).map((item: EtceteraItem | string, i: number) => {
+            {etceteraItems.slice(0, 3).map((item: EtceteraItem | string, i: number) => {
               const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
               const story = etc.slug ? storyMap.get(etc.slug) : null
               const badge = story ? resolvedBadge(story) : null
               const confidence = story ? getConfidenceLabel(story) : null
-              const text = <span className="text-[0.84rem] leading-relaxed text-white/62">{clampWords(etc.text, 34)}</span>
+              const reassigned = story ? reassignedEtcetera.find(reassignedItem => reassignedItem.slug === story.slug) : null
+              const text = <span className="text-[0.84rem] leading-relaxed text-white/62">{displaySummary(etc.text, 34)}</span>
               return (
                 <li key={i} className="flex flex-col gap-1 px-3 py-2.5 rounded-xl mb-2 last:mb-0" style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid rgba(255,255,255,0.045)', borderLeft: '3px solid #64748b' }}>
+                  {reassigned && story && (
+                    <TrackEvent name="feed_story_reassigned_section" properties={{ story_slug: story.slug, original_section: reassigned.originalSection, final_section: 'Also Worth Knowing', treatment: 'weak_singleton' }} />
+                  )}
                   {etc.slug ? (
                     <FeedStoryLink
                       href={`/story/${etc.slug}`}
@@ -431,6 +461,7 @@ export default async function HomePage({
       ...Object.values(digest.content.inTheKnow).flatMap(items => items.map(i => i.slug).filter(Boolean) as string[]),
       ...(digest.content.etcetera ?? []).map(i => typeof i === 'string' ? null : i.slug).filter(Boolean) as string[],
       ...(digest.content.globalBlindspots ?? []).map(i => i.slug),
+      ...(digest.content.globalLens ?? []).map(i => i.slug),
     ]
     const missingSlugs = [...new Set(digestSlugs)].filter(slug => !storyMap.has(slug))
     if (missingSlugs.length > 0) {

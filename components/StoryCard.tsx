@@ -10,6 +10,7 @@ import CategoryBadge from './CategoryBadge'
 import MSMBadge from './MSMBadge'
 import TierBadge from './TierBadge'
 import ConfidenceBadge from './ConfidenceBadge'
+import { displaySummary } from '@/lib/feed-editorial'
 
 interface StoryCardProps {
   story: Story
@@ -125,7 +126,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
           </h3>
         </Link>
         {story.description && (
-          <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>
+          <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 45)}</p>
         )}
         <div className="mt-auto pt-1 flex flex-wrap items-center gap-2">
           <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />

@@ -9,6 +9,15 @@ import ConfidenceBadge from './ConfidenceBadge'
 import FeedStoryLink from './FeedStoryLink'
 import TrackEvent from './TrackEvent'
 import { getConfidenceLabel } from '@/lib/confidence'
+import {
+  coverageCount,
+  coverageText,
+  displaySummary,
+  isLowerConfidenceStory,
+  isZeroCoverageStory,
+  shouldCompactStoryInSection,
+  shouldShowZeroCoverageCaution,
+} from '@/lib/feed-editorial'
 
 interface WorldMapSectionProps {
   title: string
@@ -45,26 +54,6 @@ function formatPublishedDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function coverageCount(story: Story): number {
-  return story.msm_outlet_coverage?.covered?.length ?? 0
-}
-
-function coverageText(story: Story): string {
-  const covered = coverageCount(story)
-  const total = (story.msm_outlet_coverage?.covered?.length ?? 0) + (story.msm_outlet_coverage?.notCovered?.length ?? 0)
-  return total > 0 ? `${covered} of ${total} outlets` : 'Coverage pending'
-}
-
-function isLowerConfidenceStory(story: Story, sourceType: string | null): boolean {
-  const confidence = getConfidenceLabel(story)
-  return (
-    confidence === 'SINGLE-SOURCE' ||
-    sourceType === 'Raw Footage' ||
-    sourceType === 'Community Sourced' ||
-    coverageCount(story) === 0
-  )
-}
-
 function sectionSortScore(story: Story): number {
   const { sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
   const confidence = getConfidenceLabel(story)
@@ -98,6 +87,14 @@ function SocialClipLabel({ story }: { story: Story }) {
   return (
     <span className="text-[9px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/45">
       Social clip — corroborated by broader coverage
+    </span>
+  )
+}
+
+function LimitedMainstreamCoverageLabel() {
+  return (
+    <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-400/25 text-amber-200/80" title="This story appears in few or none of the tracked major outlets.">
+      Limited mainstream coverage
     </span>
   )
 }
@@ -167,14 +164,17 @@ export default function WorldMapSection({
                 const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
                 const confidence = getConfidenceLabel(story)
                 const lowerConfidence = isLowerConfidenceStory(story, sourceType)
+                const zeroCoverage = isZeroCoverageStory(story)
+                const compact = shouldCompactStoryInSection(title, story, sourceType)
+                const showZeroCoverageCaution = shouldShowZeroCoverageCaution(title, story)
                 // Compact treatment: community/social clips never render at
                 // full size inside a hard-news lane
-                if (isSocialClip(tier, title)) {
+                if (isSocialClip(tier, title) || compact) {
                   return (
                     <FeedStoryLink
                       key={story.id}
                       href={`/story/${story.slug}`}
-                      event="feed_clip_click"
+                      event={zeroCoverage ? 'feed_zero_coverage_story_click' : 'feed_clip_click'}
                       properties={{
                         section: title,
                         story_slug: story.slug,
@@ -184,10 +184,13 @@ export default function WorldMapSection({
                         coverage_count: coverageCount(story),
                         position: index + 1,
                         is_lower_confidence: true,
+                        treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact',
                       }}
                       className="group flex gap-3 items-center rounded-xl overflow-hidden p-2.5 transition-transform hover:-translate-y-0.5"
                       style={{ background: 'rgba(17,24,39,0.72)', border: '1px solid rgba(255,255,255,0.05)' }}
                     >
+                      <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
+                      {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}
                       <div className="relative w-24 aspect-video shrink-0 rounded-md bg-white/5 overflow-hidden">
                         {thumb ? (
                           <Image src={thumb} alt={story.title} fill className="object-cover opacity-80" unoptimized />
@@ -204,6 +207,7 @@ export default function WorldMapSection({
                           <ConfidenceBadge label={confidence} category={story.category} />
                           <span className="text-[10px] text-white/30">{coverageText(story)}</span>
                           <SocialClipLabel story={story} />
+                          {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                         </div>
                       </div>
                     </FeedStoryLink>
@@ -219,11 +223,12 @@ export default function WorldMapSection({
                       story_slug: story.slug,
                       source_type: sourceType,
                       source_tier: tier,
-                      confidence,
-                      coverage_count: coverageCount(story),
-                      position: index + 1,
-                      is_lower_confidence: lowerConfidence,
-                    }}
+                        confidence,
+                        coverage_count: coverageCount(story),
+                        position: index + 1,
+                        is_lower_confidence: lowerConfidence,
+                        treatment: lowerConfidence ? 'reduced_weight' : 'standard',
+                      }}
                     className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
                     style={{
                       background: lowerConfidence ? 'rgba(17,24,39,0.72)' : '#111827',
@@ -260,12 +265,13 @@ export default function WorldMapSection({
                         {story.title}
                       </h3>
                       {story.description && (
-                        <p className={`text-xs ${lowerConfidence ? 'text-white/40 line-clamp-1' : 'text-white/50 line-clamp-2'} leading-relaxed mb-2`}>{story.description}</p>
+                        <p className={`text-xs ${lowerConfidence ? 'text-white/40 line-clamp-1' : 'text-white/50 line-clamp-2'} leading-relaxed mb-2`}>{displaySummary(story.description, lowerConfidence ? 24 : 45)}</p>
                       )}
                       <div className="mt-auto pt-2 flex flex-wrap items-center gap-2">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                         <ConfidenceBadge label={confidence} category={story.category} />
                         <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                        {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                       </div>
                     </div>
                   </FeedStoryLink>
@@ -279,13 +285,17 @@ export default function WorldMapSection({
                 const { tier, sourceType } = getSourceTier(story.journalist_username, story.source ?? '', story.category)
                 const confidence = getConfidenceLabel(story)
                 const lowerConfidence = isLowerConfidenceStory(story, sourceType)
+                const zeroCoverage = isZeroCoverageStory(story)
+                const compact = shouldCompactStoryInSection(title, story, sourceType)
+                const showZeroCoverageCaution = shouldShowZeroCoverageCaution(title, story)
                 // Compact treatment: community/social clips never render at
                 // full size inside a hard-news lane
-                if (isSocialClip(tier, title)) {
+                if (isSocialClip(tier, title) || compact) {
                   return (
                     <FeedStoryLink
                       key={story.id}
                       href={`/story/${story.slug}`}
+                      event={zeroCoverage ? 'feed_zero_coverage_story_click' : 'feed_story_click'}
                       properties={{
                         section: title,
                         story_slug: story.slug,
@@ -295,10 +305,13 @@ export default function WorldMapSection({
                         coverage_count: coverageCount(story),
                         position: index + 1,
                         is_lower_confidence: true,
+                        treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact',
                       }}
                       className="group flex gap-3 items-start rounded-xl px-3 py-2 transition-all"
                       style={{ borderLeft: '3px solid #64748b', background: 'rgba(255,255,255,0.018)', marginBottom: '6px' }}
                     >
+                      <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
+                      {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-[13px] text-white/70 font-semibold leading-snug truncate group-hover:underline underline-offset-2 mb-1">
                           {story.title}
@@ -308,6 +321,7 @@ export default function WorldMapSection({
                           <ConfidenceBadge label={confidence} category={story.category} />
                           <span className="text-[10px] text-white/30">{coverageText(story)}</span>
                           <SocialClipLabel story={story} />
+                          {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                         </div>
                       </div>
                     </FeedStoryLink>
@@ -322,11 +336,12 @@ export default function WorldMapSection({
                       story_slug: story.slug,
                       source_type: sourceType,
                       source_tier: tier,
-                      confidence,
-                      coverage_count: coverageCount(story),
-                      position: index + 1,
-                      is_lower_confidence: lowerConfidence,
-                    }}
+                        confidence,
+                        coverage_count: coverageCount(story),
+                        position: index + 1,
+                        is_lower_confidence: lowerConfidence,
+                        treatment: lowerConfidence ? 'reduced_weight' : 'standard',
+                      }}
                     className="group flex gap-3 items-start rounded-xl px-3 py-3 transition-all"
                     style={{
                       borderLeft: `3px solid ${lowerConfidence ? '#64748b' : accent}`,
@@ -346,12 +361,13 @@ export default function WorldMapSection({
                         {story.title}
                       </h3>
                       {story.description && (
-                        <p className={`text-xs ${lowerConfidence ? 'text-white/40 line-clamp-1' : 'text-white/50 line-clamp-2'} leading-relaxed mb-2`}>{story.description}</p>
+                        <p className={`text-xs ${lowerConfidence ? 'text-white/40 line-clamp-1' : 'text-white/50 line-clamp-2'} leading-relaxed mb-2`}>{displaySummary(story.description, lowerConfidence ? 24 : 45)}</p>
                       )}
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                         <ConfidenceBadge label={confidence} category={story.category} />
                         <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                        {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                         <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
                         {story.journalist_username && (
                           <span className="text-[10px] text-white/30">@{story.journalist_username}</span>

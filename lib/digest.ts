@@ -904,7 +904,7 @@ GLOBAL LENS (only if INTERNATIONAL PERSPECTIVES are provided):
 - Each entry: { "region": "...", "slug": "...", "title": "...", "summary": "..." }
 - Use the slug, region, and title fields from the input exactly as-is
 - "region" MUST be the specific outlet name from the input's "source" field (e.g. "Al Jazeera", "DW", "France 24", "TRT World", "ABC Australia"). NEVER use a geographic label like "Europe", "Middle East", "Australia" — always use the outlet name. If the source is "YouTube/DW News", write "DW News". If "YouTube/Al Jazeera English", write "Al Jazeera".
-- "summary" = one sentence, MAXIMUM 30 words, describing how this outlet frames the story differently — keep it observational, not assertive. Describe the framing difference as a fact ("Al Jazeera leads with X rather than Y") not as a significance claim ("this is crucial context Americans need"). The reader decides what is significant. One observation, no second sentence.
+- "summary" = one sentence, MAXIMUM 30 words, describing what this outlet centers that U.S. coverage does not. Preferred format: "[Outlet] centers [specific frame], rather than [default U.S. frame]." Keep it observational, not assertive. Do not repeat the base story summary. Do not name an outlet different from the item source/region. One observation, no second sentence.
 - If fewer than 3 unused international stories exist, omit "globalLens" entirely
 - Never reuse a slug already used in globalBlindspots or howWorldSeesIt
 

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
+import { displaySummary } from '@/lib/feed-editorial'
 import TierBadge from './TierBadge'
 import TrackEvent from './TrackEvent'
 
@@ -118,7 +119,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                   </div>
                   <div className="flex flex-col flex-1 p-3">
                     <h3 className="text-sm font-bold text-white/90 group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{story.title}</h3>
-                    {story.description && <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{story.description}</p>}
+                    {story.description && <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 55)}</p>}
                     <div className="mt-auto flex items-center gap-2 flex-wrap">
                       <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                       <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
@@ -159,7 +160,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                     )}
                     <h3 className="text-base font-bold text-white line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{story.title}</h3>
                     {story.description && (
-                      <p className="text-sm text-white/60 line-clamp-3 leading-relaxed mb-2">{story.description}</p>
+                      <p className="text-sm text-white/60 line-clamp-3 leading-relaxed mb-2">{displaySummary(story.description, 65)}</p>
                     )}
                     <div className="flex items-center gap-2 flex-wrap">
                       <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />

@@ -2,6 +2,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
+import {
+  globalLensDisplayText,
+  outletNameForStory,
+  validateGlobalLensSourceConsistency,
+} from '@/lib/feed-editorial'
 import TierBadge from './TierBadge'
 import TrackEvent from './TrackEvent'
 
@@ -64,23 +69,44 @@ function regionFlag(region: string): string {
 
 export default function GlobalLensSection({ items, stories, storyMap, layout = 'list' }: GlobalLensSectionProps) {
   const displayItems: Array<{ story: Story | null; region: string; title: string; summary: string; slug: string }> = []
+  const validationFailures: Array<{ slug: string; reason: string }> = []
 
   if (items && storyMap) {
     for (const item of items.slice(0, 5)) {
       const story = storyMap.get(item.slug) ?? null
-      displayItems.push({ story, region: item.region, title: item.title, summary: item.summary, slug: item.slug })
+      const validation = validateGlobalLensSourceConsistency({ summary: item.summary, outletName: outletNameForStory(story) }, story)
+      if (!validation.valid) {
+        validationFailures.push({ slug: item.slug, reason: validation.reason ?? 'Invalid Global Lens source consistency' })
+        continue
+      }
+      displayItems.push({ story, region: item.region, title: item.title, summary: globalLensDisplayText(item.summary), slug: item.slug })
     }
   } else if (stories) {
     for (const s of stories.slice(0, 5)) {
-      displayItems.push({ story: s, region: s.region ?? 'Global', title: s.title, summary: s.description ?? '', slug: s.slug })
+      displayItems.push({ story: s, region: s.region ?? 'Global', title: s.title, summary: globalLensDisplayText(s.description ?? ''), slug: s.slug })
     }
   }
 
-  if (!displayItems.length) return null
+  if (process.env.NODE_ENV !== 'production' && validationFailures.length > 0) {
+    console.warn('Global Lens source validation failed', validationFailures)
+  }
+
+  if (!displayItems.length) {
+    return validationFailures.length > 0 ? (
+      <>
+        {validationFailures.map(failure => (
+          <TrackEvent key={failure.slug} name="feed_global_lens_validation_failed" properties={{ story_slug: failure.slug, section: 'Global Lens', validation_reason: failure.reason }} />
+        ))}
+      </>
+    ) : null
+  }
 
   return (
     <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
       <TrackEvent name="feed_section_impression" properties={{ section: 'Global Lens', story_count: displayItems.length }} />
+      {validationFailures.map(failure => (
+        <TrackEvent key={failure.slug} name="feed_global_lens_validation_failed" properties={{ story_slug: failure.slug, section: 'Global Lens', validation_reason: failure.reason }} />
+      ))}
 
       {/* CSS globe grid */}
       <div
@@ -114,7 +140,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
             How the world sees it
           </h2>
           <p className="text-sm mt-1 text-white/60">
-            How international outlets are framing major stories differently.
+            What this outlet centers that U.S. coverage may not.
           </p>
         </div>
 
