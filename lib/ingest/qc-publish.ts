@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { runQCGate, type QCContentType, type QCConfidenceLabel } from './qc-gate'
+import { runQCGate, runStaticQCChecks, type QCCheckResult, type QCContentType, type QCConfidenceLabel } from './qc-gate'
 
 export interface QCContext {
   section: string
@@ -31,9 +31,14 @@ function isDuplicateStorySlug(error: { code?: string; message?: string } | null)
 // copy-quality checks — worth revising, never worth keeping real news
 // off the site.
 const TRUST_CRITICAL_CHECKS = new Set(['C0', 'C1', 'C2', 'C4', 'C6'])
+const STATIC_HOLD_CHECKS = new Set(['C1', 'C4', 'C6'])
 
 function onlyCopyQualityFails(failedChecks: { id: string }[]): boolean {
   return failedChecks.length > 0 && failedChecks.every(c => !TRUST_CRITICAL_CHECKS.has(c.id))
+}
+
+function staticHoldFailures(checks: QCCheckResult[]): QCCheckResult[] {
+  return checks.filter(check => check.result === 'fail' && STATIC_HOLD_CHECKS.has(check.id))
 }
 
 // Runs the pre-publish QC gate on a story payload, applies at most one
@@ -51,6 +56,50 @@ export async function runQCAndInsert(
 ): Promise<QCPublishResult> {
   let headline = storyData.title
   let summary = storyData.description
+  const staticFailures = staticHoldFailures(runStaticQCChecks({
+    storyId: storyData.slug,
+    section: qc.section,
+    contentType: qc.contentType,
+    confidenceLabel: qc.confidenceLabel,
+    headline,
+    summary,
+    sourceName: qc.sourceName,
+    sourceTier: qc.sourceTier,
+    videoPublishDate: qc.videoPublishDate ?? null,
+    eventDateEstimate: qc.eventDateEstimate ?? null,
+    coverageCount: qc.coverageCount,
+    rawSourceDescription: qc.rawSourceDescription,
+  }))
+
+  if (staticFailures.length > 0) {
+    await supabase.from('qc_log').insert({
+      story_slug: storyData.slug,
+      verdict: 'HOLD',
+      failed_checks: staticFailures,
+      revision_applied: false,
+      raw_result: {
+        storyId: storyData.slug,
+        verdict: 'HOLD',
+        checks: staticFailures,
+        revisedHeadline: null,
+        revisedSummary: null,
+        routingNote: 'Static QC hold before model gate.',
+      },
+    })
+
+    const { error } = await supabase.from('stories').insert({
+      ...storyData,
+      title: headline,
+      description: summary,
+      published: false,
+      display_order: 99,
+      qc_status: 'hold',
+      qc_failed_checks: staticFailures,
+      qc_routing_note: 'Static QC hold before model gate.',
+    })
+    if (isDuplicateStorySlug(error)) return { inserted: false, held: false, duplicate: true }
+    return { inserted: !error, held: true, error: error?.message }
+  }
 
   const MAX_ATTEMPTS = 2 // initial pass + at most 1 revise-and-recheck cycle
 

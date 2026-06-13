@@ -3,13 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { runQCAndInsert } from './qc-publish'
 import { runQCGate } from './qc-gate'
 
-vi.mock('./qc-gate', () => ({
-  runQCGate: vi.fn(async () => ({
-    verdict: 'PASS',
-    checks: [],
-    routingNote: null,
-  })),
-}))
+vi.mock('./qc-gate', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./qc-gate')>()
+  return {
+    ...actual,
+    runQCGate: vi.fn(async () => ({
+      verdict: 'PASS',
+      checks: [],
+      routingNote: null,
+    })),
+  }
+})
 
 const runQCGateMock = vi.mocked(runQCGate)
 
@@ -117,6 +121,33 @@ describe('runQCAndInsert', () => {
     expect(result).toEqual({ inserted: true, held: true, error: undefined })
     expect(storyInserts).toHaveLength(1)
     expect(storyInserts[0]).toMatchObject({ published: false, qc_status: 'hold' })
+  })
+
+  it('holds static trust failures without calling the model QC gate', async () => {
+    const { supabase, storyInserts } = mockSupabase()
+    const result = await runQCAndInsert(
+      supabase as never,
+      'test-key',
+      {
+        slug: 'youtube-archival-static',
+        title: 'Archival documentary resurfaces',
+        description: 'A documentary looks back at the history of the dispute.',
+      },
+      {
+        ...baseQC,
+        section: 'reported',
+        rawSourceDescription: 'From the archives: this documentary originally aired in 2018.',
+      }
+    )
+
+    expect(runQCGateMock).not.toHaveBeenCalled()
+    expect(result).toEqual({ inserted: true, held: true, error: undefined })
+    expect(storyInserts).toHaveLength(1)
+    expect(storyInserts[0]).toMatchObject({
+      published: false,
+      qc_status: 'hold',
+      qc_routing_note: 'Static QC hold before model gate.',
+    })
   })
 
   it('treats duplicate story slugs as already handled', async () => {

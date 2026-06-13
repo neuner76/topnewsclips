@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isFresh, isSoftAnimalStory } from './pipeline'
+import { isFresh, isSoftAnimalStory, preModelRejectReason, shouldGenerateMajorSections } from './pipeline'
 
 function daysAgo(days: number): string {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
@@ -44,5 +44,46 @@ describe('soft animal story filter', () => {
       'Police investigate animal cruelty charges after injured dog rescue',
       'Officials said the case led to charges and a policy review.'
     )).toBe(false)
+  })
+})
+
+describe('process cost gates', () => {
+  it('rejects obvious soft entertainment before model verification', () => {
+    expect(preModelRejectReason({
+      title: 'BTS kicks off 2 concerts in Busan on Friday',
+      description: 'The group will perform two concerts for fans.',
+      source: 'YouTube/Entertainment Channel',
+    })).toContain('pre_model_soft_entertainment')
+  })
+
+  it('rejects archival or retrospective material before model verification', () => {
+    expect(preModelRejectReason({
+      title: 'Comedian profile originally aired in 2025',
+      description: 'From the archives, this profile looks back at the performer.',
+      source: 'YouTube/Al Jazeera English',
+    })).toContain('pre_model_archival')
+  })
+
+  it('narrows expensive major-story section generation to strong domestic institutional stories', () => {
+    expect(shouldGenerateMajorSections({
+      coverageCount: 7,
+      candidateRegion: null,
+      sourceTier: 1,
+      sourceType: 'Investigative',
+    })).toBe(true)
+
+    expect(shouldGenerateMajorSections({
+      coverageCount: 7,
+      candidateRegion: 'Europe',
+      sourceTier: 1,
+      sourceType: 'Investigative',
+    })).toBe(false)
+
+    expect(shouldGenerateMajorSections({
+      coverageCount: 7,
+      candidateRegion: null,
+      sourceTier: 8,
+      sourceType: 'State-Affiliated Media',
+    })).toBe(false)
   })
 })

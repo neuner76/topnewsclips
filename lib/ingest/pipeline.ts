@@ -468,6 +468,54 @@ function isCrisisTopic(title: string): boolean {
   return CRISIS_KEYWORDS.some(k => t.includes(k))
 }
 
+export function preModelRejectReason(candidate: {
+  title: string
+  description?: string | null
+  source?: string | null
+  journalist_username?: string | null
+  uploaded_at?: string | null
+}): string | null {
+  const text = `${candidate.title} ${candidate.description ?? ''} ${candidate.source ?? ''}`.toLowerCase()
+
+  if (/\b(from the archives?|archive documentary|archival|originally aired|retrospective|anniversary|looking back)\b/.test(text)) {
+    return 'pre_model_archival: archival or retrospective content does not belong in daily news'
+  }
+
+  const entertainmentEvent = /\b(concert|concerts|tour dates?|album release|single release|festival lineup|red carpet|box office|movie trailer)\b/.test(text)
+  const publicInterestHook = /\b(lawsuit|strike|union|investigation|arrest|charged|court|policy|regulator|safety|public health|fraud|bankruptcy)\b/.test(text)
+  if (entertainmentEvent && !publicInterestHook) {
+    return 'pre_model_soft_entertainment: entertainment listings and promotional culture items are out of scope'
+  }
+
+  const sportsListing = /\b(match preview|fixtures?|score|scores|lineup|world cup qualifier|kicks off|kickoff|tournament schedule)\b/.test(text)
+  const broaderSportsHook = /\b(corruption|fraud|lawsuit|labor|union|safety|abuse|investigation|governance|policy)\b/.test(text)
+  if (sportsListing && !broaderSportsHook) {
+    return 'pre_model_sports_listing: routine sports listings are out of scope'
+  }
+
+  if (isSoftAnimalStory(candidate.title, candidate.description ?? '')) {
+    return 'pre_model_soft_animal: animal rescue or nature curiosity without a public-interest angle'
+  }
+
+  return null
+}
+
+export function shouldGenerateMajorSections(params: {
+  coverageCount: number
+  candidateRegion: string | null
+  sourceTier: number | null
+  sourceType: string | null
+  category?: string | null
+}): boolean {
+  if (process.env.ENABLE_MAJOR_STORY_SECTIONS === 'false') return false
+  if (params.coverageCount < 5) return false
+  if (params.candidateRegion) return false
+  if (params.category === 'analysis' || params.category === 'raw' || params.category === 'comedy') return false
+  if (params.sourceTier === null) return false
+  if (params.sourceTier > 5) return false
+  return params.sourceType !== 'Mainstream Pulse'
+}
+
 // Phase 2: process the next pending candidates from the queue through Claude.
 export async function runProcess(limit = 3): Promise<PipelineResult> {
   const supabase = getSupabase()
@@ -600,6 +648,15 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
 
   for (const candidate of pending) {
     try {
+      const preRejectReason = preModelRejectReason(candidate)
+      if (preRejectReason) {
+        result.rejected++
+        result.errors.push(`Pre-model reject: "${candidate.title.slice(0, 50)}" — ${preRejectReason}`)
+        await upsertRejection(supabase, candidate.slug, preRejectReason)
+        await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
+        continue
+      }
+
       // Per-channel daily cap — free check, runs before any paid lookups.
       // TTL'd rejection: the cap is about today's volume, not the content.
       const channelKey = candidate.source ?? ''
@@ -783,10 +840,28 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         continue
       }
 
-      // Major story = Corroborated-threshold coverage (5+ independent outlets).
-      // Knowable pre-verify from the MSM check; triggers generation of the
-      // "In context" and "What we know / remains unclear" page sections.
-      const isMajorStory = msm.coveredBy.length >= 5
+      if (topicAlreadyCapped(candidate.title, msm.articleCount)) {
+        result.rejected++
+        result.errors.push(
+          `Topic cap: "${candidate.title.slice(0, 50)}" — too many similar stories today`
+        )
+        await upsertRejection(supabase, candidate.slug, 'topic_cap: too many similar stories today')
+        await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
+        continue
+      }
+
+      const preTier = getSourceTier(candidate.journalist_username ?? null, candidate.source, null)
+      const preHandleLower = (candidate.journalist_username ?? '').toLowerCase()
+      const preDbOverride = preHandleLower ? journalistTierMap.get(preHandleLower) : undefined
+      const preIsGenericFallback = preTier.tier === null || (preTier.tier === 7 && preTier.sourceType === 'Independent Commentary' && preDbOverride)
+      const preFinalTier = preIsGenericFallback && preDbOverride ? preDbOverride.tier : preTier.tier
+      const preFinalSourceType = preIsGenericFallback && preDbOverride ? preDbOverride.sourceType : preTier.sourceType
+      const isMajorStory = shouldGenerateMajorSections({
+        coverageCount: msm.coveredBy.length,
+        candidateRegion,
+        sourceTier: preFinalTier,
+        sourceType: preFinalSourceType,
+      })
 
       const verification = await verifyAndTitle(
         {
@@ -821,16 +896,6 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           `Rejected: "${candidate.title.slice(0, 50)}" — ${verification.rejectReason ?? 'no reason'}`
         )
         await upsertRejection(supabase, candidate.slug, verification.rejectReason ?? '')
-        continue
-      }
-
-      // Topic diversity cap — skip if this topic already has TOPIC_DAILY_CAP stories published today
-      if (topicAlreadyCapped(verification.headline, msm.articleCount)) {
-        result.rejected++
-        result.errors.push(
-          `Topic cap: "${verification.headline.slice(0, 50)}" — too many similar stories today`
-        )
-        await upsertRejection(supabase, candidate.slug, 'topic_cap: too many similar stories today')
         continue
       }
 
