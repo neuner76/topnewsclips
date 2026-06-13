@@ -274,22 +274,31 @@ function blindspotItem(item: GlobalBlindspotItem, storyMap: Map<string, Story>, 
 function lensItem(item: GlobalLensItem, storyMap: Map<string, Story>, siteUrl: string): CanonicalDigestItem {
   const story = storyMap.get(item.slug)
   const outlet = outletNameForStory(story ?? null)
-  const prefix = outlet && !item.summary.toLowerCase().startsWith(outlet.toLowerCase())
-    ? `${outlet} centers `
-    : ''
-  return itemFromStory('Global Lens', item.slug, item.title, `${prefix}${globalLensDisplayText(item.summary)}`, storyMap, siteUrl, 45)
+  const summary = globalLensDisplayText(item.summary)
+  const startsWithOutlet = outlet ? summary.toLowerCase().startsWith(outlet.toLowerCase()) : false
+  const adjustedSummary = outlet && !startsWithOutlet
+    ? `${outlet} ${summary.charAt(0).toLowerCase()}${summary.slice(1)}`
+    : summary
+  return itemFromStory('Global Lens', item.slug, item.title, adjustedSummary, storyMap, siteUrl, 45)
 }
 
 export function deriveMainstreamPulseSynthesis(items: MainstreamPulseItem[] = []): string {
   if (items.length === 0) return ''
-  const topics = items
-    .map(item => item.headline.replace(/[^\w\s-]/g, '').split(/\s+/).find(word => word.length > 4))
-    .filter((word): word is string => !!word)
-    .slice(0, 6)
-  if (topics.length >= 4) {
-    return clampWords(`Today's major-outlet agenda is fragmented: ${topics.join(', ')} lead different outlets.`, 35)
+  const topicForHeadline = (headline: string): string => {
+    const text = headline.toLowerCase()
+    if (/\bsunscreen|fda|health|drug|medical\b/.test(text)) return 'health regulation'
+    if (/\bmamdani|d\.?s\.?a\.?|police|mayor|court|election\b/.test(text)) return 'domestic politics'
+    if (/\biran|hormuz|drone|forces|war|missile\b/.test(text)) return 'Iran and security'
+    if (/\btrade|tariff|ustr|india|china\b/.test(text)) return 'trade'
+    if (/\bspacex|ipo|stock|market|economic\b/.test(text)) return 'markets'
+    if (/\bimmigration|border|asylum|migration\b/.test(text)) return 'migration'
+    return 'separate national stories'
   }
-  return "Today's major-outlet agenda is concentrated across a few leading stories, with different outlets emphasizing different angles."
+  const topics = [...new Set(items.map(item => topicForHeadline(item.headline)))].slice(0, 5)
+  if (topics.length <= 2) {
+    return "Today's major-outlet agenda clusters around a few lead stories, with different outlets emphasizing different angles."
+  }
+  return clampWords(`Today's major-outlet agenda is split across ${topics.join(', ')}.`, 35)
 }
 
 export function buildDigestEdition(digest: Digest, storyMap: Map<string, Story>, siteUrl: string): DigestEdition {

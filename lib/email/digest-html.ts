@@ -197,14 +197,12 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
     <div style="margin-top:28px;padding:20px 24px;background:#f9fafb;border-radius:8px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#6b7280;text-transform:uppercase;margin-bottom:12px;">Also worth knowing</div>
       ${alsoWorthKnowing.items.map(item => {
-        const story = item.id ? storyMap.get(item.id) : null
         const linked = item.url
           ? `<a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="color:#374151;text-decoration:none;">${item.summary}</a>`
           : item.summary
         const meta = formatDigestMetadata(item.metadata, { includeCaution: true })
         return `<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #e5e7eb;">
           <p style="margin:0;font-size:13px;line-height:1.6;color:#6b7280;">• ${linked}</p>
-          ${story ? `<div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}${story.msm_gap ? renderMsmBadge(story) : ''}</div>` : ''}
           ${meta ? `<p style="margin:2px 0 0;font-size:11px;color:#9ca3af;">${meta}</p>` : ''}
         </div>`
       }).join('')}
@@ -237,15 +235,10 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">🌍 Global Blindspot</div>
       <div style="font-size:11px;color:#78716c;margin-bottom:16px;">Stories the rest of the world is covering that US media is ignoring.</div>
       ${edition.globalBlindspot.map(item => {
-        const story = storyMap.get(item.id)
-        const badges = story
-          ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}</div>`
-          : ''
         const meta = formatDigestMetadata(item.metadata, { includeHandle: true, includeCaution: true })
         return `
         <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #fde68a;">
           <a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
-          ${badges}
           ${meta ? `<p style="margin:4px 0 0;font-size:11px;color:#9ca3af;">${meta}</p>` : ''}
           <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#78716c;">${item.summary}</p>
           <a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;font-weight:700;color:#92400e;text-decoration:none;">Full story →</a>
@@ -259,15 +252,10 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
       <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">🌍 Global Lens</div>
       <div style="font-size:11px;color:#6b7280;margin-bottom:16px;">How international outlets are covering today's stories — perspectives US media isn't amplifying.</div>
       ${edition.globalLens.map(item => {
-        const story = storyMap.get(item.id)
-        const badges = story
-          ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">${renderSourceBadge(story)}${renderConfidenceBadge(story)}</div>`
-          : ''
         const meta = formatDigestMetadata(item.metadata, { includeHandle: true, includeCaution: true })
         return `
         <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #99f6e4;">
           <a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
-          ${badges}
           ${meta ? `<p style="margin:4px 0 0;font-size:11px;color:#9ca3af;">${meta}</p>` : ''}
           <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#6b7280;">${item.summary}</p>
           <a href="${storyUrl(siteUrl, item.id)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;font-weight:700;color:#0e7490;text-decoration:none;">Full story →</a>

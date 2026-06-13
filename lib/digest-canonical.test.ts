@@ -130,6 +130,25 @@ describe('canonical digest', () => {
   })
 
   it('derives a Mainstream Pulse synthesis sentence', () => {
-    expect(deriveMainstreamPulseSynthesis(digest.content.mainstreamPulse)).toContain('major-outlet agenda')
+    const synthesis = deriveMainstreamPulseSynthesis([
+      { source: 'NPR', descriptor: 'public media', headline: '4 things to know about the new sunscreen ingredient the FDA approved' },
+      { source: 'NYT', descriptor: 'center-left', headline: 'In Rare Move, D.S.A Rebukes Mamdani Over Police Plans' },
+      { source: 'AP', descriptor: 'wire', headline: 'Trump to discuss Strait of Hormuz demining efforts at G7 as confidence grows for Iran war deal' },
+      { source: 'Reuters', descriptor: 'global wire', headline: 'USTR Greer to travel to India for trade talks, deal possible, senior US official says' },
+      { source: 'WSJ', descriptor: 'business', headline: "SpaceX IPO's potential economic impact on Texas border town" },
+    ])
+    expect(synthesis).toContain('trade')
+    expect(synthesis).not.toContain('things')
+  })
+
+  it('prefixes Global Lens summaries without duplicating the verb', () => {
+    const edition = buildDigestEdition({
+      ...digest,
+      content: {
+        ...digest.content,
+        globalLens: [{ region: 'Europe', slug: 'lens-1', title: 'European outlets focus on labor standards', summary: 'Centers worker protections rather than Washington politics.' }],
+      },
+    }, storyMap(), 'https://www.topnewsclips.com')
+    expect(edition.globalLens[0].summary).toBe('ProPublica centers worker protections rather than Washington politics.')
   })
 })
