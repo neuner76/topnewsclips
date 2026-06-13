@@ -49,7 +49,7 @@ const INDEPENDENT_NEWS_JOURNALISTS = new Set([
 const COMMERCIAL_JOURNALISTS = new Set([
   'vox', 'journeymanpictures',
   // Broadcast network news magazines & cable news
-  '60minutes', '2020', 'datelinenbc',
+  '60minutes',
   'cnn', 'bbcnews', 'cnbc',
   'bloombergquicktake',
   'abcnews', 'cbsnews',
@@ -76,8 +76,8 @@ const SATIRE_COMMENTARY_JOURNALISTS = new Set([
 const COMMENTARY_JOURNALISTS = new Set([
   'breakingpoints', 'caspianreport', 'polymatter', 'johnnyharris', 'perunau',
   'kylescanlon', 'kylascanlon', 'michaeltracey', 'tarapalmeri', 'wendoverproductions',
-  'veritasium', 'audittheaudit', 'glenngreenwald', 'geohussar', 'iancarrollshow',
-  'whitneywebb', 'jamesfreeman', 'undecidedtechnology', 'tanglenews', 'patrickboyleonfinance',
+  'veritasium', 'audittheaudit', 'glenngreenwald', 'geohussar',
+  'jamesfreeman', 'undecidedtechnology', 'tanglenews', 'patrickboyleonfinance',
   'drmyriamfrancois1', // Community nominated — accepted 2026-04-04
   'vicenews',     // Relaunched 2026 under new ownership — moved from Tier 4 (Independent News)
   'theprintindia', // The Print (India) — institutional but editorially independent of any newsroom
@@ -174,7 +174,7 @@ const RAW_FOOTAGE_SUBREDDITS = new Set([
 
 // Tier 9: Raw footage journalist channels
 const RAW_FOOTAGE_JOURNALISTS = new Set([
-  'policeactivity', 'weathernation', 'viralhog',
+  'policeactivity', 'weathernation',
 ])
 
 // Mainstream Pulse — gated from NTK/InTheKnow; used only for the Mainstream Pulse section
