@@ -896,6 +896,7 @@ HOW THE WORLD SEES IT (only if INTERNATIONAL PERSPECTIVES are provided):
 - "region" MUST be the specific outlet name from the input's "source" field (e.g. "Al Jazeera", "DW", "France 24", "TRT World", "ABC Australia") — NEVER a geographic label like "Middle East", "Europe", or "Australia". Extract the outlet name from the source field: "YouTube/DW News" → "DW News", "YouTube/Al Jazeera English" → "Al Jazeera".
 - "summary" = ONE framing observation, MAXIMUM 30 words, structured as "Frames the story around X" or "Emphasizes Y". One observation per outlet, no second sentence. Entries over 40 words are discarded by QC — the story publishes without its World view section.
 - If no DIRECT topical match exists, omit "howWorldSeesIt" entirely — do NOT add an empty array, do NOT force a connection, do NOT use thematic or tangential links (e.g. "both involve accountability" or "parallel power dynamics"). The match must be the same specific event, person, or policy — not a vague conceptual parallel.
+- SAME-EVENT TEST (mandatory): a World view lens must report on the SAME CORE EVENT as the lead — the same incident, the same announcement, the same decision. A DOWNSTREAM CONSEQUENCE is NOT the same event and must NOT be used. Examples of forbidden matches: pairing a diplomatic/military lead with a story about energy prices, inflation, central-bank rate decisions, or market moves that merely result from it; pairing an election lead with a story about a sector reacting to the result. If the candidate covers an effect, a ripple, or an adjacent economic/market angle rather than the lead's actual event, omit it. A missing lens is honest; a wrong-event lens is a trust failure.
 - Never reuse a slug already used in globalBlindspots
 
 GLOBAL LENS (only if INTERNATIONAL PERSPECTIVES are provided):
@@ -1660,12 +1661,19 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       return true
     }).slice(0, 4)
 
-    // Populate howWorldSeesIt titles from DB and deduplicate by outlet (region field)
+    // Populate howWorldSeesIt titles from DB, repair geographic region labels
+    // to the actual outlet name (Task 6 — region stays outlet-home in the
+    // story data, but the lead's World view shows the outlet, e.g. "Arirang
+    // News" not "Korea"), then deduplicate by outlet.
     for (const ntk of content.needToKnow) {
       if (!ntk.howWorldSeesIt) continue
       const seenOutlets = new Set<string>()
       ntk.howWorldSeesIt = ntk.howWorldSeesIt.filter(w => {
         if (!titleMap.has(w.slug)) return false
+        if (GEO_LABELS.has(w.region.toLowerCase())) {
+          const outletName = outletNameMap.get(w.slug)
+          if (outletName) w.region = outletName
+        }
         if (seenOutlets.has(w.region)) return false  // drop duplicate outlet
         seenOutlets.add(w.region)
         w.title = titleMap.get(w.slug)!
