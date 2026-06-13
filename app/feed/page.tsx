@@ -254,6 +254,12 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       {/* In The Know, one WorldMapSection per category */}
       {categoryBlocks.map(({ cat, cfg, stories, shouldReassignSingleton }) => {
         if (!stories.length || shouldReassignSingleton) return null
+        // Task 7: cap Politics & World Affairs density at 5 so the lane doesn't
+        // sprawl; the rest is reachable via the archive. (No topic-filtered
+        // archive exists yet, so "See all" links to the full archive.)
+        const POLITICS_CAP = 5
+        const isCapped = cat === 'Politics & World Affairs' && stories.length > POLITICS_CAP
+        const shownStories = isCapped ? stories.slice(0, POLITICS_CAP) : stories
         return (
           <WorldMapSection
             key={cat}
@@ -261,8 +267,9 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             icon={cfg.icon}
             accent={cfg.color}
             mapMode="hero"
-            stories={stories}
+            stories={shownStories}
             subtitle={cfg.subtitle}
+            seeAllHref={isCapped ? '/stories' : undefined}
           />
         )
       })}
@@ -327,7 +334,8 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#94a3b8' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#94a3b8]">📺 Mainstream Pulse</span>
-          <p className="text-xs text-white/50 mb-4">What major U.S. outlets are leading with today.</p>
+          <p className="text-xs text-white/50 mb-1.5">What major U.S. outlets are leading with today.</p>
+          <p className="text-[11px] text-white/35 mb-4 italic">Headline selections from major tracked outlets — not TopNewsClips endorsements.</p>
           <Link href="/corrections" className="block text-[10px] text-white/40 hover:text-white/80 transition-colors mb-3">
             ✓ No corrections today
           </Link>
