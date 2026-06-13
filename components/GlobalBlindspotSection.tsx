@@ -83,6 +83,9 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
           <p className="text-sm mt-1" style={{ color: 'rgba(156,163,175,0.9)' }}>
             Important international stories receiving limited attention from major U.S. outlets.
           </p>
+          <p className="text-xs mt-2" style={{ color: 'rgba(156,163,175,0.65)' }}>
+            What an outlet leaves out shapes your picture as much as what it covers — these are the gaps worth knowing about.
+          </p>
         </div>
 
         {/* Grid layout — image above headline */}

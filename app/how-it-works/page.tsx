@@ -104,6 +104,21 @@ export default function HowItWorksPage() {
           </p>
         </div>
 
+        {/* The process in 5 steps — quick summary above the full breakdown */}
+        <div className="mb-10 p-5 bg-white/[0.03] border border-white/10 rounded-lg">
+          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-3">The process in 5 steps</p>
+          <ol className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-1.5 text-sm">
+            {['Pull broadly', 'Filter noise', 'Classify sources', 'Measure coverage', 'Challenge and summarize'].map((label, i) => (
+              <li key={label} className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 rounded-full bg-[oklch(0.52_0.14_196)] text-white text-[10px] font-bold">{i + 1}</span>
+                <span className="font-semibold text-white/85">{label}</span>
+                {i < 4 && <span className="hidden sm:inline text-white/25 ml-1.5">→</span>}
+              </li>
+            ))}
+          </ol>
+          <p className="text-xs text-white/45 mt-3">The full process is detailed below.</p>
+        </div>
+
         <div className="space-y-10 text-[15px] leading-relaxed text-white/80">
           {STEPS.map(({ step, title, body, note, list, link }) => (
             <div key={step} className="border-l-2 border-white/10 pl-5">
