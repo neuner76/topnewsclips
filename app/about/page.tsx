@@ -6,17 +6,17 @@ import Link from 'next/link'
 export const revalidate = 3600
 
 export const metadata = {
-  title: 'About Top News Clips, Independent News. No Agenda.',
+  title: 'About Top News Clips — The Full Picture, Not the Profitable Picture',
   description: 'Top News Clips is an independent daily news briefing founded by Eric Neuner, built for Americans who want to understand what\'s actually happening, not just what the algorithm wants them to see.',
   alternates: { canonical: 'https://www.topnewsclips.com/about' },
   openGraph: {
-    title: 'About Top News Clips, Independent News. No Agenda.',
+    title: 'About Top News Clips — The Full Picture, Not the Profitable Picture',
     description: 'Top News Clips surfaces verified stories mainstream media is underreporting, shows how the rest of the world covers today\'s events, and labels every source by credibility tier.',
     url: 'https://www.topnewsclips.com/about',
   },
   twitter: {
     card: 'summary',
-    title: 'About Top News Clips, Independent News. No Agenda.',
+    title: 'About Top News Clips — The Full Picture, Not the Profitable Picture',
     description: 'Top News Clips surfaces verified stories mainstream media is underreporting, shows how the rest of the world covers today\'s events, and labels every source by credibility tier.',
     site: '@topnewsclips',
   },
