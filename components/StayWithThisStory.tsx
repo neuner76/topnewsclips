@@ -2,10 +2,12 @@ import type { Story } from '@/lib/types'
 import type { ResponseResource } from '@/lib/response-types'
 import { getResponseEligibility } from '@/lib/response-eligibility'
 import { getRelatedSearchQuery } from '@/lib/related-search'
+import { getIssueTrackerForStory } from '@/lib/issue-trackers'
 import SectionCard from './SectionCard'
 import ReaderQuestionBox from './ReaderQuestionBox'
 import ResponseActionLink from './ResponseActionLink'
 import ShareResponsiblyButton from './ShareResponsiblyButton'
+import ResponseFeedback from './ResponseFeedback'
 import TrackEvent from './TrackEvent'
 
 function sourceUrl(story: Story): string | null {
@@ -23,6 +25,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
   const allowed = new Set(eligibility.allowedTypes)
   const primarySource = sourceUrl(story)
   const relatedSearchQuery = getRelatedSearchQuery(story, eligibility.storyCategory)
+  const issueTracker = getIssueTrackerForStory(story, eligibility.storyCategory)
 
   return (
     <SectionCard accent="#14b8a6" className="mb-4">
@@ -64,8 +67,8 @@ export default function StayWithThisStory({ story, resources = [] }: {
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
             <p className="text-sm font-bold text-white mb-1">Track</p>
             <p className="text-xs text-white/45 mb-2">Follow updates as this story develops.</p>
-            <ResponseActionLink href={`/search?q=${encodeURIComponent(relatedSearchQuery)}`} storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} responseType="track">
-              Search related updates →
+            <ResponseActionLink href={`/issues/${issueTracker.slug}?q=${encodeURIComponent(relatedSearchQuery)}&story=${encodeURIComponent(story.slug)}`} storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} responseType="track">
+              Track this issue →
             </ResponseActionLink>
           </div>
         )}
@@ -111,6 +114,8 @@ export default function StayWithThisStory({ story, resources = [] }: {
           View taxonomy →
         </ResponseActionLink>
       </p>
+
+      <ResponseFeedback storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} />
     </SectionCard>
   )
 }

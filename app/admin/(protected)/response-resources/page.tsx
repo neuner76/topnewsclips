@@ -90,7 +90,13 @@ export default async function ResponseResourcesPage() {
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">{resource.description}</p>
                 {resource.issue_area && <p className="text-xs text-muted-foreground mb-4">Issue area: {resource.issue_area}</p>}
-                <ResourceReviewForm resourceId={resource.id} currentStatus={resource.approval_status} currentReason={resource.reason_listed} currentRisk={resource.risk_level} />
+                <ResourceReviewForm
+                  resourceId={resource.id}
+                  currentStatus={resource.approval_status}
+                  currentReason={resource.reason_listed}
+                  currentRisk={resource.risk_level}
+                  currentVerificationSources={resource.verification_sources}
+                />
               </div>
             ))}
           </div>

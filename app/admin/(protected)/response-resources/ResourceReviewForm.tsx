@@ -3,16 +3,25 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function ResourceReviewForm({ resourceId, currentStatus, currentReason, currentRisk }: {
+function sourcesToText(value: unknown): string {
+  if (!Array.isArray(value)) return ''
+  return value
+    .map(item => typeof item === 'string' ? item : JSON.stringify(item))
+    .join('\n')
+}
+
+export default function ResourceReviewForm({ resourceId, currentStatus, currentReason, currentRisk, currentVerificationSources }: {
   resourceId: string
   currentStatus: string
   currentReason: string | null
   currentRisk: string
+  currentVerificationSources: unknown
 }) {
   const router = useRouter()
   const [status, setStatus] = useState(currentStatus)
   const [reason, setReason] = useState(currentReason ?? '')
   const [riskLevel, setRiskLevel] = useState(currentRisk)
+  const [verificationSources, setVerificationSources] = useState(sourcesToText(currentVerificationSources))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -21,13 +30,24 @@ export default function ResourceReviewForm({ resourceId, currentStatus, currentR
       setError('Add a reason before saving a decision.')
       return
     }
+    const verificationSourceList = verificationSources.split('\n').map(s => s.trim()).filter(Boolean)
+    if (status === 'approved' && verificationSourceList.length === 0) {
+      setError('Add at least one verification source before approving.')
+      return
+    }
     setSaving(true)
     setError('')
 
     const res = await fetch('/api/admin/response-resources', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: resourceId, approval_status: status, reason_listed: reason.trim(), risk_level: riskLevel }),
+      body: JSON.stringify({
+        id: resourceId,
+        approval_status: status,
+        reason_listed: reason.trim(),
+        risk_level: riskLevel,
+        verification_sources: verificationSourceList,
+      }),
     })
 
     if (!res.ok) {
@@ -71,6 +91,16 @@ export default function ResourceReviewForm({ resourceId, currentStatus, currentR
           rows={2}
           className="w-full text-xs px-2 py-1.5 rounded border border-border bg-background resize-none"
           placeholder="Why this resource is connected to the issue and safe to list."
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-muted-foreground mb-1">Verification sources</label>
+        <textarea
+          value={verificationSources}
+          onChange={e => setVerificationSources(e.target.value)}
+          rows={2}
+          className="w-full text-xs px-2 py-1.5 rounded border border-border bg-background resize-none"
+          placeholder="One source URL or note per line."
         />
       </div>
       {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}

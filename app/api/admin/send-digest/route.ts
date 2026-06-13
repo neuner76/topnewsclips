@@ -8,6 +8,7 @@ import { unsubscribeLink } from '@/lib/unsubscribe'
 import { preferenceLink } from '@/lib/preference-tokens'
 import { getPersonalizationProfile, personalizeDigestContent } from '@/lib/personalized-digest'
 import { requireCronSecret } from '@/lib/auth'
+import { selectNewsletterNextStep } from '@/lib/newsletter-next-step'
 
 function getSupabase() {
   return createClient(
@@ -94,6 +95,17 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string, s
       const link = etc.slug ? `  ${storyUrl(siteUrl, etc.slug)}` : ''
       lines.push(`• ${etc.text}${link}`)
     }
+    lines.push('')
+  }
+
+  const nextStep = selectNewsletterNextStep(content, storyMap, siteUrl)
+  if (nextStep) {
+    lines.push('─'.repeat(60))
+    lines.push('')
+    lines.push(nextStep.heading.toUpperCase())
+    lines.push(`${nextStep.label}: ${nextStep.description}`)
+    lines.push(`Why this step: ${nextStep.why}`)
+    lines.push(nextStep.url)
     lines.push('')
   }
 

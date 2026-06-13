@@ -2,6 +2,7 @@ import type { DigestContent } from '@/lib/digest'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
+import { selectNewsletterNextStep } from '@/lib/newsletter-next-step'
 
 export const DIGEST_UTM = 'utm_source=email&utm_medium=email&utm_campaign=digest'
 
@@ -160,6 +161,15 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
   `
   }).join('')
 
+  const nextStep = selectNewsletterNextStep(content, storyMap, siteUrl)
+  const nextStepHtml = nextStep ? `
+    <div style="margin:0 0 28px;padding:18px 20px;background:#f0fdfc;border:1px solid #99f6e4;border-radius:8px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:6px;">${nextStep.heading}</div>
+      <a href="${nextStep.url}" target="_blank" rel="noopener noreferrer" style="font-size:15px;font-weight:800;color:#111827;text-decoration:none;">${nextStep.label}: ${nextStep.description}</a>
+      <p style="margin:8px 0 0;font-size:12px;line-height:1.5;color:#6b7280;">Why this step: ${nextStep.why}</p>
+    </div>
+  ` : ''
+
   const inTheKnowHtml = inTheKnowCategories.map(cat => {
     const items = content.inTheKnow[cat]
     if (!items || items.length === 0) return ''
@@ -307,6 +317,8 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
 
       <!-- Need to Know -->
       ${needToKnowHtml}
+
+      ${nextStepHtml}
 
       <!-- In the Know -->
       <div style="margin-top:8px;">
