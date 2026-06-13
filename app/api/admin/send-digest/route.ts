@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { getLatestDigest, type DigestContent } from '@/lib/digest'
 import type { Story } from '@/lib/types'
-import { buildEmailHtml, buildStoryMap, formatDate, formatPublishedDate, sourceHandle, storyUrl, siteUrlUtm } from '@/lib/email/digest-html'
+import { buildEmailHtml, buildStoryMap, feedUrlUtm, formatDate, formatPublishedDate, sourceHandle, storyUrl } from '@/lib/email/digest-html'
 import { unsubscribeLink } from '@/lib/unsubscribe'
 import { preferenceLink } from '@/lib/preference-tokens'
 import { getPersonalizationProfile, personalizeDigestContent } from '@/lib/personalized-digest'
@@ -160,7 +160,7 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string, s
   }
 
   lines.push('━'.repeat(60))
-  lines.push(`${siteUrlUtm(siteUrl)}`)
+  lines.push(`${feedUrlUtm(siteUrl)}`)
   lines.push('You\'re receiving this because you subscribed at topnewsclips.com.')
   lines.push('Tune your briefing: {{preferences}}')
   lines.push('Unsubscribe: {{unsubscribe}}')

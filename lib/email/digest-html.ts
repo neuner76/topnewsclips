@@ -12,7 +12,7 @@ export function formatDate(dateStr: string): string {
 }
 
 export function storyUrl(siteUrl: string, slug: string) { return `${siteUrl}/story/${slug}?${DIGEST_UTM}` }
-export function siteUrlUtm(siteUrl: string) { return `${siteUrl}?${DIGEST_UTM}` }
+export function feedUrlUtm(siteUrl: string) { return `${siteUrl}/feed?${DIGEST_UTM}` }
 
 export function formatPublishedDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -305,7 +305,7 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
 
     <!-- Header -->
     <div style="background:#ffffff;border-bottom:3px solid #0e7490;padding:20px 32px;">
-      <a href="${siteUrlUtm(siteUrl)}" style="text-decoration:none;">
+      <a href="${feedUrlUtm(siteUrl)}" style="text-decoration:none;">
         <div style="font-size:22px;font-weight:900;letter-spacing:-0.03em;color:#111827;">TopNewsClips</div>
         <div style="font-size:11px;color:#6b7280;margin-top:2px;">The full picture, not the profitable picture.</div>
       </a>
@@ -338,7 +338,7 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
 
     <!-- Footer -->
     <div style="padding:24px 32px;border-top:1px solid #e5e7eb;text-align:center;">
-      <a href="${siteUrlUtm(siteUrl)}" style="font-size:13px;font-weight:700;color:#0e7490;text-decoration:none;">topnewsclips.com</a>
+      <a href="${feedUrlUtm(siteUrl)}" style="font-size:13px;font-weight:700;color:#0e7490;text-decoration:none;">topnewsclips.com/feed</a>
       <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">
         You're receiving this because you subscribed at topnewsclips.com.<br>
         <a href="{{preferences}}" style="color:#9ca3af;">Tune your briefing</a>
