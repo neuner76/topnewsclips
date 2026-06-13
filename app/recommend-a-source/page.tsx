@@ -51,6 +51,24 @@ const CRITERIA = [
   },
 ]
 
+// Source library changes — removals and reclassifications of sources already
+// in the library. Distinct from the submission review log (which covers
+// additions). Each entry documents a decision that is reflected in the code
+// and database. Newest first.
+const SOURCE_CHANGES: { source: string; date: string; change: string; rationale: string }[] = [
+  {
+    source: 'VICE News',
+    date: 'Jun 11, 2026',
+    change: 'Reclassified Tier 4 (Independent News) → Tier 7 (Independent Commentary)',
+    rationale: 'VICE relaunched in 2026 under new ownership. Pending a track record under its new editorial structure, it is classified as Independent Commentary rather than Independent News.',
+  },
+  { source: 'Ian Carroll',  date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
+  { source: 'Whitney Webb', date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
+  { source: 'ViralHog',     date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
+  { source: '20/20 (ABC)',  date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
+  { source: 'Dateline NBC', date: 'Jun 11, 2026', change: 'Removed from the source library', rationale: '' },
+]
+
 const STATUS_STYLES: Record<string, string> = {
   submitted:     'text-white/70 bg-white/10 border-white/15',
   under_review:  'text-[oklch(0.48_0.12_85)] bg-[oklch(0.97_0.04_85)] border-[oklch(0.88_0.08_85)]',
@@ -153,6 +171,31 @@ export default async function RecommendASourcePage() {
               <li className="flex gap-2"><span className="shrink-0">–</span><span>Accepted sources receive a &ldquo;Community Nominated&rdquo; badge for 90 days alongside their tier badge.</span></li>
               <li className="flex gap-2"><span className="shrink-0">–</span><span>Declined sources show a one-sentence rationale in the log below. We decline publicly so the reasoning is on record.</span></li>
             </ul>
+          </section>
+
+          {/* Source library changes — removals & reclassifications */}
+          <section>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-2 text-white">Source changes</h2>
+            <p className="text-sm text-white/60 mb-6">
+              Changes to sources already in the library — removals and tier reclassifications. Additions are tracked separately in the review log below.
+            </p>
+            <div className="space-y-4">
+              {SOURCE_CHANGES.map((c) => (
+                <div key={c.source} className="border border-white/10 bg-white/[0.03] rounded-lg p-4 text-sm">
+                  <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                    <span className="font-semibold text-white leading-snug">{c.source}</span>
+                    <span className="text-xs text-white/45 shrink-0">{c.date}</span>
+                  </div>
+                  <p className="text-white/65 leading-relaxed">{c.change}</p>
+                  {c.rationale && (
+                    <div className="mt-3 pt-3 border-t border-white/10 text-xs text-white/55">
+                      <span className="font-semibold uppercase tracking-wide mr-1">Rationale:</span>
+                      {c.rationale}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* Public review log */}
