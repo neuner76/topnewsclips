@@ -151,4 +151,24 @@ describe('canonical digest', () => {
     }, storyMap(), 'https://www.topnewsclips.com')
     expect(edition.globalLens[0].summary).toBe('ProPublica centers worker protections rather than Washington politics.')
   })
+
+  it('does not duplicate outlet aliases in Global Lens summaries', () => {
+    const map = storyMap()
+    map.set('lens-1', story({
+      id: 'lens-1',
+      slug: 'lens-1',
+      source: 'YouTube/Al Jazeera English',
+      journalist_username: 'aljazeeraenglish',
+      source_tier: 3,
+      source_type: 'Public Broadcaster',
+    }))
+    const edition = buildDigestEdition({
+      ...digest,
+      content: {
+        ...digest.content,
+        globalLens: [{ region: 'Middle East', slug: 'lens-1', title: 'Al Jazeera frames World Cup politics', summary: "al Jazeera centers the accusation that the US is using the World Cup to rehabilitate its reputation." }],
+      },
+    }, map, 'https://www.topnewsclips.com')
+    expect(edition.globalLens[0].summary).toBe('Al Jazeera centers the accusation that the US is using the World Cup to rehabilitate its reputation.')
+  })
 })

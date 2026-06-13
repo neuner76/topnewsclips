@@ -274,12 +274,41 @@ function blindspotItem(item: GlobalBlindspotItem, storyMap: Map<string, Story>, 
 function lensItem(item: GlobalLensItem, storyMap: Map<string, Story>, siteUrl: string): CanonicalDigestItem {
   const story = storyMap.get(item.slug)
   const outlet = outletNameForStory(story ?? null)
-  const summary = globalLensDisplayText(item.summary)
-  const startsWithOutlet = outlet ? summary.toLowerCase().startsWith(outlet.toLowerCase()) : false
+  const summary = normalizeLensOutletLead(globalLensDisplayText(item.summary))
+  const startsWithOutlet = outlet ? startsWithOutletOrAlias(summary, outlet) : false
   const adjustedSummary = outlet && !startsWithOutlet
     ? `${outlet} ${summary.charAt(0).toLowerCase()}${summary.slice(1)}`
     : summary
   return itemFromStory('Global Lens', item.slug, item.title, adjustedSummary, storyMap, siteUrl, 45)
+}
+
+function startsWithOutletOrAlias(summary: string, outlet: string): boolean {
+  const compactOutlet = outlet.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const aliases = new Set([
+    outlet.toLowerCase(),
+    compactOutlet,
+    ...(compactOutlet.includes('aljazeera') ? ['al jazeera', 'aljazeera'] : []),
+    ...(compactOutlet.includes('dw') ? ['dw', 'deutsche welle'] : []),
+    ...(compactOutlet.includes('france24') ? ['france 24', 'france24'] : []),
+    ...(compactOutlet.includes('arirang') ? ['arirang', 'arirang news'] : []),
+    ...(compactOutlet.includes('trtworld') ? ['trt world', 'trtworld'] : []),
+    ...(compactOutlet.includes('abcnewsaustralia') ? ['abc news australia'] : []),
+    ...(compactOutlet.includes('africanews') ? ['africanews'] : []),
+  ])
+  const lower = summary.toLowerCase()
+  const compactSummary = lower.replace(/[^a-z0-9]/g, '')
+  return [...aliases].some(alias => lower.startsWith(alias) || compactSummary.startsWith(alias.replace(/[^a-z0-9]/g, '')))
+}
+
+function normalizeLensOutletLead(summary: string): string {
+  return summary
+    .replace(/^al\s+jazeera\b/i, 'Al Jazeera')
+    .replace(/^dw\b/i, 'DW')
+    .replace(/^france\s*24\b/i, 'France 24')
+    .replace(/^trt\s+world\b/i, 'TRT World')
+    .replace(/^abc\s+news\s+australia\b/i, 'ABC News Australia')
+    .replace(/^africanews\b/i, 'Africanews')
+    .replace(/^arirang\s+news\b/i, 'Arirang News')
 }
 
 export function deriveMainstreamPulseSynthesis(items: MainstreamPulseItem[] = []): string {
