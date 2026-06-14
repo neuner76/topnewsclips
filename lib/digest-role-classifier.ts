@@ -25,11 +25,11 @@ const TOPIC_KEYWORDS: Array<[string, RegExp]> = [
   ['safety', /\b(shooting|active shooter|evacuat|tornado|hurricane|wildfire|flash flood|earthquake|mass casualt|amber alert|hazmat)\b/i],
   // Inflection-tolerant: plurals (strikes, sanctions) and inflected forms
   // (negotiations, ceasefires) must match, so trailing \w* / s? are allowed.
-  ['geopolitics', /\b(wars?|missiles?|strikes?|airstrikes?|troops?|invasions?|ceasefires?|truce|diplomat\w*|sanctions?|nuclear|militi\w*|insurgen\w*|coup|hostages?|frontlines?|annex\w*|peace (?:deal|talks|negotiations?)|negotiations?)\b/i],
+  ['geopolitics', /\b(wars?|missiles?|strikes?|airstrikes?|troops?|forces|invasions?|ceasefires?|truce|diplomat\w*|sanctions?|nuclear|militi\w*|militants?|insurgen\w*|coup|hostages?|frontlines?|annex\w*|peace (?:deal|talks|negotiations?)|negotiat\w*|drones?|shoot(?:s|ing)? down|shot down|warships?|naval|blockade|incursion|shelling|bombard\w*|rockets?|retaliat\w*|escalat\w*|strait)\b/i],
   ['migration', /\b(migrants?|migration|asylum|refugees?|border crossing|deportations?)\b/i],
   ['markets', /\b(inflation|interest rates?|ipos?|stocks?|markets?|recession|tariffs?|trade deals?|earnings|bankruptc\w*|layoffs?|used[- ]cars?|consumer prices?|oil prices?|gas prices?|energy prices?|fuel prices?|gasoline|crude)\b/i],
   ['health_science', /\b(disease|outbreak|virus|vaccine|screwworm|public health|fda|cdc|climate|drought|emission|research|study|species|wildlife|agricultur|pandemic)\b/i],
-  ['institutional', /\b(court|ruling|supreme court|regulat\w*|policy|legislation|congress|parliament|agency|deadline|infrastructure|bridge|pipeline|treaty|sanction|senate|house vote|primary|elections?|governor|mayor|impeach\w*|veto|executive order|confirmation|ballot)\b/i],
+  ['institutional', /\b(court|ruling|supreme court|judges?|convicted?|sentenced?|verdict|indict\w*|lawsuit|prosecutor|subpoena|testif\w*|regulat\w*|policy|legislation|congress|parliament|agency|deadline|infrastructure|bridge|pipeline|treaty|sanction|senate|house vote|primary|elections?|governor|mayor|impeach\w*|veto|executive order|confirmation|ballot)\b/i],
   ['culture', /\b(satire|comedy|documentary|retrospective|celebrity|festival|album|box office|streaming|sports)\b/i],
 ]
 

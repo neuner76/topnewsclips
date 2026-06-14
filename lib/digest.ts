@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { getConfidenceLabel } from './confidence'
+import { prefilterCandidatePool } from './digest-prefilter'
 
 export interface HowWorldSeesItItem {
   region: string
@@ -532,7 +533,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   ])
   const journalistCounts = new Map<string, number>()
   const SOURCE_CAP = 1
-  const cappedStories = stories.filter(s => {
+  const journalistCapped = stories.filter(s => {
     if (!s.journalist_username) return true
     if (SATIRE_DIGEST_EXEMPT.has(s.journalist_username.toLowerCase())) return true  // satire exempt from cap
     const count = journalistCounts.get(s.journalist_username) ?? 0
@@ -540,6 +541,24 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     journalistCounts.set(s.journalist_username, count + 1)
     return true
   })
+
+  // Phase 2 candidate pre-filter (Digest Pull Quality). Conservative: removes
+  // only individually-unfit items (uncorroborated single-source state-affiliated
+  // high-stakes, lightweight human-interest, clearly-negative no-role) before
+  // the LLM sees them. SHADOW MODE by default — logs what it WOULD remove but
+  // changes nothing unless DIGEST_PREFILTER=on, so its effect can be proven
+  // against real generations before it is allowed to act. Folded into
+  // cappedStories so every downstream consumer uses the same working pool.
+  const prefilter = prefilterCandidatePool(journalistCapped)
+  const prefilterEnforcing = process.env.DIGEST_PREFILTER === 'on'
+  if (prefilter.removed.length > 0) {
+    console.warn(
+      `[digest] candidate pre-filter (${prefilterEnforcing ? 'ENFORCING' : 'shadow'}) ` +
+      `${prefilterEnforcing ? 'removing' : 'would remove'} ${prefilter.removed.length}/${journalistCapped.length}: ` +
+      prefilter.removed.map(r => `${r.slug} (${r.reason})`).join('; ')
+    )
+  }
+  const cappedStories = prefilterEnforcing ? prefilter.kept : journalistCapped
 
   // Build two lists: fresh stories (NeedToKnow eligible) and all stories (InTheKnow/Etcetera)
   // Hard-exclude yesterday's NeedToKnow slugs from the NeedToKnow pool — don't rely on Claude to honor a flag
