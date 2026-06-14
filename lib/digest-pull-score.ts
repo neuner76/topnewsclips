@@ -112,9 +112,14 @@ export function calculateDigestPullScore(
     // single-source penalty
     score += W.singleSource
   }
-  // 0-of-N coverage — but a developing-safety or undercovered-global item is
-  // EXPECTED to be uncovered; that's the point, so it isn't penalized.
-  if (covered === 0 && role !== 'developing_safety' && role !== 'undercovered_global') {
+  // 0-of-N coverage — but it does NOT apply when:
+  //  - the role is developing_safety or undercovered_global (being uncovered is
+  //    the point), or
+  //  - the source is tier <= 6, which the confidence model already trusts as
+  //    REPORTED regardless of corroboration. A zero MSM-coverage count on a
+  //    credible newsroom is usually a headline-matching miss, not a fringe
+  //    single source — penalizing it double-counts the single_source penalty.
+  if (covered === 0 && role !== 'developing_safety' && role !== 'undercovered_global' && tier > 6) {
     score += W.zeroCoverage
     flags.push('zero_coverage')
   }

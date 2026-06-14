@@ -19,7 +19,7 @@ export const STATE_AFFILIATED_CAUTION_BADGE = 'Use with caution'
 // word boundaries so e.g. "award" doesn't trip "war"; stems (diplomac, migrat)
 // intentionally omit the trailing boundary to catch inflections.
 const HIGH_STAKES_PATTERN =
-  /\b(war|wars|warhead|military|missile|strike|troops?|invasion|nuclear|ceasefire|diplomac\w*|diplomat\w*|sanctions?|migrant\w*|migration|asylum|refugees?|sovereignty|annex\w*|occupation|airstrike|offensive|militia\w*|insurgen\w*|coup|regime|geopolit\w*|treaty|hostages?|drone\w*|frontline)\b/i
+  /\b(wars?|warhead|military|missiles?|strikes?|airstrikes?|troops?|invasions?|nuclear|ceasefires?|truce|diplomac\w*|diplomat\w*|sanctions?|negotiations?|migrant\w*|migration|asylum|refugees?|sovereignty|annex\w*|occupation|offensive|militi\w*|insurgen\w*|coup|regime|geopolit\w*|treaty|hostages?|drones?|frontlines?)\b/i
 
 function storyText(story: Pick<Story, 'title' | 'description' | 'subcategory'>): string {
   return `${story.title ?? ''} ${story.description ?? ''} ${story.subcategory ?? ''}`

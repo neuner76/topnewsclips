@@ -64,6 +64,23 @@ describe('validateDigestPullQuality (warn-only)', () => {
     expect(report.annotations).toHaveLength(1)
   })
 
+  it('does not flag the genuine lead in Need To Know as lacking a role', () => {
+    // The lead must be scored against PRIOR context only, never itself — else it
+    // self-demotes to archive_only and trips a false "lacks role" warning.
+    const ed = edition({
+      needToKnow: [ntk('lead'), ntk('second')],
+      sections: [{ name: 'Politics & World Affairs', items: [item('follow', 'Politics & World Affairs')] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Iran missile strike escalates war as diplomats scramble', source_tier: 2, msm_outlet_coverage: covered(9) })],
+      ['second', story({ slug: 'second', title: 'Supreme Court ruling sets new regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['follow', story({ slug: 'follow', title: 'Used-car prices climb amid inflation', source_tier: 3, msm_outlet_coverage: covered(5) })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /lead.*lacks a clear digest role/.test(w))).toBe(false)
+    expect(report.annotations.find(a => a.id === 'lead')?.role).toBe('lead')
+  })
+
   it('is silent on non-story items (no slug in map)', () => {
     const ed = edition({ needToKnow: [ntk('a'), ntk('b')], sections: [{ name: 'Also Worth Knowing', items: [item('orphan', 'Also Worth Knowing')] }] })
     const map = new Map<string, Story>([

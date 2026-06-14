@@ -54,12 +54,6 @@ export function validateDigestPullQuality(
   // Build context from Need To Know first so lower sections can be measured
   // against the lead's topic (duplicate-topic suppression).
   let context = emptyDigestContext()
-  for (const ntk of edition.needToKnow) {
-    const story = storyMap.get(ntk.id)
-    if (!story) continue
-    const { role } = calculateDigestPullScore(story, context)
-    context = recordPlacement(context, story, role, story.region, true)
-  }
 
   // Need To Know bounds (Task 4b).
   if (edition.needToKnow.length < NEED_TO_KNOW_MIN) {
@@ -112,22 +106,36 @@ export function validateDigestPullQuality(
       errors.push(`Buried lead: ${item.id} is lead-strength (${result.score}, ${result.role}) but in ${item.section}`)
     }
 
-    // Duplicate-of-lead topic without a distinct role (Task 6).
-    if (!inNeedToKnow && isDuplicateLowerSectionItem(story, result.role, context)) {
+    // Duplicate-of-lead topic without a distinct role (Task 6). Not applicable
+    // to Need To Know items — they ARE the front page.
+    const isDuplicate = !inNeedToKnow && isDuplicateLowerSectionItem(story, result.role, context)
+    if (isDuplicate) {
       warnings.push(`${item.section} item duplicates Need To Know topic without a distinct role: ${item.id}`)
     }
 
-    // Merely-interesting: placed but lacks any digest role. (A low score with a
-    // real role — cultural_texture, undercovered_global — is an allowed
-    // exception per the spec, so it is NOT warned here.)
-    if (result.role === 'archive_only') {
+    // Merely-interesting: placed but lacks any digest role. Skipped for Need To
+    // Know (those are leads by placement) and for items already flagged as a
+    // duplicate-of-lead (the duplicate IS the reason — no need to double-warn).
+    // A low score with a real role (cultural_texture, undercovered_global) is an
+    // allowed exception per the spec and is not warned here.
+    if (!inNeedToKnow && !isDuplicate && result.role === 'archive_only') {
       warnings.push(`${item.section} item is interesting but lacks a clear digest role (score ${result.score}): ${item.id}`)
     }
 
     annotations.push({ id: item.id, section: item.section, role: result.role, score: result.score, riskFlags: flags })
   }
 
-  for (const ntk of edition.needToKnow) evaluate(ntk, true)
+  // Need To Know first, evaluated incrementally: each item is scored against the
+  // context of PRIOR placements only (so the lead is never compared to itself),
+  // then recorded so lower sections can be measured against the lead's topic.
+  for (const ntk of edition.needToKnow) {
+    evaluate(ntk, true)
+    const story = storyMap.get(ntk.id)
+    if (story) {
+      const { role } = calculateDigestPullScore(story, context)
+      context = recordPlacement(context, story, role, story.region, true)
+    }
+  }
   for (const section of edition.sections) {
     for (const item of section.items) evaluate(item, false)
   }

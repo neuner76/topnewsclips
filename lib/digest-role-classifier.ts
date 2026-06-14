@@ -23,11 +23,13 @@ type ClassifiableStory = Pick<
 // matching bucket wins, so more specific/high-stakes buckets come first.
 const TOPIC_KEYWORDS: Array<[string, RegExp]> = [
   ['safety', /\b(shooting|active shooter|evacuat|tornado|hurricane|wildfire|flash flood|earthquake|mass casualt|amber alert|hazmat)\b/i],
-  ['geopolitics', /\b(war|missile|strike|airstrike|troop|invasion|ceasefire|diplomat|sanction|nuclear|militia|insurgen|coup|hostage|frontline|annex)\b/i],
-  ['migration', /\b(migrant|migration|asylum|refugee|border crossing|deportation)\b/i],
-  ['markets', /\b(inflation|interest rate|ipo|stock|market|recession|tariff|trade deal|earnings|bankruptc|layoff|used[- ]car|consumer price)\b/i],
+  // Inflection-tolerant: plurals (strikes, sanctions) and inflected forms
+  // (negotiations, ceasefires) must match, so trailing \w* / s? are allowed.
+  ['geopolitics', /\b(wars?|missiles?|strikes?|airstrikes?|troops?|invasions?|ceasefires?|truce|diplomat\w*|sanctions?|nuclear|militi\w*|insurgen\w*|coup|hostages?|frontlines?|annex\w*|peace (?:deal|talks|negotiations?)|negotiations?)\b/i],
+  ['migration', /\b(migrants?|migration|asylum|refugees?|border crossing|deportations?)\b/i],
+  ['markets', /\b(inflation|interest rates?|ipos?|stocks?|markets?|recession|tariffs?|trade deals?|earnings|bankruptc\w*|layoffs?|used[- ]cars?|consumer prices?|oil prices?|gas prices?|energy prices?|fuel prices?|gasoline|crude)\b/i],
   ['health_science', /\b(disease|outbreak|virus|vaccine|screwworm|public health|fda|cdc|climate|drought|emission|research|study|species|wildlife|agricultur|pandemic)\b/i],
-  ['institutional', /\b(court|ruling|supreme court|regulat|policy|legislation|congress|parliament|agency|deadline|infrastructure|bridge|pipeline|treaty|sanction)\b/i],
+  ['institutional', /\b(court|ruling|supreme court|regulat\w*|policy|legislation|congress|parliament|agency|deadline|infrastructure|bridge|pipeline|treaty|sanction|senate|house vote|primary|elections?|governor|mayor|impeach\w*|veto|executive order|confirmation|ballot)\b/i],
   ['culture', /\b(satire|comedy|documentary|retrospective|celebrity|festival|album|box office|streaming|sports)\b/i],
 ]
 
@@ -92,7 +94,10 @@ export function classifyDigestItemRole(story: ClassifiableStory, context: Digest
   // Lead: a major geopolitical/diplomatic or mass-casualty development with
   // strong sourcing (or a state outlet that will carry caution framing). Only
   // the first such story becomes the lead; later ones fall through to a role.
+  // Analysis/commentary is never the lead — it interprets an event rather than
+  // reporting it. It still routes to its topic-context role below.
   const leadEligible =
+    story.category !== 'analysis' &&
     (topic === 'geopolitics' || topic === 'migration') &&
     (isStrongSource(story) || isStateAffiliated(story)) &&
     isHighStakesGeopolitical(story)

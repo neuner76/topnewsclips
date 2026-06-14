@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Story } from './types'
 import { classifyDigestItemRole } from './digest-role-classifier'
-import { calculateDigestPullScore, meetsInclusionThreshold } from './digest-pull-score'
+import { calculateDigestPullScore, meetsInclusionThreshold, DIGEST_INCLUSION_THRESHOLD } from './digest-pull-score'
 import {
   assessStateAffiliated,
   detectBundledMultistory,
@@ -87,6 +87,30 @@ describe('classifyDigestItemRole', () => {
   it('treats raw footage with no coverage as archive_only', () => {
     const s = story({ title: 'Raw: flooding in the Midwest', category: 'raw', source_tier: 9, source_type: 'Community Clip', msm_outlet_coverage: covered(0) })
     expect(classifyDigestItemRole(s, emptyDigestContext())).toBe('archive_only')
+  })
+
+  it('matches inflected geopolitics forms (strikes/ceasefire) not just singulars', () => {
+    // "strikes" / "ceasefire deal" must classify as geopolitics, not fall to the
+    // proper-noun fallback. Strong source + high-stakes => lead.
+    const s = story({ title: 'Trump cancels planned Iran strikes, citing ceasefire deal', source_tier: 6, msm_outlet_coverage: covered(0) })
+    expect(classifyDigestItemRole(s, emptyDigestContext())).toBe('lead')
+  })
+
+  it('never classifies an analysis piece as lead', () => {
+    const s = story({ title: 'Why the Iran ceasefire strikes deal may not hold', category: 'analysis', source_tier: 3, msm_outlet_coverage: covered(8) })
+    expect(classifyDigestItemRole(s, emptyDigestContext())).not.toBe('lead')
+  })
+
+  it('routes a US political-process story to institutional_signal', () => {
+    const s = story({ title: 'Maine Democrat wins uncontested Senate primary', source_tier: 4, msm_outlet_coverage: covered(0) })
+    expect(classifyDigestItemRole(s, emptyDigestContext())).toBe('institutional_signal')
+  })
+
+  it('does not penalize a tier<=6 newsroom for zero MSM coverage as if single-source-fringe', () => {
+    // A credible newsroom (tier 6) reporting a major event with a 0 coverage
+    // count (a headline-match miss) should not be hammered into deep-negative.
+    const s = story({ title: 'Trump cancels Iran strikes citing ceasefire deal', source_tier: 6, msm_outlet_coverage: covered(0) })
+    expect(calculateDigestPullScore(s).score).toBeGreaterThanOrEqual(DIGEST_INCLUSION_THRESHOLD)
   })
 })
 
