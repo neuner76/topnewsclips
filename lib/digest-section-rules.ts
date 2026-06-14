@@ -33,15 +33,32 @@ export function isDuplicateLowerSectionItem(
   return !DISTINCT_FOLLOWUP_ROLES.includes(role)
 }
 
+// Roles whose legitimate home is a front-page slot (Need To Know). A high score
+// in one of these, placed lower, is a buried lead. Roles deliberately excluded:
+// undercovered_global (belongs in Global Blindspot — low coverage is the point,
+// so a high score there is expected, not buried), cultural_texture, reader_utility,
+// mainstream_agenda_marker, archive_only.
+const FRONT_PAGE_ROLES: DigestItemRole[] = [
+  'lead',
+  'institutional_signal',
+  'developing_safety',
+  'practical_impact',
+  'economic_context',
+  'health_science_context',
+]
+
 // Task 4b. A lead-strength story not placed in Need To Know is a buried lead —
-// a critical defect, not a soft warning.
+// a critical defect, not a soft warning. The score-based trigger only applies
+// to front-page roles, so a high-scoring undercovered_global story sitting in
+// Global Blindspot (its correct home) is NOT mistaken for a buried lead.
 export function isBuriedLead(
   role: DigestItemRole,
   score: number,
   placedInNeedToKnow: boolean
 ): boolean {
   if (placedInNeedToKnow) return false
-  return role === 'lead' || score >= DIGEST_LEAD_STRENGTH
+  if (role === 'lead') return true
+  return score >= DIGEST_LEAD_STRENGTH && FRONT_PAGE_ROLES.includes(role)
 }
 
 // Accumulate a placed item into the running context so later classification

@@ -98,6 +98,16 @@ export function classifyDigestItemRole(story: ClassifiableStory, context: Digest
     isHighStakesGeopolitical(story)
   if (leadEligible && !context.rolesFilled.includes('lead')) return 'lead'
 
+  // Undercovered international story — checked BEFORE the topic switch. A
+  // low-coverage story from an international outlet (region set, not World) is
+  // a Global Blindspot item, not a front-page institutional/economic signal,
+  // even when its subject is institutional. Catching it here keeps such stories
+  // from being mistaken for buried leads. (US stories have region null and so
+  // fall through to their topic role.)
+  if ((story.msm_gap || coverageCount(story) <= 2) && story.region && story.region !== 'World') {
+    return 'undercovered_global'
+  }
+
   switch (topic) {
     case 'geopolitics':
     case 'migration':
@@ -109,11 +119,6 @@ export function classifyDigestItemRole(story: ClassifiableStory, context: Digest
       return 'health_science_context'
     default:
       break
-  }
-
-  // Undercovered international story with real source context.
-  if ((story.msm_gap || coverageCount(story) <= 2) && story.region && story.region !== 'World') {
-    return 'undercovered_global'
   }
 
   // Weakly sourced, no clear bucket → archive.

@@ -7,6 +7,7 @@ import {
   validateCanonicalPull,
 } from '../lib/digest-assembly'
 import { DIGEST_INCLUSION_THRESHOLD } from '../lib/digest-pull-score'
+import { validateDigestPullQuality } from '../lib/digest-pull-quality'
 import type { Story } from '../lib/types'
 
 function requiredEnv(name: string): string {
@@ -70,6 +71,24 @@ async function main() {
   if (result.warnings.length > 0) {
     console.log('\nWarnings:')
     for (const warning of result.warnings) console.log(`- ${warning}`)
+  }
+
+  // ── Pull-quality checks on the LIVE edition (Phase 1, warn-only) ───────────
+  // Annotates the one canonical edition with role/score/risk and surfaces
+  // relational defects. Does not fail the build — this is the observation
+  // period before pre-filtering is trusted to remove candidates upstream.
+  const pullQuality = validateDigestPullQuality(edition, storyMap)
+  console.log(`\n=== Pull-quality on live edition (${pullQuality.annotations.length} story-backed items) ===`)
+  if (pullQuality.errors.length) {
+    console.log('Pull errors (warn-only for now):')
+    for (const e of pullQuality.errors) console.log(`  ✗ ${e}`)
+  }
+  if (pullQuality.warnings.length) {
+    console.log('Pull warnings:')
+    for (const w of pullQuality.warnings) console.log(`  - ${w}`)
+  }
+  if (!pullQuality.errors.length && !pullQuality.warnings.length) {
+    console.log('No pull-quality issues on the live edition.')
   }
 
   // ── Pull-quality calibration (Task 17) ────────────────────────────────────
