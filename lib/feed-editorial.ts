@@ -119,6 +119,13 @@ export function stripSourceBoilerplate(text: string): string {
     .replace(/\bFollow\b[^.!\n]*(?:\bon\b|\bat\b)[^.!\n]*(?:[.!\n]|$)/gi, '')
     .replace(/\bSubscribe\b[^.!\n]*(?:\bon\b|\bat\b)[^.!\n]*(?:[.!\n]|$)/gi, '')
     .replace(/\bAvailable on\b[^.!\n]*(?:[.!\n]|$)/gi, '')
+    .replace(/\braises questions officials are now working to answer about\b/gi, 'left officials working to determine')
+    .replace(/\braises questions about\b/gi, 'has prompted scrutiny of')
+    .replace(/\bsparks concerns about\b/gi, 'has prompted concern about')
+    .replace(/\bin a notable development\b/gi, '')
+    .replace(/\breportedly significant\b/gi, 'significant')
+    .replace(/\bunder these circumstances\b/gi, 'in this case')
+    .replace(/\bin this way\b/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim()
 }

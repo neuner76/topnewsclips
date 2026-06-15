@@ -88,4 +88,14 @@ describe('feed editorial hierarchy', () => {
     expect(stripSourceBoilerplate('Watch this story on YouTube. Officials announced a probe.')).toBe('Officials announced a probe.')
     expect(displaySummary('Follow us on TikTok. Workers announced a strike.', 10)).toBe('Workers announced a strike.')
   })
+
+  it('rewrites vague live-QC filler phrases in display summaries', () => {
+    expect(displaySummary(
+      'The pest was eradicated from the United States through a decades-long program, and its return raises questions officials are now working to answer about how far the infestation has spread.',
+      80
+    )).toBe(
+      'The pest was eradicated from the United States through a decades-long program, and its return left officials working to determine how far the infestation has spread.'
+    )
+    expect(displaySummary('The report raises questions about agency oversight.', 20)).toBe('The report has prompted scrutiny of agency oversight.')
+  })
 })
