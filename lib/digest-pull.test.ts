@@ -11,9 +11,11 @@ import {
 import { isDuplicateLowerSectionItem, recordPlacement } from './digest-section-rules'
 import { emptyDigestContext } from './digest-pull-types'
 import {
+  applyEditorialOverrides,
   buildCanonicalDigestFromStoryPool,
   validateCanonicalPull,
 } from './digest-assembly'
+import type { EditorialPullOverride } from './digest-pull-types'
 
 // Minimal Story factory — only the fields the pull layer reads.
 function story(overrides: Partial<Story>): Story {
@@ -199,6 +201,20 @@ describe('canonical assembly (Task 14)', () => {
     expect(validation.errors).toEqual([])
   })
 
+  it('orders Politics & World Affairs by role priority, not raw score (Task 5)', () => {
+    const pool: Story[] = [
+      story({ slug: 'lead', title: 'Iran missile strike escalates war as diplomats scramble', source_tier: 2, msm_outlet_coverage: covered(9) }),
+      // Equal scores (4 each) but processed in pool order — wildfire (developing
+      // safety) would sort first by score-stability alone. institutional_signal
+      // must still come first within Politics & World Affairs.
+      story({ slug: 'wildfire', title: 'Wildfire forces evacuation across county', source_tier: 4, msm_outlet_coverage: covered(2) }),
+      story({ slug: 'court', title: 'Supreme Court ruling sets new regulatory deadline for agencies', source_tier: 4, msm_outlet_coverage: covered(2) }),
+    ]
+    const result = buildCanonicalDigestFromStoryPool(pool)
+    const politics = result.sections['Politics & World Affairs'] ?? []
+    expect(politics.map(i => i.pull.role)).toEqual(['institutional_signal', 'developing_safety'])
+  })
+
   it('never places a bundled multi-story item', () => {
     const pool: Story[] = [
       story({ slug: 'good', title: 'Court ruling forces new regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) }),
@@ -208,5 +224,42 @@ describe('canonical assembly (Task 14)', () => {
     const placed = [...result.needToKnow, ...Object.values(result.sections).flat(), ...result.globalBlindspot]
     expect(placed.map(i => i.story.slug)).not.toContain('bundle')
     expect(result.excluded.map(e => e.story.slug)).toContain('bundle')
+  })
+})
+
+describe('editorial pull override (Task 15)', () => {
+  it('re-includes an excluded item into the specified section with its reason recorded', () => {
+    const pool: Story[] = [
+      story({ slug: 'lead', title: 'Iran missile strike escalates war as diplomats scramble', source_tier: 2, msm_outlet_coverage: covered(9) }),
+      story({ slug: 'puppy', title: 'Adorable puppy goes viral', category: 'raw', source_tier: 9, source_type: 'Community Clip', msm_outlet_coverage: covered(0) }),
+    ]
+    const result = buildCanonicalDigestFromStoryPool(pool)
+    expect(result.excluded.map(e => e.story.slug)).toContain('puppy')
+
+    const overrides = new Map<string, EditorialPullOverride>([
+      ['puppy', { include: true, section: 'Also Worth Knowing', reason: 'editor pick for lighter texture' }],
+    ])
+    const overridden = applyEditorialOverrides(result, overrides)
+    expect(overridden.excluded.map(e => e.story.slug)).not.toContain('puppy')
+    const placed = overridden.sections['Also Worth Knowing']?.find(i => i.story.slug === 'puppy')
+    expect(placed).toBeDefined()
+    expect(placed?.pull.pullReason).toMatch(/editorial override: editor pick/)
+  })
+
+  it('does not suppress state-affiliated caution when overriding', () => {
+    const pool: Story[] = [
+      story({ slug: 'lead', title: 'Court ruling forces new regulatory deadline for agencies', source_tier: 2, msm_outlet_coverage: covered(6) }),
+      // Uncorroborated single-source state-affiliated high-stakes -> hard-excluded.
+      story({ slug: 'state', title: 'State outlet reports troop movement near border in escalating war', source_tier: 8, source_type: 'State Media', msm_outlet_coverage: covered(0) }),
+    ]
+    const result = buildCanonicalDigestFromStoryPool(pool)
+    expect(result.excluded.map(e => e.story.slug)).toContain('state')
+
+    const overrides = new Map<string, EditorialPullOverride>([
+      ['state', { include: true, section: 'Politics & World Affairs', reason: 'editor judgment: relevant despite single source' }],
+    ])
+    const overridden = applyEditorialOverrides(result, overrides)
+    const placed = overridden.sections['Politics & World Affairs']?.find(i => i.story.slug === 'state')
+    expect(placed?.caution).toMatch(/state-affiliated/i)
   })
 })

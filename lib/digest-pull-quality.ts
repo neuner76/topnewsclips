@@ -17,10 +17,20 @@ import {
   hasRegionLabelMismatch,
 } from './digest-risk'
 import { calculateDigestPullScore } from './digest-pull-score'
+import { digestTopicKey } from './digest-role-classifier'
 import { isBuriedLead, isDuplicateLowerSectionItem, recordPlacement, NEED_TO_KNOW_MIN, NEED_TO_KNOW_MAX } from './digest-section-rules'
+import { validateGlobalLensSourceConsistency } from './feed-editorial'
 import { emptyDigestContext, type DigestItemRole, type DigestRiskFlag } from './digest-pull-types'
 import type { CanonicalDigestItem, DigestEdition } from './digest-canonical'
 import type { Story } from './types'
+
+// Task 12 — Global Blindspot holds the strongest 3, 4 at most.
+const GLOBAL_BLINDSPOT_MIN = 3
+const GLOBAL_BLINDSPOT_MAX = 4
+
+// Task 13 — Global Lens stays concise: 2-3 items.
+const GLOBAL_LENS_MIN = 2
+const GLOBAL_LENS_MAX = 3
 
 export interface PullAnnotation {
   id: string
@@ -122,6 +132,27 @@ export function validateDigestPullQuality(
       warnings.push(`${item.section} item is interesting but lacks a clear digest role (score ${result.score}): ${item.id}`)
     }
 
+    // Raw footage should not define Science, Health & Environment (Task 8) —
+    // it belongs there only when reframed with stronger health/climate context.
+    if (item.section === 'Science, Health & Environment' && flags.includes('raw_footage_primary')) {
+      warnings.push(`Raw footage defines Science, Health & Environment: ${item.id}`)
+    }
+
+    // Satire/cultural items must show "Cultural lens", never a news confidence
+    // label, even once routed through pull-quality role classification (Task 10).
+    if (result.role === 'cultural_texture' && item.metadata.confidence && item.metadata.confidence !== 'Cultural lens') {
+      warnings.push(`Cultural texture item should show "Cultural lens", not "${item.metadata.confidence}": ${item.id}`)
+    }
+
+    // Country-only label (Task 16): a Blindspot/Lens item with no identifiable
+    // outlet/journalist falls back to a bare region/country label, which is a
+    // weaker source attribution than `country_label_without_outlet` describes.
+    if ((item.section === 'Global Blindspot' || item.section === 'Global Lens') &&
+      !item.metadata.source && !item.metadata.handle && story.region && story.region !== 'World') {
+      flags.push('country_label_without_outlet')
+      warnings.push(`${item.section} item has no outlet, only a country/region label: ${item.id}`)
+    }
+
     annotations.push({ id: item.id, section: item.section, role: result.role, score: result.score, riskFlags: flags })
   }
 
@@ -130,16 +161,60 @@ export function validateDigestPullQuality(
   // then recorded so lower sections can be measured against the lead's topic.
   for (const ntk of edition.needToKnow) {
     evaluate(ntk, true)
-    const story = storyMap.get(ntk.id)
-    if (story) {
-      const { role } = calculateDigestPullScore(story, context)
-      context = recordPlacement(context, story, role, story.region, true)
+
+    // World view lens same-event check (Task 7b): a lens annotating this lead
+    // must cover the SAME core event/topic, never a downstream consequence or
+    // an adjacent topic (e.g. an ECB rate story beside an Iran lead).
+    const leadStory = storyMap.get(ntk.id)
+    const leadTopic = leadStory ? digestTopicKey(leadStory) : null
+    for (const world of ntk.worldView) {
+      const worldStory = storyMap.get(world.id)
+      if (!leadTopic || !worldStory) continue
+      if (digestTopicKey(worldStory) !== leadTopic) {
+        errors.push(`World view lens covers a different event than its lead "${ntk.id}": ${world.id}`)
+      }
+    }
+
+    if (leadStory) {
+      const { role } = calculateDigestPullScore(leadStory, context)
+      context = recordPlacement(context, leadStory, role, leadStory.region, true)
     }
   }
   for (const section of edition.sections) {
     for (const item of section.items) evaluate(item, false)
   }
   for (const item of edition.globalBlindspot) evaluate(item, false)
+  for (const item of edition.globalLens) evaluate(item, false)
+
+  // Global Blindspot bounds (Task 12): the strongest 3, 4 at most.
+  if (edition.globalBlindspot.length > GLOBAL_BLINDSPOT_MAX) {
+    warnings.push(`Global Blindspot has ${edition.globalBlindspot.length} items (cap ${GLOBAL_BLINDSPOT_MAX})`)
+  } else if (edition.globalBlindspot.length > 0 && edition.globalBlindspot.length < GLOBAL_BLINDSPOT_MIN) {
+    warnings.push(`Global Blindspot has ${edition.globalBlindspot.length} items (expected ${GLOBAL_BLINDSPOT_MIN}-${GLOBAL_BLINDSPOT_MAX})`)
+  }
+
+  // Global Lens bounds (Task 13): 2-3 concise items.
+  if (edition.globalLens.length > GLOBAL_LENS_MAX) {
+    warnings.push(`Global Lens has ${edition.globalLens.length} items (cap ${GLOBAL_LENS_MAX})`)
+  } else if (edition.globalLens.length > 0 && edition.globalLens.length < GLOBAL_LENS_MIN) {
+    warnings.push(`Global Lens has ${edition.globalLens.length} items (expected ${GLOBAL_LENS_MIN}-${GLOBAL_LENS_MAX})`)
+  }
+
+  // Global Lens: no duplicate base-story summaries, and outlet name must match
+  // the summary text (Task 13).
+  const seenLensIds = new Set<string>()
+  for (const item of edition.globalLens) {
+    if (seenLensIds.has(item.id)) {
+      warnings.push(`Global Lens duplicates base-story summary: ${item.id}`)
+    }
+    seenLensIds.add(item.id)
+
+    const story = storyMap.get(item.id)
+    const consistency = validateGlobalLensSourceConsistency({ summary: item.summary }, story ?? null)
+    if (!consistency.valid) {
+      warnings.push(`Global Lens source inconsistency for ${item.id}: ${consistency.reason}`)
+    }
+  }
 
   return { warnings, errors, annotations }
 }

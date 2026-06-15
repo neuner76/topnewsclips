@@ -81,6 +81,98 @@ describe('validateDigestPullQuality (warn-only)', () => {
     expect(report.annotations.find(a => a.id === 'lead')?.role).toBe('lead')
   })
 
+  it('flags a World view lens covering a different event than its lead (Task 7b)', () => {
+    const lensItem = { ...item('ecb', 'Global Lens'), title: 'ECB raises interest rates' }
+    const ed = edition({
+      needToKnow: [{ ...ntk('lead'), worldView: [lensItem] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Iran missile strike escalates war as diplomats scramble', source_tier: 2, msm_outlet_coverage: covered(9) })],
+      ['ecb', story({ slug: 'ecb', title: 'ECB raises interest rates amid inflation concerns', source_tier: 3, msm_outlet_coverage: covered(5) })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.errors.some(e => /World view lens covers a different event/.test(e))).toBe(true)
+  })
+
+  it('does not flag a World view lens covering the same core event', () => {
+    const lensItem = { ...item('ecb', 'Global Lens'), title: 'Iran reaction from Tehran' }
+    const ed = edition({
+      needToKnow: [{ ...ntk('lead'), worldView: [lensItem] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Iran missile strike escalates war as diplomats scramble', source_tier: 2, msm_outlet_coverage: covered(9) })],
+      ['ecb', story({ slug: 'ecb', title: 'Iran says missile strike was a defensive measure', source_tier: 3, msm_outlet_coverage: covered(5) })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.errors.some(e => /World view lens covers a different event/.test(e))).toBe(false)
+  })
+
+  it('warns when Global Blindspot exceeds its cap (Task 12)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      globalBlindspot: ['gb1', 'gb2', 'gb3', 'gb4', 'gb5'].map(id => item(id, 'Global Blindspot')),
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ...['gb1', 'gb2', 'gb3', 'gb4', 'gb5'].map(id => [id, story({ slug: id, title: `Undercovered story ${id}`, msm_gap: true, region: 'Africa', msm_outlet_coverage: covered(1) })] as const),
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Global Blindspot has 5 items \(cap 4\)/.test(w))).toBe(true)
+  })
+
+  it('warns when Global Lens exceeds its cap or duplicates a base story (Task 13)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      globalLens: ['l1', 'l1', 'l2', 'l3'].map(id => item(id, 'Global Lens')),
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ...['l1', 'l2', 'l3'].map(id => [id, story({ slug: id, title: `Global angle ${id}` })] as const),
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Global Lens has 4 items \(cap 3\)/.test(w))).toBe(true)
+    expect(report.warnings.some(w => /Global Lens duplicates base-story summary: l1/.test(w))).toBe(true)
+  })
+
+  it('warns when raw footage defines Science, Health & Environment (Task 8)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      sections: [{ name: 'Science, Health & Environment', items: [item('raw', 'Science, Health & Environment')] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['raw', story({ slug: 'raw', title: 'Raw: flooding hits Midwest farms', category: 'raw', source_tier: 9, source_type: 'Community Clip', msm_outlet_coverage: covered(0) })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Raw footage defines Science, Health & Environment: raw/.test(w))).toBe(true)
+  })
+
+  it('warns when a cultural texture item carries a news confidence label instead of "Cultural lens" (Task 10)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      sections: [{ name: 'Culture, Media & Society', items: [item('satire', 'Culture, Media & Society')] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['satire', story({ slug: 'satire', title: 'Daily Show skewers Senate hearing', category: 'comedy', source_tier: 6, source_type: 'Satire' })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Cultural texture item should show "Cultural lens"/.test(w))).toBe(true)
+  })
+
+  it('warns on a Global Blindspot item with no outlet, only a country/region label (Task 16)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      globalBlindspot: [item('gb', 'Global Blindspot')],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['gb', story({ slug: 'gb', title: 'Undercovered regional story', msm_gap: true, region: 'Africa', source: null, journalist_username: null, msm_outlet_coverage: covered(1) })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Global Blindspot item has no outlet, only a country\/region label: gb/.test(w))).toBe(true)
+  })
+
   it('is silent on non-story items (no slug in map)', () => {
     const ed = edition({ needToKnow: [ntk('a'), ntk('b')], sections: [{ name: 'Also Worth Knowing', items: [item('orphan', 'Also Worth Knowing')] }] })
     const map = new Map<string, Story>([

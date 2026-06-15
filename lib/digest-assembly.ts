@@ -23,7 +23,7 @@ import {
   recordPlacement,
   NEED_TO_KNOW_MAX,
 } from './digest-section-rules'
-import { emptyDigestContext, type DigestContext, type DigestItemRole, type DigestPullMetadata } from './digest-pull-types'
+import { emptyDigestContext, type DigestContext, type DigestItemRole, type DigestPullMetadata, type EditorialPullOverride } from './digest-pull-types'
 import type { CanonicalDigestSectionName } from './digest-canonical'
 import type { Story } from './types'
 
@@ -164,7 +164,88 @@ export function buildCanonicalDigestFromStoryPool(stories: Story[]): CanonicalPu
     context = recordPlacement(context, story, role, story.region, false)
   }
 
+  // Task 5: within Politics & World Affairs, order by role priority — an
+  // institutional development leads over a practical-impact item, which leads
+  // over developing safety — rather than by raw score alone. Stable within a
+  // role (preserves the score-descending order already established above).
+  const politics = sections['Politics & World Affairs']
+  if (politics) {
+    sections['Politics & World Affairs'] = [...politics].sort(
+      (a, b) => POLITICS_ROLE_PRIORITY[a.pull.role] - POLITICS_ROLE_PRIORITY[b.pull.role]
+    )
+  }
+
   return { needToKnow, sections, globalBlindspot, excluded, context }
+}
+
+// Task 5 selection/ordering priority for Politics & World Affairs. Roles not
+// listed (shouldn't reach this section via ROLE_TO_SECTION) sort last.
+const POLITICS_ROLE_PRIORITY: Record<DigestItemRole, number> = {
+  institutional_signal: 0,
+  practical_impact: 1,
+  developing_safety: 2,
+  undercovered_global: 3,
+  lead: 4,
+  economic_context: 4,
+  health_science_context: 4,
+  cultural_texture: 4,
+  reader_utility: 4,
+  mainstream_agenda_marker: 4,
+  archive_only: 4,
+}
+
+// Task 15 — editorial override. Strict by default; an admin can force an
+// inclusion (or relocate/relabel an already-included item) with a reason.
+// Cannot suppress state-affiliated caution (Task 7): the caution is preserved
+// and merged with any override-supplied caution rather than replaced.
+export function applyEditorialOverrides(
+  result: CanonicalPullResult,
+  overrides: Map<string, EditorialPullOverride>
+): CanonicalPullResult {
+  if (overrides.size === 0) return result
+
+  const needToKnow = [...result.needToKnow]
+  const sections: Record<string, PulledItem[]> = {}
+  for (const [name, items] of Object.entries(result.sections)) sections[name] = [...items]
+  const globalBlindspot = [...result.globalBlindspot]
+  const excluded = [...result.excluded]
+
+  for (const [slug, override] of overrides) {
+    if (!override.reason) continue
+
+    if (override.include) {
+      const excludedIndex = excluded.findIndex(e => e.story.slug === slug)
+      if (excludedIndex === -1) continue
+      const [dropped] = excluded.splice(excludedIndex, 1)
+      const role = override.role ?? dropped.role
+      const targetSection = (override.section as CanonicalDigestSectionName | undefined) ?? ROLE_TO_SECTION[role] ?? 'Also Worth Knowing'
+      const state = assessStateAffiliated(dropped.story)
+      const caution = [state.caution, override.caution].filter(Boolean).join(' ') || null
+      const pull: DigestPullMetadata = {
+        role,
+        pullScore: dropped.score,
+        pullReason: `${dropped.reason} — editorial override: ${override.reason}`,
+        riskFlags: state.flagged ? ['state_affiliated_high_stakes'] : [],
+      }
+      const item: PulledItem = { story: dropped.story, section: targetSection, pull, caution, isLead: targetSection === 'Need To Know' }
+      if (targetSection === 'Need To Know') needToKnow.push(item)
+      else if (targetSection === 'Global Blindspot') globalBlindspot.push(item)
+      else (sections[targetSection] ??= []).push(item)
+      continue
+    }
+
+    // Relocate/relabel an already-placed item without changing its inclusion.
+    const relocate = (items: PulledItem[]): PulledItem[] => items.map(item => {
+      if (item.story.slug !== slug) return item
+      const role = override.role ?? item.pull.role
+      const pull: DigestPullMetadata = { ...item.pull, role, pullReason: `${item.pull.pullReason} — editorial override: ${override.reason}` }
+      const caution = [item.caution, override.caution].filter(Boolean).join(' ') || null
+      return { ...item, pull, caution, section: (override.section as CanonicalDigestSectionName | undefined) ?? item.section }
+    })
+    for (const name of Object.keys(sections)) sections[name] = relocate(sections[name])
+  }
+
+  return { needToKnow, sections, globalBlindspot, excluded, context: result.context }
 }
 
 // Relational validation that depends on the assembled pull (the reasoning-heavy
