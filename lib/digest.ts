@@ -505,7 +505,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     // batch must not be eligible to repeat.
     supabase
       .from('stories')
-      .select('slug, title, journalist_username, source_type')
+      .select('slug, title, journalist_username, source_type, embed_url')
       .eq('published', true)
       .in('journalist_username', Object.keys(MAINSTREAM_PULSE_OUTLETS))
       .gte('created_at', oneDayAgo)
@@ -1757,17 +1757,26 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   if (content.globalLens) content.globalLens = content.globalLens.slice(0, 4)
 
   // Build mainstream pulse — prefer DB stories (with slugs), fall back to RSS per outlet
-  const dbPulseByHandle = new Map<string, { slug: string; title: string }>()
+  const dbPulseByHandle = new Map<string, { slug: string; title: string; embedUrl: string | null }>()
   for (const s of (mainstreampulseStoriesRaw ?? [])) {
     const h = (s.journalist_username ?? '').toLowerCase()
-    if (!dbPulseByHandle.has(h)) dbPulseByHandle.set(h, { slug: s.slug, title: s.title })
+    if (!dbPulseByHandle.has(h)) dbPulseByHandle.set(h, { slug: s.slug, title: s.title, embedUrl: s.embed_url ?? null })
   }
   const rssByLabel = new Map(rssMainstreamPulse.map(i => [i.source, i]))
   const mergedPulse: MainstreamPulseItem[] = Object.entries(MAINSTREAM_PULSE_OUTLETS).flatMap<MainstreamPulseItem>(([handle, { label, descriptor }]) => {
     const db = dbPulseByHandle.get(handle)
-    if (db) return [{ headline: db.title, source: label, descriptor, slug: db.slug }]
+    if (db) {
+      // Mainstream Pulse links to the original external outlet (the outlet's own
+      // published video), NOT our internal /story/<slug> page (Tasks 13–14). The
+      // story's embed_url is that canonical external link. Only when it's missing
+      // do we fall back to the internal story page, explicitly marked as such.
+      if (db.embedUrl) {
+        return [{ headline: db.title, source: label, descriptor, url: db.embedUrl, linkMode: 'external_source' }]
+      }
+      return [{ headline: db.title, source: label, descriptor, slug: db.slug, linkMode: 'internal_context' }]
+    }
     const rss = rssByLabel.get(label)
-    if (rss) return [{ headline: rss.headline, source: rss.source, descriptor: rss.descriptor, slug: undefined, url: rss.url }]
+    if (rss) return [{ headline: rss.headline, source: rss.source, descriptor: rss.descriptor, slug: undefined, url: rss.url, linkMode: 'external_source' }]
     return []
   })
 
