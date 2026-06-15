@@ -7,6 +7,15 @@ const FEED_URL = `${SITE_URL}/feed?${UTM}`
 const TAGLINE = 'The full picture, not the profitable picture.'
 
 const FROM = 'TopNewsClips <digest@topnewsclips.com>'
+const WELCOME_SEQUENCE_VERSION = '2026-06-feed-tagline'
+
+function welcomeTags(step: 'day0' | 'day2' | 'day4' | 'day5') {
+  return [
+    { name: 'kind', value: 'welcome_sequence' },
+    { name: 'step', value: step },
+    { name: 'version', value: WELCOME_SEQUENCE_VERSION },
+  ]
+}
 
 function footer(unsubUrl: string) {
   return `
@@ -276,6 +285,7 @@ export async function sendWelcomeSequence(email: string, referralCode: string, u
       html: email1Html(unsubUrl),
       text: email1Text(unsubUrl),
       headers: unsubHeaders,
+      tags: welcomeTags('day0'),
     }),
     resend.emails.send({
       from: FROM,
@@ -285,6 +295,7 @@ export async function sendWelcomeSequence(email: string, referralCode: string, u
       text: email2Text(unsubUrl),
       headers: unsubHeaders,
       scheduledAt: day2,
+      tags: welcomeTags('day2'),
     }),
     resend.emails.send({
       from: FROM,
@@ -294,6 +305,7 @@ export async function sendWelcomeSequence(email: string, referralCode: string, u
       text: email25Text(unsubUrl),
       headers: unsubHeaders,
       scheduledAt: day4,
+      tags: welcomeTags('day4'),
     }),
     resend.emails.send({
       from: FROM,
@@ -303,6 +315,7 @@ export async function sendWelcomeSequence(email: string, referralCode: string, u
       text: email3Text(unsubUrl, referralCode),
       headers: unsubHeaders,
       scheduledAt: day5,
+      tags: welcomeTags('day5'),
     }),
   ])
 }

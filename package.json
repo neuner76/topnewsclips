@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "validate:digest": "vite-node scripts/validate-digest.ts",
+    "audit:welcome-emails": "vite-node scripts/audit-scheduled-welcome-emails.ts",
     "verify:live-qc": "node scripts/verify-live-qc.mjs",
     "test": "vitest run"
   },
