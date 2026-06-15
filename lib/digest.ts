@@ -47,6 +47,10 @@ export interface MainstreamPulseItem {
   descriptor: string
   slug?: string | null
   url?: string | null
+  // Task 13: link integrity. `url` should point to the original external outlet
+  // story. linkMode defaults to 'external_source' when absent; set
+  // 'internal_context' to deliberately link an internal TopNewsClips page.
+  linkMode?: 'external_source' | 'internal_context'
 }
 
 export interface DigestContent {

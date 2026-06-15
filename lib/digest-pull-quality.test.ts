@@ -173,6 +173,61 @@ describe('validateDigestPullQuality (warn-only)', () => {
     expect(report.warnings.some(w => /Global Blindspot item has no outlet, only a country\/region label: gb/.test(w))).toBe(true)
   })
 
+  it('warns on a 0-of-N story in a mainstream section without a label (Task 11)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      sections: [{ name: 'Politics & World Affairs', items: [{ ...item('uncov', 'Politics & World Affairs'), metadata: { source: 'x', sourceType: 'x', sourceTier: 5, confidence: 'Reported', coverageCount: 0, coverageTotal: 15, handle: null, caution: null } }] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['uncov', story({ slug: 'uncov', title: 'Defence official resigns amid policy dispute', source_tier: 5, msm_outlet_coverage: covered(0) })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /0-of-15 story appears in Politics & World Affairs/.test(w))).toBe(true)
+  })
+
+  it('does not warn when the 0-of-N story carries a Limited Coverage label (Task 11)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      sections: [{ name: 'Politics & World Affairs', items: [{ ...item('uncov', 'Politics & World Affairs'), metadata: { source: 'x', sourceType: 'x', sourceTier: 5, confidence: 'Reported', coverageCount: 0, coverageTotal: 15, handle: null, caution: 'Limited Coverage' } }] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['uncov', story({ slug: 'uncov', title: 'Defence official resigns', source_tier: 5, msm_outlet_coverage: covered(0), msm_gap: true })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /appears in Politics & World Affairs/.test(w))).toBe(false)
+  })
+
+  it('warns when 3+ primary sections each hold only one item (Task 15)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead'), ntk('second')],
+      sections: [
+        { name: 'Politics & World Affairs', items: [item('p', 'Politics & World Affairs')] },
+        { name: 'Business & Markets', items: [item('b', 'Business & Markets')] },
+        { name: 'Science, Health & Environment', items: [item('s', 'Science, Health & Environment')] },
+      ],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['second', story({ slug: 'second', title: 'Inflation eases as prices fall', source_tier: 3, msm_outlet_coverage: covered(5) })],
+      ['p', story({ slug: 'p', title: 'Senate passes infrastructure bill', source_tier: 3, msm_outlet_coverage: covered(5) })],
+      ['b', story({ slug: 'b', title: 'Used-car prices climb', source_tier: 4, msm_outlet_coverage: covered(5) })],
+      ['s', story({ slug: 's', title: 'Disease outbreak prompts recall', source_tier: 2, msm_outlet_coverage: covered(6) })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /under-filled/.test(w))).toBe(true)
+  })
+
+  it('errors when the live lead is a Commentary/Analysis weak-format story (Tasks 2–5)', () => {
+    const ed = edition({ needToKnow: [ntk('weaklead')] })
+    const map = new Map<string, Story>([
+      ['weaklead', story({ slug: 'weaklead', title: 'How AI war propaganda reshapes the conflict', category: 'analysis', source_tier: 7, msm_outlet_coverage: covered(2), msm_gap: true })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.errors.some(e => /Lead is ineligible/.test(e))).toBe(true)
+  })
+
   it('is silent on non-story items (no slug in map)', () => {
     const ed = edition({ needToKnow: [ntk('a'), ntk('b')], sections: [{ name: 'Also Worth Knowing', items: [item('orphan', 'Also Worth Knowing')] }] })
     const map = new Map<string, Story>([

@@ -18,6 +18,7 @@ import {
 } from './digest-risk'
 import { calculateDigestPullScore } from './digest-pull-score'
 import { digestTopicKey } from './digest-role-classifier'
+import { evaluateLeadEligibility } from './lead-eligibility'
 import { isBuriedLead, isDuplicateLowerSectionItem, recordPlacement, NEED_TO_KNOW_MIN, NEED_TO_KNOW_MAX } from './digest-section-rules'
 import { validateGlobalLensSourceConsistency } from './feed-editorial'
 import { emptyDigestContext, type DigestItemRole, type DigestRiskFlag } from './digest-pull-types'
@@ -31,6 +32,14 @@ const GLOBAL_BLINDSPOT_MAX = 4
 // Task 13 — Global Lens stays concise: 2-3 items.
 const GLOBAL_LENS_MIN = 2
 const GLOBAL_LENS_MAX = 3
+
+// Task 11 — mainstream sections where a 0-of-N story needs a label/justification.
+const MAINSTREAM_SECTIONS = new Set([
+  'Politics & World Affairs',
+  'Science, Health & Environment',
+  'Business & Markets',
+  'Culture, Media & Society',
+])
 
 export interface PullAnnotation {
   id: string
@@ -71,6 +80,21 @@ export function validateDigestPullQuality(
   }
   if (edition.needToKnow.length > NEED_TO_KNOW_MAX) {
     warnings.push(`Need To Know has ${edition.needToKnow.length} items (cap ${NEED_TO_KNOW_MAX})`)
+  }
+
+  // Lead eligibility (Tasks 2–5) on the live edition's first NTK item. Policy
+  // gates (restricted source) are enforced in from-pool assembly where the
+  // table is loaded; here we apply the non-policy gates (content type, tier,
+  // corroboration, consequence) that catch a weak-format lead like the
+  // motivating Commentary/Analysis T7 2-of-14 case.
+  const leadStory = edition.needToKnow[0] ? storyMap.get(edition.needToKnow[0].id) : undefined
+  if (leadStory) {
+    const gate = evaluateLeadEligibility(leadStory)
+    if (gate.status === 'blocked') {
+      errors.push(`Lead is ineligible: ${gate.reasons.join(' ')} (${edition.needToKnow[0].id})`)
+    } else if (gate.status === 'override_required') {
+      warnings.push(`Lead requires editorial override: ${gate.reasons.join(' ')} (${edition.needToKnow[0].id})`)
+    }
   }
 
   const evaluate = (item: CanonicalDigestItem, inNeedToKnow: boolean) => {
@@ -136,6 +160,17 @@ export function validateDigestPullQuality(
     // it belongs there only when reframed with stronger health/climate context.
     if (item.section === 'Science, Health & Environment' && flags.includes('raw_footage_primary')) {
       warnings.push(`Raw footage defines Science, Health & Environment: ${item.id}`)
+    }
+
+    // Undercovered story in a mainstream section (Task 11): a 0-of-N item needs
+    // a label (Limited Coverage / Emerging signal), a routing to Global
+    // Blindspot, or an editorial reason — otherwise it's an unjustified pull.
+    if (MAINSTREAM_SECTIONS.has(item.section) && (item.metadata.coverageCount ?? 0) === 0) {
+      const caution = (item.metadata.caution ?? '').toLowerCase()
+      const labeled = caution.includes('limited') || caution.includes('emerging') || caution.includes('undercovered')
+      if (!labeled) {
+        warnings.push(`0-of-${item.metadata.coverageTotal ?? 15} story appears in ${item.section}; add Emerging Signal/Limited Coverage treatment, route to Global Blindspot, or provide editorial reason: ${item.id}`)
+      }
     }
 
     // Satire/cultural items must show "Cultural lens", never a news confidence
@@ -214,6 +249,14 @@ export function validateDigestPullQuality(
     if (!consistency.valid) {
       warnings.push(`Global Lens source inconsistency for ${item.id}: ${consistency.reason}`)
     }
+  }
+
+  // Thin-digest check (Task 15). One-item sections are fine when the digest is
+  // intentionally concise; the smell is MANY of them at once, which reads as
+  // under-filled. Warn only when 3+ primary sections each hold exactly one item.
+  const oneItemSections = edition.sections.filter(s => s.items.length === 1)
+  if (oneItemSections.length >= 3) {
+    warnings.push(`Digest may be under-filled: ${oneItemSections.length} primary sections contain only one qualifying item (${oneItemSections.map(s => s.name).join(', ')}). Review story pool or merge weak sections.`)
   }
 
   return { warnings, errors, annotations }

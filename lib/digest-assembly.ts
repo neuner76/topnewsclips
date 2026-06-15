@@ -24,6 +24,8 @@ import {
   NEED_TO_KNOW_MAX,
 } from './digest-section-rules'
 import { emptyDigestContext, type DigestContext, type DigestItemRole, type DigestPullMetadata, type EditorialPullOverride } from './digest-pull-types'
+import { evaluateLeadEligibility, type LeadEditorialOverride, type LeadEligibilityResult } from './lead-eligibility'
+import { policyForStory, type SourcePolicy } from './source-policy'
 import type { CanonicalDigestSectionName } from './digest-canonical'
 import type { Story } from './types'
 
@@ -68,15 +70,33 @@ export interface ExcludedItem {
   role: DigestItemRole
 }
 
+// Lead-gate outcome surfaced for validation / debug (Task 5b).
+export interface LeadDecision {
+  slug: string
+  status: 'eligible' | 'degraded' | 'held'
+  failedGates: string[]   // reasons the chosen lead failed (empty when eligible)
+  warning?: string
+}
+
 export interface CanonicalPullResult {
   needToKnow: PulledItem[]
   sections: Record<string, PulledItem[]>
   globalBlindspot: PulledItem[]
   excluded: ExcludedItem[]
   context: DigestContext
+  leadDecision?: LeadDecision
+  heldForReview?: boolean // Task 5b: every lead candidate was hard-blocked
 }
 
-export function buildCanonicalDigestFromStoryPool(stories: Story[]): CanonicalPullResult {
+export interface AssemblyOptions {
+  policies?: Map<string, SourcePolicy>
+  leadOverrides?: Map<string, LeadEditorialOverride>
+}
+
+export function buildCanonicalDigestFromStoryPool(
+  stories: Story[],
+  opts: AssemblyOptions = {}
+): CanonicalPullResult {
   // Score everything locally first, then assemble in descending strength so the
   // strongest stories claim Need To Know and section slots before weaker ones.
   const scored = stories
@@ -91,6 +111,18 @@ export function buildCanonicalDigestFromStoryPool(stories: Story[]): CanonicalPu
 
   const exclude = (story: Story, role: DigestItemRole, score: number, reason: string) =>
     excluded.push({ story, role, score, reason })
+
+  // Lead gate (Task 5): the FIRST Need To Know slot is the lead and must pass
+  // hard eligibility. Stories that fail the lead gate are tracked so the
+  // degraded-lead fallback (Task 5b) can choose among them when nothing is
+  // cleanly eligible — rather than letting score alone seat a weak lead.
+  let leadPlaced = false
+  const leadGateOf = (story: Story): LeadEligibilityResult => evaluateLeadEligibility(story, {
+    policy: opts.policies ? policyForStory(story, opts.policies) : undefined,
+    override: opts.leadOverrides?.get(story.slug),
+  })
+  const degradedCandidates: Array<{ item: PulledItem; gate: LeadEligibilityResult }> = []
+  const blockedLeadCandidates: Array<{ item: PulledItem; gate: LeadEligibilityResult }> = []
 
   for (const { story } of scored) {
     // Re-score WITH the running context so relational rules (duplicate-of-lead
@@ -131,9 +163,29 @@ export function buildCanonicalDigestFromStoryPool(stories: Story[]): CanonicalPu
     // Promote leads / lead-strength stories to Need To Know (respect the cap).
     const wantsNeedToKnow = role === 'lead' || score >= DIGEST_LEAD_STRENGTH
     if (wantsNeedToKnow && needToKnow.length < POOL_SECTION_CAPS['Need To Know']) {
-      const item: PulledItem = { story, section: 'Need To Know', pull, caution: state.caution, isLead: true }
+      const item: PulledItem = { story, section: 'Need To Know', pull, caution: state.caution, isLead: !leadPlaced }
+
+      // The lead slot is a hard gate (Task 5). A story that would take the lead
+      // must pass it; otherwise it cannot seat as lead on score alone. Failed
+      // candidates are held for the degraded-lead fallback below.
+      if (!leadPlaced) {
+        const gate = leadGateOf(story)
+        if (gate.status === 'blocked') {
+          blockedLeadCandidates.push({ item, gate })
+          exclude(story, role, score, `lead-blocked: ${gate.reasons.join(' ')}`)
+          continue
+        }
+        if (gate.status === 'override_required') {
+          degradedCandidates.push({ item, gate })
+          exclude(story, role, score, `lead-override-required: ${gate.reasons.join(' ')}`)
+          continue
+        }
+        // eligible → seat as the lead.
+        leadPlaced = true
+      }
+
       needToKnow.push(item)
-      context = recordPlacement(context, story, role, story.region, true)
+      context = recordPlacement(context, story, role, story.region, !item.isLead ? false : true)
       continue
     }
 
@@ -175,7 +227,44 @@ export function buildCanonicalDigestFromStoryPool(stories: Story[]): CanonicalPu
     )
   }
 
-  return { needToKnow, sections, globalBlindspot, excluded, context }
+  // ── Task 5b: degraded-lead fallback ──────────────────────────────────────
+  // The digest must ship with a lead and must never be leadless or hard-error.
+  let leadDecision: LeadDecision | undefined
+  let heldForReview = false
+  if (leadPlaced) {
+    const lead = needToKnow.find(i => i.isLead)
+    if (lead) leadDecision = { slug: lead.story.slug, status: 'eligible', failedGates: [] }
+  } else if (degradedCandidates.length > 0) {
+    // No fully eligible story today: lead with the STRONGEST override-required
+    // candidate (degradedCandidates preserve score order), attach its caution,
+    // and surface a prominent warning recording which gate(s) it failed.
+    const { item, gate } = degradedCandidates[0]
+    // Pull it back out of `excluded` and seat it as the (degraded) lead.
+    const idx = excluded.findIndex(e => e.story.slug === item.story.slug)
+    if (idx !== -1) excluded.splice(idx, 1)
+    const degradedLead: PulledItem = { ...item, isLead: true }
+    needToKnow.unshift(degradedLead)
+    context = recordPlacement(context, item.story, item.pull.role, item.story.region, true)
+    leadDecision = {
+      slug: item.story.slug,
+      status: 'degraded',
+      failedGates: gate.reasons,
+      warning: 'Lead chosen under degraded eligibility — no fully eligible story today.',
+    }
+  } else if (blockedLeadCandidates.length > 0) {
+    // Everything that could lead is hard-blocked (restricted source / wrong
+    // format). That means the pull itself failed — hold for review rather than
+    // auto-publishing a blocked-source lead.
+    heldForReview = true
+    leadDecision = {
+      slug: blockedLeadCandidates[0].item.story.slug,
+      status: 'held',
+      failedGates: blockedLeadCandidates[0].gate.reasons,
+      warning: 'No story passed the lead gate and all lead candidates are blocked — hold for review.',
+    }
+  }
+
+  return { needToKnow, sections, globalBlindspot, excluded, context, leadDecision, heldForReview }
 }
 
 // Task 5 selection/ordering priority for Politics & World Affairs. Roles not
@@ -260,8 +349,17 @@ export function validateCanonicalPull(result: CanonicalPullResult): PullValidati
   const errors: string[] = []
   const warnings: string[] = []
 
-  if (result.needToKnow.length === 0) errors.push('Need To Know is empty')
+  if (result.needToKnow.length === 0 && !result.heldForReview) errors.push('Need To Know is empty')
   if (result.needToKnow.length === 1) warnings.push('Need To Know has only 1 item (expected 2–3)')
+
+  // Lead-gate outcome (Task 5b): degraded lead is a prominent warning; an
+  // all-blocked hold is a critical error (the pull itself failed).
+  if (result.leadDecision?.status === 'degraded') {
+    warnings.push(`${result.leadDecision.warning} Failed gate(s): ${result.leadDecision.failedGates.join(' ')}`)
+  }
+  if (result.heldForReview || result.leadDecision?.status === 'held') {
+    errors.push(result.leadDecision?.warning ?? 'No eligible lead — hold for review.')
+  }
 
   // Buried lead (critical): a lead-strength story landed outside Need To Know.
   for (const items of Object.values(result.sections)) {

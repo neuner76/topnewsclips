@@ -61,6 +61,20 @@ export function isBuriedLead(
   return score >= DIGEST_LEAD_STRENGTH && FRONT_PAGE_ROLES.includes(role)
 }
 
+// Task 12. An international story with very low U.S. coverage belongs in Global
+// Blindspot unless it is already fulfilling another clear role (e.g. it has been
+// seated in Need To Know). Returns true when the story should be routed there.
+export function suggestsGlobalBlindspot(
+  story: Pick<Story, 'msm_outlet_coverage' | 'msm_gap' | 'region'>,
+  opts: { alreadyNeedToKnow?: boolean } = {}
+): boolean {
+  if (opts.alreadyNeedToKnow) return false
+  const covered = story.msm_outlet_coverage?.covered?.length ?? 0
+  const lowCoverage = covered === 0 || story.msm_gap === true
+  const international = !!story.region && story.region !== 'World'
+  return lowCoverage && international
+}
+
 // Accumulate a placed item into the running context so later classification
 // and suppression decisions see it.
 export function recordPlacement(

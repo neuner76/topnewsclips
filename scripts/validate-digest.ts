@@ -8,6 +8,9 @@ import {
 } from '../lib/digest-assembly'
 import { DIGEST_INCLUSION_THRESHOLD } from '../lib/digest-pull-score'
 import { validateDigestPullQuality } from '../lib/digest-pull-quality'
+import { evaluateLeadEligibility } from '../lib/lead-eligibility'
+import { loadSourcePolicies, policyForStory, type SourcePolicy } from '../lib/source-policy'
+import { validateMainstreamPulseLinks } from '../lib/mainstream-pulse-links'
 import type { Story } from '../lib/types'
 
 function requiredEnv(name: string): string {
@@ -77,6 +80,29 @@ async function main() {
   // Annotates the one canonical edition with role/score/risk and surfaces
   // relational defects. Does not fail the build — this is the observation
   // period before pre-filtering is trusted to remove candidates upstream.
+  // ── Lead eligibility on the live lead (Task 19) ───────────────────────────
+  const policies = await loadSourcePolicies(supabase)
+  const liveLead = edition.needToKnow[0] ? storyMap.get(edition.needToKnow[0].id) : undefined
+  console.log('\n=== LEAD ELIGIBILITY ===')
+  if (!liveLead) {
+    console.log('  (no story-backed lead to evaluate)')
+  } else {
+    const gate = evaluateLeadEligibility(liveLead, { policy: policyForStory(liveLead, policies) })
+    const mark = gate.status === 'eligible' ? '✓' : gate.status === 'blocked' ? '✕' : '⚠'
+    console.log(`  ${mark} ${liveLead.slug} — ${gate.status}`)
+    for (const reason of gate.reasons) console.log(`     ${reason}`)
+    if (gate.suggestedSection) console.log(`     suggested section: ${gate.suggestedSection}`)
+  }
+
+  // ── Mainstream Pulse link integrity (Task 19) ─────────────────────────────
+  const pulseIssues = validateMainstreamPulseLinks(edition.mainstreamPulse?.items ?? [])
+  if (pulseIssues.length) {
+    console.log('\n=== MAINSTREAM PULSE ===')
+    for (const issue of pulseIssues) {
+      console.log(`  ${issue.severity === 'error' ? '✕' : '⚠'} ${issue.headline}: ${issue.message}`)
+    }
+  }
+
   const pullQuality = validateDigestPullQuality(edition, storyMap)
   console.log(`\n=== Pull-quality on live edition (${pullQuality.annotations.length} story-backed items) ===`)
   if (pullQuality.errors.length) {
@@ -103,7 +129,7 @@ async function main() {
     .order('created_at', { ascending: false })
     .limit(80)
   if (poolError) throw poolError
-  reportPullQuality((pool ?? []) as Story[])
+  reportPullQuality((pool ?? []) as Story[], policies)
 
   if (result.errors.length > 0) {
     console.error('\nErrors:')
@@ -114,14 +140,19 @@ async function main() {
   console.log('\nDigest validation passed.')
 }
 
-function reportPullQuality(stories: Story[]) {
+function reportPullQuality(stories: Story[], policies: Map<string, SourcePolicy>) {
   console.log(`\n=== Pull-quality calibration (from-pool selection over ${stories.length} published stories) ===`)
   if (stories.length === 0) {
     console.log('No published stories in pool — skipping.')
     return
   }
 
-  const pull = buildCanonicalDigestFromStoryPool(stories)
+  const pull = buildCanonicalDigestFromStoryPool(stories, { policies })
+  if (pull.leadDecision) {
+    const d = pull.leadDecision
+    console.log(`\nLead decision: ${d.status} (${d.slug})${d.warning ? ` — ${d.warning}` : ''}`)
+    if (d.failedGates.length) console.log(`  failed gate(s): ${d.failedGates.join(' ')}`)
+  }
   const placed = [
     ...pull.needToKnow,
     ...Object.values(pull.sections).flat(),
