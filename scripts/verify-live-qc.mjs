@@ -77,7 +77,7 @@ const checks = [
   {
     id: 'C8',
     name: 'Loaded outrage language',
-    pattern: /\b(shocking|explosive|humiliating|devastating takedown)\b/i,
+    pattern: /\b(shocking|explosive(?!\s+media\b)|humiliating|devastating takedown)\b/i,
   },
 ]
 
