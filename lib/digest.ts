@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { getConfidenceLabel } from './confidence'
 import { prefilterCandidatePool } from './digest-prefilter'
+import { loadSourcePolicies, policyForStory } from './source-policy'
 
 export interface HowWorldSeesItItem {
   region: string
@@ -411,6 +412,18 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const supabase = getSupabase()
   const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
+  // Source governance (featured_journalists policy). A source under review or
+  // restricted from the lead / Need To Know slots (e.g. @vicenews pending
+  // reclassification) is kept OUT of Need To Know here, but stays available for
+  // lower sections — it is included, just not allowed to anchor the digest.
+  const sourcePolicies = await loadSourcePolicies(supabase)
+  const isPolicyBlockedFromNeedToKnow = (s: { journalist_username?: string | null; source?: string | null }): boolean => {
+    const policy = policyForStory(s, sourcePolicies)
+    if (!policy) return false
+    if (policy.status === 'deactivated') return true
+    return policy.blockedSlots.includes('lead') || policy.blockedSlots.includes('need_to_know')
+  }
+
   // Use US Eastern time for the date — GitHub Actions runs in UTC, which rolls over
   // to the next day at 7pm ET, causing digests generated in the evening to show tomorrow's date.
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
@@ -664,6 +677,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       s.category !== 'raw' &&
       s.source_type !== 'Community Sourced' &&
       !isSoftNeedToKnowStory(s) &&
+      !isPolicyBlockedFromNeedToKnow(s) &&
       !s.region
     )
   }
