@@ -14,6 +14,7 @@
 
 import { getConfidenceLabel } from './confidence'
 import { coverageCount } from './feed-editorial'
+import { flagSuspectCoverage } from './coverage-integrity'
 import type { CanonicalDigestSectionName } from './digest-canonical'
 import type { SourcePolicy } from './source-policy'
 import type { Story } from './types'
@@ -216,6 +217,30 @@ export function checkLeadConsequence(story: LeadCandidate): LeadEligibilityResul
   }
 }
 
+// ── Task 4 (coverage spec): suspect-coverage cannot lead on undercovered grounds
+// A high-salience domestic story whose implausibly-low count couldn't be
+// confirmed must never lead as a "blindspot/developing" item on the strength of
+// that suspect zero. It is override_required, and the override justification
+// must explicitly acknowledge the count is unverified — NOT the generic
+// "may be important and undercovered" line, which falsely implies a real
+// blindspot.
+export const SUSPECT_COVERAGE_LEAD_JUSTIFICATION =
+  'Leading on a developing report; outlet coverage is still being confirmed.'
+
+export function checkLeadCoverageIntegrity(
+  story: LeadCandidate & Pick<Story, 'msm_outlet_coverage'>
+): LeadEligibilityResult {
+  const integrity = flagSuspectCoverage(story)
+  if (integrity.confidence === 'suspect') {
+    return {
+      status: 'override_required',
+      reasons: [`Coverage count is suspect (${integrity.reason}); cannot lead as an undercovered story on an unconfirmed count.`],
+      requiredOverrideReason: SUSPECT_COVERAGE_LEAD_JUSTIFICATION,
+    }
+  }
+  return { status: 'eligible', reasons: [] }
+}
+
 // ── Task 5: restricted-source gate (reads table-backed policy) ──────────────
 export function checkRestrictedSource(
   story: LeadCandidate,
@@ -252,6 +277,7 @@ export function evaluateLeadEligibility(
   const checks = [
     checkRestrictedSource(story, opts.policy),
     checkLeadContentType(story),
+    checkLeadCoverageIntegrity(story),
     checkLeadSourceTier(story),
     checkLeadCorroboration(story),
     checkLeadConsequence(story),

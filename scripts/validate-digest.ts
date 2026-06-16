@@ -11,6 +11,8 @@ import { validateDigestPullQuality } from '../lib/digest-pull-quality'
 import { evaluateLeadEligibility } from '../lib/lead-eligibility'
 import { loadSourcePolicies, policyForStory, type SourcePolicy } from '../lib/source-policy'
 import { validateMainstreamPulseLinks } from '../lib/mainstream-pulse-links'
+import { flagSuspectCoverage } from '../lib/coverage-integrity'
+import { coverageCount } from '../lib/feed-editorial'
 import type { Story } from '../lib/types'
 
 function requiredEnv(name: string): string {
@@ -100,6 +102,18 @@ async function main() {
     console.log('\n=== MAINSTREAM PULSE ===')
     for (const issue of pulseIssues) {
       console.log(`  ${issue.severity === 'error' ? '✕' : '⚠'} ${issue.headline}: ${issue.message}`)
+    }
+  }
+
+  // ── Coverage integrity on the live edition (Task 6) ───────────────────────
+  const ntkCoverage = edition.needToKnow
+    .map(i => storyMap.get(i.id))
+    .filter((s): s is Story => !!s)
+  const suspect = ntkCoverage.filter(s => flagSuspectCoverage(s).confidence === 'suspect')
+  if (suspect.length) {
+    console.log('\n=== COVERAGE INTEGRITY ===')
+    for (const s of suspect) {
+      console.log(`  ⚠ ${s.slug} — reported ${coverageCount(s)} of 15; high-salience domestic, treat as suspect (re-verify before ranking)`)
     }
   }
 

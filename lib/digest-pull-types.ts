@@ -36,6 +36,9 @@ export type DigestRiskFlag =
   | 'region_label_mismatch'
   // one item's summary covers two or more unrelated events
   | 'bundled_multistory'
+  // a high-salience domestic story whose implausibly-low coverage count could
+  // not be confirmed — must not receive undercovered/blindspot ranking credit
+  | 'coverage_suspect'
 
 export interface DigestPullMetadata {
   role: DigestItemRole

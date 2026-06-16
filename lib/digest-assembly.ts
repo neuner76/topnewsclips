@@ -264,7 +264,54 @@ export function buildCanonicalDigestFromStoryPool(
     }
   }
 
-  return { needToKnow, sections, globalBlindspot, excluded, context, leadDecision, heldForReview }
+  // ── Task 5: corroboration-aware Need To Know ordering ────────────────────
+  // The lead slot is chosen by the eligibility gate above and stays pinned at
+  // the top. Among the REMAINING Need To Know items, order by corroboration
+  // first — a broadly-covered story must never sit below a suspect/low-coverage
+  // "developing" item (the live inversion). "Developing"/"emerging" is a label,
+  // not a ranking boost over genuine corroboration.
+  const leadItem = needToKnow.find(i => i.isLead)
+  const rest = needToKnow.filter(i => !i.isLead).sort(compareNeedToKnowByCorroboration)
+  const orderedNeedToKnow = leadItem ? [leadItem, ...rest] : rest
+
+  return { needToKnow: orderedNeedToKnow, sections, globalBlindspot, excluded, context, leadDecision, heldForReview }
+}
+
+// Task 5 ordering key for Need To Know (excluding the gated lead slot):
+//   1. corroboration tier — corroborated/high-coverage (>=5) outranks suspect or
+//      low-coverage; suspect coverage is treated as the weakest tier.
+//   2. verified coverage breadth (a suspect count contributes 0).
+//   3. impact — the pull score as a proxy.
+//   4. recency.
+export function compareNeedToKnowByCorroboration(a: PulledItem, b: PulledItem): number {
+  const tierA = corroborationTier(a)
+  const tierB = corroborationTier(b)
+  if (tierA !== tierB) return tierB - tierA
+
+  const covA = verifiedCoverage(a)
+  const covB = verifiedCoverage(b)
+  if (covA !== covB) return covB - covA
+
+  if (a.pull.pullScore !== b.pull.pullScore) return b.pull.pullScore - a.pull.pullScore
+
+  const tA = a.story.created_at ? Date.parse(a.story.created_at) : 0
+  const tB = b.story.created_at ? Date.parse(b.story.created_at) : 0
+  return tB - tA
+}
+
+// Higher tier = stronger corroboration. A suspect-coverage item is forced to the
+// weakest tier regardless of its (untrusted) count.
+function corroborationTier(item: PulledItem): number {
+  if (item.pull.riskFlags?.includes('coverage_suspect')) return 0
+  const covered = item.story.msm_outlet_coverage?.covered?.length ?? 0
+  if (covered >= 5) return 3
+  if (covered >= 2) return 2
+  return 1
+}
+
+function verifiedCoverage(item: PulledItem): number {
+  if (item.pull.riskFlags?.includes('coverage_suspect')) return 0
+  return item.story.msm_outlet_coverage?.covered?.length ?? 0
 }
 
 // Task 5 selection/ordering priority for Politics & World Affairs. Roles not

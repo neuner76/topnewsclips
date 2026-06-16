@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getConfidenceLabel } from './confidence'
 import { prefilterCandidatePool } from './digest-prefilter'
 import { loadSourcePolicies, policyForStory } from './source-policy'
+import { flagSuspectCoverage, reverifyCoverage } from './coverage-integrity'
 
 export interface HowWorldSeesItItem {
   region: string
@@ -576,6 +577,31 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     )
   }
   const cappedStories = prefilterEnforcing ? prefilter.kept : journalistCapped
+
+  // Coverage-integrity backstop: counts are computed once at ingest, so a
+  // fast-breaking high-salience domestic event (mass-casualty, disaster, major
+  // US political/market) ingested before the wire caught up can show an
+  // implausible 0-of-15. Re-verify those suspect counts against the MSM/wire set
+  // BEFORE ranking, so a probable clustering miss can't anchor the digest as a
+  // fake blindspot. Only suspect high-salience items are re-checked (a small set
+  // per day), and the corrected count is persisted so downstream reads agree.
+  const suspectCandidates = cappedStories.filter(s => flagSuspectCoverage(s).confidence === 'suspect')
+  for (const s of suspectCandidates) {
+    const integrity = await reverifyCoverage(s)
+    if (integrity.confidence === 'confirmed' && integrity.count > coverageCount(s)) {
+      const total = s.msm_outlet_coverage?.notCovered?.length != null
+        ? integrity.count + Math.max(0, (s.msm_outlet_coverage.covered?.length ?? 0) + s.msm_outlet_coverage.notCovered.length - integrity.count)
+        : 15
+      const covered = Array.from({ length: integrity.count }, (_, i) => `wire-${i}`)
+      const notCovered = Array.from({ length: Math.max(0, total - integrity.count) }, (_, i) => `nc-${i}`)
+      s.msm_outlet_coverage = { covered, notCovered }
+      s.msm_gap = integrity.count < 5
+      await supabase.from('stories').update({ msm_outlet_coverage: s.msm_outlet_coverage, msm_gap: s.msm_gap }).eq('slug', s.slug)
+      console.warn(`[digest] coverage corrected for ${s.slug}: re-verified ${integrity.count} MSM outlets (was suspect 0-of-15)`)
+    } else if (integrity.confidence === 'suspect') {
+      console.warn(`[digest] coverage still suspect for ${s.slug}: ${integrity.reason}`)
+    }
+  }
 
   // Build two lists: fresh stories (NeedToKnow eligible) and all stories (InTheKnow/Etcetera)
   // Hard-exclude yesterday's NeedToKnow slugs from the NeedToKnow pool — don't rely on Claude to honor a flag

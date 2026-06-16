@@ -146,6 +146,55 @@ export const fixtures = {
     msm_outlet_coverage: covered(3),
   }),
 
+  // ── Coverage-integrity fixtures (coverage-count spec) ──────────────────────
+
+  // High-salience domestic mass-casualty event reported 0-of-15 — implausible;
+  // should re-verify to a corrected, confirmed count before ranking.
+  highSalienceDomesticZeroCoverage: baseStory({
+    slug: 'domestic-shooting',
+    title: 'Gunman kills one and wounds ten at a Texas clinic before standoff',
+    description: 'Police responded to an active-shooter call; the suspect later died.',
+    category: 'reported',
+    source_tier: 6,
+    region: null,
+    msm_outlet_coverage: covered(0),
+    msm_gap: true,
+  }),
+
+  // Genuine international blindspot — credible source, confirmed 0; stays a
+  // blindspot, must NOT be re-flagged as suspect.
+  genuineInternationalBlindspotZero: baseStory({
+    slug: 'intl-blindspot-zero',
+    title: 'Provincial election dispute escalates in a region with little U.S. coverage',
+    description: 'Local outlets report contested results.',
+    category: 'reported',
+    source_tier: 4,
+    region: 'Africa',
+    msm_outlet_coverage: covered(0),
+    msm_gap: true,
+  }),
+
+  // Broadly corroborated major story — must rank first in Need To Know.
+  corroboratedMajorStory: baseStory({
+    slug: 'corroborated-major',
+    title: 'Court clears the way for a contested federal name-removal decision',
+    description: 'The ruling resolves a months-long dispute.',
+    category: 'reported',
+    source_tier: 3,
+    msm_outlet_coverage: { covered: Array.from({ length: 13 }, (_, i) => `o${i}`), notCovered: ['u0'] },
+  }),
+
+  // Developing secondary — emerging, low coverage; ranks below corroborated.
+  developingSecondaryStory: baseStory({
+    slug: 'developing-secondary',
+    title: 'Officials investigate a developing infrastructure failure',
+    description: 'Details are still emerging.',
+    category: 'reported',
+    source_tier: 5,
+    msm_outlet_coverage: covered(2),
+    msm_gap: true,
+  }),
+
   // Mainstream Pulse item that wrongly links internally — fails link validation.
   mainstreamPulseInternalLinkItem: {
     headline: 'Major outlet leads with infrastructure bill vote',

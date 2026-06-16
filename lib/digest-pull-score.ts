@@ -9,6 +9,7 @@
 import { getConfidenceLabel } from './confidence'
 import { coverageCount } from './feed-editorial'
 import { classifyDigestItemRole } from './digest-role-classifier'
+import { flagSuspectCoverage } from './coverage-integrity'
 import {
   assessStateAffiliated,
   detectBundledMultistory,
@@ -78,6 +79,16 @@ export function calculateDigestPullScore(
   const covered = coverageCount(story)
   const text = `${story.title ?? ''} ${story.description ?? ''}`
 
+  // Coverage integrity (input layer): a high-salience domestic story whose
+  // implausibly-low count couldn't be confirmed must NOT earn undercovered /
+  // developing-safety ranking credit on the strength of that suspect zero —
+  // otherwise a probable clustering miss anchors the digest. We use the pure
+  // (no-network) flag; live generation has already corrected genuinely-covered
+  // counts upstream (reverifyCoverage), so anything still suspect here is the
+  // unconfirmed case the spec says to distrust.
+  const coverageSuspect = flagSuspectCoverage(story).confidence === 'suspect'
+  if (coverageSuspect) flags.push('coverage_suspect')
+
   // ── Additions ──
   const broadlyCovered = covered >= 5
   if (isHighStakesGeopolitical(story) && (broadlyCovered || role === 'lead')) score += W.majorPublicImpact
@@ -86,12 +97,14 @@ export function calculateDigestPullScore(
   // inflate a well-sourced topic story to false lead strength.
   if (role === 'practical_impact') score += W.practicalImpact
   if (role === 'institutional_signal') score += W.institutionalSignal
-  if (role === 'developing_safety') score += W.developingSafety
+  // developing_safety credit is suppressed for a suspect-coverage story.
+  if (role === 'developing_safety' && !coverageSuspect) score += W.developingSafety
   if (tier <= 3) score += W.sourceTierTop3
   if (label === 'CORROBORATED') score += W.corroborated
   else if (label === 'REPORTED') score += W.reported
   if (broadlyCovered) score += W.broadCoverage
-  if (role === 'undercovered_global') {
+  // undercovered/global credit is suppressed for a suspect-coverage story.
+  if (role === 'undercovered_global' && !coverageSuspect) {
     score += W.undercoveredGlobal
     if (story.region && story.region !== 'World') score += W.globalLensFrame
   }
@@ -119,7 +132,10 @@ export function calculateDigestPullScore(
   //    REPORTED regardless of corroboration. A zero MSM-coverage count on a
   //    credible newsroom is usually a headline-matching miss, not a fringe
   //    single source — penalizing it double-counts the single_source penalty.
-  if (covered === 0 && role !== 'developing_safety' && role !== 'undercovered_global' && tier > 6) {
+  // A SUSPECT zero is not a real blindspot, so the developing_safety /
+  // undercovered_global exemption does not apply — penalize the implausible zero.
+  const zeroCoverageExempt = (role === 'developing_safety' || role === 'undercovered_global') && !coverageSuspect
+  if (covered === 0 && !zeroCoverageExempt && tier > 6) {
     score += W.zeroCoverage
     flags.push('zero_coverage')
   }

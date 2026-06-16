@@ -19,6 +19,8 @@ import {
 import { calculateDigestPullScore } from './digest-pull-score'
 import { digestTopicKey } from './digest-role-classifier'
 import { evaluateLeadEligibility } from './lead-eligibility'
+import { flagSuspectCoverage, isHighSalienceDomestic } from './coverage-integrity'
+import { coverageCount } from './feed-editorial'
 import { isBuriedLead, isDuplicateLowerSectionItem, recordPlacement, NEED_TO_KNOW_MIN, NEED_TO_KNOW_MAX } from './digest-section-rules'
 import { validateGlobalLensSourceConsistency } from './feed-editorial'
 import { emptyDigestContext, type DigestItemRole, type DigestRiskFlag } from './digest-pull-types'
@@ -248,6 +250,41 @@ export function validateDigestPullQuality(
     const consistency = validateGlobalLensSourceConsistency({ summary: item.summary }, story ?? null)
     if (!consistency.valid) {
       warnings.push(`Global Lens source inconsistency for ${item.id}: ${consistency.reason}`)
+    }
+  }
+
+  // ── Coverage-count integrity (coverage spec) ─────────────────────────────
+  // Suspect-coverage items and Need To Know corroboration inversion.
+  const ntkStories = edition.needToKnow.map(i => ({ item: i, story: storyMap.get(i.id) }))
+  for (const { item, story } of ntkStories) {
+    if (!story) continue
+    if (flagSuspectCoverage(story).confidence === 'suspect') {
+      warnings.push(`High-salience domestic story has an implausibly low coverage count (${coverageCount(story)}); treat as suspect, not undercovered: ${item.id}`)
+    }
+  }
+  // A genuinely corroborated (>=5) story must not sit below a suspect/low-coverage
+  // item in Need To Know (the live inversion). Compare each adjacent demotion.
+  for (let i = 0; i < ntkStories.length; i++) {
+    const above = ntkStories[i].story
+    if (!above) continue
+    const aboveSuspect = flagSuspectCoverage(above).confidence === 'suspect'
+    const aboveCov = coverageCount(above)
+    if (!aboveSuspect && aboveCov >= 5) continue // above is itself corroborated — fine
+    for (let j = i + 1; j < ntkStories.length; j++) {
+      const below = ntkStories[j].story
+      if (!below) continue
+      const belowSuspect = flagSuspectCoverage(below).confidence === 'suspect'
+      if (!belowSuspect && coverageCount(below) >= 5 && (aboveSuspect || aboveCov < 5)) {
+        errors.push(`Need To Know ordering inverts corroboration: ${ntkStories[i].item.id} (${aboveSuspect ? 'suspect' : `${aboveCov} outlets`}) ranks above corroborated ${ntkStories[j].item.id} (${coverageCount(below)} outlets)`)
+      }
+    }
+  }
+  // A suspect zero must not have been routed to Global Blindspot or labeled
+  // under-reported.
+  for (const item of edition.globalBlindspot) {
+    const story = storyMap.get(item.id)
+    if (story && (isHighSalienceDomestic(story) || flagSuspectCoverage(story).confidence === 'suspect')) {
+      errors.push(`Suspect/high-salience domestic story routed to Global Blindspot — not a genuine blindspot: ${item.id}`)
     }
   }
 
