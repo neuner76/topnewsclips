@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { runContentChecks } from './live-qc-content-checks.mjs'
+
 const baseUrl = (process.argv[2] || process.env.SITE_URL || 'https://www.topnewsclips.com').replace(/\/$/, '')
 const paths = (process.env.LIVE_QC_PATHS || '/,/feed,/clips,/stories').split(',').map(path => path.trim()).filter(Boolean)
 
@@ -82,6 +84,7 @@ const checks = [
 ]
 
 const failures = []
+const warnings = []
 
 for (const path of paths) {
   const url = `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`
@@ -96,21 +99,29 @@ for (const path of paths) {
     continue
   }
 
-  const text = htmlToText(await response.text())
+  const html = await response.text()
+  const text = htmlToText(html)
   for (const check of checks) {
     const found = snippets(text, check.pattern)
     if (found.length) {
       failures.push({ path, id: check.id, name: check.name, snippets: found })
     }
   }
+
+  // Section 2: structured + text content checks. Hard findings join failures[]
+  // (turn the run red); warnings are reported but don't fail the run.
+  const content = runContentChecks(html, text, path)
+  for (const f of content.failures) failures.push({ path, ...f })
+  for (const w of content.warnings) warnings.push({ path, ...w })
 }
 
 const result = {
-  ok: failures.length === 0,
+  ok: failures.length === 0, // preserved contract: warnings never flip ok
   baseUrl,
   paths,
   checkedAt: new Date().toISOString(),
   failures,
+  warnings,
 }
 
 console.log(JSON.stringify(result, null, 2))
