@@ -139,6 +139,7 @@ export async function runQCAndInsert(
         title: headline,
         description: summary,
         qc_status: 'pass',
+        qc_passed_at: new Date().toISOString(), // spec 1.5: gate stamp
         qc_failed_checks: null,
         qc_routing_note: result.routingNote,
       })
@@ -163,6 +164,7 @@ export async function runQCAndInsert(
         title: headline,
         description: summary,
         qc_status: 'pass',
+        qc_passed_at: new Date().toISOString(), // spec 1.5: gate stamp
         qc_failed_checks: failedChecks,
         qc_routing_note: result.routingNote,
       })

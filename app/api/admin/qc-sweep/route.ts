@@ -44,12 +44,32 @@ export async function GET(request: Request) {
       .filter(r => r.verdict !== 'PASS')
       .map(r => ({ slug: r.slug, verdict: r.verdict, checks_failed: r.failedChecks.map(c => c.id) }))
 
+    // Gate-bypass assertion (spec 1.5): a published, qc-passed story missing
+    // qc_passed_at reached the feed without passing the gate. Scoped to the last
+    // 2 days so pre-migration rows self-heal rather than flooding the report.
+    const cutoff = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    const { data: unstamped } = await getSupabase()
+      .from('stories')
+      .select('slug')
+      .eq('published', true)
+      .eq('qc_status', 'pass')
+      .is('qc_passed_at', null)
+      .gte('created_at', cutoff)
+      .limit(50)
+    const bypassedGate = (unstamped ?? []).map((s: { slug: string }) => ({
+      slug: s.slug,
+      verdict: 'BYPASS' as const,
+      checks_failed: ['gate_stamp_missing'],
+    }))
+
+    const allFailures = [...failures, ...bypassedGate]
     return NextResponse.json({
       ...result,
       swept: result.scanned,
-      flagged: result.held,
+      flagged: result.held + bypassedGate.length,
       autoFixed: result.autoFixed,
-      failures,
+      bypassedGate: bypassedGate.length,
+      failures: allFailures,
     })
   } catch (err) {
     return NextResponse.json(
