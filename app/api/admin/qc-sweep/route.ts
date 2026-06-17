@@ -34,7 +34,23 @@ export async function GET(request: Request) {
       source: 'nightly_sweep',
       maxStories,
     })
-    return NextResponse.json(result)
+
+    // Structured response (spec 1.2) the CI workflow (1.1) can consume:
+    //  - swept   = stories scanned this batch
+    //  - flagged = stories that need human attention (held — the page-Eric signal)
+    //  - failures = every non-PASS story with the rubric checks it failed
+    // The original fields are preserved for the admin holds UI.
+    const failures = result.results
+      .filter(r => r.verdict !== 'PASS')
+      .map(r => ({ slug: r.slug, verdict: r.verdict, checks_failed: r.failedChecks.map(c => c.id) }))
+
+    return NextResponse.json({
+      ...result,
+      swept: result.scanned,
+      flagged: result.held,
+      autoFixed: result.autoFixed,
+      failures,
+    })
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },

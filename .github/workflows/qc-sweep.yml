@@ -12,27 +12,56 @@ jobs:
       # Each batch processes the next ~40 least-recently-swept stories (the
       # endpoint stamps qc_swept_at, so batches don't overlap). Four sequential
       # batches per run clears the backlog faster while keeping each call within
-      # the Vercel 300s function limit. if: always() so one timeout doesn't abort
-      # the rest.
+      # the Vercel 300s function limit.
+      #
+      # Health (spec 1.1): a bare `curl -s` returns success on 401/403/404/500,
+      # so the job could never go red. Each batch now captures the HTTP status,
+      # exits non-zero on a non-200, echoes the body, and surfaces `flagged` via
+      # ::warning::. Batches 2-4 keep if: always() so one timeout doesn't abort
+      # coverage, but they still carry the exit-code check so the job goes red.
       - name: QC sweep (batch 1)
         run: |
-          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          resp=$(curl -s -w "\n%{http_code}" --max-time 290 \
+            -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          code=$(echo "$resp" | tail -n1); body=$(echo "$resp" | sed '$d')
+          echo "$body"
+          if [ "$code" -ne 200 ]; then echo "::error::batch 1 HTTP $code"; exit 1; fi
+          flagged=$(echo "$body" | jq -r '.flagged // 0')
+          if [ "$flagged" -gt 0 ]; then echo "::warning::batch 1 flagged $flagged stories"; fi
 
       - name: QC sweep (batch 2)
         if: always()
         run: |
-          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          resp=$(curl -s -w "\n%{http_code}" --max-time 290 \
+            -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          code=$(echo "$resp" | tail -n1); body=$(echo "$resp" | sed '$d')
+          echo "$body"
+          if [ "$code" -ne 200 ]; then echo "::error::batch 2 HTTP $code"; exit 1; fi
+          flagged=$(echo "$body" | jq -r '.flagged // 0')
+          if [ "$flagged" -gt 0 ]; then echo "::warning::batch 2 flagged $flagged stories"; fi
 
       - name: QC sweep (batch 3)
         if: always()
         run: |
-          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          resp=$(curl -s -w "\n%{http_code}" --max-time 290 \
+            -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          code=$(echo "$resp" | tail -n1); body=$(echo "$resp" | sed '$d')
+          echo "$body"
+          if [ "$code" -ne 200 ]; then echo "::error::batch 3 HTTP $code"; exit 1; fi
+          flagged=$(echo "$body" | jq -r '.flagged // 0')
+          if [ "$flagged" -gt 0 ]; then echo "::warning::batch 3 flagged $flagged stories"; fi
 
       - name: QC sweep (batch 4)
         if: always()
         run: |
-          curl -s --max-time 290 -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          resp=$(curl -s -w "\n%{http_code}" --max-time 290 \
+            -X GET "${{ secrets.SITE_URL }}/api/admin/qc-sweep?limit=40" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          code=$(echo "$resp" | tail -n1); body=$(echo "$resp" | sed '$d')
+          echo "$body"
+          if [ "$code" -ne 200 ]; then echo "::error::batch 4 HTTP $code"; exit 1; fi
+          flagged=$(echo "$body" | jq -r '.flagged // 0')
+          if [ "$flagged" -gt 0 ]; then echo "::warning::batch 4 flagged $flagged stories"; fi

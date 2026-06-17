@@ -33,12 +33,23 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
+      # Gate the send on a successful generation (a custom if: drops the implicit
+      # success() check, so without this an errored generation would still fire a
+      # send of the stale prior digest). This decouples send from QC, NOT from
+      # generation — a failed generation has nothing fresh to send.
       - name: Send Digest Email
-        if: github.event_name == 'schedule' || github.event.inputs.send_email == 'true'
+        if: success() && (github.event_name == 'schedule' || github.event.inputs.send_email == 'true')
         run: |
           curl -s --fail-with-body --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/send-digest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
-      - name: Ping healthcheck
-        if: always()
+      # Health (spec 1.6): pinging the success URL unconditionally (if: always())
+      # reports healthy even when generation throws or the send errors, so a
+      # silently-missed morning never alarms. Split into success/failure pings so
+      # a failed run hits the /fail endpoint and the monitor goes red.
+      - name: Healthcheck — success
+        if: success()
         run: curl -fsS "https://hc-ping.com/7f110136-b72a-4ce3-8b4d-3f3f2d602fc6" > /dev/null
+      - name: Healthcheck — failure
+        if: failure()
+        run: curl -fsS "https://hc-ping.com/7f110136-b72a-4ce3-8b4d-3f3f2d602fc6/fail" > /dev/null
