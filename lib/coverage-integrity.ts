@@ -10,11 +10,12 @@
 // treat a probable data error as a real blindspot.
 
 import { coverageCount } from './feed-editorial'
-import { checkMSMCoverage } from './ingest/msm-check'
+import { checkMSMCoverage, MSM_OUTLET_COUNT } from './ingest/msm-check'
 import type { Story } from './types'
 
-// Matches lib/ingest/msm-check.ts MSM_OUTLETS length.
-export const MSM_OUTLET_TOTAL = 15
+// Single source of truth: the distinct-outlet count from msm-check, so the
+// denominator here can never disagree with what the coverage check produces.
+export const MSM_OUTLET_TOTAL = MSM_OUTLET_COUNT
 
 export type CoverageConfidence = 'confirmed' | 'suspect' | 'unverified'
 
