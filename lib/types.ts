@@ -1,3 +1,5 @@
+import type { ContentType, TopicRole, SectionFit } from './ingest/classify'
+
 export type Platform = 'youtube' | 'x' | 'tiktok'
 
 export interface Story {
@@ -16,6 +18,12 @@ export interface Story {
   display_order: number
   category: 'raw' | 'reported' | 'analysis' | 'comedy' | null
   subcategory: string | null
+  // Spec 3.2 — unified classification pass. Optional + null: absent on rows
+  // predating the pass, null for items the injection guard holds as
+  // needs_review. See lib/ingest/classify.ts.
+  content_type?: ContentType | null
+  topic_role?: TopicRole | null
+  section_fit?: SectionFit | null
   thumbnail_url: string | null
   journalist_username: string | null
   source: string | null

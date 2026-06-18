@@ -13,6 +13,7 @@
 // deriveLeadContentType below.
 
 import { getConfidenceLabel } from './confidence'
+import type { ContentType } from './ingest/classify'
 import { coverageCount } from './feed-editorial'
 import { flagSuspectCoverage } from './coverage-integrity'
 import type { CanonicalDigestSectionName } from './digest-canonical'
@@ -60,7 +61,7 @@ export type LeadContentType =
   | 'social_clip'
   | 'creator_commentary'
 
-const LEAD_ALLOWED_CONTENT_TYPES = new Set<LeadContentType>([
+export const LEAD_ALLOWED_CONTENT_TYPES = new Set<LeadContentType>([
   'reported',
   'investigative',
   'official_primary_source',
@@ -68,7 +69,7 @@ const LEAD_ALLOWED_CONTENT_TYPES = new Set<LeadContentType>([
   'developing_reported',
 ])
 
-const LEAD_BLOCKED_CONTENT_TYPES = new Set<LeadContentType>([
+export const LEAD_BLOCKED_CONTENT_TYPES = new Set<LeadContentType>([
   'commentary_analysis',
   'opinion',
   'satire',
@@ -77,6 +78,30 @@ const LEAD_BLOCKED_CONTENT_TYPES = new Set<LeadContentType>([
   'social_clip',
   'creator_commentary',
 ])
+
+// Single-taxonomy bridge (spec 3.2): the classify pass emits the canonical
+// `ContentType`; the lead gate keeps its own bucket enum (pinned by tests and
+// by deriveLeadContentType's category-based fallback). This maps the canonical
+// type onto exactly one gate bucket so there is no parallel taxonomy — every
+// classified type resolves to an allowed-or-blocked lead decision.
+const CLASSIFIED_TO_LEAD_BUCKET: Record<ContentType, LeadContentType> = {
+  reported: 'reported',
+  investigative: 'investigative',
+  official_primary: 'official_primary_source',
+  raw_footage: 'raw_footage',
+  social_clip: 'social_clip',
+  commentary_analysis: 'commentary_analysis',
+  satire: 'satire',
+  cultural_lens: 'cultural_lens',
+  opinion: 'opinion',
+  // A panel/interview is not original reporting — treat like commentary for the
+  // lead gate (blocked), where it lands in LEAD_BLOCKED_CONTENT_TYPES.
+  interview_panel: 'commentary_analysis',
+}
+
+export function leadContentTypeFromClassified(contentType: ContentType): LeadContentType {
+  return CLASSIFIED_TO_LEAD_BUCKET[contentType]
+}
 
 // Map the real `category` taxonomy onto the gate's content-type enum. Where the
 // data doesn't carry a distinction (investigative vs reported, opinion vs

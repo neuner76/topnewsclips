@@ -4,6 +4,7 @@ import { fetchTikTokTrending, type TikTokClip } from './tiktok'
 import { fetchGlobalClips, type GlobalClip } from './global'
 import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
+import { classifyStory } from './classify'
 import { pingIndexNow } from './indexnow'
 import { getSourceTier } from './source-tier'
 import { runQCAndInsert } from './qc-publish'
@@ -930,6 +931,22 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         if (entry) entry.decision = 'needs_review'
       }
 
+      // Spec 3.2 — unified classification pass: a separate temp-0, enum-validated,
+      // injection-hardened call producing {content_type, topic_role, section_fit}.
+      // An embedded classify/publish/confidence directive in the source text is
+      // caught deterministically and forces needs_review (held unpublished).
+      const classification = await classifyStory(
+        { title: candidate.title, description: candidate.description ?? '' },
+        anthropicKey
+      )
+      await delay(100)
+      const classifyHold = classification.injectionDetected
+      if (classifyHold) {
+        const entry = result.stories.find(s => s.slug === candidate.slug)
+        if (entry) entry.decision = 'needs_review'
+        result.errors.push(`Classification injection held: "${candidate.title.slice(0, 50)}" — ${classification.reason ?? 'embedded directive'}`)
+      }
+
       // verification.category is raw/reported/analysis — never comedy — so the
       // label is always non-null here; 'Reported' fallback satisfies the types.
       const confidenceLabel = CONFIDENCE_META[getConfidenceLabel({
@@ -976,10 +993,13 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           msm_gap: verification.msmGap,
           msm_outlet_coverage: { covered: msm.coveredBy, notCovered: msm.notCoveredBy },
           source: candidate.source,
-          msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}${corroborationHold ? ` | Corroboration hold: tier ${finalTier ?? 'unknown'} with 0 outlet coverage` : ''}`,
-          published: (verification.decision === 'publish' || verification.decision === 'needs_review') && !corroborationHold,
+          msm_notes: `Source: ${candidate.source} | Confidence: ${verification.confidence} | Status: ${verification.decision}${corroborationHold ? ` | Corroboration hold: tier ${finalTier ?? 'unknown'} with 0 outlet coverage` : ''}${classifyHold ? ' | Classification injection hold' : ''}`,
+          published: (verification.decision === 'publish' || verification.decision === 'needs_review') && !corroborationHold && !classifyHold,
           display_order: verification.decision === 'publish' ? (verification.msmGap ? 30 : 50) : 75,
           category: verification.category,
+          content_type: classification.content_type,
+          topic_role: classification.topic_role,
+          section_fit: classification.section_fit,
           thumbnail_url: candidate.thumbnail_url ?? null,
           journalist_username: candidate.journalist_username ?? null,
           region: candidateRegion,
