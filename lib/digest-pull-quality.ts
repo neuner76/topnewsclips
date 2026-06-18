@@ -43,6 +43,18 @@ const MAINSTREAM_SECTIONS = new Set([
   'Culture, Media & Society',
 ])
 
+// Spec 6.1 — topical destination sections whose rendered placement should agree
+// with the classify pass's section_fit. Excludes Need To Know (lead placement),
+// Global Blindspot/Lens (routed by coverage/region), and Mainstream Pulse (a
+// separately sourced feed) — those are placed by role, not by subject.
+const SECTION_FIT_CHECKABLE = new Set([
+  'Politics & World Affairs',
+  'Science, Health & Environment',
+  'Business & Markets',
+  'Culture, Media & Society',
+  'Also Worth Knowing',
+])
+
 export interface PullAnnotation {
   id: string
   section: string
@@ -173,6 +185,14 @@ export function validateDigestPullQuality(
       if (!labeled) {
         warnings.push(`0-of-${item.metadata.coverageTotal ?? 15} story appears in ${item.section}; add Emerging Signal/Limited Coverage treatment, route to Global Blindspot, or provide editorial reason: ${item.id}`)
       }
+    }
+
+    // Section-fit validator (spec 6.1): a card's rendered topical section should
+    // match the section_fit the classify pass (3.2) assigned. Warn-only, and only
+    // for checkable destination sections — placement sections decide by role, not
+    // subject. Skipped when section_fit is absent (rows predating the pass).
+    if (!inNeedToKnow && SECTION_FIT_CHECKABLE.has(item.section) && story.section_fit && story.section_fit !== item.section) {
+      warnings.push(`Section-fit mismatch: ${item.id} renders in ${item.section} but was classified for ${story.section_fit}`)
     }
 
     // Satire/cultural items must show "Cultural lens", never a news confidence

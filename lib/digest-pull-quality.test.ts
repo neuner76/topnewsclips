@@ -228,6 +228,68 @@ describe('validateDigestPullQuality (warn-only)', () => {
     expect(report.errors.some(e => /Lead is ineligible/.test(e))).toBe(true)
   })
 
+  it('warns when a card renders in a section other than its classified section_fit (6.1)', () => {
+    // SpaceX classified for Business but rendered under Politics.
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      sections: [{ name: 'Politics & World Affairs', items: [item('spacex', 'Politics & World Affairs')] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['spacex', story({ slug: 'spacex', title: 'SpaceX lands new launch contract', source_tier: 3, msm_outlet_coverage: covered(5), section_fit: 'Business & Markets' })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Section-fit mismatch.*spacex.*Politics & World Affairs.*Business & Markets/.test(w))).toBe(true)
+  })
+
+  it('warns when raw footage classified for Also Worth Knowing renders in Science (6.1)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      sections: [{ name: 'Science, Health & Environment', items: [item('tornado', 'Science, Health & Environment')] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['tornado', story({ slug: 'tornado', title: 'Raw: tornado tears through town', source_tier: 5, msm_outlet_coverage: covered(3), section_fit: 'Also Worth Knowing' })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Section-fit mismatch.*tornado/.test(w))).toBe(true)
+  })
+
+  it('does not warn when the rendered section matches section_fit (6.1)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      sections: [{ name: 'Business & Markets', items: [item('biz', 'Business & Markets')] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['biz', story({ slug: 'biz', title: 'Used-car prices climb', source_tier: 4, msm_outlet_coverage: covered(5), section_fit: 'Business & Markets' })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Section-fit mismatch/.test(w))).toBe(false)
+  })
+
+  it('does not warn when section_fit is absent (unclassified rows) (6.1)', () => {
+    const ed = edition({
+      needToKnow: [ntk('lead')],
+      sections: [{ name: 'Politics & World Affairs', items: [item('p', 'Politics & World Affairs')] }],
+    })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6) })],
+      ['p', story({ slug: 'p', title: 'Senate passes infrastructure bill', source_tier: 3, msm_outlet_coverage: covered(5) })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Section-fit mismatch/.test(w))).toBe(false)
+  })
+
+  it('does not warn on a lead in Need To Know whose section_fit is a topical section (placement, not topical fit) (6.1)', () => {
+    const ed = edition({ needToKnow: [ntk('lead')] })
+    const map = new Map<string, Story>([
+      ['lead', story({ slug: 'lead', title: 'Court ruling sets regulatory deadline', source_tier: 2, msm_outlet_coverage: covered(6), section_fit: 'Business & Markets' })],
+    ])
+    const report = validateDigestPullQuality(ed, map)
+    expect(report.warnings.some(w => /Section-fit mismatch/.test(w))).toBe(false)
+  })
+
   it('is silent on non-story items (no slug in map)', () => {
     const ed = edition({ needToKnow: [ntk('a'), ntk('b')], sections: [{ name: 'Also Worth Knowing', items: [item('orphan', 'Also Worth Knowing')] }] })
     const map = new Map<string, Story>([
