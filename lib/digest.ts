@@ -196,15 +196,15 @@ function validateDigest(content: DigestContent, validNtkSlugs: Set<string>): str
   ;(content.globalBlindspots ?? []).forEach(i => checkDupe(i.slug, 'Blindspot'))
   ;(content.globalLens ?? []).forEach(i => checkDupe(i.slug, 'Lens'))
 
-  // Section minimums
-  if ((content.globalBlindspots?.length ?? 0) < 2) issues.push(`Blindspot too short: ${content.globalBlindspots?.length ?? 0} items`)
-  if ((content.globalLens?.length ?? 0) < 2) issues.push(`GlobalLens too short: ${content.globalLens?.length ?? 0} items`)
-  if (content.etcetera.length < 1) issues.push('Etcetera empty')
-
-  // InTheKnow: Politics & World Affairs should always have content
-  if ((content.inTheKnow['Politics & World Affairs']?.length ?? 0) < 1) {
-    issues.push('InTheKnow Politics & World Affairs empty')
-  }
+  // Section minimums. Empty sections are LEGITIMATE (spec 5.4) — a section with
+  // no true-fit story should be omitted rather than padded with filler, so an
+  // empty Etcetera/Blindspot/Lens is no longer flagged. We only flag a section
+  // that has SOME items but fewer than its display floor, which signals a
+  // possibly-thin pull rather than an intentional omission.
+  const blindspotCount = content.globalBlindspots?.length ?? 0
+  if (blindspotCount > 0 && blindspotCount < 2) issues.push(`Blindspot thin: ${blindspotCount} item`)
+  const lensCount = content.globalLens?.length ?? 0
+  if (lensCount > 0 && lensCount < 2) issues.push(`GlobalLens thin: ${lensCount} item`)
 
   // InTheKnow: per-outlet cap (max 2 per source handle)
   const itkOutletCounts = new Map<string, number>()
@@ -910,13 +910,13 @@ IN THE KNOW:
   * "Sports, Entertainment, & Culture": ONLY sports scores/games/athletes, celebrity news, film, TV, music, arts — NOT law enforcement, military, or politics. If unsure, default to "Politics & World Affairs". QUALITY BAR: personal relationship drama, memoir backlash, and social media pile-ons do not meet the bar — skip them entirely rather than forcing them into this category. EPSTEIN RULE — HARD: Any story involving Jeffrey Epstein, his associates, sex trafficking, or related legal proceedings belongs in "Politics & World Affairs" regardless of whether celebrities are involved. "Melania and Epstein" is Politics, not Sports/Entertainment. "Trump and Epstein" is Politics. Any story where the news hook is institutional conduct, legal proceedings, or abuse of power — even if the subject is a celebrity — belongs in Politics.
   * "Comedy & Satire": MANDATORY for any story with contentType "commentary (satire)" — this includes The Daily Show (@thedailyshow), Last Week Tonight (@lastweektonight), Jonathan Pie (@jonathanpie), Some More News (@smn), Josh Johnson (@joshjohnsoncomedy), The Juice Media (@thejuicemedia), Saturday Night Live (@saturdaynightlive). If you see contentType "commentary (satire)" in the input, that story MUST go here and nowhere else — regardless of topic. Do NOT place serious political commentary, opinion journalism, or investigative analysis here — Glenn Greenwald, Breaking Points, Caspian Report, and similar channels belong in "Politics & World Affairs" or "Business & Markets" based on topic.
 
-EDITORIAL MIX RULE — HARD CONSTRAINT:
-- IN THE KNOW must include at least TWO non-conflict topic categories even on heavy conflict days. If the day is dominated by Iran/Middle East/war coverage, you MUST still include items in at least two of: Science & Technology, Business & Markets, Sports/Entertainment/Culture, or other non-conflict topics. Do not let a single conflict story crowd out all other categories.
+EDITORIAL MIX RULE:
+- PREFER at least TWO non-conflict topic categories even on heavy conflict days: when GENUINE non-conflict stories exist (Science & Technology, Business & Markets, Sports/Entertainment/Culture), include them so a single conflict story doesn't crowd out everything. BUT never manufacture filler to satisfy this — if no true-fit story exists for a category, leave that category EMPTY rather than forcing a weak, off-topic, or low-corroboration item into it (no SpaceX-valuation-in-Science padding). An honestly empty section is better than a forced one.
 - GLOBAL BLINDSPOT: If 5 or more blindspot items are from the same conflict or region, include at least one story from a different region or topic entirely.
 - Do not place stories with direct military or humanitarian significance in Etcetera — promote them to Politics & World Affairs.
 
 ETCETERA:
-- MINIMUM 3, maximum 5 — you must include at least 3 entries. If fewer than 3 quirky stories exist, use the most surprising or unexpected remaining facts from any US story not yet used.
+- 0 to 5 entries, quality over quota. Include ONLY genuinely surprising, odd, or quirky stories. If fewer than 3 qualify, include fewer — an empty or two-item Etcetera is correct and preferred over padding. NEVER manufacture filler by reaching for "remaining" or leftover US stories that aren't genuinely surprising; a section with no true-fit story should simply be omitted.
 - Short, curious, or surprising one-liners from any remaining US stories
 - DEDUPLICATION: Never use a story that already appears in NeedToKnow or InTheKnow — each story slug must appear at most once across the entire digest
 - Each entry must be concrete: name the specific fact, number, place, or finding. Never vague.

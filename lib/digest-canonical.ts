@@ -331,10 +331,13 @@ export function deriveMainstreamPulseSynthesis(items: MainstreamPulseItem[] = []
 }
 
 export function buildDigestEdition(digest: Digest, storyMap: Map<string, Story>, siteUrl: string): DigestEdition {
+  // A section with no true-fit story is omitted entirely (spec 5.4) — including
+  // Also Worth Knowing, which previously always rendered even when empty. An
+  // empty slot is what creates demand for filler, so we remove the slot.
   const sections = [
     ...CANONICAL_IN_THE_KNOW_SECTIONS.map(section => buildInTheKnowSection(digest.content, section, storyMap, siteUrl)),
     buildAlsoWorthKnowing(digest.content, storyMap, siteUrl),
-  ].filter(section => section.items.length > 0 || section.name === 'Also Worth Knowing')
+  ].filter(section => section.items.length > 0)
 
   const blindspots = (digest.content.globalBlindspots ?? [])
     .slice(0, DIGEST_SECTION_LIMITS['Global Blindspot'])

@@ -116,6 +116,12 @@ describe('canonical digest', () => {
     expect(canonicalItemIds(edition)).toContain('blindspot-1')
   })
 
+  it('omits an empty Also Worth Knowing section instead of rendering it empty (5.4)', () => {
+    const emptyAwk: Digest = { ...digest, content: { ...digest.content, etcetera: [] } }
+    const edition = buildDigestEdition(emptyAwk, storyMap(), 'https://www.topnewsclips.com')
+    expect(edition.sections.find(s => s.name === 'Also Worth Knowing')).toBeUndefined()
+  })
+
   it('formats complete compact metadata', () => {
     const edition = buildDigestEdition(digest, storyMap(), 'https://www.topnewsclips.com')
     expect(formatDigestMetadata(edition.needToKnow[0].metadata, { includeTier: true })).toContain('Nonprofit Investigative (Tier 1)')
