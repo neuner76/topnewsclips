@@ -3,6 +3,7 @@ import type {
   NeedToKnowItem,
   InTheKnowItem,
   EtceteraItem,
+  GlobalBlindspotItem,
   GlobalLensItem,
   MainstreamPulseItem,
   DigestContent,
@@ -202,6 +203,36 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
                 </li>
               ))}
             </ul>
+          </section>
+        </>
+      )}
+
+      {/* Global Blindspot */}
+      {content.globalBlindspots && content.globalBlindspots.length > 0 && (
+        <>
+          <SectionDivider label="🌍 Global Blindspot" />
+          <section>
+            <p className="text-xs text-muted-foreground mb-4">
+              Stories with wide international coverage that major US outlets are skipping.
+            </p>
+            <div className="space-y-4">
+              {content.globalBlindspots.map((item: GlobalBlindspotItem) => (
+                <div key={item.slug} className="border-b border-border/50 pb-4 last:border-0 last:pb-0">
+                  <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block mb-1">
+                    {item.region}
+                  </span>
+                  <Link
+                    href={`/story/${item.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-foreground hover:underline underline-offset-2 leading-snug block mb-1"
+                  >
+                    {item.title}
+                  </Link>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.summary}</p>
+                </div>
+              ))}
+            </div>
           </section>
         </>
       )}
