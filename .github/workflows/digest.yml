@@ -19,7 +19,45 @@ on:
         options: ['false', 'true']
 
 jobs:
+  # Decide whether THIS trigger should produce a digest, and whether to email.
+  # generateAndStoreDigest upserts by date, so generating after BOTH daily ingests
+  # (11:00 + 16:13 UTC) would let the midday run overwrite — and desync — the
+  # morning edition that subscribers were already emailed (observed 2026-06-21).
+  # So we generate ONCE per day, after the morning ingest only:
+  #   - manual dispatch: always generate; email per the send_email input
+  #   - workflow_run: generate + email only if this completed before 16:00 UTC.
+  #     The morning ingest (11:00, even hours-delayed) lands in-window; the 16:13
+  #     midday run completes after 16:00 and is skipped entirely — no overwrite.
+  # 10#$HOUR forces base-10 so leading-zero hours (08, 09) don't parse as octal.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      send: ${{ steps.decide.outputs.send }}
+    steps:
+      - id: decide
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            if [ "${{ github.event.inputs.send_email }}" = "true" ]; then
+              echo "send=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "send=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            HOUR=$(date -u +%H)
+            if [ "$((10#$HOUR))" -lt 16 ]; then
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              echo "send=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "send=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
   digest:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,10 +70,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Generation runs after EVERY ingest (the 11:00 + 16:13 UTC runs). This is
-      # safe: generateAndStoreDigest upserts by date (onConflict: 'date'), so the
-      # midday run just refreshes today's edition with fresher stories — never a
-      # duplicate row.
       - name: Generate Digest
         run: npx tsx scripts/generate-digest.ts
         env:
@@ -43,37 +77,12 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      # Decide whether THIS run emails. We email once per day, after the morning
-      # ingest only. Since generation runs after both daily ingests, gate the send:
-      #   - manual dispatch: honor the send_email input
-      #   - workflow_run: send only if this completed before 16:00 UTC. The morning
-      #     ingest (11:00, even hours-delayed) lands in-window; the 16:13 midday run
-      #     completes after 16:00 and is excluded, so subscribers get one email/day.
-      # 10#$HOUR forces base-10 so leading-zero hours (08, 09) don't parse as octal.
-      - name: Decide send
-        id: decide
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ "${{ github.event.inputs.send_email }}" = "true" ]; then
-              echo "send=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "send=false" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            HOUR=$(date -u +%H)
-            if [ "$((10#$HOUR))" -lt 16 ]; then
-              echo "send=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "send=false" >> "$GITHUB_OUTPUT"
-            fi
-          fi
-
       # Gate the send on a successful generation (a custom if: drops the implicit
       # success() check, so without this an errored generation would still fire a
       # send of the stale prior digest). This decouples send from QC, NOT from
       # generation — a failed generation has nothing fresh to send.
       - name: Send Digest Email
-        if: success() && steps.decide.outputs.send == 'true'
+        if: success() && needs.gate.outputs.send == 'true'
         run: |
           curl -s --fail-with-body --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/send-digest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
