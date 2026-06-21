@@ -1,8 +1,14 @@
 name: Daily Digest & Email
 
+# Chained to ingest instead of an independent schedule. The digest needs a filled
+# story pool, but GitHub can delay scheduled runs by hours — a fixed 11:50 UTC
+# digest cron starved when the 11:00 ingest was delayed past it (2026-06-21). The
+# workflow_run trigger runs the digest only AFTER "Daily Ingest" finishes, so the
+# pool is always populated first regardless of scheduling lag.
 on:
-  schedule:
-    - cron: '50 11 * * *'   # 11:50am UTC = 4:50am PDT — generate digest (after morning ingest)
+  workflow_run:
+    workflows: ["Daily Ingest"]
+    types: [completed]
   workflow_dispatch:         # manual trigger from GitHub UI
     inputs:
       send_email:
@@ -26,6 +32,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Generation runs after EVERY ingest (the 11:00 + 16:13 UTC runs). This is
+      # safe: generateAndStoreDigest upserts by date (onConflict: 'date'), so the
+      # midday run just refreshes today's edition with fresher stories — never a
+      # duplicate row.
       - name: Generate Digest
         run: npx tsx scripts/generate-digest.ts
         env:
@@ -33,12 +43,37 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
+      # Decide whether THIS run emails. We email once per day, after the morning
+      # ingest only. Since generation runs after both daily ingests, gate the send:
+      #   - manual dispatch: honor the send_email input
+      #   - workflow_run: send only if this completed before 16:00 UTC. The morning
+      #     ingest (11:00, even hours-delayed) lands in-window; the 16:13 midday run
+      #     completes after 16:00 and is excluded, so subscribers get one email/day.
+      # 10#$HOUR forces base-10 so leading-zero hours (08, 09) don't parse as octal.
+      - name: Decide send
+        id: decide
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.send_email }}" = "true" ]; then
+              echo "send=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "send=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            HOUR=$(date -u +%H)
+            if [ "$((10#$HOUR))" -lt 16 ]; then
+              echo "send=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "send=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
       # Gate the send on a successful generation (a custom if: drops the implicit
       # success() check, so without this an errored generation would still fire a
       # send of the stale prior digest). This decouples send from QC, NOT from
       # generation — a failed generation has nothing fresh to send.
       - name: Send Digest Email
-        if: success() && (github.event_name == 'schedule' || github.event.inputs.send_email == 'true')
+        if: success() && steps.decide.outputs.send == 'true'
         run: |
           curl -s --fail-with-body --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/send-digest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
