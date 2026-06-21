@@ -8,14 +8,7 @@ import type {
   MainstreamPulseItem,
   DigestContent,
 } from '@/lib/digest'
-
-const IN_THE_KNOW_CATEGORIES = [
-  'Politics & World Affairs',
-  'Science & Technology',
-  'Business & Markets',
-  'Sports, Entertainment, & Culture',
-  'Comedy & Satire',
-] as const
+import { CANONICAL_IN_THE_KNOW_SECTIONS, DIGEST_SECTION_LIMITS } from '@/lib/digest-canonical'
 
 function formatDate(iso: string) {
   return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', {
@@ -124,15 +117,19 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
 
       <SectionDivider label="In The Know" />
 
-      {/* In The Know */}
+      {/* In The Know — canonical section names + per-section caps, matching the
+          email/feed (buildDigestEdition). Keeps DigestDisplay rendering raw
+          content but groups and caps it the same way. */}
       <section className="space-y-8">
-        {IN_THE_KNOW_CATEGORIES.map((cat) => {
-          const items = content.inTheKnow[cat]
-          if (!items?.length) return null
+        {CANONICAL_IN_THE_KNOW_SECTIONS.map(({ name, sourceKeys }) => {
+          const items = sourceKeys
+            .flatMap((key) => content.inTheKnow[key] ?? [])
+            .slice(0, DIGEST_SECTION_LIMITS[name] ?? 4)
+          if (!items.length) return null
           return (
-            <div key={cat}>
+            <div key={name}>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-3">
-                {cat}
+                {name}
               </p>
               <ul className="divide-y divide-border/50">
                 {items.map((item, i) => (
@@ -150,7 +147,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
           <SectionDivider label="Etcetera" />
           <section>
             <ul className="space-y-2">
-              {content.etcetera.map((item: EtceteraItem | string, i: number) => {
+              {content.etcetera.slice(0, DIGEST_SECTION_LIMITS['Also Worth Knowing']).map((item: EtceteraItem | string, i: number) => {
                 const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
                 return (
                   <li key={i} className="text-sm leading-relaxed text-muted-foreground">
@@ -216,7 +213,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
               Stories with wide international coverage that major US outlets are skipping.
             </p>
             <div className="space-y-4">
-              {content.globalBlindspots.map((item: GlobalBlindspotItem) => (
+              {content.globalBlindspots.slice(0, DIGEST_SECTION_LIMITS['Global Blindspot']).map((item: GlobalBlindspotItem) => (
                 <div key={item.slug} className="border-b border-border/50 pb-4 last:border-0 last:pb-0">
                   <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block mb-1">
                     {item.region}
@@ -246,7 +243,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
               How international outlets are covering today&apos;s stories, perspectives US media isn&apos;t amplifying.
             </p>
             <div className="space-y-4">
-              {content.globalLens.map((item: GlobalLensItem) => (
+              {content.globalLens.slice(0, DIGEST_SECTION_LIMITS['Global Lens']).map((item: GlobalLensItem) => (
                 <div key={item.slug} className="border-b border-border/50 pb-4 last:border-0 last:pb-0">
                   <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block mb-1">
                     {item.region}
