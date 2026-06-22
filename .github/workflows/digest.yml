@@ -23,12 +23,18 @@ jobs:
   # generateAndStoreDigest upserts by date, so generating after BOTH daily ingests
   # (11:00 + 16:13 UTC) would let the midday run overwrite — and desync — the
   # morning edition that subscribers were already emailed (observed 2026-06-21).
-  # So we generate ONCE per day, after the morning ingest only:
+  #
+  # A fixed time window doesn't work: GitHub delays scheduled runs by hours, so the
+  # "morning" ingest can land after any cutoff (observed 2026-06-22: the 11:00 run
+  # didn't execute until 15:57 UTC, so a <16:00 gate skipped the digest and nothing
+  # went out). Instead, gate on STATE, not time: run + email only if today has no
+  # adequate digest yet. This is delay-proof (any ingest, however late, triggers
+  # it), runs once (later ingests skip once today's edition is good), and self-heals
+  # a thin pool (an NTK-empty edition isn't "done", so a fuller later ingest retries
+  # instead of emailing an empty digest).
   #   - manual dispatch: always generate; email per the send_email input
-  #   - workflow_run: generate + email only if this completed before 16:00 UTC.
-  #     The morning ingest (11:00, even hours-delayed) lands in-window; the 16:13
-  #     midday run completes after 16:00 and is skipped entirely — no overwrite.
-  # 10#$HOUR forces base-10 so leading-zero hours (08, 09) don't parse as octal.
+  #   - workflow_run: query today's digest (ET date) — if needToKnow >= 1 it's done,
+  #     skip; otherwise generate + email.
   gate:
     runs-on: ubuntu-latest
     outputs:
@@ -36,6 +42,9 @@ jobs:
       send: ${{ steps.decide.outputs.send }}
     steps:
       - id: decide
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
@@ -44,15 +53,23 @@ jobs:
             else
               echo "send=false" >> "$GITHUB_OUTPUT"
             fi
+            exit 0
+          fi
+          # Digest date is America/New_York (see lib/digest.ts), so match that here.
+          TODAY=$(TZ=America/New_York date +%F)
+          NTK=$(curl -s --max-time 20 \
+            "$SUPABASE_URL/rest/v1/digests?select=content&date=eq.$TODAY&limit=1" \
+            -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print(len((d[0]['content'].get('needToKnow') or [])) if d else 0)" 2>/dev/null || echo 0)
+          echo "Today (ET)=$TODAY | existing NeedToKnow=${NTK:-0}"
+          if [ "${NTK:-0}" -ge 1 ]; then
+            echo "Today's digest already adequate — skipping (no overwrite, no re-email)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "send=false" >> "$GITHUB_OUTPUT"
           else
-            HOUR=$(date -u +%H)
-            if [ "$((10#$HOUR))" -lt 16 ]; then
-              echo "run=true" >> "$GITHUB_OUTPUT"
-              echo "send=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "run=false" >> "$GITHUB_OUTPUT"
-              echo "send=false" >> "$GITHUB_OUTPUT"
-            fi
+            echo "No adequate digest yet today — generating + emailing."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "send=true" >> "$GITHUB_OUTPUT"
           fi
 
   digest:
@@ -77,12 +94,37 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
+      # Quality gate on the FRESHLY-generated edition. The gate job decides "send"
+      # from the pre-generation state, so it can't see what this run just produced.
+      # Re-check today's stored digest here: only email if it actually has Need To
+      # Know content. A thin pool that yields an NTK-empty edition is left unsent,
+      # and (because the gate treats NTK<1 as "not done") a later, fuller ingest
+      # regenerates and emails it — instead of mailing subscribers an empty digest.
+      - name: Verify digest quality
+        id: verify
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          TODAY=$(TZ=America/New_York date +%F)
+          NTK=$(curl -s --max-time 20 \
+            "$SUPABASE_URL/rest/v1/digests?select=content&date=eq.$TODAY&limit=1" \
+            -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print(len((d[0]['content'].get('needToKnow') or [])) if d else 0)" 2>/dev/null || echo 0)
+          echo "Freshly-generated NeedToKnow=${NTK:-0}"
+          if [ "${NTK:-0}" -ge 1 ]; then
+            echo "send_ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "send_ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Digest generated but Need To Know is empty — not emailing; a later ingest will retry."
+          fi
+
       # Gate the send on a successful generation (a custom if: drops the implicit
       # success() check, so without this an errored generation would still fire a
       # send of the stale prior digest). This decouples send from QC, NOT from
       # generation — a failed generation has nothing fresh to send.
       - name: Send Digest Email
-        if: success() && needs.gate.outputs.send == 'true'
+        if: success() && needs.gate.outputs.send == 'true' && steps.verify.outputs.send_ok == 'true'
         run: |
           curl -s --fail-with-body --max-time 30 -X GET "${{ secrets.SITE_URL }}/api/admin/send-digest" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
