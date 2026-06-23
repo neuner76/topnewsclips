@@ -4,6 +4,7 @@ import { getConfidenceLabel } from './confidence'
 import { prefilterCandidatePool } from './digest-prefilter'
 import { loadSourcePolicies, policyForStory } from './source-policy'
 import { reverifyCoverage, shouldReverifyCoverage } from './coverage-integrity'
+import { assessStateAffiliated } from './digest-risk'
 
 export interface HowWorldSeesItItem {
   region: string
@@ -475,7 +476,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const [{ data: usStoriesRaw, error }, { data: satireStories }, { data: globalStories }, { data: worldViewStories }, { data: mainstreampulseStoriesRaw }, rssMainstreamPulse] = await Promise.all([
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count')
+      .select('id, title, slug, description, category, subcategory, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count')
       .eq('published', true)
       .is('region', null)
       .neq('category', 'comedy')
@@ -488,7 +489,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     // Satire/comedy stories fetched separately — they have display_order 80 and would be cut off by the limit
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count')
+      .select('id, title, slug, description, category, subcategory, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count')
       .eq('published', true)
       .is('region', null)
       .eq('category', 'comedy')
@@ -567,16 +568,32 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // changes nothing unless DIGEST_PREFILTER=on, so its effect can be proven
   // against real generations before it is allowed to act. Folded into
   // cappedStories so every downstream consumer uses the same working pool.
-  const prefilter = prefilterCandidatePool(journalistCapped)
+  // Spec 5.5 (#3): a state-affiliated outlet's uncorroborated single-source
+  // high-stakes claim is never a trustworthy blindspot — enforce that removal
+  // UNCONDITIONALLY, independent of the DIGEST_PREFILTER flag. The rest of the
+  // prefilter (no-role / human-interest scoring) stays shadow-gated, because in
+  // validation it over-removed genuine stories (e.g. a $111B acquisition scored
+  // "no role"); it must prove itself before it's allowed to act.
+  const stateExcluded = journalistCapped.filter(s => assessStateAffiliated(s).exclude)
+  if (stateExcluded.length > 0) {
+    console.warn(
+      `[digest] state-affiliated exclusion (enforced) removing ${stateExcluded.length}/${journalistCapped.length}: ` +
+      stateExcluded.map(s => `${s.slug} (state-affiliated high-stakes, uncorroborated single-source)`).join('; ')
+    )
+  }
+  const stateExcludedSlugs = new Set(stateExcluded.map(s => s.slug))
+  const afterStateExclusion = journalistCapped.filter(s => !stateExcludedSlugs.has(s.slug))
+
+  const prefilter = prefilterCandidatePool(afterStateExclusion)
   const prefilterEnforcing = process.env.DIGEST_PREFILTER === 'on'
   if (prefilter.removed.length > 0) {
     console.warn(
       `[digest] candidate pre-filter (${prefilterEnforcing ? 'ENFORCING' : 'shadow'}) ` +
-      `${prefilterEnforcing ? 'removing' : 'would remove'} ${prefilter.removed.length}/${journalistCapped.length}: ` +
+      `${prefilterEnforcing ? 'removing' : 'would remove'} ${prefilter.removed.length}/${afterStateExclusion.length}: ` +
       prefilter.removed.map(r => `${r.slug} (${r.reason})`).join('; ')
     )
   }
-  const cappedStories = prefilterEnforcing ? prefilter.kept : journalistCapped
+  const cappedStories = prefilterEnforcing ? prefilter.kept : afterStateExclusion
 
   // Coverage-integrity backstop: counts are computed once at ingest, so a
   // fast-breaking event ingested before the wires caught up can show an
