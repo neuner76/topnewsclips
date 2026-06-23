@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getConfidenceLabel } from './confidence'
 import { prefilterCandidatePool } from './digest-prefilter'
 import { loadSourcePolicies, policyForStory } from './source-policy'
-import { flagSuspectCoverage, reverifyCoverage } from './coverage-integrity'
+import { reverifyCoverage, shouldReverifyCoverage } from './coverage-integrity'
 
 export interface HowWorldSeesItItem {
   region: string
@@ -475,7 +475,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const [{ data: usStoriesRaw, error }, { data: satireStories }, { data: globalStories }, { data: worldViewStories }, { data: mainstreampulseStoriesRaw }, rssMainstreamPulse] = await Promise.all([
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, created_at, view_count')
+      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count')
       .eq('published', true)
       .is('region', null)
       .neq('category', 'comedy')
@@ -488,7 +488,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     // Satire/comedy stories fetched separately — they have display_order 80 and would be cut off by the limit
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, created_at, view_count')
+      .select('id, title, slug, description, category, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count')
       .eq('published', true)
       .is('region', null)
       .eq('category', 'comedy')
@@ -579,14 +579,16 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const cappedStories = prefilterEnforcing ? prefilter.kept : journalistCapped
 
   // Coverage-integrity backstop: counts are computed once at ingest, so a
-  // fast-breaking high-salience domestic event (mass-casualty, disaster, major
-  // US political/market) ingested before the wire caught up can show an
-  // implausible 0-of-15. Re-verify those suspect counts against the MSM/wire set
-  // BEFORE ranking, so a probable clustering miss can't anchor the digest as a
-  // fake blindspot. Only suspect high-salience items are re-checked (a small set
-  // per day), and the corrected count is persisted so downstream reads agree.
-  const suspectCandidates = cappedStories.filter(s => flagSuspectCoverage(s).confidence === 'suspect')
-  for (const s of suspectCandidates) {
+  // fast-breaking event ingested before the wires caught up can show an
+  // implausible 0-of-15 (counts are snapshotted once at ingest and go stale). We
+  // re-verify low-count HARD-NEWS candidates — domestic high-salience AND
+  // international (geopolitical, public health, etc.) — against the MSM/wire set
+  // BEFORE ranking, so a stale zero can neither anchor the digest as a fake
+  // blindspot nor get mislabeled "limited coverage". A genuine international zero
+  // re-checks to ~0 and stays a real blindspot; the corrected count is persisted
+  // so downstream reads agree. Bounded to digest candidates, 600ms apart.
+  const recheckCandidates = cappedStories.filter(s => shouldReverifyCoverage(s))
+  for (const s of recheckCandidates) {
     const integrity = await reverifyCoverage(s)
     if (integrity.confidence === 'confirmed' && integrity.count > coverageCount(s)) {
       const total = s.msm_outlet_coverage?.notCovered?.length != null

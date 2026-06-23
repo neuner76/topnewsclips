@@ -26,7 +26,7 @@ export interface CoverageIntegrity {
   reason?: string // why suspect/unverified
 }
 
-type SalienceStory = Pick<Story, 'title' | 'description' | 'category' | 'region'> & { subcategory?: string | null }
+type SalienceStory = Pick<Story, 'title' | 'description' | 'category' | 'region' | 'topic_role'> & { subcategory?: string | null }
 
 // High-salience domestic signals — a 0/low count on any of these is implausible.
 // Keyed on topic patterns + region, never on a specific story title.
@@ -60,6 +60,32 @@ export function highSalienceCategory(story: SalienceStory): string | null {
 
 export function isHighSalienceDomestic(story: SalienceStory): boolean {
   return highSalienceCategory(story) !== null
+}
+
+// Hard-news topic roles (from the 3.2 classify pass) where an implausibly low
+// coverage count is more likely a stale ingest-time snapshot than a real gap.
+// Deliberately EXCLUDES undercovered_intl / curiosity_disclosure / culture_media /
+// mainstream_agenda_marker, where a low count is expected and credible.
+const HARD_NEWS_ROLES: ReadonlySet<string> = new Set([
+  'geopolitical', 'public_safety', 'public_health', 'economic', 'infrastructure', 'legal_institutional',
+])
+
+export function isHardNewsRole(story: Pick<Story, 'topic_role'>): boolean {
+  return !!story.topic_role && HARD_NEWS_ROLES.has(story.topic_role)
+}
+
+// Which candidates earn a live coverage re-check at generation. This is BROADER
+// than flagSuspectCoverage (which only flags domestic implausibility and feeds the
+// suspect/blindspot semantics relied on by several callers — left untouched here).
+// A low count on any hard-news story, domestic OR international, is worth a fresh
+// check: the dominant cause of a 0 there is a stale ingest-time snapshot, not a
+// genuine gap (observed 2026-06: a 2-day-old Kyiv strike still read 0 of 15 while
+// six tracked outlets had covered it).
+export function shouldReverifyCoverage(
+  story: SalienceStory & Pick<Story, 'msm_outlet_coverage' | 'topic_role'>
+): boolean {
+  if (coverageCount(story) > 1) return false
+  return isHighSalienceDomestic(story) || isHardNewsRole(story)
 }
 
 function coverageTotalFor(story: Pick<Story, 'msm_outlet_coverage'>): number {
@@ -104,7 +130,10 @@ export async function reverifyCoverage(
   matcher: CoverageMatcher = checkMSMCoverage
 ): Promise<CoverageIntegrity> {
   const initial = flagSuspectCoverage(story)
-  if (initial.confidence !== 'suspect') return initial
+  // Re-check whenever the candidate qualifies (domestic-suspect OR low-count
+  // hard-news, incl. international). flagSuspectCoverage itself stays narrow so the
+  // suspect/blindspot semantics its other callers depend on are unchanged.
+  if (!shouldReverifyCoverage(story)) return initial
 
   try {
     const result = await matcher(story.title ?? '')
@@ -112,11 +141,20 @@ export async function reverifyCoverage(
     if (recovered >= CONFIRMED_COVERAGE_FLOOR) {
       return { count: recovered, total: initial.total, confidence: 'confirmed', reason: 'corrected via relaxed MSM re-match' }
     }
-    return { ...initial, reason: `${initial.reason}; relaxed MSM re-match still found ${recovered} — held as suspect` }
+    // Re-check found fewer than the floor.
+    if (isHighSalienceDomestic(story)) {
+      // A domestic high-salience zero stays implausible even after a re-check —
+      // never grant the zero blindspot/undercovered credit; hold it suspect.
+      return { count: initial.count, total: initial.total, confidence: 'suspect', reason: `${initial.reason ?? 'high-salience domestic zero'}; relaxed MSM re-match still found ${recovered} — held as suspect` }
+    }
+    // International / non-domestic hard-news: the live re-check is authoritative.
+    // A confirmed low/zero count here is a GENUINE blindspot, not a data error.
+    return { count: recovered, total: initial.total, confidence: 'confirmed', reason: `re-verified — ${recovered} MSM outlet(s)` }
   } catch {
-    // Network/parse failure: we couldn't confirm, so don't grant the zero any
-    // blindspot/undercovered credit — leave it suspect (unverified-leaning).
-    return { ...initial, confidence: 'suspect', reason: `${initial.reason}; re-verification failed to run` }
+    // Network/parse failure: we couldn't confirm anything, so leave the story
+    // exactly as flagSuspectCoverage assessed it (domestic → suspect; international
+    // → confirmed at face value). Don't invent a change either way.
+    return { ...initial, reason: `${initial.reason ?? 'unverified'}; re-verification failed to run` }
   }
 }
 

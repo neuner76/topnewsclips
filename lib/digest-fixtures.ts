@@ -174,6 +174,37 @@ export const fixtures = {
     msm_gap: true,
   }),
 
+  // Stale international hard-news zero — coverage was snapshotted at ingest while
+  // the story was breaking, before the wires caught up. A re-check finds it widely
+  // covered, so the ingest-time 0 must be corrected. Real failure: a widely-covered
+  // Russia/Ukraine strike showed "0 of 15 / Limited mainstream coverage" for days.
+  staleInternationalHardNewsZero: baseStory({
+    slug: 'intl-hardnews-stale',
+    title: 'Russia launches missile and drone attacks on Kyiv; at least six injured',
+    description: 'Air-raid sirens sounded across the capital overnight.',
+    category: 'reported',
+    source_tier: 3,
+    region: 'Europe',
+    topic_role: 'geopolitical',
+    msm_outlet_coverage: covered(0),
+    msm_gap: true,
+  }),
+
+  // Genuine international hard-news zero — a credible public-health story the wires
+  // genuinely have not picked up. A re-check confirms ~0, so it must STAY a genuine
+  // blindspot (confirmed 0), never re-flagged suspect and never dropped.
+  genuineInternationalHardNewsZero: baseStory({
+    slug: 'intl-hardnews-genuine',
+    title: 'Police fire tear gas at mourners during a suspected Ebola funeral',
+    description: 'Healthcare workers removed the body as the crowd surged.',
+    category: 'reported',
+    source_tier: 3,
+    region: 'Africa',
+    topic_role: 'public_health',
+    msm_outlet_coverage: covered(0),
+    msm_gap: true,
+  }),
+
   // Broadly corroborated major story — must rank first in Need To Know.
   corroboratedMajorStory: baseStory({
     slug: 'corroborated-major',
