@@ -247,6 +247,18 @@ export function runContentChecks(html, text, path) {
     }
   }
 
+  // 12. Section fit (WARNING): a card reads like governance/regulation but renders
+  //     in a Science/Health or Business section (UK under-16 platform ban placed in
+  //     Science). Section is fuzzier than region, so warn-only — surfaced every
+  //     morning for an editor to sanity-check.
+  const GOVERNANCE = /\b(regulat\w+|legislat\w+|\bbans?\b|\bbanned\b|court|ruling|parliament|congress|senate|sanction\w*|election|lawmakers?|government|ministry|treaty|proscri\w+)\b/i
+  const MISFIT_SECTIONS = /(Science|Health|Environment|Business|Markets)/i
+  for (const c of cards) {
+    if (c.section && MISFIT_SECTIONS.test(c.section) && GOVERNANCE.test(c.text)) {
+      push(finding('section_fit', `Card in "${c.section}" reads like governance/regulation — verify it shouldn't be Politics & World Affairs`, 'warning', [c.text.slice(0, 160)]))
+    }
+  }
+
   return { failures, warnings }
 }
 

@@ -57,6 +57,16 @@ describe('live QC content checks (Section 2)', () => {
     expect(ids(failures)).not.toContain('region_consistency')
   })
 
+  it('warns when a governance/regulation story renders in Science (UK platform ban in Science)', () => {
+    const { warnings } = run('Science, Health & Environment UK parliament moves to ban under-16s from social media platforms 2 of 15 outlets Reported')
+    expect(ids(warnings)).toContain('section_fit')
+  })
+
+  it('does not warn on a genuine science story in Science', () => {
+    const { warnings } = run('Science, Health & Environment Strong El Niño pattern emerges off the Pacific coast 1 of 15 outlets Reported')
+    expect(ids(warnings)).not.toContain('section_fit')
+  })
+
   it('extractCards degrades gracefully on cardless HTML', () => {
     expect(extractCards('<html><body>nothing here</body></html>', '/feed')).toEqual([])
   })
