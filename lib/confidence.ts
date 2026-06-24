@@ -15,9 +15,15 @@ export function getConfidenceLabel(story: Pick<Story, 'category' | 'source_tier'
   const coveredCount = story.msm_outlet_coverage?.covered?.length ?? 0
   const tier = story.source_tier ?? 10
 
-  // Multiple independent outlets confirm the story
-  if (coveredCount >= 5) return 'CORROBORATED'
-  if (coveredCount >= 3 && tier <= 5) return 'CORROBORATED'
+  // Multiple independent outlets confirm the story. A state-affiliated / low-trust
+  // origin (Tier 8+) is NOT auto-corroborated on raw outlet count alone: the count
+  // can be syndicated echoes of a single state narrative rather than independent
+  // confirmation (spec B3 — interim until the corroboration object distinguishes
+  // independent from syndicated). Such stories fall through to DEVELOPING below.
+  if (tier < 8) {
+    if (coveredCount >= 5) return 'CORROBORATED'
+    if (coveredCount >= 3 && tier <= 5) return 'CORROBORATED'
+  }
 
   // Credible institutional source (Tiers 1–6) — even without external corroboration,
   // the source has editorial oversight and a corrections policy
