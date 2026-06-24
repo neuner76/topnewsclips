@@ -9,7 +9,32 @@
 // runContentChecks(html, text, path) -> { failures: Finding[], warnings: Finding[] }
 //   Finding = { id, name, severity: 'hard'|'warning', snippets: string[] }
 
+import { PLACE_REGION } from '../lib/ingest/place-region.mjs'
+
 const MSM_TOTAL = 15 // configured MSM list length (lib/ingest/msm-check.ts)
+
+// Canonical region tags (lib/ingest/global.ts buckets). Check #11 detects the
+// region LABEL rendered on a card and compares it to the places named in the
+// card text. The place→region map is shared from place-region.mjs (single source).
+const CANONICAL_REGIONS = ['Middle East', 'Europe', 'Africa', 'South Asia', 'Japan', 'Korea', 'Australia']
+
+function regionTagsInText(text) {
+  const found = new Set()
+  for (const r of CANONICAL_REGIONS) {
+    if (new RegExp(`(^|[^A-Za-z])${r.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Za-z]|$)`).test(text)) found.add(r)
+  }
+  return found
+}
+
+function namedPlaceRegions(text) {
+  const hay = ` ${text.toLowerCase()} `
+  const regions = new Set()
+  for (const token of Object.keys(PLACE_REGION).sort((a, b) => b.length - a.length)) {
+    const esc = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    if (new RegExp(`(^|[^a-z0-9])${esc}([^a-z0-9]|$)`, 'i').test(hay)) regions.add(PLACE_REGION[token])
+  }
+  return regions
+}
 
 const HIGH_SALIENCE = /\b(shooting|active shooter|gunman|opened fire|stabbing|killed|wounded|fatalities|mass casualt|tornado|hurricane|wildfire|earthquake|flash flood)\b/i
 
@@ -203,6 +228,22 @@ export function runContentChecks(html, text, path) {
   for (const c of cards) {
     if (c.coverageCount === 0 && HIGH_SALIENCE.test(c.text)) {
       push(finding('high_severity_suspect_coverage', 'High-salience story shown 0-of-N (suspect coverage)', 'hard', [c.text]))
+    }
+  }
+
+  // 11. Region consistency (HARD): a card's region tag (label) contradicts every
+  //     place named in its text — a WION clip about Lebanon tagged "South Asia",
+  //     an Al Jazeera clip about Congo tagged "Middle East". Generation (A1)
+  //     corrects these at the source; this is the next-morning backstop.
+  for (const c of cards) {
+    const tags = regionTagsInText(c.text)
+    if (tags.size === 0) continue
+    const placeRegions = namedPlaceRegions(c.text)
+    if (placeRegions.size === 0) continue
+    const agrees = [...tags].some(t => placeRegions.has(t))
+    if (!agrees) {
+      const placesLabel = [...placeRegions].map(r => r ?? 'US/domestic').join(', ')
+      push(finding('region_consistency', `Region tag ${[...tags].join('/')} contradicts every named place (text names: ${placesLabel})`, 'hard', [c.text.slice(0, 160)]))
     }
   }
 

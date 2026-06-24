@@ -47,6 +47,16 @@ describe('live QC content checks (Section 2)', () => {
     expect(failures).toHaveLength(0)
   })
 
+  it('hard-fails a card whose region tag contradicts every named place (Lebanon tagged South Asia)', () => {
+    const { failures } = run('Global Blindspot South Asia Lebanese families rebuild homes in Lebanon 1 of 15 outlets Reported')
+    expect(ids(failures)).toContain('region_consistency')
+  })
+
+  it('does not flag a card whose region tag agrees with a named place (Lebanon tagged Middle East)', () => {
+    const { failures } = run('Global Lens Middle East Israeli forces operate near Sidon, Lebanon 4 of 15 outlets Reported')
+    expect(ids(failures)).not.toContain('region_consistency')
+  })
+
   it('extractCards degrades gracefully on cardless HTML', () => {
     expect(extractCards('<html><body>nothing here</body></html>', '/feed')).toEqual([])
   })
