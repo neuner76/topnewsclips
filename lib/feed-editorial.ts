@@ -19,21 +19,21 @@ export function coverageCount(story: Pick<Story, 'msm_outlet_coverage'>): number
   return story.msm_outlet_coverage?.covered?.length ?? 0
 }
 
-export function coverageTotal(story: Pick<Story, 'msm_outlet_coverage'>): number {
-  const coverage = story.msm_outlet_coverage
-  if (!coverage) return 15
-  const total = coverage.covered.length + coverage.notCovered.length
-  return total > 0 ? total : 15
+// The coverage DENOMINATOR is the constant count of tracked MSM outlets (15 =
+// MSM_OUTLET_COUNT in lib/ingest/msm-check.ts), never the per-story array length.
+// A corrupted coverage array — e.g. a reverify/satire write producing sum 2 or
+// 14 — must not render an inconsistent "of 2"/"of 14" and trip the verifier's
+// denominator_consistency check. Only the numerator (covered) varies per story.
+export function coverageTotal(): number {
+  return 15
 }
 
 export function coverageText(story: Pick<Story, 'msm_outlet_coverage'>): string {
-  const covered = coverageCount(story)
-  const total = coverageTotal(story)
-  return total > 0 ? `${covered} of ${total} outlets` : 'Coverage pending'
+  return `${coverageCount(story)} of ${coverageTotal()} outlets`
 }
 
 export function isZeroCoverageStory(story: Pick<Story, 'msm_outlet_coverage'>): boolean {
-  return coverageCount(story) === 0 && coverageTotal(story) > 0
+  return coverageCount(story) === 0
 }
 
 export function isLowerConfidenceStory(story: Story, sourceType?: string | null): boolean {
@@ -51,7 +51,7 @@ export function isLimitedSourceNeedToKnow(story: Story, section?: FeedSectionNam
   if (section !== 'Need To Know') return false
 
   const count = coverageCount(story)
-  const total = coverageTotal(story)
+  const total = coverageTotal()
   const ratio = total > 0 ? count / total : 0
   const confidence = getConfidenceLabel(story)
   const notes = story.msm_notes?.toLowerCase() ?? ''

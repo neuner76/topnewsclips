@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { Story } from './types'
 import {
   clampWords,
+  coverageText,
+  coverageTotal,
   displaySummary,
   emergingSignalCopy,
   globalLensDisplayText,
@@ -61,6 +63,14 @@ describe('feed editorial hierarchy', () => {
     expect(isZeroCoverageStory(zero)).toBe(true)
     expect(shouldShowZeroCoverageCaution('Science & Technology', zero)).toBe(true)
     expect(shouldShowZeroCoverageCaution('Global Blindspot', zero)).toBe(false)
+  })
+
+  it('always renders the constant 15 denominator, even with a corrupted coverage array', () => {
+    // Real failures: a reverify wrote covered=2/notCovered=0 (denom 2) and an old
+    // row had covered=2/notCovered=12 (denom 14) — both tripped denominator_consistency.
+    expect(coverageTotal()).toBe(15)
+    expect(coverageText(story({ msm_outlet_coverage: { covered: ['a', 'b'], notCovered: [] } }))).toBe('2 of 15 outlets')
+    expect(coverageText(story({ msm_outlet_coverage: { covered: ['a', 'b'], notCovered: Array.from({ length: 12 }, (_, i) => `n${i}`) } }))).toBe('2 of 15 outlets')
   })
 
   it('treats weak singleton primary-section stories as reassignment candidates', () => {

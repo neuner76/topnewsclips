@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getConfidenceLabel } from './confidence'
 import { prefilterCandidatePool } from './digest-prefilter'
 import { loadSourcePolicies, policyForStory } from './source-policy'
-import { reverifyCoverage, shouldReverifyCoverage } from './coverage-integrity'
+import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './coverage-integrity'
 import { assessStateAffiliated } from './digest-risk'
 
 export interface HowWorldSeesItItem {
@@ -608,11 +608,12 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   for (const s of recheckCandidates) {
     const integrity = await reverifyCoverage(s)
     if (integrity.confidence === 'confirmed' && integrity.count > coverageCount(s)) {
-      const total = s.msm_outlet_coverage?.notCovered?.length != null
-        ? integrity.count + Math.max(0, (s.msm_outlet_coverage.covered?.length ?? 0) + s.msm_outlet_coverage.notCovered.length - integrity.count)
-        : 15
-      const covered = Array.from({ length: integrity.count }, (_, i) => `wire-${i}`)
-      const notCovered = Array.from({ length: Math.max(0, total - integrity.count) }, (_, i) => `nc-${i}`)
+      // The denominator is the constant tracked-outlet count — write covered/
+      // notCovered to sum to exactly MSM_OUTLET_TOTAL so a correction can never
+      // introduce an off (e.g. 2 or 14) denominator (denominator_consistency).
+      const count = Math.min(integrity.count, MSM_OUTLET_TOTAL)
+      const covered = Array.from({ length: count }, (_, i) => `wire-${i}`)
+      const notCovered = Array.from({ length: MSM_OUTLET_TOTAL - count }, (_, i) => `nc-${i}`)
       s.msm_outlet_coverage = { covered, notCovered }
       s.msm_gap = integrity.count < 5
       await supabase.from('stories').update({ msm_outlet_coverage: s.msm_outlet_coverage, msm_gap: s.msm_gap }).eq('slug', s.slug)

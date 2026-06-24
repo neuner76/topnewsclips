@@ -151,7 +151,7 @@ export function metadataForStory(story: Story | undefined): DigestMetadata {
     sourceTier,
     confidence,
     coverageCount: coverageCount(story),
-    coverageTotal: coverageTotal(story),
+    coverageTotal: coverageTotal(),
     handle: normalizeHandle(story.journalist_username),
     caution: story.msm_gap ? 'Limited Coverage' : null,
   }
