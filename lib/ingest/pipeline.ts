@@ -5,6 +5,7 @@ import { fetchGlobalClips, type GlobalClip } from './global'
 import { checkMSMCoverage } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
 import { classifyStory } from './classify'
+import { reconcileRegion } from './geo'
 import { pingIndexNow } from './indexnow'
 import { getSourceTier } from './source-tier'
 import { runQCAndInsert } from './qc-publish'
@@ -689,7 +690,17 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       const isGlobalJournalist = GLOBAL_JOURNALIST_HANDLES.has(handle)
       const sourceLower = (candidate.source ?? '').toLowerCase()
       const sourceRegion = GLOBAL_SOURCE_REGION.find(([source]) => sourceLower.includes(source))?.[1] ?? null
-      const candidateRegion = candidate.region ?? (isGlobalJournalist ? (GLOBAL_JOURNALIST_REGION[handle] ?? 'World') : sourceRegion)
+      const rawRegion = candidate.region ?? (isGlobalJournalist ? (GLOBAL_JOURNALIST_REGION[handle] ?? 'World') : sourceRegion)
+      // Reconcile the channel-derived region against the places NAMED in the text.
+      // Region is otherwise the source channel's home region, so a global channel
+      // covering elsewhere is mislabeled (WION on Lebanon → "South Asia", Al Jazeera
+      // on Congo → "Middle East"). Correct to the dominant named region; cross-region
+      // coverage stays published with the right tag. (Classification consistency A1.)
+      const regionCheck = reconcileRegion(rawRegion, `${candidate.title ?? ''} ${candidate.description ?? ''}`)
+      const candidateRegion = regionCheck.region
+      if (regionCheck.corrected) {
+        console.warn(`[ingest] region corrected for ${candidate.slug}: ${regionCheck.reason}`)
+      }
 
       // Satire bypass — skip Claude verification for known comedy/satire creators
       const isSatireSource = SATIRE_BYPASS_HANDLES.has(handle) ||
