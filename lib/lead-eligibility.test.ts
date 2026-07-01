@@ -87,6 +87,19 @@ describe('lead consequence gate — broad-public-impact signal', () => {
     expect(consequence('Chemical spill forces evacuation near school')).toBe('eligible')
   })
 
+  it('accepts a story whose editorial role is consequential even without a keyword hit', () => {
+    // "Governor signs sweeping overhaul of the state agency" classifies as an
+    // institutional_signal role but matches none of the consequence keywords —
+    // the role signal, not the regex, is what qualifies it.
+    const status = checkLeadConsequence({
+      title: 'Governor signs sweeping overhaul of the state agency',
+      description: '',
+      category: 'reported',
+      source_tier: 3,
+    } as Story).status
+    expect(status).toBe('eligible')
+  })
+
   it('still flags a consequence-thin celebrity human-interest item', () => {
     // The lead that started this: must remain override_required so widening the
     // pattern does not re-open the hole it was meant to close.

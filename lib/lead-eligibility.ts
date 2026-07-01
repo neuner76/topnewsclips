@@ -16,6 +16,8 @@ import { getConfidenceLabel } from './confidence'
 import type { ContentType } from './ingest/classify'
 import { coverageCount } from './feed-editorial'
 import { flagSuspectCoverage } from './coverage-integrity'
+import { classifyDigestItemRole } from './digest-role-classifier'
+import { emptyDigestContext, type DigestItemRole } from './digest-pull-types'
 import type { CanonicalDigestSectionName } from './digest-canonical'
 import type { SourcePolicy } from './source-policy'
 import type { Story } from './types'
@@ -274,9 +276,22 @@ const CONSEQUENCE_TERMS: string[] = [
 ]
 const CONSEQUENCE_PATTERN = new RegExp(`\\b(?:${CONSEQUENCE_TERMS.join('|')})\\b`, 'i')
 
+// A story's editorial role is the richer, maintained importance signal (the
+// intended replacement for the keyword heuristic per the rank-spec TODO above).
+// Only two roles carry no broad public consequence — an archived item with no
+// clear reader-impact role, and lighter culture/media texture. Every other role
+// (institutional signal, practical impact, developing safety, economic/health
+// context, undercovered global, the lead role itself) implies public relevance,
+// so it satisfies the consequence gate structurally, with the keyword pattern as
+// a fallback for stories the coarse role bucketing misses.
+const CONSEQUENCE_THIN_ROLES = new Set<DigestItemRole>(['archive_only', 'cultural_texture'])
+
 export function checkLeadConsequence(story: LeadCandidate): LeadEligibilityResult {
+  const role = classifyDigestItemRole(story, emptyDigestContext())
   const text = `${story.title ?? ''} ${story.description ?? ''} ${story.subcategory ?? ''}`
-  if (CONSEQUENCE_PATTERN.test(text)) return { status: 'eligible', reasons: [] }
+  if (!CONSEQUENCE_THIN_ROLES.has(role) || CONSEQUENCE_PATTERN.test(text)) {
+    return { status: 'eligible', reasons: [] }
+  }
   return {
     status: 'override_required',
     reasons: ['Lead appears consequence-thin (no broad public-impact signal detected).'],
