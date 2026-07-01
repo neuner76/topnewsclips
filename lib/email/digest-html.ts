@@ -1,4 +1,5 @@
 import type { DigestContent } from '@/lib/digest'
+import type { LeadDegradedNotice } from '@/lib/lead-enforcement'
 import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
@@ -123,6 +124,31 @@ function renderBadgeRow(story: Story): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+// Editorial banner shown above Need To Know when the lead was seated under
+// degraded eligibility (no fully eligible story that day). Makes an otherwise
+// silent fallback visible rather than presenting a weak lead as a confident
+// pick. Returns '' when there is no notice.
+export function renderLeadNoticeBanner(notice: LeadDegradedNotice | undefined): string {
+  if (!notice) return ''
+  const gates = notice.failedGates.length > 0
+    ? `<p style="margin:6px 0 0;font-size:12px;line-height:1.5;color:#92400e;">Failed lead checks: ${notice.failedGates.map(escapeHtml).join(' ')}</p>`
+    : ''
+  return `
+      <div style="margin:0 0 24px;padding:14px 16px;background:#fffbeb;border:1px solid #fcd34d;border-left:4px solid #d97706;border-radius:6px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#92400e;text-transform:uppercase;margin-bottom:4px;">Editorial note</div>
+        <p style="margin:0;font-size:13px;line-height:1.55;color:#78350f;font-weight:600;">${escapeHtml(notice.message)}</p>
+        ${gates}
+      </div>`
+}
 
 export function buildEmailHtml(content: DigestContent, date: string, siteUrl: string, storyMap: Map<string, Story>): string {
   const edition = buildDigestEdition({ id: `email-${date}`, date, content, generated_at: '' }, storyMap, siteUrl)
@@ -287,6 +313,7 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
     <div style="padding:32px;">
 
       <!-- Need to Know -->
+      ${renderLeadNoticeBanner(content.leadNotice)}
       ${needToKnowHtml}
 
       ${nextStepHtml}
