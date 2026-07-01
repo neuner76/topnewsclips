@@ -74,7 +74,7 @@ export default async function ReferralsPage({
     .eq('referred_by', code.toUpperCase())
 
   const count = referralCount ?? 0
-  const referralUrl = `${SITE_URL}?ref=${subscriber.referral_code}`
+  const referralUrl = `${SITE_URL}/feed?ref=${subscriber.referral_code}`
   const tweetText = encodeURIComponent(`I've been reading @TopNewsClips every morning, stories the mainstream media isn't covering, global events US outlets ignore, and a 5-minute briefing that keeps you informed.\n\n${referralUrl}`)
   const whatsappText = encodeURIComponent(`Stories mainstream media isn't covering, free daily briefing:\n${referralUrl}`)
 
@@ -172,4 +172,3 @@ export default async function ReferralsPage({
     </>
   )
 }
-
