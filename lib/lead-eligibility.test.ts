@@ -10,6 +10,7 @@ import {
   checkLeadContentType,
   checkLeadSourceTier,
   checkLeadCorroboration,
+  checkLeadConsequence,
 } from './lead-eligibility'
 import type { SourcePolicy } from './source-policy'
 import type { Story } from './types'
@@ -61,6 +62,52 @@ describe('lead eligibility gates (Tasks 2–5)', () => {
     expect(evaluateLeadEligibility(t7, { override: { allowLead: true, reason: 'Editor: most consequential story today' } }).status).toBe('eligible')
     // a hard block is never lifted by an override
     expect(evaluateLeadEligibility(fixtures.commentaryAnalysisLowCoverageStory, { override: { allowLead: true, reason: 'x' } }).status).toBe('blocked')
+  })
+})
+
+describe('lead consequence gate — broad-public-impact signal', () => {
+  const consequence = (title: string, description = '') =>
+    checkLeadConsequence({ title, description } as Story).status
+
+  it('accepts accountability reporting about deaths and public safety', () => {
+    // ProPublica/Transdev: dozens of omitted deaths, a child killed by a school-
+    // bus driver, a federal safety database. Previously scored "consequence-thin"
+    // because the keyword set had no death/safety/child terms.
+    expect(consequence(
+      'Bus contractor omitted dozens of deaths from federal safety database',
+      'including a 5-year-old struck and killed by its own driver',
+    )).toBe('eligible')
+  })
+
+  it('accepts legal-accountability, disaster, and public-health signals', () => {
+    expect(consequence('CEO indicted on fraud charges')).toBe('eligible')
+    expect(consequence('Jury reaches guilty verdict in corruption trial')).toBe('eligible')
+    expect(consequence('Building collapse kills workers downtown')).toBe('eligible')
+    expect(consequence('Measles outbreak sickens children after contamination')).toBe('eligible')
+    expect(consequence('Chemical spill forces evacuation near school')).toBe('eligible')
+  })
+
+  it('accepts a story whose editorial role is consequential even without a keyword hit', () => {
+    // "Governor signs sweeping overhaul of the state agency" classifies as an
+    // institutional_signal role but matches none of the consequence keywords —
+    // the role signal, not the regex, is what qualifies it.
+    const status = checkLeadConsequence({
+      title: 'Governor signs sweeping overhaul of the state agency',
+      description: '',
+      category: 'reported',
+      source_tier: 3,
+    } as Story).status
+    expect(status).toBe('eligible')
+  })
+
+  it('still flags a consequence-thin celebrity human-interest item', () => {
+    // The lead that started this: must remain override_required so widening the
+    // pattern does not re-open the hole it was meant to close.
+    expect(consequence(
+      'Recording artist says wife broke her fibula in an elevator accident',
+      'the family is taking extra precautions',
+    )).toBe('override_required')
+    expect(consequence('Adorable rescue puppy reunites with its owner')).toBe('override_required')
   })
 })
 

@@ -5,6 +5,8 @@ import { prefilterCandidatePool } from './digest-prefilter'
 import { loadSourcePolicies, policyForStory } from './source-policy'
 import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './coverage-integrity'
 import { assessStateAffiliated } from './digest-risk'
+import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
+import type { LeadCandidate } from './lead-eligibility'
 
 export interface HowWorldSeesItItem {
   region: string
@@ -69,6 +71,10 @@ export interface DigestContent {
   mainstreamPulse?: MainstreamPulseItem[]
   globalBlindspots?: GlobalBlindspotItem[]
   globalLens?: GlobalLensItem[]
+  // Set only when the lead was seated under degraded eligibility (no fully
+  // eligible story that day). Surfaced in the email + admin so a weak lead is
+  // never shipped silently. See lib/lead-enforcement.ts.
+  leadNotice?: LeadDegradedNotice
 }
 
 export interface Digest {
@@ -127,6 +133,7 @@ export function normalizeDigestContent(content: Partial<DigestContent>): DigestC
     ...(Array.isArray(content.mainstreamPulse) ? { mainstreamPulse: content.mainstreamPulse } : {}),
     ...(Array.isArray(content.globalBlindspots) ? { globalBlindspots: content.globalBlindspots } : {}),
     ...(Array.isArray(content.globalLens) ? { globalLens: content.globalLens } : {}),
+    ...(content.leadNotice ? { leadNotice: content.leadNotice } : {}),
   }
 }
 
@@ -1848,6 +1855,33 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const droppedBlindspots = enforceBlindspotCap(content)
   if (droppedBlindspots.length > 0) {
     console.warn(`[digest] dropped over-length Global Blindspot entries: ${droppedBlindspots.join(', ')}`)
+  }
+
+  // Lead eligibility gate (production wiring). The model orders Need To Know and
+  // needToKnow[0] becomes the lead; nothing above verified the lead is reported,
+  // corroborated, and consequential. Apply the gate: promote the strongest
+  // eligible Need To Know item when the chosen lead fails, else keep it and
+  // attach a degraded notice so a weak lead is never shipped silently.
+  {
+    const leadStoryBySlug = new Map(cappedStories.map(s => [s.slug, s]))
+    const asLeadCandidate = (slug: string): LeadCandidate | undefined => {
+      const s = leadStoryBySlug.get(slug)
+      return s ? (s as unknown as LeadCandidate) : undefined
+    }
+    const leadEnforcement = enforceLeadEligibility(content.needToKnow, asLeadCandidate, {
+      policyForSlug: slug => {
+        const s = leadStoryBySlug.get(slug)
+        return s ? policyForStory(s, sourcePolicies) : undefined
+      },
+    })
+    content.needToKnow = leadEnforcement.needToKnow
+    if (leadEnforcement.reorderedTo) {
+      console.warn(`[digest] lead reordered to "${leadEnforcement.reorderedTo}" — original lead failed the eligibility gate`)
+    }
+    if (leadEnforcement.notice) {
+      content.leadNotice = leadEnforcement.notice
+      console.warn(`[digest] degraded lead: ${leadEnforcement.notice.message} Failed gate(s): ${leadEnforcement.notice.failedGates.join(' ')}`)
+    }
   }
 
   // Validate digest quality before saving

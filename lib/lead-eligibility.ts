@@ -16,6 +16,8 @@ import { getConfidenceLabel } from './confidence'
 import type { ContentType } from './ingest/classify'
 import { coverageCount } from './feed-editorial'
 import { flagSuspectCoverage } from './coverage-integrity'
+import { classifyDigestItemRole } from './digest-role-classifier'
+import { emptyDigestContext, type DigestItemRole } from './digest-pull-types'
 import type { CanonicalDigestSectionName } from './digest-canonical'
 import type { SourcePolicy } from './source-policy'
 import type { Story } from './types'
@@ -229,12 +231,67 @@ export function checkLeadSourceTier(story: LeadCandidate): LeadEligibilityResult
 // ── Task 5: consequence gate (minimal; upgrade once rank spec lands) ─────────
 // TODO(rank-spec): replace this keyword heuristic with the importance
 // dimensions (publicImpact / practicalImpact) once that spec is implemented.
-const CONSEQUENCE_PATTERN =
-  /\b(wars?|missiles?|strikes?|airstrikes?|troops?|invasions?|ceasefires?|nuclear|sanctions?|migrant\w*|migration|asylum|refugees?|court|ruling|supreme court|congress|senate|parliament|election\w*|policy|legislation|recall|outbreak|disease|evacuat\w*|hurricane|wildfire|earthquake|flood\w*|shooting|inflation|interest rates?|tariffs?|recession|layoffs?|prices?|deadline|infrastructure|treaty|hostages?|coup)\b/i
+//
+// Grouped by the kind of broad public consequence each term stands in for. It
+// is deliberately inclusive of harm / accountability language — deaths, public
+// safety, fraud, disasters, harm to vulnerable populations — that the original
+// set omitted: a bus contractor omitting child deaths from a federal safety
+// database is a lead, not a "consequence-thin" item. Purely personal
+// human-interest events (a celebrity's private injury) match none of these, so
+// they still fall to override_required.
+const CONSEQUENCE_TERMS: string[] = [
+  // conflict / geopolitics
+  'wars?', 'missiles?', 'strikes?', 'airstrikes?', 'troops?', 'invasions?',
+  'ceasefires?', 'nuclear', 'sanctions?', 'treaty', 'hostages?', 'coup',
+  // migration
+  'migrant\\w*', 'migration', 'asylum', 'refugees?',
+  // government / law / accountability
+  'court', 'ruling', 'supreme court', 'congress', 'senate', 'parliament',
+  'election\\w*', 'policy', 'legislation', 'regulation\\w*', 'oversight',
+  'indict\\w*', 'charg\\w*', 'lawsuits?', 'subpoena\\w*', 'impeach\\w*',
+  'verdicts?', 'convict\\w*', 'guilty', 'settlements?', 'bans?', 'banned',
+  'mandate\\w*', 'contracts?',
+  // wrongdoing
+  'fraud', 'corruption', 'brib\\w*', 'misconduct', 'negligence',
+  'cover-?up', 'scandal', 'investigation',
+  // death / violence
+  'deaths?', 'died', 'dead', 'deadly', 'kill\\w*', 'fatal\\w*', 'casualt\\w*',
+  'homicide', 'murders?', 'manslaughter', 'attacks?', 'bombing\\w*',
+  'explosion\\w*', 'terror\\w*', 'assault\\w*', 'kidnap\\w*', 'massacre',
+  'shooting', 'gunfire',
+  // public health / safety
+  'outbreak', 'disease', 'epidemic', 'pandemic', 'contaminat\\w*',
+  'poison\\w*', 'overdose\\w*', 'recall', 'safety', 'hazard\\w*',
+  // disaster / infrastructure
+  'hurricane', 'wildfire', 'earthquake', 'flood\\w*', 'evacuat\\w*',
+  'collapse\\w*', 'derail\\w*', 'blackout', 'outages?', 'spills?', 'leaks?',
+  'tornado\\w*', 'tsunami\\w*', 'drought\\w*', 'famine', 'blizzard',
+  'storms?', 'crash\\w*', 'infrastructure',
+  // economy / livelihood
+  'inflation', 'interest rates?', 'tariffs?', 'recession', 'layoffs?',
+  'prices?', 'wages?', 'unemployment', 'bankrupt\\w*', 'foreclos\\w*',
+  'shutdowns?', 'evictions?', 'deadline',
+  // vulnerable populations
+  'children?', 'students?', 'patients?', 'workers?', 'veterans?',
+]
+const CONSEQUENCE_PATTERN = new RegExp(`\\b(?:${CONSEQUENCE_TERMS.join('|')})\\b`, 'i')
+
+// A story's editorial role is the richer, maintained importance signal (the
+// intended replacement for the keyword heuristic per the rank-spec TODO above).
+// Only two roles carry no broad public consequence — an archived item with no
+// clear reader-impact role, and lighter culture/media texture. Every other role
+// (institutional signal, practical impact, developing safety, economic/health
+// context, undercovered global, the lead role itself) implies public relevance,
+// so it satisfies the consequence gate structurally, with the keyword pattern as
+// a fallback for stories the coarse role bucketing misses.
+const CONSEQUENCE_THIN_ROLES = new Set<DigestItemRole>(['archive_only', 'cultural_texture'])
 
 export function checkLeadConsequence(story: LeadCandidate): LeadEligibilityResult {
+  const role = classifyDigestItemRole(story, emptyDigestContext())
   const text = `${story.title ?? ''} ${story.description ?? ''} ${story.subcategory ?? ''}`
-  if (CONSEQUENCE_PATTERN.test(text)) return { status: 'eligible', reasons: [] }
+  if (!CONSEQUENCE_THIN_ROLES.has(role) || CONSEQUENCE_PATTERN.test(text)) {
+    return { status: 'eligible', reasons: [] }
+  }
   return {
     status: 'override_required',
     reasons: ['Lead appears consequence-thin (no broad public-impact signal detected).'],
