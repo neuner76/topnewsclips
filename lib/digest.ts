@@ -637,6 +637,9 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     } else {
       console.warn(`[digest] coverage unchanged ${s.slug}: held at ${before} of ${MSM_OUTLET_TOTAL} (re-match found ${integrity.count})`)
     }
+    // Space out the unofficial Google News RSS lookups (as the block comment
+    // promises) so the widened below-corroboration set can't trigger throttling.
+    await new Promise(r => setTimeout(r, 600))
   }
   console.warn(`[digest] coverage refresh done: ${refreshedCount}/${recheckCandidates.length} raised`)
 
