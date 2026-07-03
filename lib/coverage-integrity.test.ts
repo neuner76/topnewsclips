@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fixtures } from './digest-fixtures'
+import { coverageCount } from './feed-editorial'
 import {
   flagSuspectCoverage,
   isHighSalienceDomestic,
@@ -88,6 +89,38 @@ describe('shouldReverifyCoverage (broadened re-check trigger)', () => {
 
   it('does NOT re-check a broadly covered story', () => {
     expect(shouldReverifyCoverage(fixtures.corroboratedMajorStory)).toBe(false)
+  })
+})
+
+describe('shouldReverifyCoverage — refresh the frozen 2–4 band (scoped-C)', () => {
+  const withCoverage = (base: typeof fixtures.staleInternationalHardNewsZero, n: number) => ({
+    ...base,
+    msm_outlet_coverage: {
+      covered: Array.from({ length: n }, (_, i) => `c${i}`),
+      notCovered: Array.from({ length: 15 - n }, (_, i) => `u${i}`),
+    },
+  })
+
+  it('re-checks a hard-news story stuck at 2–4 outlets (previously frozen by the >1 gate)', () => {
+    const frozen = withCoverage(fixtures.staleInternationalHardNewsZero, 3)
+    expect(coverageCount(frozen)).toBe(3)
+    expect(shouldReverifyCoverage(frozen)).toBe(true)
+  })
+
+  it('re-checks a high-salience domestic story stuck at 4 outlets', () => {
+    const frozen = withCoverage(fixtures.highSalienceDomesticZeroCoverage, 4)
+    expect(shouldReverifyCoverage(frozen)).toBe(true)
+  })
+
+  it('does NOT re-check a story already at/above the Corroborated bar (5+)', () => {
+    const atBar = withCoverage(fixtures.staleInternationalHardNewsZero, 5)
+    expect(coverageCount(atBar)).toBe(5)
+    expect(shouldReverifyCoverage(atBar)).toBe(false)
+  })
+
+  it('still does NOT re-check an ordinary low-stakes story in the 2–4 band (scoping holds)', () => {
+    expect(coverageCount(fixtures.celebrityMusicUseDispute)).toBe(4)
+    expect(shouldReverifyCoverage(fixtures.celebrityMusicUseDispute)).toBe(false)
   })
 })
 

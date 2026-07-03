@@ -612,9 +612,15 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // re-checks to ~0 and stays a real blindspot; the corrected count is persisted
   // so downstream reads agree. Bounded to digest candidates, 600ms apart.
   const recheckCandidates = cappedStories.filter(s => shouldReverifyCoverage(s))
+  // Shadow instrumentation: log every refresh's before→after so a run's logs show
+  // exactly what the widened re-check changed (and whether the title-query is
+  // still the bottleneck — informs whether query normalization is worth doing).
+  let refreshedCount = 0
+  console.warn(`[digest] coverage refresh: ${recheckCandidates.length} below-corroboration candidate(s) to re-check`)
   for (const s of recheckCandidates) {
+    const before = coverageCount(s)
     const integrity = await reverifyCoverage(s)
-    if (integrity.confidence === 'confirmed' && integrity.count > coverageCount(s)) {
+    if (integrity.confidence === 'confirmed' && integrity.count > before) {
       // The denominator is the constant tracked-outlet count — write covered/
       // notCovered to sum to exactly MSM_OUTLET_TOTAL so a correction can never
       // introduce an off (e.g. 2 or 14) denominator (denominator_consistency).
@@ -624,11 +630,18 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       s.msm_outlet_coverage = { covered, notCovered }
       s.msm_gap = integrity.count < 5
       await supabase.from('stories').update({ msm_outlet_coverage: s.msm_outlet_coverage, msm_gap: s.msm_gap }).eq('slug', s.slug)
-      console.warn(`[digest] coverage corrected for ${s.slug}: re-verified ${integrity.count} MSM outlets (was suspect 0-of-15)`)
+      refreshedCount++
+      console.warn(`[digest] coverage refreshed ${s.slug}: ${before} → ${count} of ${MSM_OUTLET_TOTAL} outlets`)
     } else if (integrity.confidence === 'suspect') {
       console.warn(`[digest] coverage still suspect for ${s.slug}: ${integrity.reason}`)
+    } else {
+      console.warn(`[digest] coverage unchanged ${s.slug}: held at ${before} of ${MSM_OUTLET_TOTAL} (re-match found ${integrity.count})`)
     }
+    // Space out the unofficial Google News RSS lookups (as the block comment
+    // promises) so the widened below-corroboration set can't trigger throttling.
+    await new Promise(r => setTimeout(r, 600))
   }
+  console.warn(`[digest] coverage refresh done: ${refreshedCount}/${recheckCandidates.length} raised`)
 
   // Build two lists: fresh stories (NeedToKnow eligible) and all stories (InTheKnow/Etcetera)
   // Hard-exclude yesterday's NeedToKnow slugs from the NeedToKnow pool — don't rely on Claude to honor a flag

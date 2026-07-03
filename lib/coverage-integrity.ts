@@ -74,17 +74,26 @@ export function isHardNewsRole(story: Pick<Story, 'topic_role'>): boolean {
   return !!story.topic_role && HARD_NEWS_ROLES.has(story.topic_role)
 }
 
+// Stories at or above the Corroborated coverage floor need no refresh — their
+// count already clears the lead-eligibility bar, so a re-check can only cost a
+// request. Below it is the contested band the refresh targets.
+export const COVERAGE_REFRESH_CEILING = 5
+
 // Which candidates earn a live coverage re-check at generation. This is BROADER
 // than flagSuspectCoverage (which only flags domestic implausibility and feeds the
 // suspect/blindspot semantics relied on by several callers — left untouched here).
-// A low count on any hard-news story, domestic OR international, is worth a fresh
-// check: the dominant cause of a 0 there is a stale ingest-time snapshot, not a
-// genuine gap (observed 2026-06: a 2-day-old Kyiv strike still read 0 of 15 while
-// six tracked outlets had covered it).
+// A BELOW-CORROBORATED count on any hard-news story, domestic OR international, is
+// worth a fresh check: coverage is snapshotted once at ingest while the story is
+// newborn, so the whole 0–4 band goes stale as the wires catch up (observed
+// 2026-06: a 2-day-old Kyiv strike still read 0 of 15 while six tracked outlets
+// had covered it; 2026-07: an edition capped at 4/15 starved the lead gate because
+// the 2–4 band was frozen by the old `> 1` gate). Scoping stays tight — the
+// hard-news / high-salience predicate excludes culture, satire, and low-stakes
+// items — so this is a handful of requests per run, not the whole pool.
 export function shouldReverifyCoverage(
   story: SalienceStory & Pick<Story, 'msm_outlet_coverage' | 'topic_role'>
 ): boolean {
-  if (coverageCount(story) > 1) return false
+  if (coverageCount(story) >= COVERAGE_REFRESH_CEILING) return false
   return isHighSalienceDomestic(story) || isHardNewsRole(story)
 }
 
