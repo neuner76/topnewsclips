@@ -75,6 +75,36 @@ describe('reconcileRegion — corrects channel-derived mislabels', () => {
   })
 })
 
+describe('PLACE_REGION gazetteer — expanded country coverage (existing buckets only)', () => {
+  const region = (text: string) => reconcileRegion(null, text).region
+
+  it('routes Albania (the real blindspot case) to Europe via its demonym', () => {
+    expect(region('Albanian protests against a Kushner-linked resort reach day 21')).toBe('Europe')
+  })
+
+  it('routes newly-added European countries and demonyms to Europe', () => {
+    expect(region('Serbia and Kosovo hold emergency talks over the border')).toBe('Europe')
+    expect(region('Hungarian government clashes with Brussels over the rule of law')).toBe('Europe')
+    expect(region('Romania holds a contested presidential runoff')).toBe('Europe')
+  })
+
+  it('routes newly-added Middle East, Africa, and South Asia places', () => {
+    expect(region('Kuwait announces new oil production targets')).toBe('Middle East')
+    expect(region('Nigerian forces respond to unrest in the north')).toBe('Africa')
+    expect(region('Bangladeshi garment workers strike over wages')).toBe('South Asia')
+  })
+
+  it('does NOT invent a region for Latin America / East Asia (no taxonomy bucket — deferred)', () => {
+    // Cuba is deliberately omitted: there is no Latin America region bucket, so it
+    // must stay null rather than be "corrected" to a value the pipeline can't use.
+    expect(region('Cuba implements economic reforms including private enterprise expansion')).toBe(null)
+  })
+
+  it('does not false-match ambiguous common-word demonyms (deliberately skipped)', () => {
+    expect(region('A popular danish pastry recipe goes viral')).toBe(null)
+  })
+})
+
 describe('PLACE_REGION map', () => {
   it('maps US places to null (domestic)', () => {
     expect(PLACE_REGION['california']).toBe(null)
