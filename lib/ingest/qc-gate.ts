@@ -54,6 +54,33 @@ function sanitize(s: string): string {
   return s.replace(/[\uD800-\uDFFF]/g, '')
 }
 
+// Escape raw control characters (U+0000–U+001F) that appear INSIDE JSON string
+// literals. At temperature 0 the QC model deterministically emits multi-paragraph
+// summary/reason fields with literal newlines/tabs inside string values, which
+// JSON.parse rejects with "Invalid control character" — the dominant cause of the
+// "Failed to parse QC gate response" HOLDs. This tracks string context so it only
+// escapes control chars inside strings, leaving structural whitespace between
+// tokens (valid JSON) and already-escaped sequences untouched.
+export function escapeControlCharsInStrings(s: string): string {
+  let out = ''
+  let inString = false
+  let escaped = false
+  for (const ch of s) {
+    if (escaped) { out += ch; escaped = false; continue }
+    if (ch === '\\') { out += ch; escaped = true; continue }
+    if (ch === '"') { inString = !inString; out += ch; continue }
+    if (inString && ch.length === 1 && ch.charCodeAt(0) <= 0x1f) {
+      if (ch === '\n') out += '\\n'
+      else if (ch === '\r') out += '\\r'
+      else if (ch === '\t') out += '\\t'
+      else out += '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0')
+      continue
+    }
+    out += ch
+  }
+  return out
+}
+
 // Static portion of the prompt (rubric + instructions + schema) — identical on
 // every call, so it's sent as a separate cache_control block to get the ~90%
 // prompt-caching discount on these input tokens.
@@ -315,7 +342,7 @@ export async function runQCGate(input: QCInput, apiKey: string): Promise<QCGateR
   try {
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1500,
+      max_tokens: 2500,
       temperature: 0,
       messages: [{
         role: 'user',
@@ -332,7 +359,9 @@ export async function runQCGate(input: QCInput, apiKey: string): Promise<QCGateR
 
   const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
   const jsonMatch = stripped.match(/\{[\s\S]*\}/)
-  const text = jsonMatch ? jsonMatch[0] : stripped
+  // Escape any literal control characters inside string values before parsing —
+  // the model's multi-paragraph fields otherwise break JSON.parse.
+  const text = escapeControlCharsInStrings(jsonMatch ? jsonMatch[0] : stripped)
 
   try {
     const parsed = JSON.parse(text) as {
