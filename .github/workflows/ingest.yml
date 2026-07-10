@@ -56,6 +56,52 @@ jobs:
           curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
+      # Batches 8–14: the QC gate (added 2026-06) tripled per-story processing
+      # time, so 7 batches no longer drain the candidate queue in one run —
+      # fresh stories piled up unprocessed. More batches clear the backlog so
+      # current news reaches the pool. Each is a no-op if the queue is empty.
+      - name: Process (batch 8)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 9)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 10)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 11)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 12)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 13)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Process (batch 14)
+        if: always()
+        run: |
+          curl -s --max-time 300 -X GET "${{ secrets.SITE_URL }}/api/ingest/process" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
       - name: Cleanup Old Stories
         if: always()
         run: |
