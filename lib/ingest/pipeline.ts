@@ -524,11 +524,19 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
   const anthropicKey = process.env.ANTHROPIC_API_KEY!
   const result: PipelineResult = { inserted: 0, needsReview: 0, rejected: 0, held: 0, errors: [], stories: [] }
 
+  // Process the FRESHEST candidates first. Each story now costs several
+  // sequential Claude calls (verify → classify → QC gate → section-QC), so a
+  // time-boxed ingest run only clears a slice of the queue. Oldest-first
+  // (the previous order) meant the newest, most-current stories were the ones
+  // left unprocessed when the budget ran out — today's breaking news would sit
+  // in the backlog while stale recaps got ingested, which is why editions read
+  // dated. Newest-first ensures current news is what actually reaches the pool;
+  // genuinely old candidates age out via the freshness gate and cleanup.
   const { data: pending, error: fetchError } = await supabase
     .from('candidates')
     .select('*')
     .eq('processed', false)
-    .order('fetched_at', { ascending: true })
+    .order('fetched_at', { ascending: false })
     .limit(Math.min(Math.max(limit, 1), 10))
 
   if (fetchError) {
