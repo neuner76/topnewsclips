@@ -6,6 +6,7 @@ import { loadSourcePolicies, policyForStory } from './source-policy'
 import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './coverage-integrity'
 import { assessStateAffiliated } from './digest-risk'
 import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
+import { needToKnowFreshness } from './digest-freshness'
 import type { LeadCandidate } from './lead-eligibility'
 
 export interface HowWorldSeesItItem {
@@ -1434,6 +1435,36 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     ntk.paragraphs = ntk.paragraphs.map(p =>
       p.replace(/https?:\/\/\S+/g, '').replace(/\s{2,}/g, ' ').trim()
     ).filter(p => p.length > 0)
+  }
+
+  // Hard Need-To-Know freshness gate (deterministic — the LLM's C4 freshness
+  // rule fires unreliably, e.g. it passed a June-22 warehouse-fire recap into
+  // the July-12 edition). A card whose newest referenced event is >72h old with
+  // no fresh-development signal ("today", a within-window date) is stale and
+  // excluded from Need To Know. Global Blindspot is intentionally exempt — late
+  // international coverage is the point there.
+  {
+    const editionNow = new Date()
+    const flagged: { item: NeedToKnowItem; reason?: string }[] = []
+    for (const ntk of content.needToKnow) {
+      const cardText = [ntk.sectionTitle, ...ntk.paragraphs].join(' ')
+      const r = needToKnowFreshness(cardText, editionNow)
+      if (!r.fresh) flagged.push({ item: ntk, reason: r.reason })
+    }
+    if (flagged.length > 0) {
+      const flaggedSlugs = new Set(flagged.map(f => f.item.slug))
+      const kept = content.needToKnow.filter(i => !flaggedSlugs.has(i.slug))
+      if (kept.length === 0) {
+        // Every card is stale — don't ship an empty Need To Know; keep the list
+        // but alarm loudly so the staleness is visible in logs.
+        console.error(`[digest] NTK freshness: ALL ${flagged.length} cards flagged stale — keeping list to avoid empty Need To Know; investigate pool freshness`)
+      } else {
+        for (const f of flagged) {
+          console.warn(`[digest] NTK freshness: dropping "${f.item.sectionTitle}" — ${f.reason}`)
+        }
+        content.needToKnow = kept
+      }
+    }
   }
 
   // NeedToKnow internal topic deduplication
