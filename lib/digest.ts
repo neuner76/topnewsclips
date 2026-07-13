@@ -7,6 +7,7 @@ import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './co
 import { assessStateAffiliated } from './digest-risk'
 import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
 import { needToKnowFreshness } from './digest-freshness'
+import { pickFallbackNeedToKnow } from './digest-fallback'
 import type { LeadCandidate } from './lead-eligibility'
 
 export interface HowWorldSeesItItem {
@@ -1899,6 +1900,34 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const droppedBlindspots = enforceBlindspotCap(content)
   if (droppedBlindspots.length > 0) {
     console.warn(`[digest] dropped over-length Global Blindspot entries: ${droppedBlindspots.join(', ')}`)
+  }
+
+  // Defensive net: if every NTK filter left Need To Know empty, don't silently
+  // withhold the edition when a domestic hard-news story is strongly MSM-
+  // corroborated — promote the strongest one. The root fix is the confidence
+  // label (confidence.ts); this catches the residual case where the model still
+  // omits a demonstrably-real story (e.g. Sen. Graham's death, carried only by a
+  // lone Tier-8 clip). Reuses the same eligibility + coverage signals as
+  // candidate selection, so a promoted slug is always in validNtkSlugs.
+  if (content.needToKnow.length === 0) {
+    const fallback = pickFallbackNeedToKnow(
+      freshCandidates.map(s => ({
+        slug: s.slug,
+        title: s.title,
+        description: s.description,
+        coveredCount: coverageCount(s),
+        eligible: isNeedToKnowEligible(s, 80),
+      })),
+    )
+    if (fallback) {
+      const story = cappedStories.find(s => s.slug === fallback.slug)
+      content.needToKnow.push({
+        sectionTitle: fallbackSectionTitle(fallback.title),
+        slug: fallback.slug,
+        paragraphs: [story?.description ?? fallback.description ?? ''],
+      })
+      console.warn(`[digest] NTK fallback: promoted "${fallback.title}" (${fallback.coveredCount} MSM outlets) — model left Need To Know empty despite a corroborated domestic story`)
+    }
   }
 
   // Lead eligibility gate (production wiring). The model orders Need To Know and

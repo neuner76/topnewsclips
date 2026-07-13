@@ -15,11 +15,22 @@ describe('getConfidenceLabel', () => {
     expect(label(5, 3)).toBe('CORROBORATED')
   })
 
-  it('B3: a state-affiliated (Tier 8) origin is NOT auto-corroborated on raw outlet count', () => {
-    // 7-of-15 would be CORROBORATED for a credible tier, but a T8 origin can be a
-    // syndicated echo of one state narrative — downgrade until independence is verified.
-    expect(label(8, 7)).toBe('DEVELOPING')
+  it('B3: a Tier 8 origin with MODEST coverage is still not auto-corroborated', () => {
+    // Up to 5 outlets could be a syndicated echo of one state narrative from a
+    // low-trust origin — downgrade until independence is clearer.
     expect(label(8, 5)).toBe('DEVELOPING')
+    expect(label(8, 2)).toBe('DEVELOPING')
+  })
+
+  it('lifts a low-tier origin to CORROBORATED when STRONG independent MSM coverage confirms it', () => {
+    // 6+ of the 15 curated independent Western outlets covering a story can't be
+    // one low-trust source's syndicated echo — that is genuine corroboration
+    // regardless of which low-tier channel clipped it first. (Regression: a Tier 8
+    // YouTube clip of Sen. Graham's death carried 8 MSM outlets yet was capped at
+    // DEVELOPING, so it never reached Need To Know.)
+    expect(label(8, 8)).toBe('CORROBORATED')
+    expect(label(8, 6)).toBe('CORROBORATED')
+    expect(label(10, 7)).toBe('CORROBORATED')
   })
 
   it('keeps single-source for a state-affiliated origin with little coverage', () => {

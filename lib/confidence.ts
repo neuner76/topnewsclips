@@ -15,6 +15,16 @@ export function getConfidenceLabel(story: Pick<Story, 'category' | 'source_tier'
   const coveredCount = story.msm_outlet_coverage?.covered?.length ?? 0
   const tier = story.source_tier ?? 10
 
+  // STRONG corroboration overrides a low-trust origin. msm_outlet_coverage is
+  // measured against 15 curated, independent Western outlets, so 6+ of them
+  // covering a story cannot be one low-trust source's syndicated echo — it is
+  // genuine independent confirmation regardless of which low-tier channel clipped
+  // it first. (Without this, a Tier 8 YouTube clip of Sen. Graham's death carried
+  // 8 MSM outlets yet was capped at DEVELOPING, so it never reached Need To Know
+  // and the edition shipped empty.) The tier<8 block below still governs the
+  // weaker 3–5 outlet range, where a state-narrative echo is harder to rule out.
+  if (coveredCount >= 6) return 'CORROBORATED'
+
   // Multiple independent outlets confirm the story. A state-affiliated / low-trust
   // origin (Tier 8+) is NOT auto-corroborated on raw outlet count alone: the count
   // can be syndicated echoes of a single state narrative rather than independent
