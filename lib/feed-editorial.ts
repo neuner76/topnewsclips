@@ -1,4 +1,5 @@
 import { getConfidenceLabel } from './confidence'
+import { firstSentence } from './first-sentence'
 import type { Story } from './types'
 
 export type FeedSectionName =
@@ -206,6 +207,5 @@ export function validateGlobalLensSourceConsistency(item: {
 
 export function globalLensDisplayText(summary: string): string {
   const clean = stripSourceBoilerplate(summary)
-  const firstSentence = clean.match(/^.*?[.!?](?:\s|$)/)?.[0]?.trim() ?? clean
-  return clampWords(firstSentence, 45)
+  return clampWords(firstSentence(clean), 45)
 }

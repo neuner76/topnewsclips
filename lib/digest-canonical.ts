@@ -1,4 +1,5 @@
 import { getConfidenceLabel } from './confidence'
+import { firstSentence } from './first-sentence'
 import {
   clampWords,
   coverageCount,
@@ -177,11 +178,6 @@ export function formatDigestMetadata(metadata: DigestMetadata, options: {
   if (options.includeHandle && metadata.handle) parts.push(metadata.handle)
   if (options.includeCaution && metadata.caution) parts.push(metadata.caution)
   return parts.join(' · ')
-}
-
-function firstSentence(text: string): string {
-  const clean = text.trim()
-  return clean.match(/^.*?[.!?](?:\s|$)/)?.[0]?.trim() ?? clean
 }
 
 function itemFromStory(
