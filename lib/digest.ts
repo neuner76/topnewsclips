@@ -6,7 +6,7 @@ import { loadSourcePolicies, policyForStory } from './source-policy'
 import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './coverage-integrity'
 import { assessStateAffiliated } from './digest-risk'
 import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
-import { needToKnowFreshness } from './digest-freshness'
+import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
 import { pickFallbackNeedToKnow } from './digest-fallback'
 import type { LeadCandidate } from './lead-eligibility'
 
@@ -1894,6 +1894,28 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   const droppedWorldViews = enforceWorldViewCap(content)
   if (droppedWorldViews.length > 0) {
     console.warn(`[digest] dropped over-length World view sections: ${droppedWorldViews.join(', ')}`)
+  }
+
+  // Freshness for the lighter sections (Etcetera + In The Know), on a looser
+  // 7-day window than Need To Know's 72h. Catches month-old dated leaks like
+  // "McConnell hospitalized June 14" in a mid-July edition. Global Blindspot/
+  // Lens and mainstreamPulse are intentionally exempt (late international
+  // coverage and MSM-headline links are legitimately older).
+  {
+    const editionNow = new Date()
+    const staleReason = (text: string) => needToKnowFreshness(text, editionNow, SECONDARY_SECTION_MAX_AGE_HOURS)
+    content.etcetera = content.etcetera.filter(it => {
+      const r = staleReason(it.text)
+      if (!r.fresh) console.warn(`[digest] etcetera freshness: dropping "${it.text.slice(0, 70)}" — ${r.reason}`)
+      return r.fresh
+    })
+    for (const cat of Object.keys(content.inTheKnow) as Array<keyof typeof content.inTheKnow>) {
+      content.inTheKnow[cat] = content.inTheKnow[cat].filter(it => {
+        const r = staleReason(it.text)
+        if (!r.fresh) console.warn(`[digest] inTheKnow freshness: dropping "${cat}" item "${it.text.slice(0, 70)}" — ${r.reason}`)
+        return r.fresh
+      })
+    }
   }
 
   // Blocking QC: drop any over-length Global Blindspot entry (Task 5)
