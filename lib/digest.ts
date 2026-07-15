@@ -327,6 +327,18 @@ export function usAudienceRelevanceScore(s: DigestCandidateForRanking): number {
   return score
 }
 
+// Need To Know eligibility keys on US-relevance (a positive signal) rather than
+// absence-of-region. Region tagging fails both ways: it over-fires (a US story
+// clipped by a foreign outlet, or matching a place word like "Palestinian", gets
+// a region and was wrongly excluded from NTK) and under-fires (a foreign story
+// that dodges tagging — e.g. a Telangana clip — leaked into NTK). Scoring US
+// relevance directly fixes both. ~3 corresponds to one direct US term (Trump,
+// Congress, ICE, IRS, "American", …) or an impact term plus a supporting signal.
+export const NTK_US_RELEVANCE_MIN = 3
+export function isUsRelevantForNeedToKnow(s: DigestCandidateForRanking): boolean {
+  return usAudienceRelevanceScore(s) >= NTK_US_RELEVANCE_MIN
+}
+
 export function needToKnowPriorityScore(s: DigestCandidateForRanking, now = Date.now()): number {
   const tier = s.source_tier ?? 99
   const ageHours = s.created_at ? Math.max(0, (now - new Date(s.created_at).getTime()) / 3600000) : 48
@@ -746,7 +758,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
       s.source_type !== 'Community Sourced' &&
       !isSoftNeedToKnowStory(s) &&
       !isPolicyBlockedFromNeedToKnow(s) &&
-      !s.region
+      isUsRelevantForNeedToKnow(s)
     )
   }
 
@@ -755,6 +767,18 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const needToKnowCandidates = freshCandidates
     .filter(s => isNeedToKnowEligible(s))
     .map(toPromptItem)
+
+  // Shadow instrumentation for the US-relevance NTK gate (replaced the old
+  // !region rule): surface what the switch changed so the daily watch can spot
+  // over/under-admission. `admittedWithRegion` = US stories a spurious region tag
+  // used to exclude; `excludedRegionlessForeign` = region=null foreign leaks now
+  // blocked (the Telangana class).
+  {
+    const eligible = freshCandidates.filter(s => isNeedToKnowEligible(s))
+    const admittedWithRegion = eligible.filter(s => s.region).length
+    const excludedRegionlessForeign = freshCandidates.filter(s => !s.region && !isUsRelevantForNeedToKnow(s)).length
+    console.warn(`[digest] NTK US-relevance gate: ${eligible.length} eligible (${admittedWithRegion} region-tagged US stories admitted; ${excludedRegionlessForeign} region-null non-US stories excluded)`)
+  }
 
   // Build a set of valid NeedToKnow slugs for post-processing enforcement
   const validNtkSlugs = new Set(freshCandidates
