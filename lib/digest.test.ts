@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   fallbackSectionTitle,
   isSoftNeedToKnowStory,
+  isUsRelevantForNeedToKnow,
   needToKnowPriorityScore,
   normalizeDigestContent,
   usAudienceRelevanceScore,
@@ -105,5 +106,39 @@ describe('Need To Know ranking', () => {
     }, now)
 
     expect(usImpact).toBeLessThan(distantStory)
+  })
+})
+
+// Need To Know eligibility now keys on US-relevance rather than absence-of-region.
+// This fixes both region-tagging failure directions at the gate: US stories that
+// got a spurious region tag (excluded before) are admitted, and foreign stories
+// that dodged tagging (leaked before) are rejected.
+describe('isUsRelevantForNeedToKnow', () => {
+  const cand = (title: string, description = '') =>
+    ({ title, description, source: null, source_tier: 3, msm_outlet_coverage: { covered: [] } })
+
+  it('admits a US-domestic story even if region-tagging over-fired on a place word', () => {
+    // Was tagged Middle East via "Palestinian" and wrongly dropped from NTK.
+    expect(isUsRelevantForNeedToKnow(cand('Illinois names street after six-year-old Palestinian American killed in 2023 hate crime'))).toBe(true)
+    // Was tagged Europe (foreign-outlet clip) and wrongly dropped.
+    expect(isUsRelevantForNeedToKnow(cand('US judge voids Trump IRS settlement, bars tax audit protection'))).toBe(true)
+    expect(isUsRelevantForNeedToKnow(cand('Man fleeing ICE agents struck and killed by semi truck'))).toBe(true)
+  })
+
+  it('rejects a foreign story that dodged region tagging (region=null leak)', () => {
+    expect(isUsRelevantForNeedToKnow(cand('Telangana Chief Minister Attacks Former CM Over Irrigation Crisis'))).toBe(false)
+    expect(isUsRelevantForNeedToKnow(cand('Typhoon Bavi floodwaters sweep vehicles away in Hebei province, China'))).toBe(false)
+    expect(isUsRelevantForNeedToKnow(cand('Rescuers search for survivors after deadly Bangkok pub fire'))).toBe(false)
+  })
+
+  it('admits a US-anchored international story (US as actor)', () => {
+    expect(isUsRelevantForNeedToKnow(cand('US military strikes Iranian targets near Strait of Hormuz'))).toBe(true)
+  })
+
+  it('admits a US political figure whose US relevance is in the description', () => {
+    expect(isUsRelevantForNeedToKnow(cand(
+      'Sen. Lindsey Graham dies at 71 after brief illness',
+      'US Senator Lindsey Graham died at age 71, a longtime senator from South Carolina.'
+    ))).toBe(true)
   })
 })
