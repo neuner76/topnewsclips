@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { checkMSMCoverage, MSM_OUTLET_COUNT } from './msm-check'
+import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery } from './msm-check'
 
 // Build a minimal Google-News-style RSS payload that "mentions" the given
 // outlet domains (so the substring match in checkMSMCoverage fires).
@@ -39,5 +39,42 @@ describe('checkMSMCoverage denominator integrity (3.4)', () => {
     const r = await checkMSMCoverage('some story')
     expect(r.coveredBy.filter(d => d.startsWith('bbc')).length).toBe(1)
     expect(r.coveredBy.length + r.notCoveredBy.length).toBe(MSM_OUTLET_COUNT)
+  })
+})
+
+// A long, specific story title is a poor news-search query — outlets headline the
+// same event with different words, so the exact phrasing matches few of them
+// (e.g. "US military strikes Iranian targets near Strait of Hormuz amid escalating
+// naval confrontation" matched 2 of 15 outlets; the trimmed core matched 10-12).
+// normalizeCoverageQuery produces the shorter core; the caller unions its result
+// with the full-title result, so a worse normalization can only ever be neutral.
+describe('normalizeCoverageQuery', () => {
+  it('drops a trailing subordinate clause at a connector', () => {
+    expect(normalizeCoverageQuery('US military strikes Iranian targets near Strait of Hormuz amid escalating naval confrontation'))
+      .toBe('US military strikes Iranian targets near Strait of Hormuz')
+  })
+
+  it('cuts at a comma clause', () => {
+    expect(normalizeCoverageQuery('Israel schedules October 2026 election, Netanyahu coalition collapses'))
+      .toBe('Israel schedules October 2026 election')
+  })
+
+  it('strips a leading article', () => {
+    expect(normalizeCoverageQuery('The Senate passes the housing bill')).toBe('Senate passes the housing bill')
+  })
+
+  it('leaves a short canonical title unchanged', () => {
+    expect(normalizeCoverageQuery('Sen. Lindsey Graham dies at 71')).toBe('Sen. Lindsey Graham dies at 71')
+  })
+
+  it('caps an over-long title with no connector to a word budget', () => {
+    const out = normalizeCoverageQuery('Congress enacted the 21st Century ROAD to Housing Act largest housing legislation in decades')
+    expect(out.split(/\s+/).length).toBeLessThanOrEqual(12)
+    expect(out.startsWith('Congress enacted')).toBe(true)
+  })
+
+  it('handles empty / one-word input', () => {
+    expect(normalizeCoverageQuery('  ')).toBe('')
+    expect(normalizeCoverageQuery('Breaking')).toBe('Breaking')
   })
 })

@@ -60,36 +60,86 @@ export async function recheckMSMCoverage(
   return { updated }
 }
 
+// Below this many covered outlets, the full-title query likely under-matched
+// (long/specific titles match few outlets), so we also try the normalized query
+// and union the results. Union is safe: coverage is monotonic, so a second query
+// can only add outlets, never remove the ones the full title already found.
+const COVERAGE_RETRY_THRESHOLD = 5
+
+// Subordinate/appositive connectors that usually begin the "elaboration" tail of
+// a headline (e.g. "…Strait of Hormuz amid escalating naval confrontation").
+// Only clear elaboration-tail markers — cutting here keeps a core that still
+// identifies the SAME story. Deliberately excludes 'and'/'as'/'over'/'that'/
+// 'which', which can cut mid-subject and make the query too broad (a too-broad
+// query would union in outlets covering the topic generally, a false positive).
+const QUERY_CONNECTORS = new Set([
+  'amid', 'after', 'following', 'while', 'despite', 'when', 'where',
+  'because', 'since', 'though', 'although',
+])
+
+// Turn a long story title into a shorter core query that a news search can match
+// against how outlets actually headline the same event. Deterministic; the caller
+// unions this result with the full-title result so an imperfect trim is neutral.
+export function normalizeCoverageQuery(title: string): string {
+  let t = (title ?? '').trim()
+  if (!t) return ''
+  t = t.replace(/^(the|a|an)\s+/i, '')
+  // Cut at the first clause punctuation (comma/semicolon/colon/dash).
+  const punct = t.search(/[,;:—]|\s-{1,2}\s/)
+  if (punct > 0) t = t.slice(0, punct)
+  // Cut at the first subordinate connector; cap at a word budget.
+  const out: string[] = []
+  for (const w of t.split(/\s+/)) {
+    if (QUERY_CONNECTORS.has(w.toLowerCase().replace(/[^a-z]/g, ''))) break
+    out.push(w)
+    if (out.length >= 12) break
+  }
+  return out.join(' ').trim()
+}
+
+async function fetchCoveredOutlets(query: string): Promise<{ covered: Set<string>; items: number; sources: string[] } | null> {
+  const encoded = encodeURIComponent(query.slice(0, 100))
+  const rssUrl = `https://news.google.com/rss/search?q=${encoded}&hl=en-US&gl=US&ceid=US:en`
+  const res = await fetch(rssUrl, { headers: { 'User-Agent': 'TopNewsClips/1.0' } })
+  if (!res.ok) return null
+  const xml = await res.text()
+  const items = xml.match(/<item>/g)?.length ?? 0
+  const xmlLower = xml.toLowerCase()
+  const covered = new Set<string>()
+  for (const outlet of MSM_OUTLETS) {
+    if (outlet.domains.some(domain => xmlLower.includes(domain))) covered.add(outlet.domains[0])
+  }
+  const sources = [...xml.matchAll(/<source[^>]*>([^<]+)<\/source>/g)].map(m => m[1]).slice(0, 5)
+  return { covered, items, sources }
+}
+
 export async function checkMSMCoverage(query: string): Promise<MSMCheckResult> {
   try {
-    const encoded = encodeURIComponent(query.slice(0, 100))
-    const rssUrl = `https://news.google.com/rss/search?q=${encoded}&hl=en-US&gl=US&ceid=US:en`
+    const primary = await fetchCoveredOutlets(query)
+    if (!primary) return { articleCount: -1, msmGap: false, topSources: [], coveredBy: [], notCoveredBy: [] }
 
-    const res = await fetch(rssUrl, {
-      headers: { 'User-Agent': 'TopNewsClips/1.0' },
-    })
-    if (!res.ok) return { articleCount: -1, msmGap: false, topSources: [], coveredBy: [], notCoveredBy: [] }
+    let covered = primary.covered
+    let items = primary.items
+    let sources = primary.sources
 
-    const xml = await res.text()
-
-    // Count items published in last 48 hours
-    const items = xml.match(/<item>/g)?.length ?? 0
-
-    // Extract source domains
-    const sourceMatches = [...xml.matchAll(/<source[^>]*>([^<]+)<\/source>/g)]
-    const sources = sourceMatches.map(m => m[1]).slice(0, 5)
-
-    // Check which distinct MSM outlets are covering it. Each outlet lands in
-    // exactly one bucket, so coveredBy.length + notCoveredBy.length is ALWAYS
-    // MSM_OUTLET_COUNT — the denominator can no longer shrink or flip. We return
-    // each outlet's primary domain to keep the existing string[] shape.
-    const xmlLower = xml.toLowerCase()
-    const coveredBy: string[] = []
-    const notCoveredBy: string[] = []
-    for (const outlet of MSM_OUTLETS) {
-      const covered = outlet.domains.some(domain => xmlLower.includes(domain))
-      ;(covered ? coveredBy : notCoveredBy).push(outlet.domains[0])
+    // If the full title under-matched, re-query with the normalized core and
+    // union — an over-specific title (few outlets use its exact wording) is the
+    // dominant cause of spuriously-low corroboration counts.
+    const normalized = normalizeCoverageQuery(query)
+    if (covered.size < COVERAGE_RETRY_THRESHOLD && normalized && normalized.toLowerCase() !== query.trim().toLowerCase()) {
+      await new Promise(r => setTimeout(r, 600))
+      const alt = await fetchCoveredOutlets(normalized)
+      if (alt) {
+        covered = new Set([...covered, ...alt.covered])
+        items = Math.max(items, alt.items)
+        if (sources.length === 0) sources = alt.sources
+      }
     }
+
+    // Each outlet lands in exactly one bucket, so coveredBy + notCoveredBy is
+    // ALWAYS MSM_OUTLET_COUNT — the denominator can't shrink or flip.
+    const coveredBy = MSM_OUTLETS.filter(o => covered.has(o.domains[0])).map(o => o.domains[0])
+    const notCoveredBy = MSM_OUTLETS.filter(o => !covered.has(o.domains[0])).map(o => o.domains[0])
 
     return {
       articleCount: items,
