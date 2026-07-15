@@ -54,6 +54,13 @@ function extractDates(text: string, edition: Date): Date[] {
   return dates.filter(d => d.getTime() <= edition.getTime() + 7 * 864e5)
 }
 
+// Need To Know demands 72h freshness. The lighter sections (Etcetera, In The
+// Know) tolerate older items, but not month-old ones — a 7-day window catches
+// leaks like "McConnell hospitalized June 14" in a mid-July edition while still
+// allowing this-week's news. Global Blindspot/Lens stay exempt (late
+// international coverage is their whole point), as does mainstreamPulse.
+export const SECONDARY_SECTION_MAX_AGE_HOURS = 168
+
 export interface FreshnessResult {
   fresh: boolean
   reason?: string

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { needToKnowFreshness } from './digest-freshness'
+import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
 
 // Hard freshness rule for Need To Know: a card whose newest referenced event is
 // older than 72h must carry a fresh-development signal (a within-window date or
@@ -43,5 +43,29 @@ describe('needToKnowFreshness', () => {
     const r = needToKnowFreshness('A report filed around June 22, 2026 documents an ongoing fire.', EDITION)
     expect(r.fresh).toBe(false)
     expect(r.reason).toBeTruthy()
+  })
+})
+
+describe('needToKnowFreshness with the looser secondary-section window', () => {
+  // Etcetera / In The Know tolerate older items than Need To Know, but a
+  // month-old dated story (e.g. "McConnell hospitalized June 14" in a mid-July
+  // edition) still leaked through because those sections had no freshness check.
+  const JULY15 = new Date('2026-07-15T12:00:00Z')
+
+  it('is 7 days', () => {
+    expect(SECONDARY_SECTION_MAX_AGE_HOURS).toBe(168)
+  })
+
+  it('flags a ~month-old dated item under the 7-day window', () => {
+    const text = 'Sen. Mitch McConnell (R-Kentucky) was hospitalized on June 14, 2026, according to PBS NewsHour reporting.'
+    expect(needToKnowFreshness(text, JULY15, SECONDARY_SECTION_MAX_AGE_HOURS).fresh).toBe(false)
+  })
+
+  it('keeps an item dated within the past week', () => {
+    expect(needToKnowFreshness('A quirky festival opened on July 12, 2026.', JULY15, SECONDARY_SECTION_MAX_AGE_HOURS).fresh).toBe(true)
+  })
+
+  it('keeps an undated quirky item (benefit of the doubt)', () => {
+    expect(needToKnowFreshness('Italian army cadets rescued a driver from a sinking car.', JULY15, SECONDARY_SECTION_MAX_AGE_HOURS).fresh).toBe(true)
   })
 })
