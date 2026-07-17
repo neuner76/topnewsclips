@@ -339,6 +339,22 @@ export function isUsRelevantForNeedToKnow(s: DigestCandidateForRanking): boolean
   return usAudienceRelevanceScore(s) >= NTK_US_RELEVANCE_MIN
 }
 
+// Need To Know prefers a tight 18h window but falls back to 48h when the window
+// is thin on ELIGIBLE (US-relevant hard-news) stories — NOT merely thin on total
+// stories. The old `withinWindow.length >= 3` gate checked total volume, so a
+// window packed with international clips looked full while holding almost no
+// domestic news, starving Need To Know. 48h is a superset, so falling back only
+// ever adds candidates (and the freshness gate still blocks stale event dates).
+export const NTK_WINDOW_MIN_ELIGIBLE = 5
+export function selectNeedToKnowWindow<T>(
+  withinWindow: T[],
+  withinFallback: T[],
+  isEligible: (t: T) => boolean,
+  minEligible = NTK_WINDOW_MIN_ELIGIBLE,
+): T[] {
+  return withinWindow.filter(isEligible).length >= minEligible ? withinWindow : withinFallback
+}
+
 export function needToKnowPriorityScore(s: DigestCandidateForRanking, now = Date.now()): number {
   const tier = s.source_tier ?? 99
   const ageHours = s.created_at ? Math.max(0, (now - new Date(s.created_at).getTime()) / 3600000) : 48
@@ -743,8 +759,13 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const withinWindow = nonYesterday.filter(s => storyAgeHours(s) <= NEEDTOKNOW_MAX_AGE_HOURS)
   const withinFallback = nonYesterday.filter(s => storyAgeHours(s) <= NEEDTOKNOW_FALLBACK_HOURS)
 
-  // If ingest hasn't run recently and no stories fall within the window, fall back to last 48 hours (not full 7 days)
-  const freshCandidates = sortForNeedToKnow(sortByTierAndRecency(withinWindow.length >= 3 ? withinWindow : withinFallback))
+  // Fall back to 48h when the 18h window is thin on NTK-ELIGIBLE (US-relevant
+  // hard-news) stories — a window full of international clips used to mask a
+  // domestic-news drought and starve Need To Know. 48h is a superset, so this
+  // only ever adds candidates.
+  const freshCandidates = sortForNeedToKnow(sortByTierAndRecency(
+    selectNeedToKnowWindow(withinWindow, withinFallback, s => isNeedToKnowEligible(s))
+  ))
 
   function isNeedToKnowEligible(s: typeof cappedStories[0], minDescriptionLength = 150): boolean {
     return (
