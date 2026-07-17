@@ -6,6 +6,7 @@ import {
   isUsRelevantForNeedToKnow,
   needToKnowPriorityScore,
   normalizeDigestContent,
+  selectNeedToKnowWindow,
   usAudienceRelevanceScore,
 } from './digest'
 
@@ -140,5 +141,33 @@ describe('isUsRelevantForNeedToKnow', () => {
       'Sen. Lindsey Graham dies at 71 after brief illness',
       'US Senator Lindsey Graham died at age 71, a longtime senator from South Carolina.'
     ))).toBe(true)
+  })
+})
+
+// The Need To Know recency window falls back from 18h to 48h based on the count
+// of ELIGIBLE (US-relevant hard-news) stories, not total stories — a window
+// packed with international clips used to look "full" (total >= 3) while holding
+// almost no domestic news, starving Need To Know.
+describe('selectNeedToKnowWindow', () => {
+  const el = { ok: true }
+  const no = { ok: false }
+  const isEl = (x: { ok: boolean }) => x.ok
+
+  it('keeps the tight window when it has enough eligible stories', () => {
+    const w = [el, el, el, el, el, no]
+    const f = [...w, el, el]
+    expect(selectNeedToKnowWindow(w, f, isEl, 5)).toBe(w)
+  })
+
+  it('falls back when the tight window is thin on ELIGIBLE stories despite being full', () => {
+    const w = [el, el, no, no, no, no, no, no] // 8 total, only 2 eligible
+    const f = [el, el, el, el, el, el]
+    expect(selectNeedToKnowWindow(w, f, isEl, 5)).toBe(f)
+  })
+
+  it('boundary: exactly the minimum keeps the tight window', () => {
+    const w = [el, el, el, el, el]
+    const f = [el, el, el, el, el, el]
+    expect(selectNeedToKnowWindow(w, f, isEl, 5)).toBe(w)
   })
 })
