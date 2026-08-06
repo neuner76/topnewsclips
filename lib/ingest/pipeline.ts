@@ -456,6 +456,65 @@ const TOPIC_DAILY_CAP_CRISIS = 8  // higher cap for major developing internation
 // Capping per channel forces breadth across the source library.
 const CHANNEL_DAILY_CAP = 5
 
+// A uniform cap of 5 still let 7 foreign broadcasters supply ~55% of the pool
+// (each running 3-5/day), starving US-domestic Need To Know. Global broadcasters
+// get a tighter cap so a handful of prolific foreign channels can't crowd out
+// low-volume US/institutional sources.
+const GLOBAL_CHANNEL_DAILY_CAP = 2
+
+// Journalist handles that produce international news — also the source of a
+// story's region, and now the tighter-cap set. Module-scope so both the cap
+// (channelDailyCap) and the region derivation below share one definition.
+const GLOBAL_JOURNALIST_HANDLES = new Set([
+  'bbcworldservice', 'channel4news', 'cbcnews', 'abcnewsaustralia',
+  'france24english', 'france24', 'dwnews', 'dwenglish', 'dwplaneta', 'dwdocumentary',
+  'aljazeeraenglish', 'aljazeera', 'nhkworldjapan', 'nhkworld',
+  'arirangnews', 'trtworld', 'wion', 'africanews',
+  'reuters', 'afpnewsagency',
+])
+
+const GLOBAL_JOURNALIST_REGION: Record<string, string> = {
+  'bbcworldservice': 'Europe', 'channel4news': 'Europe', 'cbcnews': 'Canada',
+  'abcnewsaustralia': 'Australia', 'france24english': 'Europe', 'france24': 'Europe',
+  'dwnews': 'Europe', 'dwenglish': 'Europe', 'dwplaneta': 'Europe', 'dwdocumentary': 'Europe',
+  'aljazeeraenglish': 'Middle East', 'aljazeera': 'Middle East',
+  'nhkworldjapan': 'Japan', 'nhkworld': 'Japan',
+  'arirangnews': 'Korea', 'trtworld': 'Middle East', 'wion': 'South Asia',
+  'africanews': 'Africa', 'reuters': 'World', 'afpnewsagency': 'World',
+}
+
+const GLOBAL_SOURCE_REGION: Array<[string, string]> = [
+  ['france 24', 'Europe'],
+  ['france24', 'Europe'],
+  ['dw news', 'Europe'],
+  ['al jazeera', 'Middle East'],
+  ['trt world', 'Middle East'],
+  ['wion', 'South Asia'],
+  ['abc news australia', 'Australia'],
+  ['bbc world service', 'Europe'],
+  ['channel 4 news', 'Europe'],
+  ['cbc news', 'Canada'],
+  ['nhk world', 'Japan'],
+  ['arirang news', 'Korea'],
+  ['africanews', 'Africa'],
+]
+
+// A candidate is from a global broadcaster if its journalist handle is a known
+// international channel OR its source name matches one (videos arriving via
+// YouTube search carry a source name but no handle).
+export function isGlobalBroadcaster(journalistUsername: string | null | undefined, source: string | null | undefined): boolean {
+  const handle = (journalistUsername ?? '').toLowerCase()
+  if (GLOBAL_JOURNALIST_HANDLES.has(handle)) return true
+  const src = (source ?? '').toLowerCase()
+  return GLOBAL_SOURCE_REGION.some(([s]) => src.includes(s))
+}
+
+// The applicable daily cap for a candidate's channel — tighter for global
+// broadcasters, standard for everyone else (US/domestic/institutional).
+export function channelDailyCap(journalistUsername: string | null | undefined, source: string | null | undefined): number {
+  return isGlobalBroadcaster(journalistUsername, source) ? GLOBAL_CHANNEL_DAILY_CAP : CHANNEL_DAILY_CAP
+}
+
 // Keywords that indicate a fast-moving international crisis — these stories get a higher cap
 // and a lower MSM bypass threshold so breaking developments don't get silenced
 const CRISIS_KEYWORDS = [
@@ -621,41 +680,6 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
     'josh johnson', 'the juice media', 'saturday night live',
   ]
 
-  // Journalist handles that produce international news — route to global verifier
-  const GLOBAL_JOURNALIST_HANDLES = new Set([
-    'bbcworldservice', 'channel4news', 'cbcnews', 'abcnewsaustralia',
-    'france24english', 'france24', 'dwnews', 'dwenglish', 'dwplaneta', 'dwdocumentary',
-    'aljazeeraenglish', 'aljazeera', 'nhkworldjapan', 'nhkworld',
-    'arirangnews', 'trtworld', 'wion', 'africanews',
-    'reuters', 'afpnewsagency',
-  ])
-
-  const GLOBAL_JOURNALIST_REGION: Record<string, string> = {
-    'bbcworldservice': 'Europe', 'channel4news': 'Europe', 'cbcnews': 'Canada',
-    'abcnewsaustralia': 'Australia', 'france24english': 'Europe', 'france24': 'Europe',
-    'dwnews': 'Europe', 'dwenglish': 'Europe', 'dwplaneta': 'Europe', 'dwdocumentary': 'Europe',
-    'aljazeeraenglish': 'Middle East', 'aljazeera': 'Middle East',
-    'nhkworldjapan': 'Japan', 'nhkworld': 'Japan',
-    'arirangnews': 'Korea', 'trtworld': 'Middle East', 'wion': 'South Asia',
-    'africanews': 'Africa', 'reuters': 'World', 'afpnewsagency': 'World',
-  }
-
-  const GLOBAL_SOURCE_REGION: Array<[string, string]> = [
-    ['france 24', 'Europe'],
-    ['france24', 'Europe'],
-    ['dw news', 'Europe'],
-    ['al jazeera', 'Middle East'],
-    ['trt world', 'Middle East'],
-    ['wion', 'South Asia'],
-    ['abc news australia', 'Australia'],
-    ['bbc world service', 'Europe'],
-    ['channel 4 news', 'Europe'],
-    ['cbc news', 'Canada'],
-    ['nhk world', 'Japan'],
-    ['arirang news', 'Korea'],
-    ['africanews', 'Africa'],
-  ]
-
   for (const candidate of pending) {
     try {
       const preRejectReason = preModelRejectReason(candidate)
@@ -669,11 +693,14 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
 
       // Per-channel daily cap — free check, runs before any paid lookups.
       // TTL'd rejection: the cap is about today's volume, not the content.
+      // Global broadcasters get a tighter cap so a few prolific foreign channels
+      // can't crowd US/domestic sources out of the pool.
       const channelKey = candidate.source ?? ''
-      if ((channelCounts.get(channelKey) ?? 0) >= CHANNEL_DAILY_CAP) {
+      const cap = channelDailyCap(candidate.journalist_username, candidate.source)
+      if ((channelCounts.get(channelKey) ?? 0) >= cap) {
         result.rejected++
-        result.errors.push(`Channel cap: "${candidate.title.slice(0, 50)}" — ${channelKey} already has ${CHANNEL_DAILY_CAP} published stories in 24h`)
-        await upsertRejection(supabase, candidate.slug, `channel_cap: ${channelKey} reached ${CHANNEL_DAILY_CAP} published stories in 24h`)
+        result.errors.push(`Channel cap: "${candidate.title.slice(0, 50)}" — ${channelKey} already has ${cap} published stories in 24h`)
+        await upsertRejection(supabase, candidate.slug, `channel_cap: ${channelKey} reached ${cap} published stories in 24h`)
         await supabase.from('candidates').update({ processed: true }).eq('slug', candidate.slug)
         continue
       }

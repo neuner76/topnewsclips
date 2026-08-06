@@ -106,11 +106,10 @@ describe('per-channel daily cap', () => {
   })
 
   it('lets a candidate through when the channel is under the cap', async () => {
-    const four = Array.from({ length: 4 }, (_, i) => ({
-      title: `AJE story ${i}`,
-      source: 'YouTube/Al Jazeera English',
-    }))
-    const supabaseMock = buildSupabaseMock(four)
+    // Al Jazeera is a global broadcaster (tighter cap of 2), so "under the cap"
+    // is 1 already-published clip, not 4.
+    const underCap = [{ title: 'AJE story 0', source: 'YouTube/Al Jazeera English' }]
+    const supabaseMock = buildSupabaseMock(underCap)
     vi.doMock('@supabase/supabase-js', () => ({ createClient: () => supabaseMock }))
     checkMSMCoverage.mockResolvedValue({ msmGap: false, articleCount: 0, coveredBy: [], notCoveredBy: [] })
     verifyAndTitle.mockResolvedValue({ decision: 'reject', rejectReason: 'test stops here', headline: 'x', summary: 'y' })
