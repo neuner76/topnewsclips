@@ -25,3 +25,25 @@ export function pickFallbackNeedToKnow(
   eligible.sort((a, b) => b.coveredCount - a.coveredCount)
   return eligible[0]
 }
+
+export interface ComedyCandidate {
+  slug: string
+  category?: string | null
+  created_at?: string | null
+  text: string // title + description, for the freshness/evergreen check
+}
+
+// Guarantees a comedy link: when the Comedy & Satire slot is empty after
+// generation, promote the freshest unused, non-evergreen comedy story. `isFresh`
+// is the caller's needToKnowFreshness check, so evergreen reels (excluded by the
+// EVERGREEN_PATTERN) and stale clips are skipped automatically.
+export function pickComedyBackstop(
+  candidates: ComedyCandidate[],
+  usedSlugs: Set<string>,
+  isFresh: (text: string) => boolean,
+): ComedyCandidate | null {
+  const pool = candidates.filter(c => c.category === 'comedy' && !usedSlugs.has(c.slug) && isFresh(c.text))
+  if (pool.length === 0) return null
+  pool.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+  return pool[0]
+}

@@ -7,7 +7,8 @@ import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './co
 import { assessStateAffiliated } from './digest-risk'
 import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
 import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
-import { pickFallbackNeedToKnow } from './digest-fallback'
+import { pickFallbackNeedToKnow, pickComedyBackstop } from './digest-fallback'
+import { firstSentence } from './first-sentence'
 import type { LeadCandidate } from './lead-eligibility'
 
 export interface HowWorldSeesItItem {
@@ -1963,6 +1964,29 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
         if (!r.fresh) console.warn(`[digest] inTheKnow freshness: dropping "${cat}" item "${it.text.slice(0, 70)}" — ${r.reason}`)
         return r.fresh
       })
+    }
+  }
+
+  // Comedy backstop: guarantee a comedy link. If Comedy & Satire is empty after
+  // all filtering, promote the freshest unused, non-evergreen comedy story from
+  // the pool. The needToKnowFreshness check excludes evergreen reels (via
+  // EVERGREEN_PATTERN) and stale clips, so the backstop only pulls topical satire.
+  if ((content.inTheKnow['Comedy & Satire']?.length ?? 0) === 0) {
+    const editionNow = new Date()
+    const usedSlugs = new Set<string>()
+    content.needToKnow.forEach(i => usedSlugs.add(i.slug))
+    for (const items of Object.values(content.inTheKnow)) items.forEach(i => { if (i.slug) usedSlugs.add(i.slug) })
+    content.etcetera.forEach(i => { if (i.slug) usedSlugs.add(i.slug) })
+    const pick = pickComedyBackstop(
+      cappedStories.map(s => ({ slug: s.slug, category: s.category, created_at: s.created_at, text: `${s.title} ${s.description ?? ''}` })),
+      usedSlugs,
+      text => needToKnowFreshness(text, editionNow, SECONDARY_SECTION_MAX_AGE_HOURS).fresh,
+    )
+    if (pick) {
+      const story = cappedStories.find(s => s.slug === pick.slug)
+      const summary = firstSentence(story?.description ?? '').split(/\s+/).slice(0, 45).join(' ')
+      content.inTheKnow['Comedy & Satire'].push({ text: summary, slug: pick.slug })
+      console.warn(`[digest] comedy backstop: promoted "${story?.title}" — Comedy & Satire was empty`)
     }
   }
 
