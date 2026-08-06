@@ -46,6 +46,28 @@ describe('needToKnowFreshness', () => {
   })
 })
 
+describe('needToKnowFreshness — evergreen / retrospective compilations', () => {
+  // Nostalgia reels (SNL retrospectives, "best of" compilations) carry no date,
+  // so the date-based freshness checks missed them. They are not news and must
+  // be excluded from every section regardless of when the clip was uploaded.
+  it('flags an SNL retrospective compilation', () => {
+    const text = 'SNL\'s Mister Robinson: A Retrospective Compilation of Recurring Sketches. In a retrospective compilation of past highlights, Saturday Night Live revisits its recurring Mister Robinson character across multiple installments.'
+    expect(needToKnowFreshness(text, EDITION).fresh).toBe(false)
+  })
+
+  it('evergreen language overrides a fresh marker (uploaded today ≠ news)', () => {
+    expect(needToKnowFreshness('Released today: a best-of compilation of the show\'s greatest hits over the years.', EDITION).fresh).toBe(false)
+  })
+
+  it('does NOT flag legitimate news that merely contains "retrospective"', () => {
+    expect(needToKnowFreshness('A retrospective study published July 11, 2026 found the drug raises risk.', EDITION).fresh).toBe(true)
+  })
+
+  it('does NOT flag "revisits" in a hard-news context', () => {
+    expect(needToKnowFreshness('Congress revisits the immigration bill on July 11, 2026.', EDITION).fresh).toBe(true)
+  })
+})
+
 describe('needToKnowFreshness with the looser secondary-section window', () => {
   // Etcetera / In The Know tolerate older items than Need To Know, but a
   // month-old dated story (e.g. "McConnell hospitalized June 14" in a mid-July

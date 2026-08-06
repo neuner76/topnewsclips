@@ -21,6 +21,14 @@ const FRESH_MARKER =
 const STALE_PHRASE =
   /\b(weeks?\s+ago|months?\s+ago|last\s+(?:week|month|year)|(?:more\s+than|over)\s+a\s+week\s+ago)\b/i
 
+// Evergreen/nostalgia reels (SNL retrospectives, "best of" compilations) carry
+// no date, so the date checks miss them — but they are not news and must never
+// appear in the digest. Phrasing is specific enough to avoid legitimate uses
+// ("retrospective STUDY", "Congress revisits the bill") — it requires an
+// explicit compilation/nostalgia signal, not just "retrospective" or "revisits".
+const EVERGREEN_PATTERN =
+  /\b(retrospective compilation|compilation of (?:past|recurring|classic|greatest|the best|his|her|their)|past highlights|greatest hits|best[-\s]of (?:compilation|reel)|throwback|classic (?:sketches|clips|moments|episodes)|across multiple installments|revisits its recurring|a look back at (?:the )?(?:best|classic|past))\b/i
+
 function toDate(month: number, day: number, year: number | undefined, edition: Date): Date | null {
   if (day < 1 || day > 31) return null
   const y = year ?? edition.getUTCFullYear()
@@ -67,6 +75,13 @@ export interface FreshnessResult {
 }
 
 export function needToKnowFreshness(text: string, edition: Date, maxAgeHours = 72): FreshnessResult {
+  // Evergreen compilations/retrospectives are nostalgia, not news — never fresh,
+  // regardless of upload date. Checked before the fresh-marker override so a clip
+  // uploaded "today" can't rescue a best-of reel.
+  if (EVERGREEN_PATTERN.test(text)) {
+    return { fresh: false, reason: 'evergreen/retrospective compilation — not tied to the news cycle' }
+  }
+
   // An explicit present-tense signal always keeps the card.
   if (FRESH_MARKER.test(text)) return { fresh: true }
 
