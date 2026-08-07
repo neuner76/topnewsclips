@@ -133,11 +133,13 @@ const JOURNALIST_DAILY_CAP = 3
 // freshness window (A3) to account for weekly show cadence.
 const SATIRE_CAP_EXEMPT = new Set([
   'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
+  'latenightseth', 'thebabylonbee',
 ])
 
 const SATIRE_CAP_EXEMPT_SOURCES = [
   'the daily show', 'last week tonight', 'jonathan pie', 'some more news',
   'josh johnson', 'the juice media', 'saturday night live',
+  'seth meyers', 'babylon bee',
 ]
 
 // A3: freshness gate — reject candidates whose upload date is older than this
@@ -667,6 +669,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
   // These are explicitly satirical creators whose content fails news verification by design
   const SATIRE_BYPASS_HANDLES = new Set([
     'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
+    'latenightseth', 'thebabylonbee',
   ])
 
   // Mainstream Pulse handles — bypass Claude verification; skip MSM gap check (circular for MSM sources)
@@ -678,6 +681,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
   const SATIRE_BYPASS_SOURCES = [
     'the daily show', 'last week tonight', 'jonathan pie', 'some more news',
     'josh johnson', 'the juice media', 'saturday night live',
+    'seth meyers', 'babylon bee',
   ]
 
   for (const candidate of pending) {
