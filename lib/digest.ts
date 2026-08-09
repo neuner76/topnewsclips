@@ -587,6 +587,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // Satire/comedy channels are exempt: they're already gated to Comedy & Satire, can't bleed elsewhere
   const SATIRE_DIGEST_EXEMPT = new Set([
     'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
+    'latenightseth', 'thebabylonbee',
   ])
   const journalistCounts = new Map<string, number>()
   const SOURCE_CAP = 1
@@ -701,6 +702,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // Satire handles that must never appear in NeedToKnow — enforced post-generation
   const SATIRE_HANDLES = new Set([
     'thedailyshow', 'lastweektonight', 'joshjohnsoncomedy', 'smn', 'thejuicemedia', 'jonathanpie', 'saturdaynightlive',
+    'latenightseth', 'thebabylonbee',
   ])
 
   function getContentType(s: typeof cappedStories[0]): string {
