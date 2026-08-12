@@ -10,6 +10,7 @@ import { pingIndexNow } from './indexnow'
 import { getSourceTier } from './source-tier'
 import { runQCAndInsert } from './qc-publish'
 import { runSectionQC } from './section-qc'
+import { isSatireSource } from '../satire-sources'
 import { summarizeLight } from './summarize-light'
 import { getConfidenceLabel, CONFIDENCE_META } from '@/lib/confidence'
 import type { QCConfidenceLabel } from './qc-gate'
@@ -131,17 +132,6 @@ const JOURNALIST_DAILY_CAP = 3
 // Satire/comedy handles — exempt from the daily journalist cap (gated to Comedy &
 // Satire, so the cap was silently dropping newer episodes) and given a longer
 // freshness window (A3) to account for weekly show cadence.
-const SATIRE_CAP_EXEMPT = new Set([
-  'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
-  'latenightseth', 'thebabylonbee',
-])
-
-const SATIRE_CAP_EXEMPT_SOURCES = [
-  'the daily show', 'last week tonight', 'jonathan pie', 'some more news',
-  'josh johnson', 'the juice media', 'saturday night live',
-  'seth meyers', 'babylon bee',
-]
-
 // A3: freshness gate — reject candidates whose upload date is older than this
 // window. Trending surfaces can resurface old documentaries/retrospectives
 // alongside same-day news; satire shows get a longer window for weekly cadence.
@@ -149,9 +139,7 @@ const FRESHNESS_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 const SATIRE_FRESHNESS_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
 
 function isSatireCandidate(c: { journalistUsername?: string | null; source?: string | null }): boolean {
-  const username = (c.journalistUsername ?? '').toLowerCase()
-  const source = (c.source ?? '').toLowerCase()
-  return SATIRE_CAP_EXEMPT.has(username) || SATIRE_CAP_EXEMPT_SOURCES.some(s => source.includes(s))
+  return isSatireSource(c.journalistUsername, c.source)
 }
 
 // True if the candidate is too old to run alongside same-day news. Candidates
@@ -411,9 +399,7 @@ export async function runFetch(): Promise<FetchResult> {
   const newCandidates = sortedCandidates.filter(c => {
     if (knownSlugs.has(makeSlug(c.platform, c.videoId, c.title))) return false
     const username = (c as { journalistUsername?: string | null }).journalistUsername
-    const src = (c.source ?? '').toLowerCase()
-    if (username && SATIRE_CAP_EXEMPT.has(username.toLowerCase())) return true
-    if (SATIRE_CAP_EXEMPT_SOURCES.some(s => src.includes(s))) return true
+    if (isSatireSource(username, c.source)) return true
     if (!username) return true
     const count = todayJournalistCounts.get(username) ?? 0
     if (count >= JOURNALIST_DAILY_CAP) return false
@@ -665,24 +651,10 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
     return overlap >= cap
   }
 
-  // Satire/comedy handles — bypass Claude verification entirely
-  // These are explicitly satirical creators whose content fails news verification by design
-  const SATIRE_BYPASS_HANDLES = new Set([
-    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
-    'latenightseth', 'thebabylonbee',
-  ])
-
   // Mainstream Pulse handles — bypass Claude verification; skip MSM gap check (circular for MSM sources)
   const MAINSTREAM_PULSE_HANDLES = new Set([
     'nytimes', 'associatedpress', 'wsj', 'foxnews', 'npr', 'reuters',
   ])
-  // Source name substrings for satire channels — matches when video arrives via YouTube search
-  // without a journalistUsername (e.g. "YouTube/Saturday Night Live")
-  const SATIRE_BYPASS_SOURCES = [
-    'the daily show', 'last week tonight', 'jonathan pie', 'some more news',
-    'josh johnson', 'the juice media', 'saturday night live',
-    'seth meyers', 'babylon bee',
-  ]
 
   for (const candidate of pending) {
     try {
@@ -742,9 +714,8 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       }
 
       // Satire bypass — skip Claude verification for known comedy/satire creators
-      const isSatireSource = SATIRE_BYPASS_HANDLES.has(handle) ||
-        SATIRE_BYPASS_SOURCES.some(s => sourceLower.includes(s))
-      if (isSatireSource) {
+      const isSatire = isSatireSource(candidate.journalist_username, candidate.source)
+      if (isSatire) {
         const satireSourceTier = getSourceTier(candidate.journalist_username ?? null, candidate.source ?? '', 'comedy').tier
         const satireSummary = await summarizeLight(
           {

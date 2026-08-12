@@ -9,6 +9,7 @@ import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcem
 import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
 import { pickFallbackNeedToKnow, pickComedyBackstop } from './digest-fallback'
 import { firstSentence } from './first-sentence'
+import { SATIRE_HANDLES } from './satire-sources'
 import type { LeadCandidate } from './lead-eligibility'
 
 export interface HowWorldSeesItItem {
@@ -585,15 +586,11 @@ export async function generateAndStoreDigest(): Promise<Digest> {
 
   // Cap any single journalist/creator to 1 story — prevents one voice dominating the digest
   // Satire/comedy channels are exempt: they're already gated to Comedy & Satire, can't bleed elsewhere
-  const SATIRE_DIGEST_EXEMPT = new Set([
-    'thedailyshow', 'lastweektonight', 'jonathanpie', 'smn', 'joshjohnsoncomedy', 'thejuicemedia', 'saturdaynightlive',
-    'latenightseth', 'thebabylonbee',
-  ])
   const journalistCounts = new Map<string, number>()
   const SOURCE_CAP = 1
   const journalistCapped = stories.filter(s => {
     if (!s.journalist_username) return true
-    if (SATIRE_DIGEST_EXEMPT.has(s.journalist_username.toLowerCase())) return true  // satire exempt from cap
+    if (SATIRE_HANDLES.has(s.journalist_username.toLowerCase())) return true  // satire exempt from cap
     const count = journalistCounts.get(s.journalist_username) ?? 0
     if (count >= SOURCE_CAP) return false
     journalistCounts.set(s.journalist_username, count + 1)
@@ -700,10 +697,6 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   ])
 
   // Satire handles that must never appear in NeedToKnow — enforced post-generation
-  const SATIRE_HANDLES = new Set([
-    'thedailyshow', 'lastweektonight', 'joshjohnsoncomedy', 'smn', 'thejuicemedia', 'jonathanpie', 'saturdaynightlive',
-    'latenightseth', 'thebabylonbee',
-  ])
 
   function getContentType(s: typeof cappedStories[0]): string {
     if (s.category === 'raw' || s.category === 'footage') return 'footage'  // bodycam, dashcam, bystander video
