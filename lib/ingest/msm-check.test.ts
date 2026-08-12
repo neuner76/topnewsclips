@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery } from './msm-check'
+import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery, resetThrottleDetection } from './msm-check'
 
 // Build a minimal Google-News-style RSS payload that "mentions" the given
 // outlet domains (so the substring match in checkMSMCoverage fires).
@@ -9,11 +9,22 @@ function rss(domains: string[], items = 8): string {
   return `<rss><channel>${entries}${filler}</channel></rss>`
 }
 
+// A healthy throttle canary (5 MSM outlets) so a thin story body doesn't trip the
+// throttle path in tests that aren't about throttling.
+const HEALTHY_CANARY = rss(['nytimes.com', 'cnn.com', 'bbc.com', 'apnews.com', 'reuters.com'])
+const isCanary = (url: unknown) => String(url).includes('white%20house')
+
 function mockFetch(body: string) {
-  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, text: async () => body })))
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => ({
+    ok: true,
+    text: async () => (isCanary(url) ? HEALTHY_CANARY : body),
+  })))
 }
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  resetThrottleDetection()
+})
 
 describe('checkMSMCoverage denominator integrity (3.4)', () => {
   it('exposes a stable distinct-outlet count of 15', () => {
@@ -76,5 +87,42 @@ describe('normalizeCoverageQuery', () => {
   it('handles empty / one-word input', () => {
     expect(normalizeCoverageQuery('  ')).toBe('')
     expect(normalizeCoverageQuery('Breaking')).toBe('Breaking')
+  })
+})
+
+// --- Throttle detection + retry (CI-IP RSS rate-limiting) ---
+describe('checkMSMCoverage throttle detection', () => {
+  it('keeps a genuinely-low count when the canary is healthy (not throttled)', async () => {
+    mockFetch(rss(['bbc.com'])) // story thin; healthy canary served for the probe
+    const r = await checkMSMCoverage('an obscure story with little coverage')
+    expect(r.throttled).toBeFalsy()
+    expect(r.coveredBy.length).toBe(1)
+  })
+
+  it('flags throttled when even the canary comes back thin', async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ ok: true, text: async () => (isCanary(url) ? rss([]) : rss(['bbc.com'])) })))
+    const p = checkMSMCoverage('an obscure local story about nothing widely covered')
+    await vi.runAllTimersAsync()
+    const r = await p
+    expect(r.throttled).toBe(true)
+    vi.useRealTimers()
+  })
+
+  it('recovers on retry when the throttle is transient', async () => {
+    vi.useFakeTimers()
+    let storyCalls = 0
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (isCanary(url)) return { ok: true, text: async () => rss([]) }
+      storyCalls++
+      const body = storyCalls <= 2 ? rss(['bbc.com']) : rss(['nytimes.com', 'cnn.com', 'bbc.com', 'apnews.com', 'reuters.com', 'npr.org'])
+      return { ok: true, text: async () => body }
+    }))
+    const p = checkMSMCoverage('a story that recovers after backoff')
+    await vi.runAllTimersAsync()
+    const r = await p
+    expect(r.throttled).toBe(false)
+    expect(r.coveredBy.length).toBeGreaterThanOrEqual(5)
+    vi.useRealTimers()
   })
 })
