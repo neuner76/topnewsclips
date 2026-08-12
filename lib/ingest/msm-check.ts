@@ -32,6 +32,10 @@ export interface MSMCheckResult {
   topSources: string[]
   coveredBy: string[]
   notCoveredBy: string[]
+  // True when a thin count is unreliable because the environment (usually a CI
+  // datacenter IP) is being rate-limited by Google News RSS — callers should not
+  // persist the degraded coverage as authoritative.
+  throttled?: boolean
 }
 
 export interface StoryForRecheck {
@@ -48,7 +52,9 @@ export async function recheckMSMCoverage(
   let updated = 0
   for (const story of stories) {
     const result = await checkMSMCoverage(story.title)
-    if (result.articleCount >= 0) {
+    // Skip a throttled result — don't overwrite existing coverage with a degraded
+    // (rate-limited) count.
+    if (result.articleCount >= 0 && !result.throttled) {
       await supabase.from('stories').update({
         msm_gap: result.msmGap,
         msm_outlet_coverage: { covered: result.coveredBy, notCovered: result.notCoveredBy },
@@ -113,40 +119,83 @@ async function fetchCoveredOutlets(query: string): Promise<{ covered: Set<string
   return { covered, items, sources }
 }
 
+// Full-title + normalized-core union — the #11 logic, extracted so the retry can
+// reuse it. Union is safe: coverage is monotonic.
+async function unionCoverage(query: string): Promise<{ covered: Set<string>; items: number; sources: string[] } | null> {
+  const primary = await fetchCoveredOutlets(query)
+  if (!primary) return null
+  let covered = primary.covered
+  let items = primary.items
+  let sources = primary.sources
+  const normalized = normalizeCoverageQuery(query)
+  if (covered.size < COVERAGE_RETRY_THRESHOLD && normalized && normalized.toLowerCase() !== query.trim().toLowerCase()) {
+    await new Promise(r => setTimeout(r, 600))
+    const alt = await fetchCoveredOutlets(normalized)
+    if (alt) {
+      covered = new Set([...covered, ...alt.covered])
+      items = Math.max(items, alt.items)
+      if (sources.length === 0) sources = alt.sources
+    }
+  }
+  return { covered, items, sources }
+}
+
+// Throttle detection. A query that ALWAYS has broad MSM coverage in a healthy
+// environment; if even this comes back thin, Google News RSS is rate-limiting us
+// (the recurring CI-IP throttle) and any thin story count is unreliable, not real.
+// The probe result is cached so a run only pays for it roughly once, not per story.
+const THROTTLE_CANARY_QUERY = 'white house'
+const THROTTLE_CANARY_MIN_OUTLETS = 4
+const THROTTLE_BACKOFF_MS = 2500
+const CANARY_TTL_MS = 45_000
+let canaryCache: { at: number; throttled: boolean } | null = null
+
+// Test seam: clear the cached canary probe between cases.
+export function resetThrottleDetection(): void {
+  canaryCache = null
+}
+
+async function environmentThrottled(): Promise<boolean> {
+  if (canaryCache && Date.now() - canaryCache.at < CANARY_TTL_MS) return canaryCache.throttled
+  const canary = await fetchCoveredOutlets(THROTTLE_CANARY_QUERY)
+  const throttled = !canary || canary.covered.size < THROTTLE_CANARY_MIN_OUTLETS
+  canaryCache = { at: Date.now(), throttled }
+  return throttled
+}
+
 export async function checkMSMCoverage(query: string): Promise<MSMCheckResult> {
   try {
-    const primary = await fetchCoveredOutlets(query)
-    if (!primary) return { articleCount: -1, msmGap: false, topSources: [], coveredBy: [], notCoveredBy: [] }
+    let union = await unionCoverage(query)
+    if (!union) return { articleCount: -1, msmGap: false, topSources: [], coveredBy: [], notCoveredBy: [] }
+    let throttled = false
 
-    let covered = primary.covered
-    let items = primary.items
-    let sources = primary.sources
-
-    // If the full title under-matched, re-query with the normalized core and
-    // union — an over-specific title (few outlets use its exact wording) is the
-    // dominant cause of spuriously-low corroboration counts.
-    const normalized = normalizeCoverageQuery(query)
-    if (covered.size < COVERAGE_RETRY_THRESHOLD && normalized && normalized.toLowerCase() !== query.trim().toLowerCase()) {
-      await new Promise(r => setTimeout(r, 600))
-      const alt = await fetchCoveredOutlets(normalized)
-      if (alt) {
-        covered = new Set([...covered, ...alt.covered])
-        items = Math.max(items, alt.items)
-        if (sources.length === 0) sources = alt.sources
+    // A thin count is either genuinely low or the environment is throttled.
+    // Distinguish with the canary; if throttled, back off and retry once. If the
+    // retry recovers a higher count the throttle was transient; otherwise flag it
+    // so callers don't persist the degraded coverage.
+    if (union.covered.size < COVERAGE_RETRY_THRESHOLD && await environmentThrottled()) {
+      throttled = true
+      await new Promise(r => setTimeout(r, THROTTLE_BACKOFF_MS))
+      canaryCache = null // force a fresh probe on the next thin story
+      const retry = await unionCoverage(query)
+      if (retry && retry.covered.size > union.covered.size) {
+        union = retry
+        throttled = false
       }
     }
 
     // Each outlet lands in exactly one bucket, so coveredBy + notCoveredBy is
     // ALWAYS MSM_OUTLET_COUNT — the denominator can't shrink or flip.
-    const coveredBy = MSM_OUTLETS.filter(o => covered.has(o.domains[0])).map(o => o.domains[0])
-    const notCoveredBy = MSM_OUTLETS.filter(o => !covered.has(o.domains[0])).map(o => o.domains[0])
+    const coveredBy = MSM_OUTLETS.filter(o => union.covered.has(o.domains[0])).map(o => o.domains[0])
+    const notCoveredBy = MSM_OUTLETS.filter(o => !union.covered.has(o.domains[0])).map(o => o.domains[0])
 
     return {
-      articleCount: items,
-      msmGap: items < 5 || coveredBy.length < 3,
-      topSources: sources,
+      articleCount: union.items,
+      msmGap: union.items < 5 || coveredBy.length < 3,
+      topSources: union.sources,
       coveredBy,
       notCoveredBy,
+      throttled,
     }
   } catch {
     return { articleCount: -1, msmGap: false, topSources: [], coveredBy: [], notCoveredBy: [] }
