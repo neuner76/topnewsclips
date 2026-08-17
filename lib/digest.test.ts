@@ -117,6 +117,24 @@ describe('Need To Know ranking', () => {
 describe('isUsRelevantForNeedToKnow', () => {
   const cand = (title: string, description = '') =>
     ({ title, description, source: null, source_tier: 3, msm_outlet_coverage: { covered: [] } })
+  const covered = (title: string, description: string, n: number) =>
+    ({ title, description, source: null, source_tier: 3, msm_outlet_coverage: { covered: Array.from({ length: n }, (_, i) => `o${i}`) } })
+
+  it('does not read a US term inside another word (substring false positives)', () => {
+    // "N-USA-Tenggara" contains "usa"; a foreign earthquake must NOT score as US.
+    expect(isUsRelevantForNeedToKnow(covered(
+      "Powerful earthquake in Indonesia's East Nusa Tenggara displaces thousands",
+      "A powerful earthquake struck Indonesia's East Nusa Tenggara province, Al Jazeera reports.", 10,
+    ))).toBe(false)
+    // "police" must not match "ice"; "campus" must not match "us".
+    expect(isUsRelevantForNeedToKnow(cand('Local police respond to a campus incident in Jakarta'))).toBe(false)
+  })
+
+  it('still matches genuine US terms at word boundaries', () => {
+    expect(isUsRelevantForNeedToKnow(cand('USA announces sweeping new sanctions'))).toBe(true)
+    expect(isUsRelevantForNeedToKnow(cand('The U.S. Senate votes on the housing bill'))).toBe(true)
+    expect(isUsRelevantForNeedToKnow(cand('ICE agents detain hundreds in a federal raid'))).toBe(true)
+  })
 
   it('admits a US-domestic story even if region-tagging over-fired on a place word', () => {
     // Was tagged Middle East via "Palestinian" and wrongly dropped from NTK.

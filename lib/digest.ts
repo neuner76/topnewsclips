@@ -307,18 +307,28 @@ export function isSoftNeedToKnowStory(s: DigestCandidateForRanking): boolean {
   return !hasHardNewsSignal && !isWidelyCovered
 }
 
+// Word-boundary term match. Plain substring matching produced false positives —
+// "N-USA-Tenggara" (an Indonesian province) read as "usa" (United States) and put
+// a foreign earthquake into US Need To Know; "police" read as "ice"; "campus" as
+// "us". Boundaries are letter-adjacency so terms with periods (u.s.) and
+// multi-word terms (white house) still match.
+function containsUsTerm(text: string, term: string): boolean {
+  const esc = term.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(?<![a-z])${esc}(?![a-z])`, 'i').test(text)
+}
+
 export function usAudienceRelevanceScore(s: DigestCandidateForRanking): number {
   const text = `${s.title} ${s.description ?? ''} ${s.source ?? ''}`.toLowerCase()
   let score = 0
 
   for (const term of US_RELEVANCE_DIRECT_TERMS) {
-    if (text.includes(term)) score += 3
+    if (containsUsTerm(text, term)) score += 3
   }
   for (const term of US_RELEVANCE_IMPACT_TERMS) {
-    if (text.includes(term)) score += 2
+    if (containsUsTerm(text, term)) score += 2
   }
 
-  const globalMatches = US_RELEVANCE_GLOBAL_WITH_US_IMPACT_TERMS.filter(term => text.includes(term)).length
+  const globalMatches = US_RELEVANCE_GLOBAL_WITH_US_IMPACT_TERMS.filter(term => containsUsTerm(text, term)).length
   if (globalMatches >= 2) score += 2
   else if (globalMatches === 1) score += 1
 
