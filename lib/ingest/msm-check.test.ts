@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery, resetThrottleDetection } from './msm-check'
+import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery, resetThrottleDetection, originatingOutletDomain } from './msm-check'
 
 // Build a minimal Google-News-style RSS payload that "mentions" the given
 // outlet domains (so the substring match in checkMSMCoverage fires).
@@ -124,5 +124,39 @@ describe('checkMSMCoverage throttle detection', () => {
     expect(r.throttled).toBe(false)
     expect(r.coveredBy.length).toBeGreaterThanOrEqual(5)
     vi.useRealTimers()
+  })
+})
+
+// --- Credit the story's own outlet (an AP story is covered by AP) ---
+describe('originatingOutletDomain', () => {
+  it('maps a tracked outlet handle to its domain', () => {
+    expect(originatingOutletDomain('associatedpress', null)).toBe('apnews.com')
+    expect(originatingOutletDomain('reuters', null)).toBe('reuters.com')
+    expect(originatingOutletDomain('npr', null)).toBe('npr.org')
+    expect(originatingOutletDomain('abcnews', null)).toBe('abcnews.go.com')
+  })
+
+  it('maps an unambiguous source name when there is no handle', () => {
+    expect(originatingOutletDomain(null, 'YouTube/Reuters')).toBe('reuters.com')
+    expect(originatingOutletDomain(null, 'YouTube/Associated Press')).toBe('apnews.com')
+  })
+
+  it('does NOT credit ABC News Australia as US ABC', () => {
+    expect(originatingOutletDomain('abcnewsaustralia', null)).toBeNull()
+    expect(originatingOutletDomain('abcnewsindepth', null)).toBeNull()
+  })
+
+  it('returns null for non-tracked / satire sources', () => {
+    expect(originatingOutletDomain('joshjohnsoncomedy', null)).toBeNull()
+    expect(originatingOutletDomain(null, null)).toBeNull()
+  })
+})
+
+describe('checkMSMCoverage credits the originating outlet', () => {
+  it('an AP story counts AP even when the RSS search surfaced nothing', async () => {
+    mockFetch(rss([])) // story RSS finds no outlets; healthy canary
+    const r = await checkMSMCoverage('an AP wire story with a hard-to-match headline', { journalistUsername: 'associatedpress' })
+    expect(r.coveredBy).toContain('apnews.com')
+    expect(r.coveredBy.length + r.notCoveredBy.length).toBe(MSM_OUTLET_COUNT)
   })
 })
