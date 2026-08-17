@@ -26,6 +26,36 @@ const MSM_OUTLETS: { name: string; domains: string[] }[] = [
 // lib/coverage-integrity.ts) must reference this rather than hard-coding 15.
 export const MSM_OUTLET_COUNT = MSM_OUTLETS.length
 
+// A story published BY one of the tracked outlets is, by construction, covered by
+// that outlet — an AP story "covered by 0 of 15 outlets" is nonsense. Map the
+// story's own outlet (by exact journalist handle, or an unambiguous source name)
+// to that outlet's domain so it counts itself. Exact handles only for the
+// ambiguous ones: 'abcnews' is US ABC, but 'abcnewsaustralia' must NOT credit it.
+const OUTLET_SELF_HANDLES: Record<string, string> = {
+  nytimes: 'nytimes.com', washingtonpost: 'washingtonpost.com', cnn: 'cnn.com',
+  bbcnews: 'bbc.com', bbcworldservice: 'bbc.com', nbcnews: 'nbcnews.com',
+  abcnews: 'abcnews.go.com', cbsnews: 'cbsnews.com', foxnews: 'foxnews.com',
+  associatedpress: 'apnews.com', aparchive: 'apnews.com', reuters: 'reuters.com',
+  politico: 'politico.com', thehill: 'thehill.com', usatoday: 'usatoday.com',
+  wsj: 'wsj.com', npr: 'npr.org',
+}
+// Unambiguous full-name source substrings (search-ingested clips lack a handle).
+// 'abc news' is deliberately excluded — it also matches "ABC News Australia".
+const OUTLET_SELF_SOURCES: Array<[string, string]> = [
+  ['new york times', 'nytimes.com'], ['washington post', 'washingtonpost.com'],
+  ['associated press', 'apnews.com'], ['ap archive', 'apnews.com'],
+  ['wall street journal', 'wsj.com'], ['reuters', 'reuters.com'],
+  ['fox news', 'foxnews.com'], ['cbs news', 'cbsnews.com'], ['nbc news', 'nbcnews.com'],
+]
+
+export function originatingOutletDomain(journalistUsername?: string | null, source?: string | null): string | null {
+  const handle = (journalistUsername ?? '').toLowerCase()
+  if (OUTLET_SELF_HANDLES[handle]) return OUTLET_SELF_HANDLES[handle]
+  const src = (source ?? '').toLowerCase()
+  for (const [sub, domain] of OUTLET_SELF_SOURCES) if (src.includes(sub)) return domain
+  return null
+}
+
 export interface MSMCheckResult {
   articleCount: number
   msmGap: boolean
@@ -163,7 +193,10 @@ async function environmentThrottled(): Promise<boolean> {
   return throttled
 }
 
-export async function checkMSMCoverage(query: string): Promise<MSMCheckResult> {
+export async function checkMSMCoverage(
+  query: string,
+  originating?: { journalistUsername?: string | null; source?: string | null },
+): Promise<MSMCheckResult> {
   try {
     let union = await unionCoverage(query)
     if (!union) return { articleCount: -1, msmGap: false, topSources: [], coveredBy: [], notCoveredBy: [] }
@@ -183,6 +216,11 @@ export async function checkMSMCoverage(query: string): Promise<MSMCheckResult> {
         throttled = false
       }
     }
+
+    // Credit the story's own outlet — a story published BY a tracked outlet is
+    // covered by that outlet regardless of what the RSS search surfaced.
+    const ownDomain = originating ? originatingOutletDomain(originating.journalistUsername, originating.source) : null
+    if (ownDomain) union.covered.add(ownDomain)
 
     // Each outlet lands in exactly one bucket, so coveredBy + notCoveredBy is
     // ALWAYS MSM_OUTLET_COUNT — the denominator can't shrink or flip.

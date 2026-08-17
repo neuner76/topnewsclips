@@ -694,7 +694,10 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         }
       }
 
-      const msm = await checkMSMCoverage(candidate.title)
+      const msm = await checkMSMCoverage(candidate.title, {
+        journalistUsername: candidate.journalist_username,
+        source: candidate.source,
+      })
       if (msm.throttled) {
         console.warn(`[ingest] MSM coverage throttled for "${candidate.title.slice(0, 50)}" — stored count (${msm.coveredBy.length}) may be low; digest re-check will correct it`)
       }
