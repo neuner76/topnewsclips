@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery, resetThrottleDetection, originatingOutletDomain } from './msm-check'
+import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery, keywordCoverageQuery, resetThrottleDetection, originatingOutletDomain } from './msm-check'
 
 // Build a minimal Google-News-style RSS payload that "mentions" the given
 // outlet domains (so the substring match in checkMSMCoverage fires).
@@ -158,5 +158,55 @@ describe('checkMSMCoverage credits the originating outlet', () => {
     const r = await checkMSMCoverage('an AP wire story with a hard-to-match headline', { journalistUsername: 'associatedpress' })
     expect(r.coveredBy).toContain('apnews.com')
     expect(r.coveredBy.length + r.notCoveredBy.length).toBe(MSM_OUTLET_COUNT)
+  })
+})
+
+// --- Keyword-core query (matching improvement) ---
+// A formal wire headline matches few outlets on its exact phrasing; its keyword
+// core (named entities + content words, framing/filler stripped) matches how the
+// rest of the press headlines the same event. Verified live: "US stock markets
+// decline amid AI valuation concerns" 2/15 -> keyword core 4/15; "Trump Claims
+// Potential US Ownership of Strait of Hormuz" 5/15 -> 7/15. Unioned with the
+// full-title result, so a weaker core is only ever neutral.
+describe('keywordCoverageQuery', () => {
+  it('strips framing filler and caps to the significant terms', () => {
+    expect(keywordCoverageQuery('US stock markets decline amid AI valuation concerns'))
+      .toBe('US stock markets decline AI valuation')
+  })
+
+  it('drops claim/framing words and keeps named entities', () => {
+    expect(keywordCoverageQuery('Trump Claims Potential US Ownership of Strait of Hormuz'))
+      .toBe('Trump US Ownership Strait Hormuz')
+  })
+
+  it('keeps short acronyms but drops short non-acronyms', () => {
+    expect(keywordCoverageQuery('AI at the US FBI HQ')).toBe('AI US FBI HQ')
+  })
+
+  it('handles empty input', () => {
+    expect(keywordCoverageQuery('  ')).toBe('')
+    expect(keywordCoverageQuery('')).toBe('')
+  })
+})
+
+describe('checkMSMCoverage unions the keyword-core query', () => {
+  it('recovers outlets that only the keyword core surfaces', async () => {
+    // Full title + normalized find one outlet; the keyword core surfaces three
+    // more. The union must contain all four.
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (isCanary(url)) return { ok: true, text: async () => HEALTHY_CANARY }
+      // Rich only for the keyword core: it alone contains "valuation" (the full
+      // title also does, but carries the connector "amid"; the normalized query is
+      // cut at "amid" so it drops "valuation"). Full-title and normalized stay thin.
+      const u = String(url)
+      const isKeywordCore = u.includes('valuation') && !u.includes('amid')
+      const body = isKeywordCore
+        ? rss(['nytimes.com', 'cnn.com', 'apnews.com', 'reuters.com'])
+        : rss(['nytimes.com'])
+      return { ok: true, text: async () => body }
+    }))
+    const r = await checkMSMCoverage('US stock markets decline amid AI valuation concerns')
+    expect(r.coveredBy.length).toBeGreaterThanOrEqual(4)
+    expect(r.coveredBy).toContain('reuters.com')
   })
 })

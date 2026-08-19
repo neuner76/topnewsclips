@@ -133,6 +133,35 @@ export function normalizeCoverageQuery(title: string): string {
   return out.join(' ').trim()
 }
 
+// Keyword query — the significant terms (named entities + content words) with
+// stopwords and framing filler removed. A formal wire headline ("US stock markets
+// decline amid AI valuation concerns") matches few outlets on the exact phrasing;
+// its keyword core ("US stock markets decline AI valuation") matches how other
+// outlets headline the same event. Capped to keep the query specific enough to
+// avoid crediting outlets that only cover the topic generally (a false positive).
+const KEYWORD_STOP = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
+  'by', 'from', 'that', 'this', 'is', 'are', 'was', 'were', 'be', 'been', 'have',
+  'has', 'had', 'will', 'would', 'could', 'amid', 'over', 'without', 'into', 'as',
+  'its', 'their', 'his', 'her', 'potential', 'new', 'claims', 'claim', 'says', 'said',
+  'reports', 'report', 'analyzes', 'analysis', 'approaches', 'introduces', 'raises',
+  'after', 'during', 'near', 'while', 'despite', 'when', 'where', 'because', 'since',
+  'though', 'although',
+])
+
+export function keywordCoverageQuery(title: string): string {
+  const out: string[] = []
+  for (const w of (title ?? '').split(/\s+/)) {
+    const c = w.replace(/[^A-Za-z0-9]/g, '')
+    if (!c) continue
+    if (KEYWORD_STOP.has(c.toLowerCase())) continue
+    if (c.length <= 2 && c !== c.toUpperCase()) continue // drop short non-acronyms
+    out.push(c)
+    if (out.length >= 6) break
+  }
+  return out.join(' ')
+}
+
 async function fetchCoveredOutlets(query: string): Promise<{ covered: Set<string>; items: number; sources: string[] } | null> {
   const encoded = encodeURIComponent(query.slice(0, 100))
   const rssUrl = `https://news.google.com/rss/search?q=${encoded}&hl=en-US&gl=US&ceid=US:en`
@@ -161,6 +190,22 @@ async function unionCoverage(query: string): Promise<{ covered: Set<string>; ite
   if (covered.size < COVERAGE_RETRY_THRESHOLD && normalized && normalized.toLowerCase() !== query.trim().toLowerCase()) {
     await new Promise(r => setTimeout(r, 600))
     const alt = await fetchCoveredOutlets(normalized)
+    if (alt) {
+      covered = new Set([...covered, ...alt.covered])
+      items = Math.max(items, alt.items)
+      if (sources.length === 0) sources = alt.sources
+    }
+  }
+  // Still thin after full-title + normalized? Try the keyword core. Formal wire
+  // headlines ("US stock markets decline amid AI valuation concerns") match few
+  // outlets on the exact phrasing but many on their keyword core. Union only ever
+  // adds coverage, and the keyword query stays specific enough (capped terms) to
+  // avoid crediting outlets that merely cover the topic in general.
+  const keyword = keywordCoverageQuery(query)
+  const tried = new Set([query.trim().toLowerCase(), normalized.toLowerCase()])
+  if (covered.size < COVERAGE_RETRY_THRESHOLD && keyword && !tried.has(keyword.toLowerCase())) {
+    await new Promise(r => setTimeout(r, 600))
+    const alt = await fetchCoveredOutlets(keyword)
     if (alt) {
       covered = new Set([...covered, ...alt.covered])
       items = Math.max(items, alt.items)
