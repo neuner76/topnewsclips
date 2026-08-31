@@ -503,6 +503,34 @@ export function channelDailyCap(journalistUsername: string | null | undefined, s
   return isGlobalBroadcaster(journalistUsername, source) ? GLOBAL_CHANNEL_DAILY_CAP : CHANNEL_DAILY_CAP
 }
 
+// Processing-slot priority for a fetched candidate. Slots are scarce — fetch
+// outruns process (~122 vs ~78/day) — so the old pure newest-first selection let
+// a foreign broadcaster's Nth clip of the day crowd out US-domestic newsroom
+// clips that are exactly the Need-To-Know material. Priority spends the scarce
+// slots on the starved high-value pool: satire first (a reserved slot so comedy is
+// never crowded out), then US-domestic / non-global newsrooms, then global
+// broadcasters (which already dominate supply and feed the world sections).
+export function candidatePriority(c: { journalist_username?: string | null; source?: string | null }): number {
+  if (isSatireSource(c.journalist_username, c.source)) return 3
+  if (isGlobalBroadcaster(c.journalist_username, c.source)) return 1
+  return 2
+}
+
+// Order a fetched-candidate window for processing: priority desc, then recency
+// (newest first) within a tier. Pure — returns a new array; callers slice the top
+// `limit`. Re-ranking WITHIN the newest-N window (runProcess) preserves freshness
+// — the stale backlog is never in that window — while spending slots on value
+// rather than raw recency.
+export function orderCandidatesByPriority<T extends { journalist_username?: string | null; source?: string | null; fetched_at?: string | null }>(candidates: T[]): T[] {
+  return [...candidates].sort((a, b) => {
+    const byPriority = candidatePriority(b) - candidatePriority(a)
+    if (byPriority !== 0) return byPriority
+    const fa = a.fetched_at ?? ''
+    const fb = b.fetched_at ?? ''
+    return fb < fa ? -1 : fb > fa ? 1 : 0
+  })
+}
+
 // Keywords that indicate a fast-moving international crisis — these stories get a higher cap
 // and a lower MSM bypass threshold so breaking developments don't get silenced
 const CRISIS_KEYWORDS = [
@@ -579,17 +607,26 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
   // in the backlog while stale recaps got ingested, which is why editions read
   // dated. Newest-first ensures current news is what actually reaches the pool;
   // genuinely old candidates age out via the freshness gate and cleanup.
-  const { data: pending, error: fetchError } = await supabase
+  // Fetch a WINDOW of the newest unprocessed candidates, then re-rank by value
+  // (orderCandidatesByPriority) and take the top `limit`. Newest-first + a bounded
+  // window keeps the stale backlog out (freshness preserved — old candidates are
+  // never in the newest-N); re-ranking inside the window spends the scarce
+  // processing slots on the starved high-value pool (US-domestic newsrooms, satire)
+  // instead of whatever happened to be fetched most recently.
+  const PROCESS_WINDOW = 50
+  const { data: windowCandidates, error: fetchError } = await supabase
     .from('candidates')
     .select('*')
     .eq('processed', false)
     .order('fetched_at', { ascending: false })
-    .limit(Math.min(Math.max(limit, 1), 10))
+    .limit(PROCESS_WINDOW)
 
   if (fetchError) {
     result.errors.push(`Failed to fetch candidates queue: ${fetchError.message}`)
     return result
   }
+
+  const pending = orderCandidatesByPriority(windowCandidates ?? []).slice(0, Math.min(Math.max(limit, 1), 10))
 
   if (!pending || pending.length === 0) {
     result.errors.push('No pending candidates in queue — run Fetch first')
