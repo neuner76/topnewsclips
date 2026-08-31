@@ -1,0 +1,49 @@
+name: Digest Watchdog
+
+# Self-heals a dropped daily digest. GitHub silently drops scheduled `Daily Ingest`
+# triggers under load, and the digest is chained to ingest (workflow_run), so a
+# dropped trigger means no digest and no subscriber email — with nothing failing
+# loudly (observed 2026-08-31). This watchdog runs AFTER the day's ingest+digest
+# window and, if today's digest never landed, dispatches ingest (which chains to
+# the digest exactly as a normal run does).
+#
+# Two schedule times are independent draws: GitHub drops triggers per-cron, so a
+# second time sharply lowers the odds that recovery itself is missed. Only the
+# first firing that finds a gap does the work; once a digest exists, later firings
+# are no-ops.
+on:
+  schedule:
+    - cron: '0 18 * * *'   # 18:00 UTC — after both ingest windows + digest
+    - cron: '0 21 * * *'   # 21:00 UTC — redundant draw if 18:00 was dropped
+  workflow_dispatch:
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write        # dispatch Daily Ingest when a gap is found
+    steps:
+      - name: Check whether today's digest exists
+        id: check
+        run: |
+          resp=$(curl -s --max-time 30 "${{ secrets.SITE_URL }}/api/admin/digest-status" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          echo "status response: $resp"
+          needs=$(echo "$resp" | jq -r '.needsRecovery // empty')
+          echo "needs_recovery=$needs" >> "$GITHUB_OUTPUT"
+
+      - name: Recover — dispatch Daily Ingest (digest chains from it)
+        if: steps.check.outputs.needs_recovery == 'true'
+        # A PAT is recommended: an ingest dispatched with the default GITHUB_TOKEN
+        # may not fire the chained `workflow_run` digest trigger (GitHub suppresses
+        # recursive token-triggered events). Set secret WATCHDOG_PAT (fine-grained,
+        # Actions: read/write on this repo) so the digest reliably chains.
+        env:
+          GH_TOKEN: ${{ secrets.WATCHDOG_PAT || github.token }}
+        run: |
+          echo "No digest for today — dispatching Daily Ingest to recover."
+          gh workflow run ingest.yml --repo "${{ github.repository }}"
+
+      - name: Healthy — digest already present
+        if: steps.check.outputs.needs_recovery != 'true'
+        run: echo "Today's digest is present (needsRecovery=${{ steps.check.outputs.needs_recovery }}). Nothing to do."
