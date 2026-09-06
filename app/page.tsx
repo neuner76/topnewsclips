@@ -1,5 +1,5 @@
 import { getLatestDigest } from '@/lib/digest'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/server'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -25,7 +25,7 @@ const FEATURES = [
 ]
 
 export default async function LandingPage() {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const digest = await getLatestDigest()
 
   // Fetch actual stories for the NeedToKnow digest preview

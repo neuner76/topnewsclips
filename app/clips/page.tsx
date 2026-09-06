@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 }
 
 export default function ClipsPage() {
-  redirect('/feed?view=clips')
+  redirect('/feed/clips')
 }

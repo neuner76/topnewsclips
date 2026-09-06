@@ -166,7 +166,7 @@ export default async function StoryPage({ params }: Props) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.topnewsclips.com' },
-      { '@type': 'ListItem', position: 2, name: 'Clips', item: 'https://www.topnewsclips.com/?view=clips' },
+      { '@type': 'ListItem', position: 2, name: 'Clips', item: 'https://www.topnewsclips.com/feed/clips' },
       ...(s.category ? [{ '@type': 'ListItem', position: 3, name: s.category.charAt(0).toUpperCase() + s.category.slice(1), item: canonicalUrl }] : []),
     ],
   }
@@ -205,7 +205,7 @@ export default async function StoryPage({ params }: Props) {
         <nav className="flex items-center gap-1.5 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-white/70 transition-colors">Home</Link>
           <span>›</span>
-          <Link href="/?view=clips" className="hover:text-white/70 transition-colors">Clips</Link>
+          <Link href="/feed/clips" className="hover:text-white/70 transition-colors">Clips</Link>
           {s.category && (
             <>
               <span>›</span>
@@ -478,7 +478,7 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Back nav */}
         <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between">
-          <Link href="/?view=clips" className="text-sm font-semibold text-white/50 hover:text-white transition-colors">
+          <Link href="/feed/clips" className="text-sm font-semibold text-white/50 hover:text-white transition-colors">
             ← Today&apos;s clips
           </Link>
           <Link href="/stories" className="text-sm font-semibold text-white/40 hover:text-white transition-colors">
