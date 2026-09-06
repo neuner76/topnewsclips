@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pickFallbackNeedToKnow, pickComedyBackstop, type FallbackCandidate, type ComedyCandidate } from './digest-fallback'
+import { pickFallbackNeedToKnow, selectNeedToKnowBackfill, pickComedyBackstop, type FallbackCandidate, type ComedyCandidate } from './digest-fallback'
 
 // Belt-and-suspenders: if Need To Know ends up empty but a domestic hard-news
 // story is strongly MSM-corroborated, promote it rather than ship an empty
@@ -62,3 +62,52 @@ describe('pickComedyBackstop', () => {
     expect(picked?.slug).toBe('topical')
   })
 })
+
+// Thin-NTK backfill (Defect 1): the model sometimes returns 1-2 Need To Know
+// items while lead-eligible domestic stories sit in the pool (they got routed to
+// In The Know). The old rescue only fired on a COMPLETELY EMPTY NTK; this tops up
+// any NTK below the 3-item floor from the best-corroborated eligible candidates,
+// skipping topic-duplicates of what is already there (so it never adds a second
+// copy of the same event).
+describe('selectNeedToKnowBackfill', () => {
+  const cand = (slug: string, coveredCount: number, title = slug, eligible = true): FallbackCandidate =>
+    ({ slug, title, description: 'x'.repeat(200), coveredCount, eligible })
+  const never = () => false
+
+  it('fills an empty NTK up to the target, best-corroborated first', () => {
+    const out = selectNeedToKnowBackfill([], [cand('a', 6), cand('b', 10), cand('c', 8), cand('d', 5)], never)
+    expect(out.map(x => x.slug)).toEqual(['b', 'c', 'a'])
+  })
+
+  it('tops up a thin NTK, adding only what is missing', () => {
+    const out = selectNeedToKnowBackfill([{ slug: 'x', title: 'X' }], [cand('a', 6), cand('b', 10)], never)
+    expect(out.map(x => x.slug)).toEqual(['b', 'a'])
+  })
+
+  it('adds nothing when NTK already meets the target', () => {
+    const cur = [{ slug: 'x', title: 'X' }, { slug: 'y', title: 'Y' }, { slug: 'z', title: 'Z' }]
+    expect(selectNeedToKnowBackfill(cur, [cand('a', 10)], never)).toEqual([])
+  })
+
+  it('never re-adds a slug already in NTK', () => {
+    const out = selectNeedToKnowBackfill([{ slug: 'a', title: 'A' }], [cand('a', 10), cand('b', 8)], never)
+    expect(out.map(x => x.slug)).toEqual(['b'])
+  })
+
+  it('respects the corroboration floor and eligibility', () => {
+    expect(selectNeedToKnowBackfill([], [cand('a', 4), cand('b', 3)], never)).toEqual([])
+    expect(selectNeedToKnowBackfill([], [cand('a', 15, 'A', false)], never)).toEqual([])
+  })
+
+  it('skips a candidate that duplicates the topic of an already-selected item', () => {
+    // Two Iran-strike versions (cov 9 and cov 7): keep the higher, skip the dup,
+    // then fall through to the next distinct topic.
+    const out = selectNeedToKnowBackfill(
+      [],
+      [cand('clancy', 10, 'Clancy trial'), cand('iran9', 9, 'Iran strike'), cand('iran7', 7, 'Iran strike'), cand('paxton', 6, 'Paxton endorsement')],
+      (a, b) => a === b,
+    )
+    expect(out.map(x => x.slug)).toEqual(['clancy', 'iran9', 'paxton'])
+  })
+})
+

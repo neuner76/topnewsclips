@@ -26,6 +26,39 @@ export function pickFallbackNeedToKnow(
   return eligible[0]
 }
 
+export const NEED_TO_KNOW_TARGET = 3
+
+// Thin-NTK backfill. The model sometimes returns fewer than NEED_TO_KNOW_TARGET
+// Need To Know items while lead-eligible domestic stories sit in the candidate
+// pool (routed to In The Know instead). This tops NTK up to the target from the
+// best-corroborated eligible candidates, skipping any that duplicate the topic of
+// a story already in NTK (via the injected `sameTopic`, matching the validator's
+// significant-word overlap) so it never adds a second copy of the same event.
+// Deterministic and does not trust the model. Returns the items to ADD, in order.
+export function selectNeedToKnowBackfill(
+  currentNtk: { slug: string; title: string }[],
+  candidates: FallbackCandidate[],
+  sameTopic: (a: string, b: string) => boolean,
+  target = NEED_TO_KNOW_TARGET,
+  minCoverage = FALLBACK_MIN_COVERAGE,
+): FallbackCandidate[] {
+  const need = target - currentNtk.length
+  if (need <= 0) return []
+  const usedSlugs = new Set(currentNtk.map(i => i.slug))
+  const chosenTitles = currentNtk.map(i => i.title)
+  const pool = candidates
+    .filter(c => c.eligible && c.coveredCount >= minCoverage && !usedSlugs.has(c.slug))
+    .sort((a, b) => b.coveredCount - a.coveredCount)
+  const result: FallbackCandidate[] = []
+  for (const c of pool) {
+    if (result.length >= need) break
+    if (chosenTitles.some(t => sameTopic(t, c.title))) continue
+    result.push(c)
+    chosenTitles.push(c.title)
+  }
+  return result
+}
+
 export interface ComedyCandidate {
   slug: string
   category?: string | null

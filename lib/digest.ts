@@ -7,7 +7,7 @@ import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './co
 import { assessStateAffiliated } from './digest-risk'
 import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
 import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
-import { pickFallbackNeedToKnow, pickComedyBackstop } from './digest-fallback'
+import { selectNeedToKnowBackfill, NEED_TO_KNOW_TARGET, pickComedyBackstop } from './digest-fallback'
 import { firstSentence } from './first-sentence'
 import { SATIRE_HANDLES } from './satire-sources'
 import type { LeadCandidate } from './lead-eligibility'
@@ -2008,8 +2008,21 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
   // omits a demonstrably-real story (e.g. Sen. Graham's death, carried only by a
   // lone Tier-8 clip). Reuses the same eligibility + coverage signals as
   // candidate selection, so a promoted slug is always in validNtkSlugs.
-  if (content.needToKnow.length === 0) {
-    const fallback = pickFallbackNeedToKnow(
+  //
+  // Fires whenever NTK is BELOW the 3-item floor (not only when empty): the model
+  // often returns 1-2 items while lead-eligible domestic stories sit in the pool,
+  // routed to In The Know. Top up from the best-corroborated eligible candidates,
+  // skipping topic-duplicates of what is already in NTK, and move each promoted
+  // story OUT of In The Know / Etcetera so it is never shown twice.
+  if (content.needToKnow.length < NEED_TO_KNOW_TARGET) {
+    const sameNtkTopic = (a: string, b: string): boolean => {
+      const wb = sigWords(b)
+      let overlap = 0
+      for (const w of sigWords(a)) if (wb.has(w)) overlap++
+      return overlap >= 2
+    }
+    const additions = selectNeedToKnowBackfill(
+      content.needToKnow.map(i => ({ slug: i.slug, title: i.sectionTitle })),
       freshCandidates.map(s => ({
         slug: s.slug,
         title: s.title,
@@ -2017,15 +2030,25 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
         coveredCount: coverageCount(s),
         eligible: isNeedToKnowEligible(s, 80),
       })),
+      sameNtkTopic,
     )
-    if (fallback) {
-      const story = cappedStories.find(s => s.slug === fallback.slug)
-      content.needToKnow.push({
-        sectionTitle: fallbackSectionTitle(fallback.title),
-        slug: fallback.slug,
-        paragraphs: [story?.description ?? fallback.description ?? ''],
-      })
-      console.warn(`[digest] NTK fallback: promoted "${fallback.title}" (${fallback.coveredCount} MSM outlets) — model left Need To Know empty despite a corroborated domestic story`)
+    if (additions.length > 0) {
+      const startCount = content.needToKnow.length
+      const promotedSlugs = new Set(additions.map(a => a.slug))
+      for (const add of additions) {
+        const story = cappedStories.find(s => s.slug === add.slug)
+        content.needToKnow.push({
+          sectionTitle: fallbackSectionTitle(add.title),
+          slug: add.slug,
+          paragraphs: [story?.description ?? add.description ?? ''],
+        })
+      }
+      // Move promoted stories out of lower sections so they are not duplicated.
+      for (const cat of Object.keys(content.inTheKnow) as (keyof typeof content.inTheKnow)[]) {
+        content.inTheKnow[cat] = content.inTheKnow[cat].filter(i => !i.slug || !promotedSlugs.has(i.slug))
+      }
+      content.etcetera = (content.etcetera ?? []).filter(i => !i.slug || !promotedSlugs.has(i.slug))
+      console.warn(`[digest] NTK backfill: promoted ${additions.length} corroborated domestic ${additions.length === 1 ? 'story' : 'stories'} (${additions.map(a => `${a.title} [${a.coveredCount}]`).join(', ')}) — model left Need To Know at ${startCount} of ${NEED_TO_KNOW_TARGET}`)
     }
   }
 
