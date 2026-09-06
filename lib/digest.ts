@@ -8,6 +8,7 @@ import { assessStateAffiliated } from './digest-risk'
 import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
 import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
 import { selectNeedToKnowBackfill, NEED_TO_KNOW_TARGET, pickComedyBackstop } from './digest-fallback'
+import { dedupeByIncident } from './digest-dedupe'
 import { firstSentence } from './first-sentence'
 import { SATIRE_HANDLES } from './satire-sources'
 import type { LeadCandidate } from './lead-eligibility'
@@ -365,6 +366,16 @@ export function selectNeedToKnowWindow<T>(
   minEligible = NTK_WINDOW_MIN_ELIGIBLE,
 ): T[] {
   return withinWindow.filter(isEligible).length >= minEligible ? withinWindow : withinFallback
+}
+
+// Two NTK titles describe the same underlying incident when they share >= 3
+// significant words (matches the ingest pipeline's isSameIncident bar). Used to
+// collapse duplicate coverage of one event down to its best-corroborated version.
+function sameNtkIncident(a: string, b: string): boolean {
+  const wb = sigWords(b)
+  let overlap = 0
+  for (const w of sigWords(a)) if (wb.has(w)) overlap++
+  return overlap >= 3
 }
 
 export function needToKnowPriorityScore(s: DigestCandidateForRanking, now = Date.now()): number {
@@ -769,9 +780,18 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   // hard-news) stories — a window full of international clips used to mask a
   // domestic-news drought and starve Need To Know. 48h is a superset, so this
   // only ever adds candidates.
-  const freshCandidates = sortForNeedToKnow(sortByTierAndRecency(
-    selectNeedToKnowWindow(withinWindow, withinFallback, s => isNeedToKnowEligible(s))
-  ))
+  // Collapse same-incident duplicates to their best-corroborated version (Defect
+  // 2) so Need To Know can never lead with a weak-coverage copy of an event that
+  // a better-covered clip already reports. Scoped to the NTK pool — a dropped copy
+  // remains available to In The Know via storiesForPrompt.
+  const freshCandidates = dedupeByIncident(
+    sortForNeedToKnow(sortByTierAndRecency(
+      selectNeedToKnowWindow(withinWindow, withinFallback, s => isNeedToKnowEligible(s))
+    )),
+    s => s.title,
+    s => coverageCount(s),
+    sameNtkIncident,
+  )
 
   function isNeedToKnowEligible(s: typeof cappedStories[0], minDescriptionLength = 150): boolean {
     return (
