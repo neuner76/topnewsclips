@@ -24,7 +24,7 @@ export default function NotFound() {
             Today&apos;s Digest
           </Link>
           <Link
-            href="/?view=clips"
+            href="/feed/clips"
             className="inline-block text-sm font-semibold border border-border px-4 py-2 rounded hover:bg-muted transition-colors text-center"
           >
             Today&apos;s Clips
