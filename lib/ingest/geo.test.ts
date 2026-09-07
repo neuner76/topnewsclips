@@ -117,3 +117,34 @@ describe('PLACE_REGION map', () => {
     }
   })
 })
+
+// Region mis-tag: a US-domestic story from a FOREIGN outlet keeps the outlet's
+// home region (ABC News Australia → "Australia") unless the text names a US place
+// in the map. The map was missing ~44 US states, so e.g. a Massachusetts story
+// stayed tagged Australia and was locked out of US-domestic Need To Know.
+describe('reconcileRegion — US states from foreign outlets', () => {
+  it('Massachusetts story tagged Australia (ABC News Australia) → corrected to US (null)', () => {
+    const r = reconcileRegion('Australia', 'Massachusetts jury deadlocks in triple-murder case; judge weighs mistrial')
+    expect(r.corrected).toBe(true)
+    expect(r.region).toBe(null)
+  })
+
+  it('recognizes a multi-word state (North Carolina)', () => {
+    const r = reconcileRegion('Europe', 'North Carolina flooding displaces thousands along the coast')
+    expect(r.corrected).toBe(true)
+    expect(r.region).toBe(null)
+  })
+
+  it('recognizes a single-word state (Ohio)', () => {
+    expect(extractPlaces('Ohio train derailment prompts evacuation').map(x => x.token)).toContain('ohio')
+  })
+
+  it('does not match a new state token inside a word (maine ≠ remained)', () => {
+    expect(extractPlaces('The agreement remained in force').map(x => x.token)).not.toContain('maine')
+  })
+
+  it('leaves an ambiguous token (Georgia the country) alone — not added, so no US mis-correction', () => {
+    // Georgia (country) protests should NOT be forced to US; georgia is deliberately omitted.
+    expect(extractPlaces('Georgia protests escalate in Tbilisi').map(x => x.token)).not.toContain('georgia')
+  })
+})
