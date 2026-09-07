@@ -1,0 +1,137 @@
+{
+    "@context": [
+        "https://geojson.org/geojson-ld/geojson-context.jsonld",
+        {
+            "@version": "1.1",
+            "wx": "https://api.weather.gov/ontology#",
+            "@vocab": "https://api.weather.gov/ontology#"
+        }
+    ],
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.1c0f789c026dfdf82e042d6994ff1e74af4926c5.001.1",
+            "type": "Feature",
+            "geometry": null,
+            "properties": {
+                "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.1c0f789c026dfdf82e042d6994ff1e74af4926c5.001.1",
+                "@type": "wx:Alert",
+                "id": "urn:oid:2.49.0.1.840.0.1c0f789c026dfdf82e042d6994ff1e74af4926c5.001.1",
+                "areaDesc": "San Francisco; Marin Coastal Range; Sonoma Coastal Range; North Bay Interior Mountains; Coastal North Bay Including Point Reyes National Seashore; North Bay Interior Valleys; San Francisco Bay Shoreline; San Francisco Peninsula Coast; East Bay Interior Valleys; Santa Cruz Mountains; Santa Clara Valley Including San Jose; Eastern Santa Clara Hills; East Bay Hills; Southern Salinas Valley/Arroyo Seco and Lake San Antonio; Santa Lucia Mountains and Los Padres National Forest; Mountains Of San Benito County And Interior Monterey County Including Pinnacles National Park; Northern Salinas Valley/Hollister Valley and Carmel Valley; Northern Monterey Bay; Southern Monterey Bay and Big Sur Coast",
+                "geocode": {
+                    "SAME": [
+                        "006075",
+                        "006041",
+                        "006097",
+                        "006055",
+                        "006001",
+                        "006013",
+                        "006081",
+                        "006085",
+                        "006087",
+                        "006053",
+                        "006069"
+                    ],
+                    "UGC": [
+                        "CAZ006",
+                        "CAZ502",
+                        "CAZ503",
+                        "CAZ504",
+                        "CAZ505",
+                        "CAZ506",
+                        "CAZ508",
+                        "CAZ509",
+                        "CAZ510",
+                        "CAZ512",
+                        "CAZ513",
+                        "CAZ514",
+                        "CAZ515",
+                        "CAZ516",
+                        "CAZ517",
+                        "CAZ518",
+                        "CAZ528",
+                        "CAZ529",
+                        "CAZ530"
+                    ]
+                },
+                "affectedZones": [
+                    "https://api.weather.gov/zones/forecast/CAZ006",
+                    "https://api.weather.gov/zones/forecast/CAZ502",
+                    "https://api.weather.gov/zones/forecast/CAZ503",
+                    "https://api.weather.gov/zones/forecast/CAZ504",
+                    "https://api.weather.gov/zones/forecast/CAZ505",
+                    "https://api.weather.gov/zones/forecast/CAZ506",
+                    "https://api.weather.gov/zones/forecast/CAZ508",
+                    "https://api.weather.gov/zones/forecast/CAZ509",
+                    "https://api.weather.gov/zones/forecast/CAZ510",
+                    "https://api.weather.gov/zones/forecast/CAZ512",
+                    "https://api.weather.gov/zones/forecast/CAZ513",
+                    "https://api.weather.gov/zones/forecast/CAZ514",
+                    "https://api.weather.gov/zones/forecast/CAZ515",
+                    "https://api.weather.gov/zones/forecast/CAZ516",
+                    "https://api.weather.gov/zones/forecast/CAZ517",
+                    "https://api.weather.gov/zones/forecast/CAZ518",
+                    "https://api.weather.gov/zones/forecast/CAZ528",
+                    "https://api.weather.gov/zones/forecast/CAZ529",
+                    "https://api.weather.gov/zones/forecast/CAZ530"
+                ],
+                "references": [],
+                "sent": "2026-09-07T10:27:00-07:00",
+                "effective": "2026-09-07T10:27:00-07:00",
+                "onset": "2026-09-09T10:00:00-07:00",
+                "expires": "2026-09-09T10:00:00-07:00",
+                "ends": "2026-09-10T22:00:00-07:00",
+                "status": "Actual",
+                "messageType": "Alert",
+                "category": "Met",
+                "severity": "Moderate",
+                "certainty": "Likely",
+                "urgency": "Expected",
+                "event": "Heat Advisory",
+                "sender": "w-nws.webmaster@noaa.gov",
+                "senderName": "NWS San Francisco CA",
+                "headline": "Heat Advisory issued September 7 at 10:27AM PDT until September 10 at 10:00PM PDT by NWS San Francisco CA",
+                "description": "* WHAT...Hot conditions with temperatures 10 to 20 degrees above\nnormal.\n\n* WHERE...Bay Area and Central Coast.\n\n* WHEN...From 10 AM Wednesday to 10 PM PDT Thursday.\n\n* IMPACTS...This level of heat affects most individuals sensitive to\nheat, especially those without effective cooling and/or adequate\nhydration. Impacts possible in some health systems and in\nheat-sensitive industries. Hot conditions can cause heat illnesses.",
+                "instruction": "Hydration is a critical piece to surviving the heat. Drink water, and\nif possible, take water to those who are vulnerable.\n\nTake extra precautions when outside. Wear lightweight and loose\nfitting clothing. Try to limit strenuous activities to the early\nmorning or evening. Take action when you experience symptoms of heat\nexhaustion and/or heat stroke.\n\nBeat the heat and check the backseat! Do not leave young children or\npets in unattended vehicles. Car interiors will reach lethal\ntemperatures in a matter of minutes.",
+                "response": "Execute",
+                "note": null,
+                "parameters": {
+                    "AWIPSidentifier": [
+                        "NPWMTR"
+                    ],
+                    "WMOidentifier": [
+                        "WWUS76 KMTR 071727"
+                    ],
+                    "NWSheadline": [
+                        "HEAT ADVISORY IN EFFECT FROM 10 AM WEDNESDAY TO 10 PM PDT THURSDAY"
+                    ],
+                    "BLOCKCHANNEL": [
+                        "EAS",
+                        "NWEM",
+                        "CMAS"
+                    ],
+                    "VTEC": [
+                        "/O.NEW.KMTR.HT.Y.0013.260909T1700Z-260911T0500Z/"
+                    ],
+                    "eventEndingTime": [
+                        "2026-09-10T22:00:00-07:00"
+                    ]
+                },
+                "scope": "Public",
+                "code": "IPAWSv1.0",
+                "language": "en-US",
+                "web": "http://www.weather.gov",
+                "eventCode": {
+                    "SAME": [
+                        "NWS"
+                    ],
+                    "NationalWeatherService": [
+                        "HTY"
+                    ]
+                }
+            }
+        }
+    ],
+    "title": "Current watches, warnings, and advisories for 38.108 N, 122.569 W",
+    "updated": "2026-09-07T22:42:54+00:00"
+}
