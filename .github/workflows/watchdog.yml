@@ -7,14 +7,18 @@ name: Digest Watchdog
 # window and, if today's digest never landed, dispatches ingest (which chains to
 # the digest exactly as a normal run does).
 #
-# Two schedule times are independent draws: GitHub drops triggers per-cron, so a
-# second time sharply lowers the odds that recovery itself is missed. Only the
-# first firing that finds a gap does the work; once a digest exists, later firings
-# are no-ops.
+# Earliest-first schedule so a dropped MORNING ingest is recovered same-morning
+# rather than waiting until afternoon. Each time is an independent draw (GitHub
+# drops triggers per-cron), so multiple times also lower the odds recovery itself
+# is missed. Idempotent: the first firing that finds a gap recovers it; once a
+# digest exists for the day, later firings no-op. Safe against a merely DELAYED
+# (not dropped) ingest — if the watchdog recovers first, the digest gate stops the
+# late ingest from re-sending.
 on:
   schedule:
-    - cron: '0 18 * * *'   # 18:00 UTC — after both ingest windows + digest
-    - cron: '0 21 * * *'   # 21:00 UTC — redundant draw if 18:00 was dropped
+    - cron: '30 14 * * *'  # 14:30 UTC — recover a dropped MORNING ingest (sched 11:00) same-morning
+    - cron: '0 18 * * *'   # 18:00 UTC — catch a dropped midday ingest (sched 16:13)
+    - cron: '0 21 * * *'   # 21:00 UTC — redundant final draw
   workflow_dispatch:
 
 jobs:
