@@ -1,0 +1,33 @@
+[
+  {
+    "label": "Novato",
+    "type": "custom",
+    "latitude": 38.1074,
+    "longitude": -122.5697,
+    "radiusMiles": 5,
+    "city": "Novato",
+    "county": "Marin County",
+    "state": "CA",
+    "isPrivate": false
+  },
+  {
+    "label": "Marin County",
+    "type": "custom",
+    "latitude": 37.9735,
+    "longitude": -122.5311,
+    "radiusMiles": 18,
+    "county": "Marin County",
+    "state": "CA",
+    "isPrivate": false
+  },
+  {
+    "label": "West Marin / Tomales Bay",
+    "type": "custom",
+    "latitude": 38.0697,
+    "longitude": -122.8067,
+    "radiusMiles": 10,
+    "county": "Marin County",
+    "state": "CA",
+    "isPrivate": false
+  }
+]
