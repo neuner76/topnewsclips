@@ -111,3 +111,34 @@ export interface LocalEvent {
   whatChanged?: string
   openQuestions?: string[]
 }
+
+// Source manifest (Task 0). One entry per source named in the spec; the manifest
+// is the source of truth for which adapters get built and when. Adapters may only
+// be written for sources whose status is 'ready' or 'needs_key' (key present).
+export interface LocalSourceManifestEntry {
+  id: string
+  name: string
+  category:
+    | 'government'
+    | 'planning'
+    | 'emergency'
+    | 'incident'
+    | 'environment'
+    | 'transportation'
+    | 'camera'
+    | 'journalism'
+  jurisdiction: string[]
+  accessMethod: 'api' | 'rss' | 'open_data' | 'html' | 'pdf_only' | 'none'
+  platform?: string
+  entryUrl: string
+  feedUrl?: string
+  requiresKey: boolean
+  envVar?: string
+  refreshMinutes: number
+  termsNotes: string
+  status: 'ready' | 'needs_key' | 'blocked' | 'stub'
+  blockedReason?: string
+  fallback?: string
+  buildPhase: 'A' | 'B' | 'C'
+  verifiedAt: string
+}
