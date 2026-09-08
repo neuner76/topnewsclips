@@ -26,7 +26,7 @@ function Badge({ children }: { children: React.ReactNode }) {
 function EventCard({ e }: { e: LocalEvent }) {
   return (
     <div className="rounded-lg border border-border p-3">
-      <div className="text-sm font-semibold">{e.title}</div>
+      <div className="text-sm font-semibold text-foreground">{e.title}</div>
       {(e.whyItMatters || e.summary || e.whatChanged) && (
         <p className="mt-1 text-xs text-muted-foreground">{e.whyItMatters ?? e.summary ?? e.whatChanged}</p>
       )}
@@ -54,7 +54,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border p-3">
       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-0.5 text-sm font-semibold">{value}</div>
+      <div className="mt-0.5 text-sm font-semibold text-foreground">{value}</div>
     </div>
   )
 }
@@ -78,7 +78,7 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
         <div className="mt-3 space-y-2">
           {env.activeAlerts.map((a, i) => (
             <div key={i} className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
-              <div className="text-sm font-semibold">{a.event}</div>
+              <div className="text-sm font-semibold text-foreground">{a.event}</div>
               <p className="mt-0.5 text-xs text-muted-foreground">{a.area}</p>
             </div>
           ))}
@@ -115,7 +115,7 @@ export default async function LocalPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 text-foreground">
       <header className="mb-8">
-        <h1 className="text-2xl font-black tracking-tight">My Local</h1>
+        <h1 className="text-2xl font-black tracking-tight text-foreground">My Local</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {digest.places.map(p => p.label).join(' · ') || 'No saved places yet'}
         </p>
