@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // My Local: canonical route is /local.
+      { source: '/my-local', destination: '/local', permanent: true },
       // /feed split into /feed (digest) + /feed/clips (clips) so both are static.
       // Preserve the old query URL. Done at config level so /feed itself never
       // reads searchParams (which would force dynamic rendering again).
