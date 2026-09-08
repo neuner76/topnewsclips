@@ -25,12 +25,12 @@ function Badge({ children }: { children: React.ReactNode }) {
 
 function EventCard({ e }: { e: LocalEvent }) {
   return (
-    <div className="rounded-lg border border-black/10 dark:border-white/10 p-3">
+    <div className="rounded-lg border border-border p-3">
       <div className="text-sm font-semibold">{e.title}</div>
       {(e.whyItMatters || e.summary || e.whatChanged) && (
-        <p className="mt-1 text-xs text-black/60 dark:text-white/60">{e.whyItMatters ?? e.summary ?? e.whatChanged}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{e.whyItMatters ?? e.summary ?? e.whatChanged}</p>
       )}
-      <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-black/50 dark:text-white/50">
+      <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
         <span className="uppercase tracking-wide">{e.confidence} confidence</span>
         {e.sources[0] && <span>· {e.sources[0].label}</span>}
       </div>
@@ -42,7 +42,7 @@ function EventSection({ title, events, fixture }: { title: string; events: Local
   if (events.length === 0) return null // omit empty sections
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-black/50 dark:text-white/50">
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         {title}{fixture && <Badge>fixture</Badge>}
       </h2>
       <div className="space-y-2">{events.map(e => <EventCard key={e.id} e={e} />)}</div>
@@ -52,8 +52,8 @@ function EventSection({ title, events, fixture }: { title: string; events: Local
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-black/10 dark:border-white/10 p-3">
-      <div className="text-[11px] uppercase tracking-wide text-black/50 dark:text-white/50">{label}</div>
+    <div className="rounded-lg border border-border p-3">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="mt-0.5 text-sm font-semibold">{value}</div>
     </div>
   )
@@ -62,9 +62,9 @@ function Stat({ label, value }: { label: string; value: string }) {
 function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-black/50 dark:text-white/50">
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         Your Environment
-        <span className="ml-2 text-[10px] font-medium normal-case tracking-normal text-black/40 dark:text-white/40">data as of {timeAgo(env.dataAsOf)}</span>
+        <span className="ml-2 text-[10px] font-medium normal-case tracking-normal text-muted-foreground">data as of {timeAgo(env.dataAsOf)}</span>
       </h2>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {env.fireRisk && env.fireRisk.level !== 'unknown' && <Stat label="Fire risk" value={env.fireRisk.level} />}
@@ -79,15 +79,15 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
           {env.activeAlerts.map((a, i) => (
             <div key={i} className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
               <div className="text-sm font-semibold">{a.event}</div>
-              <p className="mt-0.5 text-xs text-black/60 dark:text-white/60">{a.area}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{a.area}</p>
             </div>
           ))}
         </div>
       )}
       {env.recentEarthquakes.length > 0 && (
         <div className="mt-3">
-          <div className="text-[11px] uppercase tracking-wide text-black/50 dark:text-white/50">Recent earthquakes</div>
-          <ul className="mt-1 space-y-1 text-xs text-black/60 dark:text-white/60">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Recent earthquakes</div>
+          <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
             {env.recentEarthquakes.slice(0, 5).map((q, i) => (
               <li key={i}>M {q.magnitude} — {q.place}{q.distanceMiles != null ? ` (${Math.round(q.distanceMiles)} mi)` : ''}</li>
             ))}
@@ -113,13 +113,13 @@ export default async function LocalPage() {
   const fx = (key: string) => digest.fixtureSections.includes(key)
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+    <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 text-foreground">
       <header className="mb-8">
         <h1 className="text-2xl font-black tracking-tight">My Local</h1>
-        <p className="mt-1 text-sm text-black/50 dark:text-white/50">
+        <p className="mt-1 text-sm text-muted-foreground">
           {digest.places.map(p => p.label).join(' · ') || 'No saved places yet'}
         </p>
-        <p className="mt-1 text-xs text-black/40 dark:text-white/40">What changed around you — from your block to your county.</p>
+        <p className="mt-1 text-xs text-muted-foreground">What changed around you — from your block to your county.</p>
       </header>
 
       <EventSection title="Need To Know Near You" events={digest.needToKnow} fixture={fx('needToKnow')} />
