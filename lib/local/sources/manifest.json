@@ -157,16 +157,16 @@
     "jurisdiction": [
       "Marin County"
     ],
-    "accessMethod": "html",
-    "platform": "legistar",
+    "accessMethod": "rss",
+    "platform": "granicus",
     "entryUrl": "https://marin.legistar.com/Calendar.aspx",
     "requiresKey": false,
     "refreshMinutes": 360,
-    "termsNotes": "Agendas exist via the Legistar/InSite web UI and Granicus video, but there is no working public JSON API. Deterministic Legistar API path is unavailable.",
-    "status": "stub",
+    "termsNotes": "VERIFIED LIVE 2026-09-09: Granicus agenda RSS (ViewPublisherRSS.php?view_id=33&mode=agendas) returns meetings with direct AgendaViewer links \u2014 powers Your Government. The Legistar public JSON API is NOT enabled for 'marin'; deep per-item extraction (dollar amounts/applicants) is a later LLM step.",
+    "status": "ready",
     "buildPhase": "B",
     "verifiedAt": "2026-09-07",
-    "blockedReason": "Legistar public web API NOT enabled for client 'marin' (webapi.legistar.com -> LegistarConnectionString error, verified 2026-09-09). Web UI (marin.legistar.com) + Granicus exist; use Granicus API or scrape at Build B."
+    "feedUrl": "https://marin.granicus.com/ViewPublisherRSS.php?view_id=33&mode=agendas"
   },
   {
     "id": "marin-planning-commission",

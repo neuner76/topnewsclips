@@ -17,6 +17,7 @@ import { normalizeUsgsEarthquakes } from './adapters/usgs'
 import { normalizeNoaaTides } from './adapters/noaa-tides'
 import { normalizeAirNow } from './adapters/airnow'
 import { fetchMarinPermits } from './adapters/marin-permits'
+import { fetchMarinAgendas } from './adapters/marin-granicus'
 import {
   FIXTURE_NEED_TO_KNOW, FIXTURE_CHANGING_AROUND_YOU, FIXTURE_YOUR_GOVERNMENT,
   FIXTURE_ROADS_AND_INCIDENTS, FIXTURE_LOCAL_REPORTING, FIXTURE_LOCAL_BLINDSPOT,
@@ -161,13 +162,16 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const places = await getSavedPlaces()
   const environment = await buildLiveEnvironment(representativePoint())
 
-  // Changing Around You is LIVE (Build B) from Marin permits; falls back to the
-  // fixture if the fetch fails.
+  // Changing Around You (Marin permits) and Your Government (Marin BoS agendas)
+  // are LIVE (Build B); each falls back to its fixture if the fetch fails.
   const permits = await safe(() => fetchMarinPermits(6))
   const changingLive = !!permits && permits.length > 0
+  const agendas = await safe(() => fetchMarinAgendas(5))
+  const govLive = !!agendas && agendas.length > 0
 
-  const fixtureSections = ['needToKnow', 'yourGovernment', 'roadsAndIncidents', 'localReporting', 'localBlindspot']
+  const fixtureSections = ['needToKnow', 'roadsAndIncidents', 'localReporting', 'localBlindspot']
   if (!changingLive) fixtureSections.push('changingAroundYou')
+  if (!govLive) fixtureSections.push('yourGovernment')
 
   return assembleMyLocalDigest({
     places,
@@ -175,7 +179,7 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     sections: {
       needToKnow: FIXTURE_NEED_TO_KNOW,
       changingAroundYou: changingLive ? permits : FIXTURE_CHANGING_AROUND_YOU,
-      yourGovernment: FIXTURE_YOUR_GOVERNMENT,
+      yourGovernment: govLive ? agendas : FIXTURE_YOUR_GOVERNMENT,
       roadsAndIncidents: FIXTURE_ROADS_AND_INCIDENTS,
       localReporting: FIXTURE_LOCAL_REPORTING,
       localBlindspot: FIXTURE_LOCAL_BLINDSPOT,
