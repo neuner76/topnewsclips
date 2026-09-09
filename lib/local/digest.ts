@@ -16,6 +16,7 @@ import { normalizeNwsForecast, normalizeNwsAlerts } from './adapters/nws'
 import { normalizeUsgsEarthquakes } from './adapters/usgs'
 import { normalizeNoaaTides } from './adapters/noaa-tides'
 import { normalizeAirNow } from './adapters/airnow'
+import { fetchMarinPermits } from './adapters/marin-permits'
 import {
   FIXTURE_NEED_TO_KNOW, FIXTURE_CHANGING_AROUND_YOU, FIXTURE_YOUR_GOVERNMENT,
   FIXTURE_ROADS_AND_INCIDENTS, FIXTURE_LOCAL_REPORTING, FIXTURE_LOCAL_BLINDSPOT,
@@ -159,17 +160,26 @@ async function buildLiveEnvironment(point: { lat: number; lng: number }): Promis
 export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const places = await getSavedPlaces()
   const environment = await buildLiveEnvironment(representativePoint())
+
+  // Changing Around You is LIVE (Build B) from Marin permits; falls back to the
+  // fixture if the fetch fails.
+  const permits = await safe(() => fetchMarinPermits(6))
+  const changingLive = !!permits && permits.length > 0
+
+  const fixtureSections = ['needToKnow', 'yourGovernment', 'roadsAndIncidents', 'localReporting', 'localBlindspot']
+  if (!changingLive) fixtureSections.push('changingAroundYou')
+
   return assembleMyLocalDigest({
     places,
     environment,
     sections: {
       needToKnow: FIXTURE_NEED_TO_KNOW,
-      changingAroundYou: FIXTURE_CHANGING_AROUND_YOU,
+      changingAroundYou: changingLive ? permits : FIXTURE_CHANGING_AROUND_YOU,
       yourGovernment: FIXTURE_YOUR_GOVERNMENT,
       roadsAndIncidents: FIXTURE_ROADS_AND_INCIDENTS,
       localReporting: FIXTURE_LOCAL_REPORTING,
       localBlindspot: FIXTURE_LOCAL_BLINDSPOT,
     },
-    fixtureSections: ['needToKnow', 'changingAroundYou', 'yourGovernment', 'roadsAndIncidents', 'localReporting', 'localBlindspot'],
+    fixtureSections,
   })
 }
