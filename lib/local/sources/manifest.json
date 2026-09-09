@@ -1,9 +1,13 @@
 [
   {
     "id": "nws-alerts",
-    "name": "National Weather Service — Active Alerts",
+    "name": "National Weather Service \u2014 Active Alerts",
     "category": "environment",
-    "jurisdiction": ["Near Me", "Novato", "Marin County"],
+    "jurisdiction": [
+      "Near Me",
+      "Novato",
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "api.weather.gov",
     "entryUrl": "https://api.weather.gov/alerts/active?point={lat},{lng}",
@@ -16,9 +20,13 @@
   },
   {
     "id": "nws-forecast",
-    "name": "National Weather Service — Forecast + Fire Weather Zone",
+    "name": "National Weather Service \u2014 Forecast + Fire Weather Zone",
     "category": "environment",
-    "jurisdiction": ["Near Me", "Novato", "Marin County"],
+    "jurisdiction": [
+      "Near Me",
+      "Novato",
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "api.weather.gov",
     "entryUrl": "https://api.weather.gov/points/{lat},{lng}",
@@ -32,9 +40,12 @@
   },
   {
     "id": "usgs-earthquakes",
-    "name": "USGS Earthquakes — GeoJSON feed",
+    "name": "USGS Earthquakes \u2014 GeoJSON feed",
     "category": "environment",
-    "jurisdiction": ["Bay Area", "Marin County"],
+    "jurisdiction": [
+      "Bay Area",
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "earthquake.usgs.gov",
     "entryUrl": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson",
@@ -47,9 +58,12 @@
   },
   {
     "id": "noaa-tides",
-    "name": "NOAA CO-OPS Tides — Point Reyes",
+    "name": "NOAA CO-OPS Tides \u2014 Point Reyes",
     "category": "environment",
-    "jurisdiction": ["West Marin / Tomales Bay", "Marin County"],
+    "jurisdiction": [
+      "West Marin / Tomales Bay",
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "tidesandcurrents.noaa.gov",
     "entryUrl": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9415020&product=predictions&interval=hilo&datum=MLLW&units=english&time_zone=lst_ldt&format=json&date=today",
@@ -62,9 +76,13 @@
   },
   {
     "id": "airnow",
-    "name": "AirNow — Air Quality (AQI)",
+    "name": "AirNow \u2014 Air Quality (AQI)",
     "category": "environment",
-    "jurisdiction": ["Near Me", "Novato", "Marin County"],
+    "jurisdiction": [
+      "Near Me",
+      "Novato",
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "airnowapi.org",
     "entryUrl": "https://www.airnowapi.org/aq/observation/latLong/current/",
@@ -78,9 +96,13 @@
   },
   {
     "id": "purpleair",
-    "name": "PurpleAir — Community Air Sensors",
+    "name": "PurpleAir \u2014 Community Air Sensors",
     "category": "environment",
-    "jurisdiction": ["Near Me", "Novato", "Marin County"],
+    "jurisdiction": [
+      "Near Me",
+      "Novato",
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "api.purpleair.com",
     "entryUrl": "https://api.purpleair.com/v1/sensors",
@@ -94,9 +116,12 @@
   },
   {
     "id": "nasa-firms",
-    "name": "NASA FIRMS — Thermal Anomalies / Active Fire",
+    "name": "NASA FIRMS \u2014 Thermal Anomalies / Active Fire",
     "category": "environment",
-    "jurisdiction": ["Marin County", "Bay Area"],
+    "jurisdiction": [
+      "Marin County",
+      "Bay Area"
+    ],
     "accessMethod": "api",
     "platform": "firms.modaps.eosdis.nasa.gov",
     "entryUrl": "https://firms.modaps.eosdis.nasa.gov/api/area/",
@@ -110,9 +135,11 @@
   },
   {
     "id": "usgs-water-gauges",
-    "name": "USGS Water Services — Stream/Flood Gauges",
+    "name": "USGS Water Services \u2014 Stream/Flood Gauges",
     "category": "environment",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "waterservices.usgs.gov",
     "entryUrl": "https://waterservices.usgs.gov/nwis/iv/?format=json&countyCd=06041&parameterCd=00065&siteStatus=active",
@@ -127,60 +154,69 @@
     "id": "marin-board-of-supervisors",
     "name": "Marin County Board of Supervisors",
     "category": "government",
-    "jurisdiction": ["Marin County"],
-    "accessMethod": "api",
+    "jurisdiction": [
+      "Marin County"
+    ],
+    "accessMethod": "html",
     "platform": "legistar",
     "entryUrl": "https://marin.legistar.com/Calendar.aspx",
-    "feedUrl": "https://webapi.legistar.com/v1/marin/events",
     "requiresKey": false,
     "refreshMinutes": 360,
-    "termsNotes": "Marin runs both Legistar (agendas; public webapi.legistar.com/v1/marin) and Granicus video (marin.granicus.com view_id=33). Both returned HTTP 200 on 2026-09-07. Prefer the Legistar API. Adapter deferred to Build B.",
-    "status": "ready",
+    "termsNotes": "Agendas exist via the Legistar/InSite web UI and Granicus video, but there is no working public JSON API. Deterministic Legistar API path is unavailable.",
+    "status": "stub",
     "buildPhase": "B",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-07",
+    "blockedReason": "Legistar public web API NOT enabled for client 'marin' (webapi.legistar.com -> LegistarConnectionString error, verified 2026-09-09). Web UI (marin.legistar.com) + Granicus exist; use Granicus API or scrape at Build B."
   },
   {
     "id": "marin-planning-commission",
     "name": "Marin County Planning Commission",
     "category": "government",
-    "jurisdiction": ["Marin County"],
-    "accessMethod": "api",
+    "jurisdiction": [
+      "Marin County"
+    ],
+    "accessMethod": "html",
     "platform": "legistar",
     "entryUrl": "https://marin.legistar.com/Calendar.aspx",
-    "feedUrl": "https://webapi.legistar.com/v1/marin/events",
     "requiresKey": false,
     "refreshMinutes": 360,
-    "termsNotes": "Same Legistar/Granicus platform as the Board of Supervisors; filter by body. Build B.",
-    "status": "ready",
+    "termsNotes": "Agendas exist via the Legistar/InSite web UI and Granicus video, but there is no working public JSON API. Deterministic Legistar API path is unavailable.",
+    "status": "stub",
     "buildPhase": "B",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-07",
+    "blockedReason": "Legistar public web API NOT enabled for client 'marin' (webapi.legistar.com -> LegistarConnectionString error, verified 2026-09-09). Web UI (marin.legistar.com) + Granicus exist; use Granicus API or scrape at Build B."
   },
   {
     "id": "marin-open-data",
     "name": "Marin County Open Data (permits, parcels, boundaries)",
     "category": "planning",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "open_data",
     "platform": "socrata",
     "entryUrl": "https://data.marincounty.gov/",
     "requiresKey": false,
     "refreshMinutes": 360,
-    "termsNotes": "Socrata portal, HTTP 200 on 2026-09-07. Source for building permits (Build B) AND boundary polygons for the Task 1 seed (Novato/Marin/parcels). Specific dataset IDs to confirm at Build B.",
+    "termsNotes": "Socrata portal (data.marincounty.gov). VERIFIED LIVE 2026-09-09: Building Permit dataset mkbn-caye (geocoded lat/lng, APN, valuation, description) powers Changing Around You. Boundary polygons + other datasets still to map.",
     "status": "ready",
     "buildPhase": "B",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-07",
+    "feedUrl": "https://data.marincounty.gov/resource/mkbn-caye.json"
   },
   {
     "id": "novato-city-council",
     "name": "Novato City Council",
     "category": "government",
-    "jurisdiction": ["Novato"],
+    "jurisdiction": [
+      "Novato"
+    ],
     "accessMethod": "html",
     "platform": "unconfirmed",
     "entryUrl": "https://www.novato.org/government/city-council/agendas-minutes",
     "requiresKey": false,
     "refreshMinutes": 360,
-    "termsNotes": "Novato's Granicus view_id=1 returned 404 on 2026-09-07 — platform not confirmed (may be CivicClerk/CivicPlus/PrimeGov or a different Granicus id). Verify at Build B before writing an adapter.",
+    "termsNotes": "Novato's Granicus view_id=1 returned 404 on 2026-09-07 \u2014 platform not confirmed (may be CivicClerk/CivicPlus/PrimeGov or a different Granicus id). Verify at Build B before writing an adapter.",
     "status": "stub",
     "blockedReason": "Agenda platform unconfirmed; needs verification at Build B.",
     "buildPhase": "B",
@@ -190,7 +226,9 @@
     "id": "novato-planning-commission",
     "name": "Novato Planning Commission",
     "category": "government",
-    "jurisdiction": ["Novato"],
+    "jurisdiction": [
+      "Novato"
+    ],
     "accessMethod": "html",
     "platform": "unconfirmed",
     "entryUrl": "https://www.novato.org/government/community-development/planning",
@@ -206,7 +244,9 @@
     "id": "novato-design-review",
     "name": "Novato Design Review Commission",
     "category": "government",
-    "jurisdiction": ["Novato"],
+    "jurisdiction": [
+      "Novato"
+    ],
     "accessMethod": "html",
     "platform": "unconfirmed",
     "entryUrl": "https://www.novato.org/government/community-development",
@@ -222,7 +262,9 @@
     "id": "novato-permits",
     "name": "Novato Building Permits",
     "category": "planning",
-    "jurisdiction": ["Novato"],
+    "jurisdiction": [
+      "Novato"
+    ],
     "accessMethod": "html",
     "platform": "unconfirmed",
     "entryUrl": "https://www.novato.org/government/community-development/building",
@@ -238,7 +280,9 @@
     "id": "marin-public-notices",
     "name": "Marin County Public Notices",
     "category": "government",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "html",
     "entryUrl": "https://www.marincounty.gov/",
     "requiresKey": false,
@@ -252,7 +296,9 @@
     "id": "novato-usd-school-board",
     "name": "Novato Unified School District Board",
     "category": "government",
-    "jurisdiction": ["Novato"],
+    "jurisdiction": [
+      "Novato"
+    ],
     "accessMethod": "html",
     "platform": "unconfirmed",
     "entryUrl": "https://www.nusd.org/",
@@ -267,7 +313,9 @@
     "id": "marin-municipal-water-district",
     "name": "Marin Municipal Water District",
     "category": "government",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "html",
     "entryUrl": "https://www.marinwater.org/",
     "requiresKey": false,
@@ -281,7 +329,10 @@
     "id": "marin-fire-district",
     "name": "Marin County Fire / Novato Fire District",
     "category": "government",
-    "jurisdiction": ["Marin County", "Novato"],
+    "jurisdiction": [
+      "Marin County",
+      "Novato"
+    ],
     "accessMethod": "html",
     "entryUrl": "https://www.marincounty.gov/departments/fire",
     "requiresKey": false,
@@ -295,7 +346,9 @@
     "id": "smart-transit-board",
     "name": "SMART (Sonoma-Marin Area Rail Transit) Board",
     "category": "government",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "html",
     "entryUrl": "https://www.sonomamarintrain.org/",
     "requiresKey": false,
@@ -309,13 +362,15 @@
     "id": "alertmarin",
     "name": "AlertMarin (emergency notifications)",
     "category": "emergency",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "none",
     "platform": "everbridge",
     "entryUrl": "https://www.marinsheriff.org/services/emergency-services/alert-marin",
     "requiresKey": false,
     "refreshMinutes": 5,
-    "termsNotes": "Everbridge notification system — no public read API. Do not exceed the 20-minute rule.",
+    "termsNotes": "Everbridge notification system \u2014 no public read API. Do not exceed the 20-minute rule.",
     "status": "blocked",
     "blockedReason": "Everbridge has no public read API; opt-in notification system only.",
     "fallback": "Watch for a public alert-archive page; otherwise rely on NWS + Nixle-equivalents. Deferred.",
@@ -326,7 +381,10 @@
     "id": "nixle",
     "name": "Nixle / local agency alerts",
     "category": "emergency",
-    "jurisdiction": ["Marin County", "Novato"],
+    "jurisdiction": [
+      "Marin County",
+      "Novato"
+    ],
     "accessMethod": "none",
     "platform": "nixle",
     "entryUrl": "https://www.nixle.com/",
@@ -335,15 +393,17 @@
     "termsNotes": "No public API.",
     "status": "stub",
     "blockedReason": "No public API.",
-    "fallback": "Subscribe by email and parse inbound mail — deferred.",
+    "fallback": "Subscribe by email and parse inbound mail \u2014 deferred.",
     "buildPhase": "C",
     "verifiedAt": "2026-09-07"
   },
   {
     "id": "marin-sheriff-alerts",
-    "name": "Marin County Sheriff — alerts / press",
+    "name": "Marin County Sheriff \u2014 alerts / press",
     "category": "emergency",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "html",
     "entryUrl": "https://www.marinsheriff.org/",
     "requiresKey": false,
@@ -355,9 +415,12 @@
   },
   {
     "id": "511-sf-bay",
-    "name": "511 SF Bay — traffic + transit",
+    "name": "511 SF Bay \u2014 traffic + transit",
     "category": "transportation",
-    "jurisdiction": ["Bay Area", "Marin County"],
+    "jurisdiction": [
+      "Bay Area",
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "511.org",
     "entryUrl": "https://511.org/open-data",
@@ -373,7 +436,10 @@
     "id": "caltrans-cameras",
     "name": "Caltrans QuickMap / CWWP2 cameras + closures",
     "category": "camera",
-    "jurisdiction": ["Marin County", "Bay Area"],
+    "jurisdiction": [
+      "Marin County",
+      "Bay Area"
+    ],
     "accessMethod": "api",
     "platform": "caltrans-cwwp2",
     "entryUrl": "https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json",
@@ -388,7 +454,10 @@
     "id": "chp-incidents",
     "name": "CHP Traffic Incidents (CAD)",
     "category": "incident",
-    "jurisdiction": ["Marin County", "Bay Area"],
+    "jurisdiction": [
+      "Marin County",
+      "Bay Area"
+    ],
     "accessMethod": "html",
     "platform": "chp-cad",
     "entryUrl": "https://cad.chp.ca.gov/traffic.aspx",
@@ -403,7 +472,9 @@
     "id": "smart-service-alerts",
     "name": "SMART rail service alerts",
     "category": "transportation",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "gtfs-rt",
     "entryUrl": "https://www.sonomamarintrain.org/",
@@ -418,7 +489,9 @@
     "id": "golden-gate-ferry",
     "name": "Golden Gate Ferry service alerts",
     "category": "transportation",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "api",
     "platform": "gtfs-rt",
     "entryUrl": "https://www.goldengate.org/ferry/",
@@ -433,13 +506,16 @@
     "id": "point-reyes-light",
     "name": "Point Reyes Light",
     "category": "journalism",
-    "jurisdiction": ["West Marin / Tomales Bay", "Marin County"],
+    "jurisdiction": [
+      "West Marin / Tomales Bay",
+      "Marin County"
+    ],
     "accessMethod": "rss",
     "entryUrl": "https://www.ptreyeslight.com/",
     "feedUrl": "https://www.ptreyeslight.com/feed/",
     "requiresKey": false,
     "refreshMinutes": 60,
-    "termsNotes": "RSS returned HTTP 200 on 2026-09-07. Key West Marin outlet. Build C — check the national source registry first and reference rather than duplicate.",
+    "termsNotes": "RSS returned HTTP 200 on 2026-09-07. Key West Marin outlet. Build C \u2014 check the national source registry first and reference rather than duplicate.",
     "status": "ready",
     "buildPhase": "C",
     "verifiedAt": "2026-09-07"
@@ -448,7 +524,9 @@
     "id": "marin-independent-journal",
     "name": "Marin Independent Journal",
     "category": "journalism",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "rss",
     "entryUrl": "https://www.marinij.com/",
     "feedUrl": "https://www.marinij.com/feed/",
@@ -465,7 +543,9 @@
     "id": "pacific-sun",
     "name": "Pacific Sun",
     "category": "journalism",
-    "jurisdiction": ["Marin County"],
+    "jurisdiction": [
+      "Marin County"
+    ],
     "accessMethod": "rss",
     "entryUrl": "https://pacificsun.com/",
     "requiresKey": false,
@@ -479,22 +559,28 @@
     "id": "kqed",
     "name": "KQED",
     "category": "journalism",
-    "jurisdiction": ["Bay Area", "Marin County"],
+    "jurisdiction": [
+      "Bay Area",
+      "Marin County"
+    ],
     "accessMethod": "rss",
     "entryUrl": "https://www.kqed.org/news",
     "feedUrl": "https://ww2.kqed.org/news/feed/",
     "requiresKey": false,
     "refreshMinutes": 60,
-    "termsNotes": "Regional public media RSS. Build C — likely present in the national source registry; reference, do not duplicate.",
+    "termsNotes": "Regional public media RSS. Build C \u2014 likely present in the national source registry; reference, do not duplicate.",
     "status": "ready",
     "buildPhase": "C",
     "verifiedAt": "2026-09-07"
   },
   {
     "id": "sf-chronicle-regional",
-    "name": "SF Chronicle — regional reporting",
+    "name": "SF Chronicle \u2014 regional reporting",
     "category": "journalism",
-    "jurisdiction": ["Bay Area", "Marin County"],
+    "jurisdiction": [
+      "Bay Area",
+      "Marin County"
+    ],
     "accessMethod": "rss",
     "entryUrl": "https://www.sfchronicle.com/",
     "requiresKey": false,
