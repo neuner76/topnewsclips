@@ -36,7 +36,7 @@ function titleCase(s: string): string {
   return s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
 }
 
-export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: number } = {}): LocalEvent[] {
+export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: number; sort?: 'consequence' | 'recency' } = {}): LocalEvent[] {
   const events: LocalEvent[] = []
   for (const r of rows) {
     const lat = r.latitude != null ? Number(r.latitude) : NaN
@@ -75,14 +75,16 @@ export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: nu
       whatChanged: changedParts.join(' · '),
     })
   }
-  events.sort((a, b) => b.consequenceScore - a.consequenceScore)
+  // 'recency' preserves the input order (rows arrive newest-first); otherwise
+  // rank by consequence (valuation).
+  if (opts.sort !== 'recency') events.sort((a, b) => b.consequenceScore - a.consequenceScore)
   return opts.limit != null ? events.slice(0, opts.limit) : events
 }
 
 // Live fetch: most-recent permits, then normalize (which ranks by valuation).
-export async function fetchMarinPermits(limit = 6): Promise<LocalEvent[]> {
+export async function fetchMarinPermits(limit = 6, sort: 'consequence' | 'recency' = 'consequence'): Promise<LocalEvent[]> {
   const url = `https://data.marincounty.gov/resource/${DATASET}.json?$order=received_date%20DESC&$limit=100`
   const res = await fetch(url, { headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' } })
   if (!res.ok) throw new Error(`Marin permits HTTP ${res.status}`)
-  return normalizeMarinPermits(await res.json(), { limit })
+  return normalizeMarinPermits(await res.json(), { limit, sort })
 }

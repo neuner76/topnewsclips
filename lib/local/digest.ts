@@ -18,9 +18,10 @@ import { normalizeNoaaTides } from './adapters/noaa-tides'
 import { normalizeAirNow } from './adapters/airnow'
 import { fetchMarinPermits } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
+import { selectLocalBlindspots } from './blindspot'
 import {
   FIXTURE_NEED_TO_KNOW, FIXTURE_CHANGING_AROUND_YOU, FIXTURE_YOUR_GOVERNMENT,
-  FIXTURE_ROADS_AND_INCIDENTS, FIXTURE_LOCAL_REPORTING, FIXTURE_LOCAL_BLINDSPOT,
+  FIXTURE_ROADS_AND_INCIDENTS, FIXTURE_LOCAL_REPORTING,
 } from './fixtures'
 
 export const NEED_TO_KNOW_MAX = 4
@@ -162,14 +163,27 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const places = await getSavedPlaces()
   const environment = await buildLiveEnvironment(representativePoint())
 
-  // Changing Around You (Marin permits) and Your Government (Marin BoS agendas)
-  // are LIVE (Build B); each falls back to its fixture if the fetch fails.
-  const permits = await safe(() => fetchMarinPermits(6))
-  const changingLive = !!permits && permits.length > 0
+  // Build B live sections; each falls back to its fixture if the fetch fails.
+  const changing = (await safe(() => fetchMarinPermits(6, 'recency'))) ?? [] // recent permit activity
+  const changingLive = changing.length > 0
   const agendas = await safe(() => fetchMarinAgendas(5))
   const govLive = !!agendas && agendas.length > 0
 
-  const fixtureSections = ['needToKnow', 'roadsAndIncidents', 'localReporting', 'localBlindspot']
+  // Local Blindspot (engine live): only genuinely MAJOR public records (>= ~$250k
+  // civic-scale) surface, framed "0 tracked local outlets". Permits are mostly
+  // small remodels, so this is quiet most days by design — it fires on a real
+  // major project, and gets far stronger with Build C coverage detection +
+  // contract/agenda extraction. Empty -> section omitted (never faked).
+  const blindspotPool = (await safe(() => fetchMarinPermits(50, 'consequence'))) ?? []
+  const blindspots = selectLocalBlindspots(
+    blindspotPool.map(e => ({ event: e, localMediaOutlets: 0 })),
+    { minConsequence: 0.9, limit: 3 },
+  ).map(b => ({
+    ...b.event,
+    whyItMatters: `${b.event.whatChanged ? b.event.whatChanged + ' · ' : ''}No tracked local outlets detected covering it.`,
+  }))
+
+  const fixtureSections = ['needToKnow', 'roadsAndIncidents', 'localReporting']
   if (!changingLive) fixtureSections.push('changingAroundYou')
   if (!govLive) fixtureSections.push('yourGovernment')
 
@@ -178,11 +192,11 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     environment,
     sections: {
       needToKnow: FIXTURE_NEED_TO_KNOW,
-      changingAroundYou: changingLive ? permits : FIXTURE_CHANGING_AROUND_YOU,
+      changingAroundYou: changingLive ? changing : FIXTURE_CHANGING_AROUND_YOU,
       yourGovernment: govLive ? agendas : FIXTURE_YOUR_GOVERNMENT,
       roadsAndIncidents: FIXTURE_ROADS_AND_INCIDENTS,
       localReporting: FIXTURE_LOCAL_REPORTING,
-      localBlindspot: FIXTURE_LOCAL_BLINDSPOT,
+      localBlindspot: blindspots, // engine output; empty -> section omitted
     },
     fixtureSections,
   })
