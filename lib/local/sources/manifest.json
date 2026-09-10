@@ -515,10 +515,10 @@
     "feedUrl": "https://www.ptreyeslight.com/feed/",
     "requiresKey": false,
     "refreshMinutes": 60,
-    "termsNotes": "RSS returned HTTP 200 on 2026-09-07. Key West Marin outlet. Build C \u2014 check the national source registry first and reference rather than duplicate.",
+    "termsNotes": "VERIFIED LIVE 2026-09-09: RSS (10 items). Powers Local Reporting + the Build C coverage detector (blindspot). Hyperlocal West Marin.",
     "status": "ready",
     "buildPhase": "C",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-09"
   },
   {
     "id": "marin-independent-journal",
@@ -568,10 +568,10 @@
     "feedUrl": "https://ww2.kqed.org/news/feed/",
     "requiresKey": false,
     "refreshMinutes": 60,
-    "termsNotes": "Regional public media RSS. Build C \u2014 likely present in the national source registry; reference, do not duplicate.",
+    "termsNotes": "VERIFIED LIVE 2026-09-09: RSS ww2.kqed.org/news/feed (30 items). Regional; powers Local Reporting + coverage detection.",
     "status": "ready",
     "buildPhase": "C",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-09"
   },
   {
     "id": "sf-chronicle-regional",
