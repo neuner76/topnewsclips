@@ -19,6 +19,8 @@ import { normalizeAirNow } from './adapters/airnow'
 import { fetchMarinPermits } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
+import { fetchLocalNews, articleToLocalEvent } from './adapters/local-news'
+import { detectLocalCoverage } from './coverage'
 import {
   FIXTURE_NEED_TO_KNOW, FIXTURE_CHANGING_AROUND_YOU, FIXTURE_YOUR_GOVERNMENT,
   FIXTURE_ROADS_AND_INCIDENTS, FIXTURE_LOCAL_REPORTING,
@@ -163,29 +165,33 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const places = await getSavedPlaces()
   const environment = await buildLiveEnvironment(representativePoint())
 
-  // Build B live sections; each falls back to its fixture if the fetch fails.
+  // Build B/C live sections; each falls back to its fixture if the fetch fails.
   const changing = (await safe(() => fetchMarinPermits(6, 'recency'))) ?? [] // recent permit activity
   const changingLive = changing.length > 0
   const agendas = await safe(() => fetchMarinAgendas(5))
   const govLive = !!agendas && agendas.length > 0
 
-  // Local Blindspot (engine live): only genuinely MAJOR public records (>= ~$250k
-  // civic-scale) surface, framed "0 tracked local outlets". Permits are mostly
-  // small remodels, so this is quiet most days by design — it fires on a real
-  // major project, and gets far stronger with Build C coverage detection +
-  // contract/agenda extraction. Empty -> section omitted (never faked).
+  // Local journalism (Build C) — feeds Local Reporting AND the coverage detector.
+  const articles = (await safe(() => fetchLocalNews())) ?? []
+  const reporting = articles.slice(0, 6).map(articleToLocalEvent)
+  const reportingLive = reporting.length > 0
+
+  // Local Blindspot: MAJOR public records (>= ~$250k) with real coverage detection
+  // against the local outlets above. An uncovered major record is a blindspot; one
+  // covered by 2+ outlets is not. Empty -> section omitted (never faked).
   const blindspotPool = (await safe(() => fetchMarinPermits(50, 'consequence'))) ?? []
   const blindspots = selectLocalBlindspots(
-    blindspotPool.map(e => ({ event: e, localMediaOutlets: 0 })),
+    blindspotPool.map(e => ({ event: e, localMediaOutlets: detectLocalCoverage(e, articles) })),
     { minConsequence: 0.9, limit: 3 },
   ).map(b => ({
     ...b.event,
-    whyItMatters: `${b.event.whatChanged ? b.event.whatChanged + ' · ' : ''}No tracked local outlets detected covering it.`,
+    whyItMatters: `${b.event.whatChanged ? b.event.whatChanged + ' · ' : ''}${b.localMediaOutlets === 0 ? 'No tracked local outlets detected covering it.' : `Only ${b.localMediaOutlets} tracked local outlet(s) covering it.`}`,
   }))
 
-  const fixtureSections = ['needToKnow', 'roadsAndIncidents', 'localReporting']
+  const fixtureSections = ['needToKnow', 'roadsAndIncidents']
   if (!changingLive) fixtureSections.push('changingAroundYou')
   if (!govLive) fixtureSections.push('yourGovernment')
+  if (!reportingLive) fixtureSections.push('localReporting')
 
   return assembleMyLocalDigest({
     places,
@@ -195,7 +201,7 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
       changingAroundYou: changingLive ? changing : FIXTURE_CHANGING_AROUND_YOU,
       yourGovernment: govLive ? agendas : FIXTURE_YOUR_GOVERNMENT,
       roadsAndIncidents: FIXTURE_ROADS_AND_INCIDENTS,
-      localReporting: FIXTURE_LOCAL_REPORTING,
+      localReporting: reportingLive ? reporting : FIXTURE_LOCAL_REPORTING,
       localBlindspot: blindspots, // engine output; empty -> section omitted
     },
     fixtureSections,
