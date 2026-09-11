@@ -21,6 +21,7 @@ import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
 import { fetchLocalNews, articleToLocalEvent } from './adapters/local-news'
 import { detectLocalCoverage } from './coverage'
+import { buildAgendaItemEvents } from './agenda-extract'
 import {
   FIXTURE_NEED_TO_KNOW, FIXTURE_CHANGING_AROUND_YOU, FIXTURE_YOUR_GOVERNMENT,
   FIXTURE_ROADS_AND_INCIDENTS, FIXTURE_LOCAL_REPORTING,
@@ -169,7 +170,22 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const changing = (await safe(() => fetchMarinPermits(6, 'recency'))) ?? [] // recent permit activity
   const changingLive = changing.length > 0
   const agendas = await safe(() => fetchMarinAgendas(5))
-  const govLive = !!agendas && agendas.length > 0
+
+  // Agenda-item LLM extraction (Build B/C): pull the consequential items
+  // (contracts, grants, dollar figures) out of the soonest meeting's agenda so a
+  // meeting becomes specific decisions. Needs an API key; degrades to meetings-only.
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  const agendaItems = agendas && apiKey
+    ? (await safe(() => buildAgendaItemEvents(agendas, apiKey))) ?? []
+    : []
+
+  // Your Government: the extracted consequential items first (most informative),
+  // then the bare meeting entries.
+  const government = [
+    ...[...agendaItems].sort((a, b) => b.consequenceScore - a.consequenceScore),
+    ...(agendas ?? []),
+  ]
+  const govLive = government.length > 0
 
   // Local journalism (Build C) — feeds Local Reporting AND the coverage detector.
   const articles = (await safe(() => fetchLocalNews())) ?? []
@@ -178,8 +194,10 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
 
   // Local Blindspot: MAJOR public records (>= ~$250k) with real coverage detection
   // against the local outlets above. An uncovered major record is a blindspot; one
-  // covered by 2+ outlets is not. Empty -> section omitted (never faked).
-  const blindspotPool = (await safe(() => fetchMarinPermits(50, 'consequence'))) ?? []
+  // covered by 2+ outlets is not. Agenda-item contracts join the permit pool, so a
+  // big uncovered county contract can now surface. Empty -> section omitted.
+  const permitPool = (await safe(() => fetchMarinPermits(50, 'consequence'))) ?? []
+  const blindspotPool = [...permitPool, ...agendaItems]
   const blindspots = selectLocalBlindspots(
     blindspotPool.map(e => ({ event: e, localMediaOutlets: detectLocalCoverage(e, articles) })),
     { minConsequence: 0.9, limit: 3 },
@@ -199,7 +217,7 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     sections: {
       needToKnow: FIXTURE_NEED_TO_KNOW,
       changingAroundYou: changingLive ? changing : FIXTURE_CHANGING_AROUND_YOU,
-      yourGovernment: govLive ? agendas : FIXTURE_YOUR_GOVERNMENT,
+      yourGovernment: govLive ? government : FIXTURE_YOUR_GOVERNMENT,
       roadsAndIncidents: FIXTURE_ROADS_AND_INCIDENTS,
       localReporting: reportingLive ? reporting : FIXTURE_LOCAL_REPORTING,
       localBlindspot: blindspots, // engine output; empty -> section omitted
