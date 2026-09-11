@@ -162,11 +162,12 @@
     "entryUrl": "https://marin.legistar.com/Calendar.aspx",
     "requiresKey": false,
     "refreshMinutes": 360,
-    "termsNotes": "VERIFIED LIVE 2026-09-09: Granicus agenda RSS (ViewPublisherRSS.php?view_id=33&mode=agendas) returns meetings with direct AgendaViewer links \u2014 powers Your Government. The Legistar public JSON API is NOT enabled for 'marin'; deep per-item extraction (dollar amounts/applicants) is a later LLM step.",
+    "termsNotes": "VERIFIED LIVE 2026-09-11: Granicus agenda RSS (ViewPublisherRSS.php?view_id=33&mode=agendas) returns meetings with direct AgendaViewer links. AgendaViewer.php 302s to GeneratedAgendaViewer.php, server-rendered HTML whose numbered <td class=numberspace> rows carry full agenda-item text incl. dollar amounts/vendors. Parsed by lib/local/adapters/marin-agenda-detail.ts; consequential items LLM-extracted (lib/local/agenda-extract.ts) -> contract events feeding Your Government + the Blindspot pool. Legistar public JSON API still NOT enabled for 'marin'.",
     "status": "ready",
     "buildPhase": "B",
-    "verifiedAt": "2026-09-07",
-    "feedUrl": "https://marin.granicus.com/ViewPublisherRSS.php?view_id=33&mode=agendas"
+    "verifiedAt": "2026-09-11",
+    "feedUrl": "https://marin.granicus.com/ViewPublisherRSS.php?view_id=33&mode=agendas",
+    "detailUrlPattern": "https://marin.granicus.com/AgendaViewer.php?view_id=33&event_id={eventId}"
   },
   {
     "id": "marin-planning-commission",
