@@ -68,14 +68,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light'){/* user explicitly chose light */}else{document.documentElement.classList.add('dark')}}catch(e){document.documentElement.classList.add('dark')}})()`,
-          }}
-        />
-      </head>
+    // Dark-only by design: every surface is built white-on-navy. Render the
+    // `dark` class from the server so the theme is correct on first paint. The
+    // old pre-hydration script added the class client-side, but React reconciled
+    // <html> and stripped it on hydration, leaving fresh visitors with near-black
+    // theme-token text on the navy body. suppressHydrationWarning guards against
+    // extensions mutating <html>.
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${geist.variable} antialiased`}>
         <script
           type="application/ld+json"
