@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import { parseLocalNewsRss, articleToLocalEvent } from './local-news'
+import { parseLocalNewsRss, parseGoogleNewsRss, articleToLocalEvent } from './local-news'
 
 const fixture = fs.readFileSync(path.join('fixtures', 'sources', 'point-reyes-light', 'sample.xml'), 'utf8')
+const gnews = fs.readFileSync(path.join('fixtures', 'sources', 'marin-ij-googlenews', 'sample.xml'), 'utf8')
+const pacificSun = fs.readFileSync(path.join('fixtures', 'sources', 'pacific-sun', 'sample.xml'), 'utf8')
 
 describe('parseLocalNewsRss', () => {
   it('parses the Point Reyes Light fixture into articles', () => {
@@ -12,6 +14,22 @@ describe('parseLocalNewsRss', () => {
     expect(arts.every(a => a.outlet === 'Point Reyes Light')).toBe(true)
     expect(arts.every(a => a.title && a.url && a.publishedAt)).toBe(true)
     expect(arts[0].publishedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/) // ISO
+  })
+
+  it('parses the Pacific Sun (WordPress) fixture into Marin-local articles', () => {
+    const arts = parseLocalNewsRss(pacificSun, 'Pacific Sun')
+    expect(arts.length).toBeGreaterThan(0)
+    expect(arts.every(a => a.outlet === 'Pacific Sun' && a.title && a.url)).toBe(true)
+  })
+})
+
+describe('parseGoogleNewsRss', () => {
+  it('parses Marin IJ items and strips the " - Source" title suffix', () => {
+    const arts = parseGoogleNewsRss(gnews, 'Marin IJ')
+    expect(arts.length).toBeGreaterThan(0)
+    expect(arts.every(a => a.outlet === 'Marin IJ' && a.title && a.publishedAt)).toBe(true)
+    // Google News appends " - Marin Independent Journal"; it must be stripped.
+    expect(arts.every(a => !/ - Marin Independent Journal\s*$/.test(a.title))).toBe(true)
   })
 })
 

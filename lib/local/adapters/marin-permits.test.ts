@@ -43,6 +43,27 @@ describe('normalizeMarinPermits', () => {
     expect(normalizeMarinPermits([row({ latitude: undefined, longitude: undefined })])).toHaveLength(0)
   })
 
+  it('drops expired permits — they are not "changing around you"', () => {
+    const rows = [
+      row({ unique_id: 'live', description: 'Replace 1 Window & 1 Door', construction_value: '20000' }),
+      row({ unique_id: 'exp1', description: 'Rplc 1 Window In Kind ***Expired', construction_value: '700' }),
+      row({ unique_id: 'exp2', description: 'Ev Charging Permit W/E-Inspection ***EXPIRED', construction_value: '1800' }),
+    ]
+    const out = normalizeMarinPermits(rows)
+    expect(out).toHaveLength(1)
+    expect(out[0].id).toContain('live')
+  })
+
+  it('cleans raw permit-clerk shorthand and fixes state/zip casing', () => {
+    const [e] = normalizeMarinPermits([
+      row({ description: 'Rplc 1 Window In Kind', address: '26 MAIN DOCK, SAUSALITO, CA 94965' }),
+    ])
+    expect(e.title).toContain('Replace') // Rplc -> Replace
+    expect(e.title).not.toContain('Rplc')
+    expect(e.whatChanged).toContain('CA 94965') // state code stays uppercase, not "Ca"
+    expect(e.whatChanged).not.toMatch(/\bCa 9/) // not the mangled "Ca 94965"
+  })
+
   it('parses the committed live fixture without error', () => {
     const out = normalizeMarinPermits(sample as MarinPermitRow[])
     expect(out.every(e => e.eventType === 'building_permit')).toBe(true)

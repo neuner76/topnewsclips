@@ -1,7 +1,16 @@
 // Local journalism (Build C) — RSS from Marin/regional outlets. Feeds two things:
-// the "Local Reporting" section, and the coverage detector (lib/local/coverage.ts)
-// that decides whether a public record is a Local Blindspot. Check the national
-// source registry before adding an outlet here; reference, don't duplicate.
+// the "Local Reporting" section (DISPLAY_OUTLETS, direct feeds with real links),
+// and the coverage detector (lib/local/coverage.ts) that decides whether a public
+// record is a Local Blindspot (COVERAGE set = display + Marin IJ via Google News).
+//
+// Why the split: the Marin Independent Journal is the county's daily and the outlet
+// most likely to cover county government, but its site is behind bot protection and
+// returns 403 to any server fetch (and its robots.txt aside, it does not want
+// programmatic access). Google News publishes a public RSS feed we CAN read; we use
+// it (site:marinij.com) to check whether the IJ covered a record. Those links are
+// news.google.com redirects to a paywall, so Marin IJ is coverage-only, never shown
+// as clickable Local Reporting. Check the national source registry before adding an
+// outlet; reference, don't duplicate.
 import type { LocalEvent } from '../types'
 
 export interface LocalArticle {
@@ -12,10 +21,20 @@ export interface LocalArticle {
   publishedAt: string // ISO
 }
 
-const OUTLETS: Array<{ outlet: string; feed: string }> = [
+// Directly-fetchable Marin/regional outlets shown in Local Reporting.
+const DISPLAY_OUTLETS: Array<{ outlet: string; feed: string }> = [
   { outlet: 'Point Reyes Light', feed: 'https://www.ptreyeslight.com/feed/' },
+  { outlet: 'Pacific Sun', feed: 'https://pacificsun.com/feed/' },
   { outlet: 'KQED', feed: 'https://ww2.kqed.org/news/feed/' },
 ]
+
+// Coverage-only: the county daily, reachable only via Google News' public RSS.
+const GOOGLE_NEWS_MARIN_IJ =
+  'https://news.google.com/rss/search?q=site:marinij.com%20when:14d&hl=en-US&gl=US&ceid=US:en'
+
+// Human-readable names of the outlets the coverage detector actually checks —
+// used to keep the Blindspot copy honest about what was and wasn't searched.
+export const COVERAGE_OUTLET_NAMES = ['Marin IJ', 'Pacific Sun', 'Point Reyes Light', 'KQED']
 
 const UA = 'TopNewsClipsLocal/1.0 (neuner@gmail.com)'
 
@@ -42,6 +61,16 @@ export function parseLocalNewsRss(xml: string, outlet: string): LocalArticle[] {
   return out
 }
 
+// Google News RSS wraps each headline as "Headline - Source Name" and links
+// through a news.google.com redirect. Same item shape otherwise; we strip the
+// trailing " - Source" so titles read cleanly for coverage matching.
+export function parseGoogleNewsRss(xml: string, outlet: string): LocalArticle[] {
+  return parseLocalNewsRss(xml, outlet).map(a => ({
+    ...a,
+    title: a.title.replace(/\s+-\s+[^-]+$/, '').trim() || a.title,
+  }))
+}
+
 export function articleToLocalEvent(a: LocalArticle): LocalEvent {
   return {
     id: `local-news-${a.url ?? a.title}`,
@@ -58,15 +87,29 @@ export function articleToLocalEvent(a: LocalArticle): LocalEvent {
   }
 }
 
+async function fetchRss(feed: string, outlet: string, parse: (xml: string, o: string) => LocalArticle[]): Promise<LocalArticle[]> {
+  try {
+    const res = await fetch(feed, { headers: { 'User-Agent': UA } })
+    if (!res.ok) return []
+    return parse(await res.text(), outlet)
+  } catch {
+    return []
+  }
+}
+
+// Local Reporting section: directly-fetchable outlets with real, clickable links.
 export async function fetchLocalNews(): Promise<LocalArticle[]> {
-  const all = await Promise.all(OUTLETS.map(async ({ outlet, feed }) => {
-    try {
-      const res = await fetch(feed, { headers: { 'User-Agent': UA } })
-      if (!res.ok) return []
-      return parseLocalNewsRss(await res.text(), outlet)
-    } catch {
-      return []
-    }
-  }))
+  const all = await Promise.all(DISPLAY_OUTLETS.map(({ outlet, feed }) => fetchRss(feed, outlet, parseLocalNewsRss)))
   return all.flat().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+}
+
+// Coverage detection (Blindspot): display outlets PLUS the Marin IJ via Google
+// News, so "no local coverage" reflects the county daily too — not just the two
+// weeklies. Not for display (Marin IJ links are paywalled Google redirects).
+export async function fetchCoverageArticles(): Promise<LocalArticle[]> {
+  const [display, ij] = await Promise.all([
+    fetchLocalNews(),
+    fetchRss(GOOGLE_NEWS_MARIN_IJ, 'Marin IJ', parseGoogleNewsRss),
+  ])
+  return [...display, ...ij].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
 }

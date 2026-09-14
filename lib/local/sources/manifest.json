@@ -1,7 +1,7 @@
 [
   {
     "id": "nws-alerts",
-    "name": "National Weather Service \u2014 Active Alerts",
+    "name": "National Weather Service — Active Alerts",
     "category": "environment",
     "jurisdiction": [
       "Near Me",
@@ -20,7 +20,7 @@
   },
   {
     "id": "nws-forecast",
-    "name": "National Weather Service \u2014 Forecast + Fire Weather Zone",
+    "name": "National Weather Service — Forecast + Fire Weather Zone",
     "category": "environment",
     "jurisdiction": [
       "Near Me",
@@ -40,7 +40,7 @@
   },
   {
     "id": "usgs-earthquakes",
-    "name": "USGS Earthquakes \u2014 GeoJSON feed",
+    "name": "USGS Earthquakes — GeoJSON feed",
     "category": "environment",
     "jurisdiction": [
       "Bay Area",
@@ -58,7 +58,7 @@
   },
   {
     "id": "noaa-tides",
-    "name": "NOAA CO-OPS Tides \u2014 Point Reyes",
+    "name": "NOAA CO-OPS Tides — Point Reyes",
     "category": "environment",
     "jurisdiction": [
       "West Marin / Tomales Bay",
@@ -76,7 +76,7 @@
   },
   {
     "id": "airnow",
-    "name": "AirNow \u2014 Air Quality (AQI)",
+    "name": "AirNow — Air Quality (AQI)",
     "category": "environment",
     "jurisdiction": [
       "Near Me",
@@ -96,7 +96,7 @@
   },
   {
     "id": "purpleair",
-    "name": "PurpleAir \u2014 Community Air Sensors",
+    "name": "PurpleAir — Community Air Sensors",
     "category": "environment",
     "jurisdiction": [
       "Near Me",
@@ -116,7 +116,7 @@
   },
   {
     "id": "nasa-firms",
-    "name": "NASA FIRMS \u2014 Thermal Anomalies / Active Fire",
+    "name": "NASA FIRMS — Thermal Anomalies / Active Fire",
     "category": "environment",
     "jurisdiction": [
       "Marin County",
@@ -135,7 +135,7 @@
   },
   {
     "id": "usgs-water-gauges",
-    "name": "USGS Water Services \u2014 Stream/Flood Gauges",
+    "name": "USGS Water Services — Stream/Flood Gauges",
     "category": "environment",
     "jurisdiction": [
       "Marin County"
@@ -217,7 +217,7 @@
     "entryUrl": "https://www.novato.org/government/city-council/agendas-minutes",
     "requiresKey": false,
     "refreshMinutes": 360,
-    "termsNotes": "Novato's Granicus view_id=1 returned 404 on 2026-09-07 \u2014 platform not confirmed (may be CivicClerk/CivicPlus/PrimeGov or a different Granicus id). Verify at Build B before writing an adapter.",
+    "termsNotes": "Novato's Granicus view_id=1 returned 404 on 2026-09-07 — platform not confirmed (may be CivicClerk/CivicPlus/PrimeGov or a different Granicus id). Verify at Build B before writing an adapter.",
     "status": "stub",
     "blockedReason": "Agenda platform unconfirmed; needs verification at Build B.",
     "buildPhase": "B",
@@ -371,7 +371,7 @@
     "entryUrl": "https://www.marinsheriff.org/services/emergency-services/alert-marin",
     "requiresKey": false,
     "refreshMinutes": 5,
-    "termsNotes": "Everbridge notification system \u2014 no public read API. Do not exceed the 20-minute rule.",
+    "termsNotes": "Everbridge notification system — no public read API. Do not exceed the 20-minute rule.",
     "status": "blocked",
     "blockedReason": "Everbridge has no public read API; opt-in notification system only.",
     "fallback": "Watch for a public alert-archive page; otherwise rely on NWS + Nixle-equivalents. Deferred.",
@@ -394,13 +394,13 @@
     "termsNotes": "No public API.",
     "status": "stub",
     "blockedReason": "No public API.",
-    "fallback": "Subscribe by email and parse inbound mail \u2014 deferred.",
+    "fallback": "Subscribe by email and parse inbound mail — deferred.",
     "buildPhase": "C",
     "verifiedAt": "2026-09-07"
   },
   {
     "id": "marin-sheriff-alerts",
-    "name": "Marin County Sheriff \u2014 alerts / press",
+    "name": "Marin County Sheriff — alerts / press",
     "category": "emergency",
     "jurisdiction": [
       "Marin County"
@@ -416,7 +416,7 @@
   },
   {
     "id": "511-sf-bay",
-    "name": "511 SF Bay \u2014 traffic + transit",
+    "name": "511 SF Bay — traffic + transit",
     "category": "transportation",
     "jurisdiction": [
       "Bay Area",
@@ -528,17 +528,16 @@
     "jurisdiction": [
       "Marin County"
     ],
-    "accessMethod": "rss",
+    "accessMethod": "rss-via-google-news",
     "entryUrl": "https://www.marinij.com/",
-    "feedUrl": "https://www.marinij.com/feed/",
+    "feedUrl": "https://news.google.com/rss/search?q=site:marinij.com%20when:14d&hl=en-US&gl=US&ceid=US:en",
     "requiresKey": false,
     "refreshMinutes": 60,
-    "termsNotes": "Feed returned HTTP 403 on 2026-09-07 (MediaNews Group bot-block). Needs an allowed path or section feed; check the national registry. Build C.",
-    "status": "blocked",
-    "blockedReason": "RSS feed 403s (bot-block).",
-    "fallback": "Try section feeds or the national source registry entry if present.",
+    "termsNotes": "Direct marinij.com/feed/ 403s (MediaNews Group bot-block) to any server fetch, incl. browser UA — not bypassed. Reachable via Google News' public RSS scoped to site:marinij.com (verified live 2026-09-14, 100 items). Links are news.google.com redirects to a paywall, so this is COVERAGE-DETECTION ONLY (the county daily most likely to cover county government) — never shown as clickable Local Reporting.",
+    "status": "ready",
     "buildPhase": "C",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-14",
+    "usage": "coverage-only"
   },
   {
     "id": "pacific-sun",
@@ -551,10 +550,11 @@
     "entryUrl": "https://pacificsun.com/",
     "requiresKey": false,
     "refreshMinutes": 60,
-    "termsNotes": "Verify RSS at Build C.",
-    "status": "stub",
+    "termsNotes": "Standard WordPress RSS; verified live 2026-09-14 (10 items). Marin weekly (arts/culture-leaning). Feeds Local Reporting + coverage detection.",
+    "status": "ready",
     "buildPhase": "C",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-14",
+    "feedUrl": "https://pacificsun.com/feed/"
   },
   {
     "id": "kqed",
@@ -576,7 +576,7 @@
   },
   {
     "id": "sf-chronicle-regional",
-    "name": "SF Chronicle \u2014 regional reporting",
+    "name": "SF Chronicle — regional reporting",
     "category": "journalism",
     "jurisdiction": [
       "Bay Area",
