@@ -126,6 +126,7 @@ export function agendaItemToLocalEvent(
     geo: meeting.geo,
     consequenceScore: consequence,
     confidence: 'high',
+    amountUsd: e.amountUsd ?? undefined,
     sources: meeting.sources,
     whatChanged: e.whatChanged,
     whyItMatters: e.whyItMatters,

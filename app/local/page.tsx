@@ -27,7 +27,14 @@ function EventCard({ e }: { e: LocalEvent }) {
   const url = e.sources.find(s => s.url)?.url
   const body = (
     <>
-      <div className="text-sm font-semibold text-white">{e.title}{url && <span className="text-white/40"> →</span>}</div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="text-sm font-semibold text-white">{e.title}{url && <span className="text-white/40"> →</span>}</div>
+        {e.amountUsd != null && (
+          <span className="shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-white">
+            ${e.amountUsd.toLocaleString()}
+          </span>
+        )}
+      </div>
       {(e.whyItMatters || e.summary || e.whatChanged) && (
         <p className="mt-1 text-xs text-white/60">{e.whyItMatters ?? e.summary ?? e.whatChanged}</p>
       )}

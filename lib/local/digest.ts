@@ -28,6 +28,21 @@ import {
 } from './fixtures'
 
 export const NEED_TO_KNOW_MAX = 4
+export const GOVERNMENT_MAX = 6
+
+// Your Government section: when the agenda's consequential items were extracted,
+// show the top `limit` by consequence and drop the bare "agenda published" meeting
+// entry (redundant — every item links to the agenda). Only fall back to the bare
+// meetings when nothing could be extracted (no API key / fetch failed).
+export function selectGovernmentEvents(
+  agendaItems: LocalEvent[],
+  meetings: LocalEvent[],
+  limit: number,
+): LocalEvent[] {
+  if (agendaItems.length === 0) return meetings
+  return [...agendaItems].sort((a, b) => b.consequenceScore - a.consequenceScore).slice(0, limit)
+}
+
 const UA = 'TopNewsClipsLocal/1.0 (neuner@gmail.com)'
 const MARIN_POINT = { lat: 37.9735, lng: -122.5311 } // San Rafael — representative
 const TIDE_STATION = '9415020' // Point Reyes
@@ -179,12 +194,10 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     ? (await safe(() => buildAgendaItemEvents(agendas, apiKey))) ?? []
     : []
 
-  // Your Government: the extracted consequential items first (most informative),
-  // then the bare meeting entries.
-  const government = [
-    ...[...agendaItems].sort((a, b) => b.consequenceScore - a.consequenceScore),
-    ...(agendas ?? []),
-  ]
+  // Your Government: the consequential extracted decisions, ranked and capped.
+  // The bare "agenda published" meeting entry is only a fallback when nothing
+  // could be extracted (no API key / fetch failed).
+  const government = selectGovernmentEvents(agendaItems, agendas ?? [], GOVERNMENT_MAX)
   const govLive = government.length > 0
 
   // Local journalism (Build C). Local Reporting shows directly-fetchable outlets

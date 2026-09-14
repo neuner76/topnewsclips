@@ -105,6 +105,7 @@ export interface LocalEvent {
   consequenceScore: number
   relevanceScore?: number
   confidence: Confidence
+  amountUsd?: number // primary dollar figure (contracts, grants, permits), when known
   sources: LocalEvidenceSource[]
   summary?: string
   whyItMatters?: string

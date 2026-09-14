@@ -93,9 +93,9 @@ export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: nu
     const desc = prettyPermitTitle((r.description ?? '').trim())
     const title = desc || `${titleCase(r.type_permit ?? 'Building')} permit`
 
+    // Valuation is rendered as the amount badge (amountUsd), so keep it out of the text.
     const changedParts = [
       `Permit ${issued ? 'issued' : 'received'}${received ? ' ' + received.slice(0, 10) : ''}`,
-      value > 0 ? `valuation $${value.toLocaleString()}` : null,
       r.address ? cleanAddress(r.address) : null,
     ].filter(Boolean)
 
@@ -114,6 +114,7 @@ export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: nu
       },
       consequenceScore: permitConsequence(value),
       confidence: 'high',
+      amountUsd: value > 0 ? value : undefined,
       sources: [{ type: 'public_record', label: 'Marin County permits', url: DATASET_URL, observedAt: updated, status: 'confirmed' }],
       whatChanged: changedParts.join(' · '),
     })
