@@ -19,7 +19,7 @@ import { normalizeAirNow } from './adapters/airnow'
 import { fetchMarinPermits } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
-import { fetchLocalNews, articleToLocalEvent } from './adapters/local-news'
+import { fetchLocalNews, fetchCoverageArticles, articleToLocalEvent, COVERAGE_OUTLET_NAMES } from './adapters/local-news'
 import { detectLocalCoverage } from './coverage'
 import { buildAgendaItemEvents } from './agenda-extract'
 import {
@@ -167,7 +167,7 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const environment = await buildLiveEnvironment(representativePoint())
 
   // Build B/C live sections; each falls back to its fixture if the fetch fails.
-  const changing = (await safe(() => fetchMarinPermits(6, 'recency'))) ?? [] // recent permit activity
+  const changing = (await safe(() => fetchMarinPermits(6, 'consequence'))) ?? [] // most consequential recent permits (expired dropped, titles cleaned in the adapter)
   const changingLive = changing.length > 0
   const agendas = await safe(() => fetchMarinAgendas(5))
 
@@ -187,23 +187,27 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   ]
   const govLive = government.length > 0
 
-  // Local journalism (Build C) — feeds Local Reporting AND the coverage detector.
+  // Local journalism (Build C). Local Reporting shows directly-fetchable outlets
+  // (real links); the Blindspot's coverage check also queries the Marin IJ via
+  // Google News, so "no coverage" reflects the county daily, not just the weeklies.
   const articles = (await safe(() => fetchLocalNews())) ?? []
   const reporting = articles.slice(0, 6).map(articleToLocalEvent)
   const reportingLive = reporting.length > 0
+  const coverageArticles = (await safe(() => fetchCoverageArticles())) ?? articles
 
-  // Local Blindspot: MAJOR public records (>= ~$250k) with real coverage detection
-  // against the local outlets above. An uncovered major record is a blindspot; one
-  // covered by 2+ outlets is not. Agenda-item contracts join the permit pool, so a
-  // big uncovered county contract can now surface. Empty -> section omitted.
+  // Local Blindspot: MAJOR public records (>= ~$250k) checked for coverage against
+  // the local outlets (incl. Marin IJ). An uncovered major record is a blindspot;
+  // one covered by 2+ outlets is not. Agenda-item contracts join the permit pool,
+  // so a big uncovered county contract can surface. Empty -> section omitted.
   const permitPool = (await safe(() => fetchMarinPermits(50, 'consequence'))) ?? []
   const blindspotPool = [...permitPool, ...agendaItems]
+  const outletsChecked = COVERAGE_OUTLET_NAMES.join(', ')
   const blindspots = selectLocalBlindspots(
-    blindspotPool.map(e => ({ event: e, localMediaOutlets: detectLocalCoverage(e, articles) })),
+    blindspotPool.map(e => ({ event: e, localMediaOutlets: detectLocalCoverage(e, coverageArticles) })),
     { minConsequence: 0.9, limit: 3 },
   ).map(b => ({
     ...b.event,
-    whyItMatters: `${b.event.whatChanged ? b.event.whatChanged + ' · ' : ''}${b.localMediaOutlets === 0 ? 'No tracked local outlets detected covering it.' : `Only ${b.localMediaOutlets} tracked local outlet(s) covering it.`}`,
+    whyItMatters: `${b.event.whatChanged ? b.event.whatChanged + ' · ' : ''}${b.localMediaOutlets === 0 ? `Not found in the local outlets we track (${outletsChecked}).` : `Covered by only ${b.localMediaOutlets} of the local outlets we track (${outletsChecked}).`}`,
   }))
 
   const fixtureSections = ['needToKnow', 'roadsAndIncidents']

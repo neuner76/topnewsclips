@@ -36,9 +36,52 @@ function titleCase(s: string): string {
   return s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
 }
 
+// Addresses come UPPERCASE from the county. Title-case them, but keep the
+// trailing 2-letter state code and ZIP intact ("...Sausalito, CA 94965", not
+// "...Sausalito, Ca 94965").
+function cleanAddress(s: string): string {
+  return titleCase(s)
+    .replace(/,\s*Ca\s+(\d{5})/i, ', CA $1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+// Expand the most common permit-clerk shorthand so titles read like English
+// instead of a database dump. Whole-word, case-insensitive; order matters.
+const PERMIT_ABBREV: Array<[RegExp, string]> = [
+  [/\bRplc\b/gi, 'Replace'],
+  [/\bRepl\b/gi, 'Replace'],
+  [/\bRmdl\b/gi, 'Remodel'],
+  [/\bReRoof\b/gi, 'Re-roof'],
+  [/\bIns\b/gi, 'Install'],
+  [/\bInstl\b/gi, 'Install'],
+  [/\bRepr\b/gi, 'Repair'],
+  [/\bAddn\b/gi, 'Addition'],
+  [/\bBldg\b/gi, 'Building'],
+  [/\bComm'?l\b/gi, 'Commercial'],
+  [/\bResid\b/gi, 'Residential'],
+  [/\bW\//gi, 'with '],
+  [/\(E\)/gi, 'existing'],
+  [/\bSfd\b/gi, 'SFD'],
+]
+
+// Permits whose description is flagged expired are stale — they did not just
+// "change around you". The county marks these with a "***Expired" suffix.
+function isExpiredPermit(r: MarinPermitRow): boolean {
+  return /\*\*\*\s*expired/i.test(`${r.description ?? ''} ${r.type_permit ?? ''}`)
+}
+
+function prettyPermitTitle(desc: string): string {
+  let s = desc.replace(/\*{2,}\s*expired\s*\*{0,}/gi, '').replace(/\*{2,}/g, '').trim()
+  for (const [re, rep] of PERMIT_ABBREV) s = s.replace(re, rep)
+  return s.replace(/\s+/g, ' ').trim()
+}
+
 export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: number; sort?: 'consequence' | 'recency' } = {}): LocalEvent[] {
   const events: LocalEvent[] = []
   for (const r of rows) {
+    if (isExpiredPermit(r)) continue // stale — not a current change
+
     const lat = r.latitude != null ? Number(r.latitude) : NaN
     const lng = r.longitude != null ? Number(r.longitude) : NaN
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue // can't place it
@@ -47,13 +90,13 @@ export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: nu
     const received = r.received_date ?? undefined
     const issued = r.issued_date ?? undefined
     const updated = r.most_recent_issued_received_date ?? issued ?? received ?? new Date().toISOString()
-    const desc = (r.description ?? '').trim()
+    const desc = prettyPermitTitle((r.description ?? '').trim())
     const title = desc || `${titleCase(r.type_permit ?? 'Building')} permit`
 
     const changedParts = [
       `Permit ${issued ? 'issued' : 'received'}${received ? ' ' + received.slice(0, 10) : ''}`,
       value > 0 ? `valuation $${value.toLocaleString()}` : null,
-      r.address ? titleCase(r.address) : null,
+      r.address ? cleanAddress(r.address) : null,
     ].filter(Boolean)
 
     events.push({
