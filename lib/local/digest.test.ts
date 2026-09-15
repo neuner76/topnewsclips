@@ -61,7 +61,7 @@ describe('assembleMyLocalDigest', () => {
       localReporting: [] as LocalEvent[],
       localBlindspot: FIXTURE_LOCAL_BLINDSPOT,
     },
-    fixtureSections: ['needToKnow', 'changingAroundYou', 'yourGovernment', 'roadsAndIncidents', 'localReporting', 'localBlindspot'],
+    comingSoonSections: ['needToKnow', 'roadsAndIncidents'],
   }
 
   it('projects places to public shape (no coordinate leak)', () => {
@@ -70,11 +70,12 @@ describe('assembleMyLocalDigest', () => {
     expect(d.places.map(p => p.label)).toEqual(['Novato', 'Marin County'])
   })
 
-  it('carries the section fixtures through and marks fixture-backed sections', () => {
+  it('carries the sections through and marks not-yet-live sections coming-soon', () => {
     const d = assembleMyLocalDigest(base)
-    expect(d.needToKnow).toHaveLength(1)
+    expect(d.changingAroundYou).toHaveLength(1)
     expect(d.localBlindspot[0].id).toBe('fx-blindspot')
-    expect(d.fixtureSections).toContain('needToKnow')
+    expect(d.comingSoonSections).toContain('needToKnow')
+    expect(d.comingSoonSections).toContain('roadsAndIncidents')
   })
 
   it('caps Need To Know at the max', () => {

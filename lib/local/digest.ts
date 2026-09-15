@@ -22,10 +22,6 @@ import { selectLocalBlindspots } from './blindspot'
 import { fetchLocalNews, fetchCoverageArticles, articleToLocalEvent, COVERAGE_OUTLET_NAMES } from './adapters/local-news'
 import { detectLocalCoverage } from './coverage'
 import { buildAgendaItemEvents } from './agenda-extract'
-import {
-  FIXTURE_NEED_TO_KNOW, FIXTURE_CHANGING_AROUND_YOU, FIXTURE_YOUR_GOVERNMENT,
-  FIXTURE_ROADS_AND_INCIDENTS, FIXTURE_LOCAL_REPORTING,
-} from './fixtures'
 
 export const NEED_TO_KNOW_MAX = 4
 export const GOVERNMENT_MAX = 6
@@ -57,7 +53,7 @@ export interface MyLocalDigest {
   roadsAndIncidents: LocalEvent[]
   localReporting: LocalEvent[]
   localBlindspot: LocalEvent[]
-  fixtureSections: string[]
+  comingSoonSections: string[]
 }
 
 export interface SnapshotParts {
@@ -93,7 +89,7 @@ export interface AssembleInput {
     localReporting: LocalEvent[]
     localBlindspot: LocalEvent[]
   }
-  fixtureSections: string[]
+  comingSoonSections: string[]
   generatedAt?: string
 }
 
@@ -108,7 +104,7 @@ export function assembleMyLocalDigest(input: AssembleInput): MyLocalDigest {
     roadsAndIncidents: input.sections.roadsAndIncidents,
     localReporting: input.sections.localReporting,
     localBlindspot: input.sections.localBlindspot,
-    fixtureSections: input.fixtureSections,
+    comingSoonSections: input.comingSoonSections,
   }
 }
 
@@ -181,9 +177,9 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const places = await getSavedPlaces()
   const environment = await buildLiveEnvironment(representativePoint())
 
-  // Build B/C live sections; each falls back to its fixture if the fetch fails.
+  // Build B/C live sections. A failed fetch yields an empty section (omitted) —
+  // never fabricated fixture data.
   const changing = (await safe(() => fetchMarinPermits(6, 'consequence'))) ?? [] // most consequential recent permits (expired dropped, titles cleaned in the adapter)
-  const changingLive = changing.length > 0
   const agendas = await safe(() => fetchMarinAgendas(5))
 
   // Agenda-item LLM extraction (Build B/C): pull the consequential items
@@ -198,14 +194,12 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   // The bare "agenda published" meeting entry is only a fallback when nothing
   // could be extracted (no API key / fetch failed).
   const government = selectGovernmentEvents(agendaItems, agendas ?? [], GOVERNMENT_MAX)
-  const govLive = government.length > 0
 
   // Local journalism (Build C). Local Reporting shows directly-fetchable outlets
   // (real links); the Blindspot's coverage check also queries the Marin IJ via
   // Google News, so "no coverage" reflects the county daily, not just the weeklies.
   const articles = (await safe(() => fetchLocalNews())) ?? []
   const reporting = articles.slice(0, 6).map(articleToLocalEvent)
-  const reportingLive = reporting.length > 0
   const coverageArticles = (await safe(() => fetchCoverageArticles())) ?? articles
 
   // Local Blindspot: MAJOR public records (>= ~$250k) checked for coverage against
@@ -223,22 +217,22 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     whyItMatters: `${b.event.whatChanged ? b.event.whatChanged + ' · ' : ''}${b.localMediaOutlets === 0 ? `Not found in the local outlets we track (${outletsChecked}).` : `Covered by only ${b.localMediaOutlets} of the local outlets we track (${outletsChecked}).`}`,
   }))
 
-  const fixtureSections = ['needToKnow', 'roadsAndIncidents']
-  if (!changingLive) fixtureSections.push('changingAroundYou')
-  if (!govLive) fixtureSections.push('yourGovernment')
-  if (!reportingLive) fixtureSections.push('localReporting')
+  // Honest sections only — never fabricated data. A section with no live source
+  // yet (Need To Know alerts, Roads & Incidents) is marked "coming soon" and shown
+  // as a placeholder; a live section that fetched nothing is simply empty (omitted).
+  const comingSoonSections = ['needToKnow', 'roadsAndIncidents']
 
   return assembleMyLocalDigest({
     places,
     environment,
     sections: {
-      needToKnow: FIXTURE_NEED_TO_KNOW,
-      changingAroundYou: changingLive ? changing : FIXTURE_CHANGING_AROUND_YOU,
-      yourGovernment: govLive ? government : FIXTURE_YOUR_GOVERNMENT,
-      roadsAndIncidents: FIXTURE_ROADS_AND_INCIDENTS,
-      localReporting: reportingLive ? reporting : FIXTURE_LOCAL_REPORTING,
+      needToKnow: [], // no live alert source wired yet (Build C)
+      changingAroundYou: changing,
+      yourGovernment: government,
+      roadsAndIncidents: [], // no live traffic/incident source wired yet (Build C)
+      localReporting: reporting,
       localBlindspot: blindspots, // engine output; empty -> section omitted
     },
-    fixtureSections,
+    comingSoonSections,
   })
 }

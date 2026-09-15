@@ -34,34 +34,6 @@ export const FIXTURE_CHANGING_AROUND_YOU: LocalEvent[] = [
   }),
 ]
 
-export const FIXTURE_YOUR_GOVERNMENT: LocalEvent[] = [
-  ev({
-    id: 'fx-gov', title: 'Council votes Tuesday on downtown redevelopment', eventType: 'government_vote',
-    consequenceScore: 0.6,
-    geo: { cities: ['Novato'], counties: ['Marin County'] },
-    whyItMatters: 'A major land-use decision affecting downtown; staff recommends approval.',
-    sources: [{ type: 'public_record', label: 'Novato City Council agenda', url: 'https://www.novato.org/government/city-council/agendas-minutes', observedAt: iso, status: 'confirmed' }],
-  }),
-]
-
-export const FIXTURE_ROADS_AND_INCIDENTS: LocalEvent[] = [
-  ev({
-    id: 'fx-road', title: 'US-101 southbound crash near San Marin', eventType: 'traffic',
-    consequenceScore: 0.4,
-    geo: { latitude: 38.11, longitude: -122.57, counties: ['Marin County'] },
-    whatChanged: 'Estimated delay: +17 min.',
-    sources: [{ type: 'official_alert', label: 'CHP', url: 'https://cad.chp.ca.gov/traffic.aspx', observedAt: iso, status: 'observed', confidence: 'medium' }],
-  }),
-]
-
-export const FIXTURE_LOCAL_REPORTING: LocalEvent[] = [
-  ev({
-    id: 'fx-news', title: 'Point Reyes Light investigates West Marin groundwater', eventType: 'local_news',
-    consequenceScore: 0.5,
-    geo: { counties: ['Marin County'], placeName: 'West Marin' },
-    sources: [{ type: 'local_news', label: 'Point Reyes Light', url: 'https://www.ptreyeslight.com/', observedAt: iso, status: 'confirmed' }],
-  }),
-]
 
 export const FIXTURE_LOCAL_BLINDSPOT: LocalEvent[] = [
   ev({
