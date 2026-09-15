@@ -29,7 +29,7 @@ Adapters may only be written for sources whose status is `ready` or `needs_key` 
 | NOAA CO-OPS Tides — Point Reyes | `ready` | A | api (tidesandcurrents.noaa.gov) | — | https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9415020&product=predictions&interval=hilo&datum=MLLW&units=english&time_zone=lst_ldt&format=json&date=today |
 | National Weather Service — Active Alerts | `ready` | A | api (api.weather.gov) | — | https://api.weather.gov/alerts/active?point={lat},{lng} |
 | National Weather Service — Forecast + Fire Weather Zone | `ready` | A | api (api.weather.gov) | — | https://api.weather.gov/points/{lat},{lng} |
-| PurpleAir — Community Air Sensors | `needs_key` | A | api (api.purpleair.com) | PURPLEAIR_API_KEY | https://api.purpleair.com/v1/sensors |
+| PurpleAir — Community Air Sensors (AQI fallback when AirNow has no reading) | `ready` | A | api (api.purpleair.com) | PURPLEAIR_API_KEY | https://api.purpleair.com/v1/sensors |
 | USGS Earthquakes — GeoJSON feed | `ready` | A | api (earthquake.usgs.gov) | — | https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson |
 | USGS Water Services — Stream/Flood Gauges | `stub` | A | api (waterservices.usgs.gov) | — | https://waterservices.usgs.gov/nwis/iv/?format=json&countyCd=06041&parameterCd=00065&siteStatus=active |
 

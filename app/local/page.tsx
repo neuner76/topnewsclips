@@ -85,7 +85,7 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
         {env.fireRisk && env.fireRisk.level !== 'unknown' && <Stat label="Fire risk" value={env.fireRisk.level} />}
         {env.wind && <Stat label="Wind" value={env.wind.text || `${env.wind.direction ?? ''} ${env.wind.speedMph ?? ''} mph`} />}
         {env.airQuality && env.airQuality.aqi > 0
-          ? <Stat label="Air quality" value={`AQI ${env.airQuality.aqi} · ${env.airQuality.category}`} />
+          ? <Stat label={`Air quality${env.airQuality.source ? ` · ${env.airQuality.source}` : ''}`} value={`AQI ${env.airQuality.aqi} · ${env.airQuality.category}`} />
           : <Stat label="Air quality" value="Unavailable" />}
         {env.tide?.nextHigh && <Stat label="Next high tide" value={env.tide.nextHigh.time.slice(11) || env.tide.nextHigh.time} />}
         {env.tide?.nextLow && <Stat label="Next low tide" value={env.tide.nextLow.time.slice(11) || env.tide.nextLow.time} />}
