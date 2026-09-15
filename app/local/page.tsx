@@ -1,30 +1,20 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { buildMyLocalDigest, type MyLocalDigest } from '@/lib/local/digest'
+import { formatFreshness } from '@/lib/local/format'
 import type { LocalEvent } from '@/lib/local/types'
 import type { EnvironmentSnapshot } from '@/lib/local/adapters/types'
 
-// Owner-gated, dynamic (reads the admin session). Renders the live Your
-// Environment module plus fixture-backed sections (badged) in the spec's order.
+// Owner-gated, dynamic (reads the admin session). Renders only real, live data;
+// sections without a live source yet are shown as "coming soon", never faked.
 export const dynamic = 'force-dynamic'
 
 export const metadata = { title: 'My Local — TopNewsClips' }
 
-function timeAgo(iso: string): string {
-  const then = new Date(iso).getTime()
-  if (Number.isNaN(then)) return ''
-  const mins = Math.max(0, Math.round((Date.now() - then) / 60000))
-  if (mins < 60) return `${mins} min ago`
-  const hrs = Math.round(mins / 60)
-  return hrs < 24 ? `${hrs} hr ago` : `${Math.round(hrs / 24)} d ago`
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-500/15 text-amber-600 dark:text-amber-400">{children}</span>
-}
-
 function EventCard({ e }: { e: LocalEvent }) {
   const url = e.sources.find(s => s.url)?.url
+  const ts = e.latestUpdateAt || e.firstSeenAt
+  const freshness = formatFreshness(ts)
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
@@ -41,6 +31,7 @@ function EventCard({ e }: { e: LocalEvent }) {
       <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-white/60">
         <span className="uppercase tracking-wide">{e.confidence} confidence</span>
         {e.sources[0] && <span>· {e.sources[0].label}</span>}
+        {freshness && <span title={new Date(ts).toISOString()}>· {freshness}</span>}
       </div>
     </>
   )
@@ -50,13 +41,25 @@ function EventCard({ e }: { e: LocalEvent }) {
     : <div className={cls}>{body}</div>
 }
 
-function EventSection({ title, events, fixture }: { title: string; events: LocalEvent[]; fixture: boolean }) {
-  if (events.length === 0) return null // omit empty sections
+function SectionHeader({ title }: { title: string }) {
+  return <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-white/60">{title}</h2>
+}
+
+function EventSection({ title, events, comingSoon }: { title: string; events: LocalEvent[]; comingSoon?: boolean }) {
+  if (comingSoon) {
+    return (
+      <section className="mb-8">
+        <SectionHeader title={title} />
+        <div className="rounded-lg border border-dashed border-white/10 p-3 text-xs text-white/40">
+          Coming soon — this section isn’t wired to a live source yet.
+        </div>
+      </section>
+    )
+  }
+  if (events.length === 0) return null // omit empty sections — never show stale/fake data
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-white/60">
-        {title}{fixture && <Badge>fixture</Badge>}
-      </h2>
+      <SectionHeader title={title} />
       <div className="space-y-2">{events.map(e => <EventCard key={e.id} e={e} />)}</div>
     </section>
   )
@@ -76,12 +79,14 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
     <section className="mb-8">
       <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-white/60">
         Your Environment
-        <span className="ml-2 text-[10px] font-medium normal-case tracking-normal text-white/60">data as of {timeAgo(env.dataAsOf)}</span>
+        <span className="ml-2 text-[10px] font-medium normal-case tracking-normal text-white/60">data as of {formatFreshness(env.dataAsOf)}</span>
       </h2>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {env.fireRisk && env.fireRisk.level !== 'unknown' && <Stat label="Fire risk" value={env.fireRisk.level} />}
         {env.wind && <Stat label="Wind" value={env.wind.text || `${env.wind.direction ?? ''} ${env.wind.speedMph ?? ''} mph`} />}
-        {env.airQuality ? <Stat label="Air quality" value={`AQI ${env.airQuality.aqi} · ${env.airQuality.category}`} /> : <Stat label="Air quality" value="—" />}
+        {env.airQuality && env.airQuality.aqi > 0
+          ? <Stat label="Air quality" value={`AQI ${env.airQuality.aqi} · ${env.airQuality.category}`} />
+          : <Stat label="Air quality" value="Unavailable" />}
         {env.tide?.nextHigh && <Stat label="Next high tide" value={env.tide.nextHigh.time.slice(11) || env.tide.nextHigh.time} />}
         {env.tide?.nextLow && <Stat label="Next low tide" value={env.tide.nextLow.time.slice(11) || env.tide.nextLow.time} />}
         <Stat label="Thermal anomalies" value={env.thermalAnomalies ? String(env.thermalAnomalies.count) : 'None'} />
@@ -122,7 +127,7 @@ export default async function LocalPage() {
     return <main className="mx-auto max-w-2xl px-4 py-10"><p className="text-sm text-red-600">My Local is temporarily unavailable.</p></main>
   }
 
-  const fx = (key: string) => digest.fixtureSections.includes(key)
+  const comingSoon = (key: string) => digest.comingSoonSections.includes(key)
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 text-white">
@@ -134,13 +139,13 @@ export default async function LocalPage() {
         <p className="mt-1 text-xs text-white/60">What changed around you — from your block to your county.</p>
       </header>
 
-      <EventSection title="Need To Know Near You" events={digest.needToKnow} fixture={fx('needToKnow')} />
-      <EventSection title="Changing Around You" events={digest.changingAroundYou} fixture={fx('changingAroundYou')} />
-      <EventSection title="Your Government" events={digest.yourGovernment} fixture={fx('yourGovernment')} />
+      <EventSection title="Need To Know Near You" events={digest.needToKnow} comingSoon={comingSoon('needToKnow')} />
+      <EventSection title="Changing Around You" events={digest.changingAroundYou} />
+      <EventSection title="Your Government" events={digest.yourGovernment} />
       {digest.environment && <EnvironmentModule env={digest.environment} />}
-      <EventSection title="Roads & Incidents" events={digest.roadsAndIncidents} fixture={fx('roadsAndIncidents')} />
-      <EventSection title="Local Reporting" events={digest.localReporting} fixture={fx('localReporting')} />
-      <EventSection title="Local Blindspot" events={digest.localBlindspot} fixture={fx('localBlindspot')} />
+      <EventSection title="Roads & Incidents" events={digest.roadsAndIncidents} comingSoon={comingSoon('roadsAndIncidents')} />
+      <EventSection title="Local Reporting" events={digest.localReporting} />
+      <EventSection title="Local Blindspot" events={digest.localBlindspot} />
     </main>
   )
 }
