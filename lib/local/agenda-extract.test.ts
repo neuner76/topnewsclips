@@ -79,6 +79,7 @@ describe('agendaItemToLocalEvent', () => {
     expect(e.sources[0].url).toContain('event_id=4269')
     expect(e.geo.counties).toContain('Marin County')
     expect(e.whatChanged).toContain('$247,700')
+    expect(e.amountUsd).toBe(247700) // structured amount for the card to render
   })
 
   it('falls back to a mid consequence when no dollar amount is present', () => {
