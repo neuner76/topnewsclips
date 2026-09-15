@@ -22,6 +22,7 @@ export interface AirQualityReading {
   aqi: number
   category: string
   parameter: string
+  source?: string // 'AirNow' (official monitors) | 'PurpleAir' (crowd sensors)
 }
 
 export interface TideExtreme {

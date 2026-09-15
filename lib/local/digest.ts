@@ -16,6 +16,7 @@ import { normalizeNwsForecast, normalizeNwsAlerts } from './adapters/nws'
 import { normalizeUsgsEarthquakes } from './adapters/usgs'
 import { normalizeNoaaTides } from './adapters/noaa-tides'
 import { normalizeAirNow } from './adapters/airnow'
+import { fetchPurpleAir } from './adapters/purpleair'
 import { fetchMarinPermits } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
@@ -162,7 +163,15 @@ async function buildLiveEnvironment(point: { lat: number; lng: number }): Promis
     if (!res.ok) throw new Error(`tides ${res.status}`)
     return normalizeNoaaTides(await res.json(), { station: TIDE_STATION, now: new Date() })
   })
-  const airQuality = process.env.AIRNOW_API_KEY
+  const airQuality = await resolveAirQuality(point)
+  return buildEnvironmentSnapshot({ forecast, alerts, quakes, tide, airQuality })
+}
+
+// Air quality: prefer AirNow (official EPA monitors); fall back to PurpleAir
+// (crowd sensors) when AirNow is unavailable or returns no usable observation
+// near the point. Each source is only tried if its key is configured.
+async function resolveAirQuality(point: { lat: number; lng: number }): Promise<AirQualityReading | undefined> {
+  const airnow = process.env.AIRNOW_API_KEY
     ? await safe(async () => {
         const url = `https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${point.lat}&longitude=${point.lng}&distance=25&API_KEY=${process.env.AIRNOW_API_KEY}`
         const res = await fetch(url)
@@ -170,7 +179,12 @@ async function buildLiveEnvironment(point: { lat: number; lng: number }): Promis
         return normalizeAirNow(await res.json())
       })
     : undefined
-  return buildEnvironmentSnapshot({ forecast, alerts, quakes, tide, airQuality })
+  if (airnow && airnow.aqi > 0) return airnow // AirNow had a real reading
+
+  const purpleair = process.env.PURPLEAIR_API_KEY
+    ? await safe(() => fetchPurpleAir(point, process.env.PURPLEAIR_API_KEY!))
+    : undefined
+  return purpleair ?? airnow // PurpleAir if we got one, else whatever AirNow returned
 }
 
 export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
