@@ -49,7 +49,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
   if (!stories.length) return null
 
   return (
-    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid #D8E0EA' }}>
+    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#111827', border: '1px solid #1F2937' }}>
       <TrackEvent name="feed_section_impression" properties={{ section: 'Global Blindspot', story_count: stories.length }} />
 
       {/* CSS globe grid */}
@@ -67,9 +67,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
           backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}
       />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#ffffff] via-[#ffffffcc] to-transparent" />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#ffffff] via-transparent to-transparent" />
-      <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
+      <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#EA580C' }} />
 
       <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
 
@@ -78,13 +76,13 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
           <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: 'var(--blindspot-orange)' }}>
             🌍 Global Blindspot
           </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
             What the world is ignoring right now
           </h2>
-          <p className="text-sm mt-1" style={{ color: 'rgba(156,163,175,0.9)' }}>
+          <p className="text-sm mt-1" style={{ color: '#D1D5DB' }}>
             Important international stories receiving limited attention from major U.S. outlets.
           </p>
-          <p className="text-xs mt-2" style={{ color: 'rgba(156,163,175,0.65)' }}>
+          <p className="text-xs mt-2" style={{ color: '#D1D5DB' }}>
             What an outlet leaves out shapes your picture as much as what it covers — these are the gaps worth knowing about.
           </p>
         </div>
@@ -118,20 +116,20 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                     )}
                   </div>
                   <div className="flex flex-col flex-1 p-3">
-                    <h3 className="text-sm font-bold text-muted-foreground group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{story.title}</h3>
+                    <h3 className="text-sm font-bold text-[#1F2937] group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{story.title}</h3>
                     {story.description && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 55)}</p>}
                     <div className="mt-auto flex items-center gap-2 flex-wrap">
                       <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-                      <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>
+                      <span className="text-[11px] text-[#64748B]">{formatPublishedDate(story.created_at)}</span>
                       {sourceHandle(story) && (
-                        <span className="text-[10px] text-muted-foreground">{sourceHandle(story)}</span>
+                        <span className="text-[11px] text-[#64748B]">{sourceHandle(story)}</span>
                       )}
                       <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
                         Under-reported
                       </span>
                       {isSingleSourceReport(story) && (
-                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: '#ffffff', color: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,0,0,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
-                          Single-source international report
+                        <span className="text-[10px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: '#ffffff', color: '#475569', border: '1px solid #CBD5E1' }} title="Only one outlet has covered this so far — treat details as preliminary">
+                          Single source
                         </span>
                       )}
                     </div>
@@ -164,16 +162,16 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                     )}
                     <div className="flex items-center gap-2 flex-wrap">
                       <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-                      <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>
+                      <span className="text-[11px] text-[#64748B]">{formatPublishedDate(story.created_at)}</span>
                       {sourceHandle(story) && (
-                        <span className="text-[10px] text-muted-foreground">{sourceHandle(story)}</span>
+                        <span className="text-[11px] text-[#64748B]">{sourceHandle(story)}</span>
                       )}
                       <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--blindspot-orange)', border: '1px solid rgba(249,115,22,0.3)' }}>
                         Under-reported
                       </span>
                       {isSingleSourceReport(story) && (
-                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: '#ffffff', color: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,0,0,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
-                          Single-source international report
+                        <span className="text-[10px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: '#ffffff', color: '#475569', border: '1px solid #CBD5E1' }} title="Only one outlet has covered this so far — treat details as preliminary">
+                          Single source
                         </span>
                       )}
                     </div>

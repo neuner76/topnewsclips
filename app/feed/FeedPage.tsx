@@ -184,9 +184,9 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
 // Per-category config for In The Know
 const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string; subtitle: string }> = {
   'Politics & World Affairs':        { color: '#2563EB', icon: '🌐', subtitle: 'What\'s moving in politics and around the world' },
-  'Science, Health & Environment':   { color: '#a855f7', icon: '🔬', subtitle: 'Science, health, climate, and environmental shifts' },
-  'Business & Markets':              { color: '#22c55e', icon: '📈', subtitle: 'Economic signals, market moves, and industry shifts' },
-  'Culture, Media & Society':        { color: '#f97316', icon: '🎭', subtitle: 'Culture, media, sports, and social stories people are talking about' },
+  'Science, Health & Environment':   { color: '#7E22CE', icon: '🔬', subtitle: 'Science, health, climate, and environmental shifts' },
+  'Business & Markets':              { color: '#16A34A', icon: '📈', subtitle: 'Economic signals, market moves, and industry shifts' },
+  'Culture, Media & Society':        { color: '#EA580C', icon: '🎭', subtitle: 'Culture, media, sports, and social stories people are talking about' },
 }
 
 function DigestView({ content, date, storyMap }: { content: DigestContent; date: string; storyMap: Map<string, Story> }) {

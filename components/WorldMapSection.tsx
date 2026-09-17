@@ -93,7 +93,7 @@ function SocialClipLabel({ story }: { story: Story }) {
 
 function LimitedMainstreamCoverageLabel() {
   return (
-    <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-400/25 text-amber-200/80" title="This story appears in few or none of the tracked major outlets.">
+    <span className="text-[10px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded bg-[#FEF3C7] border border-[#FDE68A] text-[#92400E]" title="This story appears in few or none of the tracked major outlets.">
       Limited mainstream coverage
     </span>
   )
@@ -205,7 +205,7 @@ export default function WorldMapSection({
                         <div className="flex flex-wrap items-center gap-1.5">
                           <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                           <ConfidenceBadge label={confidence} category={story.category} />
-                          <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
+                          <span className="text-[11px] text-[#64748B]">{coverageText(story)}</span>
                           <SocialClipLabel story={story} />
                           {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                         </div>
@@ -254,14 +254,14 @@ export default function WorldMapSection({
                         <CategoryBadge category={story.category} />
                         {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
                       </div>
-                      <span className="absolute top-2 right-2 text-[10px] text-muted-foreground bg-black/40 px-1.5 py-0.5 rounded">
+                      <span className="absolute top-2 right-2 text-[11px] text-[#64748B] bg-black/40 px-1.5 py-0.5 rounded">
                         {formatPublishedDate(story.created_at)}
                       </span>
                     </div>
 
                     {/* Text below image */}
                     <div className="flex flex-col flex-1 p-3">
-                      <h3 className={`${lowerConfidence ? 'text-[13px] text-muted-foreground' : 'text-sm text-muted-foreground'} font-bold group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2`}>
+                      <h3 className={`${lowerConfidence ? 'text-[13px] text-[#1F2937]' : 'text-sm text-muted-foreground'} font-bold group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2`}>
                         {story.title}
                       </h3>
                       {story.description && (
@@ -270,7 +270,7 @@ export default function WorldMapSection({
                       <div className="mt-auto pt-2 flex flex-wrap items-center gap-2">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                         <ConfidenceBadge label={confidence} category={story.category} />
-                        <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
+                        <span className="text-[11px] text-[#64748B]">{coverageText(story)}</span>
                         {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                       </div>
                     </div>
@@ -307,19 +307,19 @@ export default function WorldMapSection({
                         is_lower_confidence: true,
                         treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact',
                       }}
-                      className="group flex gap-3 items-start rounded-xl px-3 py-2 transition-all"
-                      style={{ borderLeft: '3px solid #64748b', background: '#ffffff', marginBottom: '6px' }}
+                      className="group flex gap-3 items-start rounded-xl px-3 py-2 transition-all border border-[#E5EAF1] bg-white hover:bg-[#F8FAFC] hover:shadow-[0_2px_10px_rgba(37,99,235,0.08)]"
+                      style={{ borderLeft: '3px solid #64748b', marginBottom: '6px' }}
                     >
                       <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
                       {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[13px] text-muted-foreground font-semibold leading-snug truncate group-hover:underline underline-offset-2 mb-1">
+                        <h3 className="text-[13px] text-[#1F2937] font-bold leading-snug truncate group-hover:underline underline-offset-2 mb-1">
                           {story.title}
                         </h3>
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                           <ConfidenceBadge label={confidence} category={story.category} />
-                          <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
+                          <span className="text-[11px] text-[#64748B]">{coverageText(story)}</span>
                           <SocialClipLabel story={story} />
                           {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                         </div>
@@ -342,10 +342,9 @@ export default function WorldMapSection({
                         is_lower_confidence: lowerConfidence,
                         treatment: lowerConfidence ? 'reduced_weight' : 'standard',
                       }}
-                    className="group flex gap-3 items-start rounded-xl px-3 py-3 transition-all"
+                    className="group flex gap-3 items-start rounded-xl px-3 py-3 transition-all border border-[#E5EAF1] bg-white hover:bg-[#F8FAFC] hover:shadow-[0_2px_10px_rgba(37,99,235,0.08)]"
                     style={{
                       borderLeft: `3px solid ${lowerConfidence ? '#64748b' : accent}`,
-                      background: lowerConfidence ? 'rgba(0,0,0,0.018)' : 'rgba(0,0,0,0.03)',
                       marginBottom: '6px',
                     }}
                   >
@@ -354,10 +353,10 @@ export default function WorldMapSection({
                         <CategoryBadge category={story.category} />
                         {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
                         {story.region && (
-                          <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: accent }}>{story.region}</span>
+                          <span className="text-[11px] font-bold tracking-wide uppercase" style={{ color: accent }}>{story.region}</span>
                         )}
                       </div>
-                      <h3 className={`${lowerConfidence ? 'text-[13px] text-muted-foreground' : 'text-sm sm:text-[0.95rem] text-muted-foreground'} font-bold leading-snug line-clamp-2 group-hover:underline underline-offset-2 mb-1.5`}>
+                      <h3 className={`${lowerConfidence ? 'text-[13px] text-[#1F2937]' : 'text-sm sm:text-[0.95rem] text-[#1F2937]'} font-bold leading-snug line-clamp-2 group-hover:underline underline-offset-2 mb-1.5`}>
                         {story.title}
                       </h3>
                       {story.description && (
@@ -366,11 +365,11 @@ export default function WorldMapSection({
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                         <ConfidenceBadge label={confidence} category={story.category} />
-                        <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
+                        <span className="text-[11px] text-[#64748B]">{coverageText(story)}</span>
                         {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
-                        <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>
+                        <span className="text-[11px] text-[#64748B]">{formatPublishedDate(story.created_at)}</span>
                         {story.journalist_username && (
-                          <span className="text-[10px] text-muted-foreground">@{story.journalist_username}</span>
+                          <span className="text-[11px] text-[#64748B]">@{story.journalist_username}</span>
                         )}
                       </div>
                     </div>
