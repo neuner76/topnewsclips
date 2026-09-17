@@ -2,8 +2,11 @@ name: Daily Ingest
 
 on:
   schedule:
-    - cron: '0 11 * * *'   # 11:00am UTC (4:00am PDT) — morning run
-    - cron: '13 16 * * *'  # 4:13pm UTC (12:13pm EDT) — midday run
+    - cron: '40 10 * * *'  # 10:40 UTC (3:40am PDT) — morning run. Off the top of the
+                           # hour on purpose: '0 11' is a peak GitHub cron slot and
+                           # was being queued ~4.5h (email landed ~8:48am PDT). An odd
+                           # minute typically drops the scheduling lag to minutes.
+    - cron: '13 16 * * *'  # 4:13pm UTC (12:13pm EDT) — midday run (already odd-minute)
   workflow_dispatch:        # manual trigger from GitHub UI
 
 jobs:
