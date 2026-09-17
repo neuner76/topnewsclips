@@ -20,6 +20,17 @@ describe('extractPlaces', () => {
     const m = extractPlaces('They discuss the matter').map(x => x.token)
     expect(m).not.toContain('us')
   })
+
+  it('recognizes bare continent/region names, not just specific countries', () => {
+    expect(extractPlaces('Flash floods strike Europe as rains trigger rescues').map(x => x.region)).toContain('Europe')
+    expect(extractPlaces('The US considered leaving the Middle East entirely').map(x => x.region)).toContain('Middle East')
+    expect(extractPlaces('Drought grips the Horn of Africa this year').map(x => x.region)).toContain('Africa')
+  })
+
+  it('does not mis-match "African American" (US demographic) as Africa', () => {
+    const regions = extractPlaces('African American voters shape the Georgia runoff').map(x => x.region)
+    expect(regions).not.toContain('Africa')
+  })
 })
 
 describe('reconcileRegion — corrects channel-derived mislabels', () => {
@@ -64,6 +75,22 @@ describe('reconcileRegion — corrects channel-derived mislabels', () => {
     const r = reconcileRegion(null, 'Texas clinic standoff ends as Washington weighs federal response')
     expect(r.corrected).toBe(false)
     expect(r.region).toBe(null)
+  })
+
+  it('continent-level Europe story tagged Europe → kept (no country named, but "Europe" is)', () => {
+    // Live QC false positive: correctly Europe-tagged, previously flagged because
+    // "europe" wasn't a recognized token so the story had no anchor.
+    const r = reconcileRegion('Europe', 'Flash floods strike Europe as heavy rains trigger water rescues across the region')
+    expect(r.corrected).toBe(false)
+    expect(r.region).toBe('Europe')
+  })
+
+  it('US analysis about the Middle East tagged Middle East → kept, not corrected to US', () => {
+    // Both regions are named; the assigned Middle East agrees with a named place,
+    // so it must be kept rather than flipped to US just because "united states" matched.
+    const r = reconcileRegion('Middle East', 'bin Laden expected the United States to leave the Middle East after the attacks')
+    expect(r.corrected).toBe(false)
+    expect(r.region).toBe('Middle East')
   })
 
   it('does NOT mis-match "South America" as US/domestic (greedy-token regression)', () => {
