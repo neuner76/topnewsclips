@@ -12,7 +12,7 @@ export default function ResponseActionLink({ href, children, storySlug, storyCat
   responseType: string
 }) {
   const isExternal = href.startsWith('http')
-  const className = 'text-sm font-semibold text-white/80 hover:text-white hover:underline underline-offset-2'
+  const className = 'text-sm font-semibold text-muted-foreground hover:text-foreground hover:underline underline-offset-2'
   const onClick = () => track('response_resource_click', {
     story_slug: storySlug,
     story_category: storyCategory,

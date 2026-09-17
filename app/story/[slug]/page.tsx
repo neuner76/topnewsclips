@@ -202,14 +202,14 @@ export default async function StoryPage({ params }: Props) {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-white/70 transition-colors">Home</Link>
+        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-muted-foreground transition-colors">Home</Link>
           <span>›</span>
-          <Link href="/feed/clips" className="hover:text-white/70 transition-colors">Clips</Link>
+          <Link href="/feed/clips" className="hover:text-muted-foreground transition-colors">Clips</Link>
           {s.category && (
             <>
               <span>›</span>
-              <span className="capitalize text-white/60">{s.category}</span>
+              <span className="capitalize text-muted-foreground">{s.category}</span>
             </>
           )}
         </nav>
@@ -254,18 +254,18 @@ export default async function StoryPage({ params }: Props) {
 
             {/* Archived banner */}
             {!s.published && (
-              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-white/60" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-muted-foreground" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 Archived story, cycled out of the daily feed.{' '}
-                <Link href="/" className="font-semibold text-white hover:underline underline-offset-2">See today&apos;s stories →</Link>
+                <Link href="/" className="font-semibold text-foreground hover:underline underline-offset-2">See today&apos;s stories →</Link>
               </div>
             )}
 
             {/* Title */}
-            <h1 className="editorial-title text-white mb-3 leading-tight">{s.title}</h1>
+            <h1 className="editorial-title text-foreground mb-3 leading-tight">{s.title}</h1>
 
             {/* Description */}
             {s.description && (
-              <p className="text-sm text-white/60 line-clamp-3 mb-5 leading-relaxed">{s.description}</p>
+              <p className="text-sm text-muted-foreground line-clamp-3 mb-5 leading-relaxed">{s.description}</p>
             )}
 
             {/* Tier meter + share */}
@@ -282,7 +282,7 @@ export default async function StoryPage({ params }: Props) {
         {s.in_context && (
           <SectionCard accent="#a855f7" className="mb-4">
             <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#a855f7] mb-3">🧭 In Context</p>
-            <p className="text-sm text-white/80 leading-relaxed">{s.in_context}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{s.in_context}</p>
           </SectionCard>
         )}
 
@@ -300,7 +300,7 @@ export default async function StoryPage({ params }: Props) {
                 <p className="text-[10px] font-bold tracking-widest text-[#22c55e] uppercase mb-2">What we know</p>
                 <ul className="space-y-1.5">
                   {s.what_we_know.map((fact, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-white/80">
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
                       <span className="text-[#22c55e] shrink-0">✓</span>
                       <span>{fact}</span>
                     </li>
@@ -313,7 +313,7 @@ export default async function StoryPage({ params }: Props) {
                 <p className="text-[10px] font-bold tracking-widest text-[#f59e0b] uppercase mb-2">What remains unclear</p>
                 <ul className="space-y-1.5">
                   {s.what_remains_unclear.map((q, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-white/60">
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
                       <span className="text-[#f59e0b] shrink-0">?</span>
                       <span>{q}</span>
                     </li>
@@ -335,7 +335,7 @@ export default async function StoryPage({ params }: Props) {
                 <p className="text-[10px] font-bold tracking-widest text-[#22c55e] uppercase mb-2">✓ Verified</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.verified.map((claim, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-white/80">
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
                       <span className="text-[#22c55e] shrink-0">✓</span>
                       <span>{claim}</span>
                     </li>
@@ -348,7 +348,7 @@ export default async function StoryPage({ params }: Props) {
                 <p className="text-[10px] font-bold tracking-widest text-[#3b82f6] uppercase mb-2">~ Interpretation</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.interpretation.map((claim, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-white/60">
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
                       <span className="text-[#3b82f6] shrink-0">~</span>
                       <span>{claim}</span>
                     </li>
@@ -366,20 +366,20 @@ export default async function StoryPage({ params }: Props) {
             {s.msm_outlet_coverage ? (
               <div className="space-y-2">
                 {s.msm_outlet_coverage.covered.length > 0 && (
-                  <p className="text-sm text-white/80">
-                    <span className="font-semibold text-white">Covered by: </span>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground">Covered by: </span>
                     {s.msm_outlet_coverage.covered.map(o => OUTLET_LABELS[o] ?? o).join(', ')}
                   </p>
                 )}
                 {s.msm_outlet_coverage.notCovered.length > 0 && (
-                  <p className="text-sm text-white/50">
-                    <span className="font-semibold text-white/70">Not covered by: </span>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-muted-foreground">Not covered by: </span>
                     {s.msm_outlet_coverage.notCovered.map(o => OUTLET_LABELS[o] ?? o).join(', ')}
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-white/70">Fewer than 3 of the 15 major US outlets we monitor have covered this story.</p>
+              <p className="text-sm text-muted-foreground">Fewer than 3 of the 15 major US outlets we monitor have covered this story.</p>
             )}
           </SectionCard>
         )}
@@ -390,16 +390,16 @@ export default async function StoryPage({ params }: Props) {
             <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#f97316] mb-4">🌍 World View, How others are covering this</p>
             <div className="space-y-3">
               {worldView.map(r => (
-                <div key={r.id} className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
+                <div key={r.id} className="border-b border-border last:border-0 pb-3 last:pb-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase">{r.region ?? 'US'}</span>
+                    <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{r.region ?? 'US'}</span>
                     {r.msm_gap && r.region && <GlobalBlindspotBadge />}
                   </div>
                   <Link href={`/story/${r.slug}`} target="_blank" rel="noopener noreferrer"
-                    className="text-sm font-semibold text-white/90 hover:underline underline-offset-2 leading-snug block">
+                    className="text-sm font-semibold text-muted-foreground hover:underline underline-offset-2 leading-snug block">
                     {r.title}
                   </Link>
-                  {r.description && <p className="text-xs text-white/40 mt-0.5 line-clamp-2">{r.description}</p>}
+                  {r.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.description}</p>}
                 </div>
               ))}
             </div>
@@ -409,7 +409,7 @@ export default async function StoryPage({ params }: Props) {
         {/* Why This Is Here */}
         <SectionCard accent="#94a3b8" className="mb-4">
           <details className="group">
-            <summary className="cursor-pointer list-none flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] text-white/50 uppercase select-none hover:text-white/80 transition-colors">
+            <summary className="cursor-pointer list-none flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] text-muted-foreground uppercase select-none hover:text-muted-foreground transition-colors">
               <span className="group-open:hidden">▸</span>
               <span className="hidden group-open:inline">▾</span>
               Why this is here
@@ -417,47 +417,47 @@ export default async function StoryPage({ params }: Props) {
             <div className="mt-4 space-y-2 text-sm">
               {s.journalist_username && (
                 <div className="flex gap-3">
-                  <span className="font-semibold text-white/40 w-28 shrink-0">Source</span>
-                  <span className="text-white/80">@{s.journalist_username}</span>
+                  <span className="font-semibold text-muted-foreground w-28 shrink-0">Source</span>
+                  <span className="text-muted-foreground">@{s.journalist_username}</span>
                 </div>
               )}
               {badge.sourceType && (
                 <div className="flex gap-3">
-                  <span className="font-semibold text-white/40 w-28 shrink-0">Source type</span>
+                  <span className="font-semibold text-muted-foreground w-28 shrink-0">Source type</span>
                   <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
                 </div>
               )}
               {contentTypeLabel && (
                 <div className="flex gap-3">
-                  <span className="font-semibold text-white/40 w-28 shrink-0">Content type</span>
-                  <span className="text-white/80">{contentTypeLabel}</span>
+                  <span className="font-semibold text-muted-foreground w-28 shrink-0">Content type</span>
+                  <span className="text-muted-foreground">{contentTypeLabel}</span>
                 </div>
               )}
               {/* Confidence labels are reserved for news — satire shows Cultural lens */}
               <div className="flex gap-3">
-                <span className="font-semibold text-white/40 w-28 shrink-0">{s.category === 'comedy' ? 'Content type' : 'Confidence'}</span>
+                <span className="font-semibold text-muted-foreground w-28 shrink-0">{s.category === 'comedy' ? 'Content type' : 'Confidence'}</span>
                 <ConfidenceBadge label={confidence} category={s.category} />
               </div>
               <div className="flex gap-3">
-                <span className="font-semibold text-white/40 w-28 shrink-0">Coverage</span>
-                <span className="text-white/80">{coverageDisplay}</span>
+                <span className="font-semibold text-muted-foreground w-28 shrink-0">Coverage</span>
+                <span className="text-muted-foreground">{coverageDisplay}</span>
               </div>
               <div className="flex gap-3">
-                <span className="font-semibold text-white/40 w-28 shrink-0">Published</span>
-                <span className="text-white/60">{publishedLabel}</span>
+                <span className="font-semibold text-muted-foreground w-28 shrink-0">Published</span>
+                <span className="text-muted-foreground">{publishedLabel}</span>
               </div>
               {updatedLabel && (
                 <div className="flex gap-3">
-                  <span className="font-semibold text-white/40 w-28 shrink-0">Updated</span>
-                  <span className="text-white/60">{updatedLabel}</span>
+                  <span className="font-semibold text-muted-foreground w-28 shrink-0">Updated</span>
+                  <span className="text-muted-foreground">{updatedLabel}</span>
                 </div>
               )}
-              <p className="mt-3 pt-3 border-t border-white/10 text-xs text-white/30">
-                <Link href="/taxonomy#confidence" className="font-semibold text-white/50 hover:text-white transition-colors">
+              <p className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                <Link href="/taxonomy#confidence" className="font-semibold text-muted-foreground hover:text-foreground transition-colors">
                   Learn about our confidence system →
                 </Link>
                 {' · '}
-                <Link href="/how-it-works#selection" className="font-semibold text-white/50 hover:text-white transition-colors">
+                <Link href="/how-it-works#selection" className="font-semibold text-muted-foreground hover:text-foreground transition-colors">
                   What qualifies a story →
                 </Link>
               </p>
@@ -470,18 +470,18 @@ export default async function StoryPage({ params }: Props) {
         {/* Subscribe nudge */}
         {s.published && (
           <SectionCard accent="#14b8a6" className="mb-4">
-            <p className="text-sm font-semibold text-white mb-1">Get stories like this every morning.</p>
-            <p className="text-xs text-white/50 mb-3">Free daily briefing, 5 minutes, no spin.</p>
+            <p className="text-sm font-semibold text-foreground mb-1">Get stories like this every morning.</p>
+            <p className="text-xs text-muted-foreground mb-3">Free daily briefing, 5 minutes, no spin.</p>
             <EmailCaptureInline placement="story" />
           </SectionCard>
         )}
 
         {/* Back nav */}
-        <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between">
-          <Link href="/feed/clips" className="text-sm font-semibold text-white/50 hover:text-white transition-colors">
+        <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
+          <Link href="/feed/clips" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
             ← Today&apos;s clips
           </Link>
-          <Link href="/stories" className="text-sm font-semibold text-white/40 hover:text-white transition-colors">
+          <Link href="/stories" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
             Browse all stories →
           </Link>
         </div>

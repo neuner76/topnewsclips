@@ -51,18 +51,18 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
 
   if (layout === 'list') {
     return (
-      <article className="group py-3 border-b border-white/10 last:border-0">
+      <article className="group py-3 border-b border-border last:border-0">
         <div className="flex gap-3 items-start">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
               <CategoryBadge category={story.category} />
               {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
               {story.journalist_username && (
-                <span className="text-[10px] font-medium text-white/40">@{story.journalist_username}</span>
+                <span className="text-[10px] font-medium text-muted-foreground">@{story.journalist_username}</span>
               )}
             </div>
             <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
-              <h3 className="text-base font-semibold text-white/90 group-hover/title:underline underline-offset-2 line-clamp-2 leading-snug">
+              <h3 className="text-base font-semibold text-muted-foreground group-hover/title:underline underline-offset-2 line-clamp-2 leading-snug">
                 {story.title}
               </h3>
             </Link>
@@ -91,7 +91,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
       style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}
     >
       {/* Image */}
-      <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block relative aspect-video bg-white/5 overflow-hidden">
+      <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block relative aspect-video bg-muted overflow-hidden">
         {thumbnail ? (
           <Image
             src={thumbnail} alt={story.title} fill
@@ -100,7 +100,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-white/20 text-3xl">📰</span>
+            <span className="text-muted-foreground text-3xl">📰</span>
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
@@ -108,7 +108,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
           <CategoryBadge category={story.category} />
           {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
         </div>
-        <span className="absolute top-2 right-2 text-[10px] text-white/60 bg-black/40 px-1.5 py-0.5 rounded">
+        <span className="absolute top-2 right-2 text-[10px] text-muted-foreground bg-black/40 px-1.5 py-0.5 rounded">
           {formatPublishedDate(story.created_at)}
         </span>
       </Link>
@@ -121,17 +121,17 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
           rel="noopener noreferrer"
           onClick={() => track('story_click', { slug: story.slug, platform: story.platform, category: story.category ?? 'unknown' })}
         >
-          <h3 className="text-sm font-bold text-white/90 group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-1">
+          <h3 className="text-sm font-bold text-muted-foreground group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-1">
             {story.title}
           </h3>
         </Link>
         {story.description && (
-          <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 45)}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 45)}</p>
         )}
         <div className="mt-auto pt-1 flex flex-wrap items-center gap-2">
           <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
           <ConfidenceBadge label={getConfidenceLabel(story)} category={story.category} />
-          <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+          <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
         </div>
       </div>
     </article>

@@ -129,7 +129,7 @@ export default async function CategoryPage({
               href={`/category/${s}`}
               className={`text-xs font-semibold px-3 py-1.5 rounded border transition-colors ${
                 s === slug
-                  ? 'bg-[oklch(0.52_0.14_196)] text-white border-[oklch(0.52_0.14_196)]'
+                  ? 'bg-[oklch(0.52_0.14_196)] text-foreground border-[oklch(0.52_0.14_196)]'
                   : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground'
               }`}
             >

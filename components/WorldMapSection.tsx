@@ -85,7 +85,7 @@ function SocialClipLabel({ story }: { story: Story }) {
   // Only when the MSM check passed — otherwise the item shouldn't be in the lane
   if (coverageCount(story) < 2) return null
   return (
-    <span className="text-[9px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/45">
+    <span className="text-[9px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded bg-muted border border-border text-muted-foreground">
       Social clip — corroborated by broader coverage
     </span>
   )
@@ -108,7 +108,7 @@ export default function WorldMapSection({
     <section
       className="relative rounded-2xl overflow-hidden mb-8"
       data-map-mode={mapMode}
-      style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+      style={{ background: '#ffffff', border: '1px solid rgba(255,255,255,0.07)' }}
     >
       <TrackEvent name="feed_section_impression" properties={{ section: title, story_count: displayStories.length }} />
       {/* CSS globe grid */}
@@ -126,8 +126,8 @@ export default function WorldMapSection({
           backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}
       />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#0d1628bb] via-transparent to-[#0d162888]" />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0d1628] via-transparent to-transparent" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#ffffffbb] via-transparent to-[#ffffff88]" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#ffffff] via-transparent to-transparent" />
       <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: accent }} />
 
       {/* Content */}
@@ -141,7 +141,7 @@ export default function WorldMapSection({
                 {icon} {title}
               </span>
               {subtitle && (
-                <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
                   {subtitle}
                 </h2>
               )}
@@ -191,21 +191,21 @@ export default function WorldMapSection({
                     >
                       <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
                       {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}
-                      <div className="relative w-24 aspect-video shrink-0 rounded-md bg-white/5 overflow-hidden">
+                      <div className="relative w-24 aspect-video shrink-0 rounded-md bg-muted overflow-hidden">
                         {thumb ? (
                           <Image src={thumb} alt={story.title} fill className="object-cover opacity-80" unoptimized />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center"><span className="text-white/20 text-lg">📰</span></div>
+                          <div className="w-full h-full flex items-center justify-center"><span className="text-muted-foreground text-lg">📰</span></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[13px] text-white/75 font-bold group-hover:underline underline-offset-2 truncate leading-snug mb-1.5">
+                        <h3 className="text-[13px] text-muted-foreground font-bold group-hover:underline underline-offset-2 truncate leading-snug mb-1.5">
                           {story.title}
                         </h3>
                         <div className="flex flex-wrap items-center gap-1.5">
                           <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                           <ConfidenceBadge label={confidence} category={story.category} />
-                          <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                          <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
                           <SocialClipLabel story={story} />
                           {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                         </div>
@@ -236,7 +236,7 @@ export default function WorldMapSection({
                     }}
                   >
                     {/* Thumbnail */}
-                    <div className="relative aspect-video bg-white/5 overflow-hidden">
+                    <div className="relative aspect-video bg-muted overflow-hidden">
                       {thumb ? (
                         <Image
                           src={thumb} alt={story.title} fill
@@ -245,7 +245,7 @@ export default function WorldMapSection({
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-white/20 text-3xl">📰</span>
+                          <span className="text-muted-foreground text-3xl">📰</span>
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
@@ -254,23 +254,23 @@ export default function WorldMapSection({
                         <CategoryBadge category={story.category} />
                         {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
                       </div>
-                      <span className="absolute top-2 right-2 text-[10px] text-white/60 bg-black/40 px-1.5 py-0.5 rounded">
+                      <span className="absolute top-2 right-2 text-[10px] text-muted-foreground bg-black/40 px-1.5 py-0.5 rounded">
                         {formatPublishedDate(story.created_at)}
                       </span>
                     </div>
 
                     {/* Text below image */}
                     <div className="flex flex-col flex-1 p-3">
-                      <h3 className={`${lowerConfidence ? 'text-[13px] text-white/75' : 'text-sm text-white/90'} font-bold group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2`}>
+                      <h3 className={`${lowerConfidence ? 'text-[13px] text-muted-foreground' : 'text-sm text-muted-foreground'} font-bold group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2`}>
                         {story.title}
                       </h3>
                       {story.description && (
-                        <p className={`text-xs ${lowerConfidence ? 'text-white/40 line-clamp-1' : 'text-white/50 line-clamp-2'} leading-relaxed mb-2`}>{displaySummary(story.description, lowerConfidence ? 24 : 45)}</p>
+                        <p className={`text-xs ${lowerConfidence ? 'text-muted-foreground line-clamp-1' : 'text-muted-foreground line-clamp-2'} leading-relaxed mb-2`}>{displaySummary(story.description, lowerConfidence ? 24 : 45)}</p>
                       )}
                       <div className="mt-auto pt-2 flex flex-wrap items-center gap-2">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                         <ConfidenceBadge label={confidence} category={story.category} />
-                        <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                        <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
                         {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                       </div>
                     </div>
@@ -313,13 +313,13 @@ export default function WorldMapSection({
                       <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
                       {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[13px] text-white/70 font-semibold leading-snug truncate group-hover:underline underline-offset-2 mb-1">
+                        <h3 className="text-[13px] text-muted-foreground font-semibold leading-snug truncate group-hover:underline underline-offset-2 mb-1">
                           {story.title}
                         </h3>
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                           <ConfidenceBadge label={confidence} category={story.category} />
-                          <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                          <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
                           <SocialClipLabel story={story} />
                           {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
                         </div>
@@ -357,20 +357,20 @@ export default function WorldMapSection({
                           <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: accent }}>{story.region}</span>
                         )}
                       </div>
-                      <h3 className={`${lowerConfidence ? 'text-[13px] text-white/75' : 'text-sm sm:text-[0.95rem] text-white/90'} font-bold leading-snug line-clamp-2 group-hover:underline underline-offset-2 mb-1.5`}>
+                      <h3 className={`${lowerConfidence ? 'text-[13px] text-muted-foreground' : 'text-sm sm:text-[0.95rem] text-muted-foreground'} font-bold leading-snug line-clamp-2 group-hover:underline underline-offset-2 mb-1.5`}>
                         {story.title}
                       </h3>
                       {story.description && (
-                        <p className={`text-xs ${lowerConfidence ? 'text-white/40 line-clamp-1' : 'text-white/50 line-clamp-2'} leading-relaxed mb-2`}>{displaySummary(story.description, lowerConfidence ? 24 : 45)}</p>
+                        <p className={`text-xs ${lowerConfidence ? 'text-muted-foreground line-clamp-1' : 'text-muted-foreground line-clamp-2'} leading-relaxed mb-2`}>{displaySummary(story.description, lowerConfidence ? 24 : 45)}</p>
                       )}
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                         <ConfidenceBadge label={confidence} category={story.category} />
-                        <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                        <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
                         {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
-                        <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>
+                        <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>
                         {story.journalist_username && (
-                          <span className="text-[10px] text-white/30">@{story.journalist_username}</span>
+                          <span className="text-[10px] text-muted-foreground">@{story.journalist_username}</span>
                         )}
                       </div>
                     </div>

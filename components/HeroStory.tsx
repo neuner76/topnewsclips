@@ -72,14 +72,14 @@ export default function HeroStory({ story }: HeroStoryProps) {
 
         {/* Headline */}
         <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer">
-          <h1 className="editorial-title text-white hover:underline underline-offset-4 decoration-white/30 line-clamp-3 mb-4 leading-tight">
+          <h1 className="editorial-title text-foreground hover:underline underline-offset-4 decoration-foreground/30 line-clamp-3 mb-4 leading-tight">
             {story.title}
           </h1>
         </Link>
 
         {/* Description */}
         {story.description && (
-          <p className="text-sm sm:text-base text-white/60 line-clamp-2 mb-6 leading-relaxed">
+          <p className="text-sm sm:text-base text-muted-foreground line-clamp-2 mb-6 leading-relaxed">
             {story.description}
           </p>
         )}

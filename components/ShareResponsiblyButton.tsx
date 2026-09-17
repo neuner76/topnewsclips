@@ -46,7 +46,7 @@ export default function ShareResponsiblyButton({ title, slug, storyCategory, eli
     <button
       type="button"
       onClick={copyResponsibleShare}
-      className="mt-2 text-sm font-semibold text-white/80 hover:text-white hover:underline underline-offset-2"
+      className="mt-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:underline underline-offset-2"
     >
       {copied ? 'Copied responsible share text' : 'Copy responsible share text →'}
     </button>

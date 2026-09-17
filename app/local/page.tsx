@@ -18,31 +18,31 @@ function EventCard({ e }: { e: LocalEvent }) {
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
-        <div className="text-sm font-semibold text-white">{e.title}{url && <span className="text-white/40"> →</span>}</div>
+        <div className="text-sm font-semibold text-foreground">{e.title}{url && <span className="text-muted-foreground"> →</span>}</div>
         {e.amountUsd != null && (
-          <span className="shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-white">
+          <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-xs font-semibold tabular-nums text-foreground">
             ${e.amountUsd.toLocaleString()}
           </span>
         )}
       </div>
       {(e.whyItMatters || e.summary || e.whatChanged) && (
-        <p className="mt-1 text-xs text-white/60">{e.whyItMatters ?? e.summary ?? e.whatChanged}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{e.whyItMatters ?? e.summary ?? e.whatChanged}</p>
       )}
-      <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-white/60">
+      <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
         <span className="uppercase tracking-wide">{e.confidence} confidence</span>
         {e.sources[0] && <span>· {e.sources[0].label}</span>}
         {freshness && <span title={new Date(ts).toISOString()}>· {freshness}</span>}
       </div>
     </>
   )
-  const cls = `block rounded-lg border border-white/10 p-3${url ? ' hover:border-white/30 transition-colors' : ''}`
+  const cls = `block rounded-lg border border-border p-3${url ? ' hover:border-foreground/30 transition-colors' : ''}`
   return url
     ? <a href={url} target="_blank" rel="noopener noreferrer" className={cls}>{body}</a>
     : <div className={cls}>{body}</div>
 }
 
 function SectionHeader({ title }: { title: string }) {
-  return <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-white/60">{title}</h2>
+  return <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">{title}</h2>
 }
 
 function EventSection({ title, events, comingSoon }: { title: string; events: LocalEvent[]; comingSoon?: boolean }) {
@@ -50,7 +50,7 @@ function EventSection({ title, events, comingSoon }: { title: string; events: Lo
     return (
       <section className="mb-8">
         <SectionHeader title={title} />
-        <div className="rounded-lg border border-dashed border-white/10 p-3 text-xs text-white/40">
+        <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
           Coming soon — this section isn’t wired to a live source yet.
         </div>
       </section>
@@ -67,9 +67,9 @@ function EventSection({ title, events, comingSoon }: { title: string; events: Lo
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/10 p-3">
-      <div className="text-[11px] uppercase tracking-wide text-white/60">{label}</div>
-      <div className="mt-0.5 text-sm font-semibold text-white">{value}</div>
+    <div className="rounded-lg border border-border p-3">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-0.5 text-sm font-semibold text-foreground">{value}</div>
     </div>
   )
 }
@@ -77,9 +77,9 @@ function Stat({ label, value }: { label: string; value: string }) {
 function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-white/60">
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         Your Environment
-        <span className="ml-2 text-[10px] font-medium normal-case tracking-normal text-white/60">data as of {formatFreshness(env.dataAsOf)}</span>
+        <span className="ml-2 text-[10px] font-medium normal-case tracking-normal text-muted-foreground">data as of {formatFreshness(env.dataAsOf)}</span>
       </h2>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {env.fireRisk && env.fireRisk.level !== 'unknown' && <Stat label="Fire risk" value={env.fireRisk.level} />}
@@ -95,16 +95,16 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
         <div className="mt-3 space-y-2">
           {env.activeAlerts.map((a, i) => (
             <div key={i} className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
-              <div className="text-sm font-semibold text-white">{a.event}</div>
-              <p className="mt-0.5 text-xs text-white/60">{a.area}</p>
+              <div className="text-sm font-semibold text-foreground">{a.event}</div>
+              <p className="mt-0.5 text-xs text-muted-foreground">{a.area}</p>
             </div>
           ))}
         </div>
       )}
       {env.recentEarthquakes.length > 0 && (
         <div className="mt-3">
-          <div className="text-[11px] uppercase tracking-wide text-white/60">Recent earthquakes</div>
-          <ul className="mt-1 space-y-1 text-xs text-white/60">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Recent earthquakes</div>
+          <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
             {env.recentEarthquakes.slice(0, 5).map((q, i) => (
               <li key={i}>M {q.magnitude} — {q.place}{q.distanceMiles != null ? ` (${Math.round(q.distanceMiles)} mi)` : ''}</li>
             ))}
@@ -130,13 +130,13 @@ export default async function LocalPage() {
   const comingSoon = (key: string) => digest.comingSoonSections.includes(key)
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 text-white">
+    <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 text-foreground">
       <header className="mb-8">
-        <h1 className="text-2xl font-black tracking-tight text-white">My Local</h1>
-        <p className="mt-1 text-sm text-white/60">
+        <h1 className="text-2xl font-black tracking-tight text-foreground">My Local</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           {digest.places.map(p => p.label).join(' · ') || 'No saved places yet'}
         </p>
-        <p className="mt-1 text-xs text-white/60">What changed around you — from your block to your county.</p>
+        <p className="mt-1 text-xs text-muted-foreground">What changed around you — from your block to your county.</p>
       </header>
 
       <EventSection title="Need To Know Near You" events={digest.needToKnow} comingSoon={comingSoon('needToKnow')} />

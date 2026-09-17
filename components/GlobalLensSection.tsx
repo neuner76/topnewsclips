@@ -136,10 +136,10 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
           <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: '#3b82f6' }}>
             🌐 Global Lens
           </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
             How the world sees it
           </h2>
-          <p className="text-sm mt-1 text-white/60">
+          <p className="text-sm mt-1 text-muted-foreground">
             What this outlet centers that U.S. coverage may not.
           </p>
         </div>
@@ -161,11 +161,11 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                   className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
                   style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}
                 >
-                  <div className="relative aspect-video bg-white/5 overflow-hidden">
+                  <div className="relative aspect-video bg-muted overflow-hidden">
                     {thumb ? (
                       <Image src={thumb} alt={title} fill className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-300" unoptimized />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center"><span className="text-white/20 text-3xl">📰</span></div>
+                      <div className="w-full h-full flex items-center justify-center"><span className="text-muted-foreground text-3xl">📰</span></div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
                     <span className="absolute top-2 left-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(59,130,246,0.8)', color: 'white' }}>
@@ -173,14 +173,14 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                     </span>
                   </div>
                   <div className="flex flex-col flex-1 p-3">
-                    <h3 className="text-sm font-bold text-white/90 group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{title}</h3>
-                    {summary && <p className="text-xs text-white/50 line-clamp-2 leading-relaxed mb-2">{summary}</p>}
+                    <h3 className="text-sm font-bold text-muted-foreground group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{title}</h3>
+                    {summary && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{summary}</p>}
                     {tier !== null && (
                       <div className="mt-auto flex items-center gap-2 flex-wrap">
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
-                        {story && <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>}
+                        {story && <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>}
                         {story && sourceHandle(story) && (
-                          <span className="text-[10px] text-white/30">{sourceHandle(story)}</span>
+                          <span className="text-[10px] text-muted-foreground">{sourceHandle(story)}</span>
                         )}
                       </div>
                     )}
@@ -210,15 +210,15 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                       <span className="text-sm">{regionFlag(region)}</span>
                       <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: '#3b82f6' }}>{region}</span>
                     </div>
-                    <h3 className="text-base font-bold text-white line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{title}</h3>
-                    {summary && <p className="text-sm text-white/60 mt-0.5 line-clamp-3 leading-relaxed mb-2">{summary}</p>}
+                    <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{title}</h3>
+                    {summary && <p className="text-sm text-muted-foreground mt-0.5 line-clamp-3 leading-relaxed mb-2">{summary}</p>}
                     <div className="flex items-center gap-2 flex-wrap">
                       {tier !== null && (
                         <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
                       )}
-                      {story && <span className="text-[10px] text-white/30">{formatPublishedDate(story.created_at)}</span>}
+                      {story && <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>}
                       {story && sourceHandle(story) && (
-                        <span className="text-[10px] text-white/30">{sourceHandle(story)}</span>
+                        <span className="text-[10px] text-muted-foreground">{sourceHandle(story)}</span>
                       )}
                     </div>
                   </div>

@@ -24,8 +24,8 @@ export default function ResponseFeedback({ storySlug, storyCategory, eligibility
   }
 
   return (
-    <div className="mt-4 border-t border-white/10 pt-3">
-      <p className="text-[11px] text-white/35 mb-2">Did this feel useful, agenda-driven, or unclear?</p>
+    <div className="mt-4 border-t border-border pt-3">
+      <p className="text-[11px] text-muted-foreground mb-2">Did this feel useful, agenda-driven, or unclear?</p>
       <div className="flex flex-wrap gap-2">
         {OPTIONS.map(option => (
           <button
@@ -34,8 +34,8 @@ export default function ResponseFeedback({ storySlug, storyCategory, eligibility
             onClick={() => choose(option)}
             className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-colors ${
               selected === option
-                ? 'border-[#14b8a6] bg-[#14b8a6]/15 text-white'
-                : 'border-white/10 text-white/50 hover:border-white/25 hover:text-white/80'
+                ? 'border-[#14b8a6] bg-[#14b8a6]/15 text-foreground'
+                : 'border-border text-muted-foreground hover:border-foreground/30 hover:text-muted-foreground'
             }`}
           >
             {option}

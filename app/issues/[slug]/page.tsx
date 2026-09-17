@@ -44,35 +44,35 @@ export default async function IssuePage({
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 text-white">
-        <nav className="flex items-center gap-1.5 text-xs text-white/45 mb-6">
-          <Link href="/" className="hover:text-white transition-colors">Home</Link>
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 text-foreground">
+        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6">
+          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
           <span>›</span>
           <span>Issue Tracker</span>
         </nav>
 
-        <div className="mb-8 border-b border-white/10 pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">Track this issue</p>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-white">{titleFromSlug(slug)}</h1>
-          <p className="text-sm text-white/60 leading-relaxed">
+        <div className="mb-8 border-b border-border pb-6">
+          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">Track this issue</p>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-foreground">{titleFromSlug(slug)}</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
             We&apos;ll surface meaningful updates and related stories here.
           </p>
           {story && (
-            <p className="text-xs text-white/45 mt-3">
-              Started from <Link href={`/story/${story}`} className="font-semibold text-white/70 hover:text-white hover:underline">this story</Link>.
+            <p className="text-xs text-muted-foreground mt-3">
+              Started from <Link href={`/story/${story}`} className="font-semibold text-muted-foreground hover:text-foreground hover:underline">this story</Link>.
             </p>
           )}
         </div>
 
         {stories.length > 0 ? (
           <div>
-            <p className="text-sm text-white/55 mb-4">{stories.length} related {stories.length === 1 ? 'story' : 'stories'} for “{query}”.</p>
+            <p className="text-sm text-muted-foreground mb-4">{stories.length} related {stories.length === 1 ? 'story' : 'stories'} for “{query}”.</p>
             {stories.map(s => <StoryCard key={s.id} story={s} />)}
           </div>
         ) : (
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5">
-            <p className="text-sm font-semibold text-white mb-1">No related updates yet.</p>
-            <p className="text-sm text-white/55">
+          <div className="rounded-lg border border-border bg-muted p-5">
+            <p className="text-sm font-semibold text-foreground mb-1">No related updates yet.</p>
+            <p className="text-sm text-muted-foreground">
               This can happen when an issue is new or the archive has only one relevant story. Check back after the next fetch and digest cycle.
             </p>
           </div>

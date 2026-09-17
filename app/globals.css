@@ -133,7 +133,7 @@
   body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
-    background-color: #0a0f1e; /* navy fallback — prevents flash of white before CSS loads */
+    background-color: #ffffff; /* light fallback — prevents a flash before CSS loads */
   }
 }
 

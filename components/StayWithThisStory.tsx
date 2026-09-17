@@ -41,16 +41,16 @@ export default function StayWithThisStory({ story, resources = [] }: {
       />
       <div className="mb-4">
         <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#14b8a6] mb-1">Stay with this story</p>
-        <p className="text-xs text-white/45">
+        <p className="text-xs text-muted-foreground">
           Response links are not endorsements. They are restrained ways to learn more, track updates, and ask better questions.
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {allowed.has('learn') && (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-sm font-bold text-white mb-1">Learn</p>
-            <p className="text-xs text-white/45 mb-2">Read the primary source or background context before reacting.</p>
+          <div className="rounded-xl border border-border bg-muted p-3">
+            <p className="text-sm font-bold text-foreground mb-1">Learn</p>
+            <p className="text-xs text-muted-foreground mb-2">Read the primary source or background context before reacting.</p>
             {primarySource ? (
               <ResponseActionLink href={primarySource} storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} responseType="learn">
                 Open source material →
@@ -64,9 +64,9 @@ export default function StayWithThisStory({ story, resources = [] }: {
         )}
 
         {allowed.has('track') && (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-sm font-bold text-white mb-1">Track</p>
-            <p className="text-xs text-white/45 mb-2">Follow updates as this story develops.</p>
+          <div className="rounded-xl border border-border bg-muted p-3">
+            <p className="text-sm font-bold text-foreground mb-1">Track</p>
+            <p className="text-xs text-muted-foreground mb-2">Follow updates as this story develops.</p>
             <ResponseActionLink href={`/issues/${issueTracker.slug}?q=${encodeURIComponent(relatedSearchQuery)}&story=${encodeURIComponent(story.slug)}`} storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} responseType="track">
               Track this issue →
             </ResponseActionLink>
@@ -74,9 +74,9 @@ export default function StayWithThisStory({ story, resources = [] }: {
         )}
 
         {allowed.has('share_responsibly') && (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-sm font-bold text-white mb-1">Share responsibly</p>
-            <p className="text-xs text-white/45">
+          <div className="rounded-xl border border-border bg-muted p-3">
+            <p className="text-sm font-bold text-foreground mb-1">Share responsibly</p>
+            <p className="text-xs text-muted-foreground">
               Share the story with context, not outrage. Include what is known and what remains unclear.
             </p>
             <ShareResponsiblyButton
@@ -89,9 +89,9 @@ export default function StayWithThisStory({ story, resources = [] }: {
         )}
 
         {resources.map(resource => (
-          <div key={resource.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-sm font-bold text-white mb-1">{resource.title}</p>
-            <p className="text-xs text-white/45 mb-2">{resource.description}</p>
+          <div key={resource.id} className="rounded-xl border border-border bg-muted p-3">
+            <p className="text-sm font-bold text-foreground mb-1">{resource.title}</p>
+            <p className="text-xs text-muted-foreground mb-2">{resource.description}</p>
             <ResponseActionLink href={resource.url} storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} responseType={resource.responseType}>
               Open approved resource →
             </ResponseActionLink>
@@ -99,7 +99,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
         ))}
       </div>
 
-      <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+      <div className="mt-4 rounded-xl border border-border bg-muted p-3">
         <ReaderQuestionBox
           storySlug={story.slug}
           storyId={story.id}
@@ -108,7 +108,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
         />
       </div>
 
-      <p className="mt-3 text-[11px] text-white/30">
+      <p className="mt-3 text-[11px] text-muted-foreground">
         Eligibility: {eligibility.reason}{' '}
         <ResponseActionLink href="/response-taxonomy" storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} responseType="learn">
           View taxonomy →

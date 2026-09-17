@@ -44,7 +44,7 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
 
   if (status === 'submitted') {
     return (
-      <p className="text-sm text-white/70">
+      <p className="text-sm text-muted-foreground">
         Thanks. We&apos;ll use reader questions to guide follow-up coverage.
       </p>
     )
@@ -52,7 +52,7 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-semibold text-white/70" htmlFor="reader-question">
+      <label className="block text-xs font-semibold text-muted-foreground" htmlFor="reader-question">
         What do you still want to understand?
       </label>
       <textarea
@@ -60,14 +60,14 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
         value={question}
         onChange={e => setQuestion(e.target.value.slice(0, 500))}
         placeholder="What is still unclear?"
-        className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/25"
+        className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
         rows={3}
       />
       <input
         value={email}
         onChange={e => setEmail(e.target.value)}
         placeholder="Email optional"
-        className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/25"
+        className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
       />
       <input
         value={website}
@@ -86,7 +86,7 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
         >
           {status === 'submitting' ? 'Submitting...' : 'Submit question'}
         </button>
-        <span className="text-[11px] text-white/35">Questions are reviewed before any public use.</span>
+        <span className="text-[11px] text-muted-foreground">Questions are reviewed before any public use.</span>
       </div>
       {error && <p className="text-xs text-red-300">{error}</p>}
     </div>

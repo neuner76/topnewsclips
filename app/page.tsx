@@ -68,23 +68,23 @@ export default async function LandingPage() {
             <p className="text-[11px] font-bold tracking-[0.2em] text-[#3b82f6] uppercase mb-4">
               Free Daily Briefing
             </p>
-            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-white mb-6">
+            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-foreground mb-6">
               The full picture,<br />
               <span style={{ color: '#3b82f6' }}>not the profitable one.</span>
             </h1>
-            <p className="text-base sm:text-lg text-white/60 mb-8 max-w-lg mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-lg mx-auto leading-relaxed">
               Every source labeled by source tier. International context every morning. Undercovered stories surfaced daily, with preferences you can tune after subscribing.
             </p>
             <div className="max-w-sm mx-auto mb-3">
               <EmailCaptureInline placement="landing-hero" />
             </div>
-            <p className="text-xs text-white/45 mb-5">
+            <p className="text-xs text-muted-foreground mb-5">
               Not ready to sign up?{' '}
-              <Link href="/digest" className="text-white/60 hover:text-white underline underline-offset-2 transition-colors">
+              <Link href="/digest" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
                 See a sample issue
               </Link>{' '}first.
             </p>
-            <Link href="/feed" className="text-sm text-white/40 hover:text-white/70 transition-colors">
+            <Link href="/feed" className="text-sm text-muted-foreground hover:text-muted-foreground transition-colors">
               Browse today&apos;s feed without subscribing →
             </Link>
           </div>
@@ -94,18 +94,18 @@ export default async function LandingPage() {
 
           {/* Start here — orientation for first-time visitors */}
           <div className="rounded-2xl px-6 py-6 sm:px-8 mb-8" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-3 text-white/45">👋 New here? Start here</span>
+            <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-3 text-muted-foreground">👋 New here? Start here</span>
             <ol className="space-y-3">
               {[
-                { n: '1', t: 'Read the briefing', d: <>Each morning we surface the day&apos;s most important under-covered stories — start with <Link href="/feed" className="text-white/70 hover:text-white underline underline-offset-2">today&apos;s feed</Link>.</> },
-                { n: '2', t: 'Check the labels', d: <>Every story shows a <Link href="/taxonomy" className="text-white/70 hover:text-white underline underline-offset-2">source tier</Link> and a confidence label, so you always know how much weight to give it.</> },
-                { n: '3', t: 'See how it’s made', d: <>The whole pipeline is public — <Link href="/how-it-works" className="text-white/70 hover:text-white underline underline-offset-2">how it works</Link>, from broad intake to finished digest.</> },
+                { n: '1', t: 'Read the briefing', d: <>Each morning we surface the day&apos;s most important under-covered stories — start with <Link href="/feed" className="text-muted-foreground hover:text-foreground underline underline-offset-2">today&apos;s feed</Link>.</> },
+                { n: '2', t: 'Check the labels', d: <>Every story shows a <Link href="/taxonomy" className="text-muted-foreground hover:text-foreground underline underline-offset-2">source tier</Link> and a confidence label, so you always know how much weight to give it.</> },
+                { n: '3', t: 'See how it’s made', d: <>The whole pipeline is public — <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground underline underline-offset-2">how it works</Link>, from broad intake to finished digest.</> },
               ].map(s => (
                 <li key={s.n} className="flex gap-3">
-                  <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 mt-0.5 rounded-full bg-[#3b82f6] text-white text-[10px] font-bold">{s.n}</span>
+                  <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 mt-0.5 rounded-full bg-[#3b82f6] text-foreground text-[10px] font-bold">{s.n}</span>
                   <div>
-                    <p className="text-sm font-semibold text-white">{s.t}</p>
-                    <p className="text-xs text-white/55 mt-0.5 leading-relaxed">{s.d}</p>
+                    <p className="text-sm font-semibold text-foreground">{s.t}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{s.d}</p>
                   </div>
                 </li>
               ))}
@@ -143,14 +143,14 @@ export default async function LandingPage() {
             <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#14b8a6' }} />
             <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
               <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2 text-[#14b8a6]">🔍 What you get every morning</span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight mb-6">Built for readers who want more than headlines</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-6">Built for readers who want more than headlines</h2>
               <ul className="space-y-4">
                 {FEATURES.map(f => (
                   <li key={f.label} className="flex gap-3 rounded-xl px-3 py-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #14b8a6' }}>
                     <span className="text-lg shrink-0 mt-0.5">{f.icon}</span>
                     <div>
-                      <p className="text-sm font-semibold text-white">{f.label}</p>
-                      <p className="text-xs text-white/50 mt-0.5 leading-relaxed">{f.detail}</p>
+                      <p className="text-sm font-semibold text-foreground">{f.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{f.detail}</p>
                     </div>
                   </li>
                 ))}
@@ -165,8 +165,8 @@ export default async function LandingPage() {
           >
             <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
             <div className="relative z-10 px-6 py-10 sm:px-8 text-center">
-              <p className="text-2xl font-black text-white mb-2">Free. Daily. No agenda.</p>
-              <p className="text-sm text-white/50 mb-6">Get the morning briefing, then tune it around the topics, regions, and industries you follow.</p>
+              <p className="text-2xl font-black text-foreground mb-2">Free. Daily. No agenda.</p>
+              <p className="text-sm text-muted-foreground mb-6">Get the morning briefing, then tune it around the topics, regions, and industries you follow.</p>
               <div className="max-w-sm mx-auto">
                 <EmailCaptureInline placement="landing-bottom" />
               </div>
