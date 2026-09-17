@@ -108,7 +108,7 @@ export default function WorldMapSection({
     <section
       className="relative rounded-2xl overflow-hidden mb-8"
       data-map-mode={mapMode}
-      style={{ background: '#ffffff', border: '1px solid rgba(255,255,255,0.07)' }}
+      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
     >
       <TrackEvent name="feed_section_impression" properties={{ section: title, story_count: displayStories.length }} />
       {/* CSS globe grid */}
@@ -187,7 +187,7 @@ export default function WorldMapSection({
                         treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact',
                       }}
                       className="group flex gap-3 items-center rounded-xl overflow-hidden p-2.5 transition-transform hover:-translate-y-0.5"
-                      style={{ background: 'rgba(17,24,39,0.72)', border: '1px solid rgba(255,255,255,0.05)' }}
+                      style={{ background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(0,0,0,0.05)' }}
                     >
                       <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
                       {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}
@@ -231,8 +231,8 @@ export default function WorldMapSection({
                       }}
                     className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
                     style={{
-                      background: lowerConfidence ? 'rgba(17,24,39,0.72)' : '#111827',
-                      border: lowerConfidence ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(255,255,255,0.08)',
+                      background: lowerConfidence ? 'rgba(0,0,0,0.72)' : '#ffffff',
+                      border: lowerConfidence ? '1px solid rgba(0,0,0,0.05)' : '1px solid rgba(0,0,0,0.08)',
                     }}
                   >
                     {/* Thumbnail */}
@@ -248,7 +248,7 @@ export default function WorldMapSection({
                           <span className="text-muted-foreground text-3xl">📰</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-[#ffffff66] to-transparent" />
                       {/* Badges over image */}
                       <div className="absolute top-2 left-2 flex flex-wrap gap-1">
                         <CategoryBadge category={story.category} />
@@ -308,7 +308,7 @@ export default function WorldMapSection({
                         treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact',
                       }}
                       className="group flex gap-3 items-start rounded-xl px-3 py-2 transition-all"
-                      style={{ borderLeft: '3px solid #64748b', background: 'rgba(255,255,255,0.018)', marginBottom: '6px' }}
+                      style={{ borderLeft: '3px solid #64748b', background: 'rgba(0,0,0,0.018)', marginBottom: '6px' }}
                     >
                       <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
                       {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}
@@ -345,7 +345,7 @@ export default function WorldMapSection({
                     className="group flex gap-3 items-start rounded-xl px-3 py-3 transition-all"
                     style={{
                       borderLeft: `3px solid ${lowerConfidence ? '#64748b' : accent}`,
-                      background: lowerConfidence ? 'rgba(255,255,255,0.018)' : 'rgba(255,255,255,0.03)',
+                      background: lowerConfidence ? 'rgba(0,0,0,0.018)' : 'rgba(0,0,0,0.03)',
                       marginBottom: '6px',
                     }}
                   >

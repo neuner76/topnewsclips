@@ -76,7 +76,7 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
 
   const mapOpacity = isHero ? 0.35 : isWatermark ? 0.07 : 0.55
   const strokeColor = isBlindspot ? 'rgba(59,130,246,0.4)' : isWatermark ? 'rgba(59,130,246,0.5)' : 'rgba(59,130,246,0.5)'
-  const fillColor = isBlindspot ? 'rgba(29,78,216,0.15)' : isWatermark ? 'rgba(17,24,39,0.0)' : 'rgba(29,78,216,0.12)'
+  const fillColor = isBlindspot ? 'rgba(29,78,216,0.15)' : isWatermark ? 'rgba(0,0,0,0.0)' : 'rgba(29,78,216,0.12)'
 
   return (
     <div

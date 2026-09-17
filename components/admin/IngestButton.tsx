@@ -83,7 +83,7 @@ export default function IngestButton() {
         <button
           onClick={handleProcess}
           disabled={processPhase === 'running'}
-          className="inline-flex items-center gap-1 bg-blue-600 text-foreground text-xs font-semibold px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1 bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           {processPhase === 'running' ? '⏳ Processing...' : '⚡ Process'}
         </button>

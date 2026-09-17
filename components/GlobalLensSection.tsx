@@ -102,7 +102,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
   }
 
   return (
-    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}>
       <TrackEvent name="feed_section_impression" properties={{ section: 'Global Lens', story_count: displayItems.length }} />
       {validationFailures.map(failure => (
         <TrackEvent key={failure.slug} name="feed_global_lens_validation_failed" properties={{ story_slug: failure.slug, section: 'Global Lens', validation_reason: failure.reason }} />
@@ -124,8 +124,8 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
         }}
       />
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0d1628] via-[#0d1628cc] to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1628] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffffcc] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-transparent to-transparent" />
       </div>
       <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#3b82f6' }} />
 
@@ -159,7 +159,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
-                  style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}
+                  style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}
                 >
                   <div className="relative aspect-video bg-muted overflow-hidden">
                     {thumb ? (
@@ -167,7 +167,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><span className="text-muted-foreground text-3xl">📰</span></div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-[#ffffff66] to-transparent" />
                     <span className="absolute top-2 left-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(59,130,246,0.8)', color: 'white' }}>
                       {regionFlag(region)} {region}
                     </span>
@@ -203,7 +203,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex gap-3 items-start rounded-xl p-3 transition-all"
-                  style={{ borderLeft: '3px solid #3b82f6', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
+                  style={{ borderLeft: '3px solid #3b82f6', background: 'rgba(0,0,0,0.03)', marginBottom: '6px' }}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">

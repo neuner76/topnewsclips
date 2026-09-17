@@ -88,7 +88,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
   return (
     <article
       className="group relative flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
-      style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}
+      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}
     >
       {/* Image */}
       <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block relative aspect-video bg-muted overflow-hidden">
@@ -103,7 +103,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
             <span className="text-muted-foreground text-3xl">📰</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-[#ffffff66] to-transparent" />
         <div className="absolute top-2 left-2 flex flex-wrap gap-1">
           <CategoryBadge category={story.category} />
           {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}

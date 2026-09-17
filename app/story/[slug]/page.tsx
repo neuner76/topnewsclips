@@ -217,7 +217,7 @@ export default async function StoryPage({ params }: Props) {
         {/* Hero card */}
         <div
           className="relative rounded-2xl overflow-hidden mb-6"
-          style={{ background: '#0a0f1e', minHeight: 300 }}
+          style={{ background: '#ffffff', minHeight: 300 }}
         >
           {/* CSS globe grid */}
           <div
@@ -238,10 +238,10 @@ export default async function StoryPage({ params }: Props) {
           {thumbnail && (
             <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden sm:block">
               <Image src={thumbnail} alt={s.title} fill className="object-cover opacity-35" unoptimized />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1e55] to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff55] to-transparent" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-transparent to-transparent pointer-events-none" />
 
           {/* Content */}
           <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 max-w-xl">
@@ -254,7 +254,7 @@ export default async function StoryPage({ params }: Props) {
 
             {/* Archived banner */}
             {!s.published && (
-              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-muted-foreground" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-muted-foreground" style={{ background: 'rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.1)' }}>
                 Archived story, cycled out of the daily feed.{' '}
                 <Link href="/" className="font-semibold text-foreground hover:underline underline-offset-2">See today&apos;s stories →</Link>
               </div>

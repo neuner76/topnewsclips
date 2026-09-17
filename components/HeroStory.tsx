@@ -29,7 +29,7 @@ export default function HeroStory({ story }: HeroStoryProps) {
   return (
     <div
       className="relative rounded-2xl overflow-hidden mb-6"
-      style={{ background: '#0a0f1e', minHeight: 340 }}
+      style={{ background: '#ffffff', minHeight: 340 }}
     >
       {/* CSS globe grid background, renders instantly */}
       <div
@@ -56,12 +56,12 @@ export default function HeroStory({ story }: HeroStoryProps) {
             className="object-cover opacity-40"
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1e55] to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff55] to-transparent" />
         </div>
       )}
 
       {/* Bottom fade for legibility */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-transparent to-transparent pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12 max-w-xl">

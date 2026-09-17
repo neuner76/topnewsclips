@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function UnsubscribedPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-[#0a0f1e] text-foreground">
+    <main className="min-h-screen flex items-center justify-center px-4 bg-[#ffffff] text-foreground">
       <div className="max-w-md text-center">
         <p className="text-[11px] font-bold tracking-[0.18em] uppercase mb-3 text-[#3b82f6]">
           Top News Clips
@@ -13,7 +13,7 @@ export default function UnsubscribedPage() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center justify-center rounded-md bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-foreground transition-opacity hover:opacity-85"
+          className="inline-flex items-center justify-center rounded-md bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-85"
         >
           Back to TopNewsClips
         </Link>

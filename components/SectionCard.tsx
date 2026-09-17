@@ -13,7 +13,7 @@ export default function SectionCard({ accent, children, className = '' }: Sectio
   return (
     <div
       className={`relative rounded-2xl overflow-hidden mb-8 dark ${className}`}
-      style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
     >
       {/* CSS globe grid, longitude/latitude lines as instant background */}
       <div
@@ -31,7 +31,7 @@ export default function SectionCard({ accent, children, className = '' }: Sectio
       />
 
       {/* Fade edges so grid doesn't fight content */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#0d1628bb] via-transparent to-[#0d162888]" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#ffffffbb] via-transparent to-[#ffffff88]" />
 
       {/* Colored top accent bar */}
       <div

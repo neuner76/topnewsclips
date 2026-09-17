@@ -312,7 +312,7 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
                 type="button"
                 onClick={() => setFormatPreference(value)}
                 className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold capitalize ${
-                  formatPreference === value ? 'bg-[#3b82f6] text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  formatPreference === value ? 'bg-[#3b82f6] text-white' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {value}
@@ -331,7 +331,7 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
           type="button"
           onClick={() => save(false)}
           disabled={status === 'loading'}
-          className="rounded-lg bg-[#3b82f6] px-5 py-2.5 text-sm font-bold text-foreground transition-opacity hover:opacity-85 disabled:opacity-50"
+          className="rounded-lg bg-[#3b82f6] px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-85 disabled:opacity-50"
         >
           {status === 'loading' ? 'Saving...' : 'Save preferences'}
         </button>

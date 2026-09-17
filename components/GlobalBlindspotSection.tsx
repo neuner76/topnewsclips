@@ -49,7 +49,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
   if (!stories.length) return null
 
   return (
-    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid rgba(0,0,0,0.07)' }}>
       <TrackEvent name="feed_section_impression" properties={{ section: 'Global Blindspot', story_count: stories.length }} />
 
       {/* CSS globe grid */}
@@ -67,8 +67,8 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
           backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}
       />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1ecc] to-transparent" />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#ffffff] via-[#ffffffcc] to-transparent" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#ffffff] via-transparent to-transparent" />
       <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
 
       <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
@@ -102,7 +102,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
-                  style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}
+                  style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}
                 >
                   <div className="relative aspect-video bg-muted overflow-hidden">
                     {thumb ? (
@@ -110,7 +110,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><span className="text-muted-foreground text-3xl">📰</span></div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#11182766] to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-[#ffffff66] to-transparent" />
                     {story.region && (
                       <span className="absolute top-2 left-2 text-[10px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.8)', color: 'white' }}>
                         {story.region}
@@ -130,7 +130,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                         Under-reported
                       </span>
                       {isSingleSourceReport(story) && (
-                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
+                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.06)', color: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,0,0,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
                           Single-source international report
                         </span>
                       )}
@@ -152,7 +152,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex gap-3 items-start rounded-xl p-3 transition-all"
-                  style={{ borderLeft: '3px solid var(--blindspot-orange)', background: 'rgba(255,255,255,0.03)', marginBottom: '6px' }}
+                  style={{ borderLeft: '3px solid var(--blindspot-orange)', background: 'rgba(0,0,0,0.03)', marginBottom: '6px' }}
                 >
                   <div className="flex-1 min-w-0">
                     {story.region && (
@@ -172,7 +172,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                         Under-reported
                       </span>
                       {isSingleSourceReport(story) && (
-                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
+                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.06)', color: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,0,0,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
                           Single-source international report
                         </span>
                       )}

@@ -62,7 +62,7 @@ export default async function LandingPage() {
               backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0f1e] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#ffffff] pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl mx-auto text-center">
             <p className="text-[11px] font-bold tracking-[0.2em] text-[#3b82f6] uppercase mb-4">
@@ -93,7 +93,7 @@ export default async function LandingPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
 
           {/* Start here — orientation for first-time visitors */}
-          <div className="rounded-2xl px-6 py-6 sm:px-8 mb-8" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="rounded-2xl px-6 py-6 sm:px-8 mb-8" style={{ background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.07)' }}>
             <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-3 text-muted-foreground">👋 New here? Start here</span>
             <ol className="space-y-3">
               {[
@@ -102,7 +102,7 @@ export default async function LandingPage() {
                 { n: '3', t: 'See how it’s made', d: <>The whole pipeline is public — <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground underline underline-offset-2">how it works</Link>, from broad intake to finished digest.</> },
               ].map(s => (
                 <li key={s.n} className="flex gap-3">
-                  <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 mt-0.5 rounded-full bg-[#3b82f6] text-foreground text-[10px] font-bold">{s.n}</span>
+                  <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 mt-0.5 rounded-full bg-[#3b82f6] text-white text-[10px] font-bold">{s.n}</span>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{s.t}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{s.d}</p>
@@ -127,7 +127,7 @@ export default async function LandingPage() {
           {/* What you get */}
           <div
             className="relative rounded-2xl overflow-hidden mb-8"
-            style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+            style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
           >
             <div
               className="absolute inset-0 pointer-events-none"
@@ -146,7 +146,7 @@ export default async function LandingPage() {
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-6">Built for readers who want more than headlines</h2>
               <ul className="space-y-4">
                 {FEATURES.map(f => (
-                  <li key={f.label} className="flex gap-3 rounded-xl px-3 py-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #14b8a6' }}>
+                  <li key={f.label} className="flex gap-3 rounded-xl px-3 py-3" style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.05)', borderLeft: '3px solid #14b8a6' }}>
                     <span className="text-lg shrink-0 mt-0.5">{f.icon}</span>
                     <div>
                       <p className="text-sm font-semibold text-foreground">{f.label}</p>
@@ -161,7 +161,7 @@ export default async function LandingPage() {
           {/* Final CTA */}
           <div
             className="relative rounded-2xl overflow-hidden mb-16"
-            style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+            style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
           >
             <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
             <div className="relative z-10 px-6 py-10 sm:px-8 text-center">
