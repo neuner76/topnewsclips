@@ -47,6 +47,12 @@ describe('selectGovernmentEvents', () => {
   it('falls back to the bare meeting when no items were extracted', () => {
     expect(selectGovernmentEvents([], [meeting], 6)).toEqual([meeting])
   })
+
+  it('excludes items already surfaced elsewhere (e.g. lifted into the Blindspot)', () => {
+    const items = [ev('big', 0.98), ev('c', 0.7), ev('a', 0.6)]
+    const out = selectGovernmentEvents(items, [meeting], 6, new Set(['big']))
+    expect(out.map(e => e.id)).toEqual(['c', 'a']) // 'big' lifted to the Blindspot, not repeated here
+  })
 })
 
 describe('assembleMyLocalDigest', () => {

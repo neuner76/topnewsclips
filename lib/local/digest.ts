@@ -29,15 +29,19 @@ export const GOVERNMENT_MAX = 6
 
 // Your Government section: when the agenda's consequential items were extracted,
 // show the top `limit` by consequence and drop the bare "agenda published" meeting
-// entry (redundant — every item links to the agenda). Only fall back to the bare
-// meetings when nothing could be extracted (no API key / fetch failed).
+// entry (redundant — every item links to the agenda). `excludeIds` drops items
+// already surfaced elsewhere (the Blindspot lifts major uncovered items out, so
+// they aren't shown twice). Only fall back to the bare meetings when nothing could
+// be extracted (no API key / fetch failed).
 export function selectGovernmentEvents(
   agendaItems: LocalEvent[],
   meetings: LocalEvent[],
   limit: number,
+  excludeIds: Set<string> = new Set(),
 ): LocalEvent[] {
-  if (agendaItems.length === 0) return meetings
-  return [...agendaItems].sort((a, b) => b.consequenceScore - a.consequenceScore).slice(0, limit)
+  const items = agendaItems.filter(e => !excludeIds.has(e.id))
+  if (items.length === 0) return meetings
+  return [...items].sort((a, b) => b.consequenceScore - a.consequenceScore).slice(0, limit)
 }
 
 const UA = 'TopNewsClipsLocal/1.0 (neuner@gmail.com)'
@@ -204,11 +208,6 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     ? (await safe(() => buildAgendaItemEvents(agendas, apiKey))) ?? []
     : []
 
-  // Your Government: the consequential extracted decisions, ranked and capped.
-  // The bare "agenda published" meeting entry is only a fallback when nothing
-  // could be extracted (no API key / fetch failed).
-  const government = selectGovernmentEvents(agendaItems, agendas ?? [], GOVERNMENT_MAX)
-
   // Local journalism (Build C). Local Reporting shows directly-fetchable outlets
   // (real links); the Blindspot's coverage check also queries the Marin IJ via
   // Google News, so "no coverage" reflects the county daily, not just the weeklies.
@@ -230,6 +229,14 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     ...b.event,
     whyItMatters: `${b.event.whatChanged ? b.event.whatChanged + ' · ' : ''}${b.localMediaOutlets === 0 ? `Not found in the local outlets we track (${outletsChecked}).` : `Covered by only ${b.localMediaOutlets} of the local outlets we track (${outletsChecked}).`}`,
   }))
+
+  // Your Government: the consequential extracted decisions, ranked and capped —
+  // EXCLUDING anything the Blindspot already surfaced, so the two sections never
+  // repeat the same item. Falls back to the bare meeting only when nothing was
+  // extracted (no API key / fetch failed).
+  const government = selectGovernmentEvents(
+    agendaItems, agendas ?? [], GOVERNMENT_MAX, new Set(blindspots.map(b => b.id)),
+  )
 
   // Honest sections only — never fabricated data. A section with no live source
   // yet (Need To Know alerts, Roads & Incidents) is marked "coming soon" and shown
