@@ -2,11 +2,15 @@ name: Daily Ingest
 
 on:
   schedule:
+    # Single daily ingest — it feeds the morning email. A former midday run
+    # ('13 16') was removed: the digest gate is state-based, so once the morning
+    # edition exists the midday run never emailed — it only re-ran the full LLM
+    # ingest (classify + summarize + QC) at cost, refreshing the live site in the
+    # afternoon. The watchdog still recovers a missing/inadequate morning edition.
     - cron: '40 10 * * *'  # 10:40 UTC (3:40am PDT) — morning run. Off the top of the
                            # hour on purpose: '0 11' is a peak GitHub cron slot and
                            # was being queued ~4.5h (email landed ~8:48am PDT). An odd
                            # minute typically drops the scheduling lag to minutes.
-    - cron: '13 16 * * *'  # 4:13pm UTC (12:13pm EDT) — midday run (already odd-minute)
   workflow_dispatch:        # manual trigger from GitHub UI
 
 jobs:
