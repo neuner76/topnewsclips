@@ -26,7 +26,7 @@ export const VARIANT_CONFIG: Record<SectionVariant, {
   icon: string
   size: 'lg' | 'sm'
 }> = {
-  'need-to-know':  { accent: '#3b82f6',  icon: '📌', size: 'lg' },
+  'need-to-know':  { accent: '#2563EB',  icon: '📌', size: 'lg' },
   'in-the-know':   { accent: '#14b8a6',  icon: '🔍', size: 'lg' },
   'mainstream':    { accent: '#94a3b8',  icon: '📺', size: 'lg' },
   'limited':       { accent: '#ef4444',  icon: '⚠️', size: 'lg' },

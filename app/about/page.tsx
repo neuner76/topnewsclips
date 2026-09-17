@@ -28,7 +28,7 @@ export default function AboutPage() {
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
-        <div className="mb-10 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
+        <div className="mb-10 border-b-2 border-[#2563EB] pb-6">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2 text-foreground">About</h1>
           <p className="text-sm text-muted-foreground">
             The full picture, not the profitable picture.
@@ -82,7 +82,7 @@ export default function AboutPage() {
             <p className="mt-3">
               The site is self-funded. There are no investors, advertisers, or institutional backers.
               Revenue comes from voluntary subscriptions. Eric can be reached at{' '}
-              <a href="mailto:eric@topnewsclips.com" className="text-[oklch(0.52_0.14_196)] hover:underline">
+              <a href="mailto:eric@topnewsclips.com" className="text-[#2563EB] hover:underline">
                 eric@topnewsclips.com
               </a>
               .
@@ -99,10 +99,10 @@ export default function AboutPage() {
               source labels and coverage counts.
             </p>
             <div className="mt-3 flex flex-wrap gap-4 text-sm">
-              <Link href="/how-it-works" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+              <Link href="/how-it-works" className="font-semibold text-[#2563EB] hover:underline">
                 See the full process →
               </Link>
-              <Link href="/how-it-works#selection" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+              <Link href="/how-it-works#selection" className="font-semibold text-[#2563EB] hover:underline">
                 What qualifies a story →
               </Link>
             </div>
@@ -139,7 +139,7 @@ export default function AboutPage() {
             </p>
             <Link
               href="/corrections"
-              className="inline-block mt-3 text-sm font-semibold text-[oklch(0.52_0.14_196)] hover:underline"
+              className="inline-block mt-3 text-sm font-semibold text-[#2563EB] hover:underline"
             >
               Submit a correction →
             </Link>
@@ -157,7 +157,7 @@ export default function AboutPage() {
                 { href: '/corrections', label: 'Corrections', desc: 'How to report an error' },
               ].map(({ href, label, desc }) => (
                 <li key={href} className="flex gap-3 items-baseline">
-                  <Link href={href} className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline shrink-0">
+                  <Link href={href} className="font-semibold text-[#2563EB] hover:underline shrink-0">
                     {label}
                   </Link>
                   <span className="text-muted-foreground"> {desc}</span>

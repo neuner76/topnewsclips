@@ -102,7 +102,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
   }
 
   return (
-    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}>
+    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}>
       <TrackEvent name="feed_section_impression" properties={{ section: 'Global Lens', story_count: displayItems.length }} />
       {validationFailures.map(failure => (
         <TrackEvent key={failure.slug} name="feed_global_lens_validation_failed" properties={{ story_slug: failure.slug, section: 'Global Lens', validation_reason: failure.reason }} />
@@ -113,12 +113,12 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse at 65% 45%, rgba(59,130,246,0.18) 0%, transparent 60%),
-            radial-gradient(ellipse at 25% 75%, rgba(59,130,246,0.07) 0%, transparent 50%),
-            linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px),
-            linear-gradient(rgba(59,130,246,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.02) 1px, transparent 1px)
+            radial-gradient(ellipse at 65% 45%, rgba(37,99,235,0.06) 0%, transparent 60%),
+            radial-gradient(ellipse at 25% 75%, rgba(37,99,235,0.02) 0%, transparent 50%),
+            linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(rgba(37,99,235,0.006) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.006) 1px, transparent 1px)
           `,
           backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}
@@ -127,13 +127,13 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
         <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffffcc] to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-transparent to-transparent" />
       </div>
-      <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#3b82f6' }} />
+      <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#2563EB' }} />
 
       <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
 
         {/* Header */}
         <div className="mb-6">
-          <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: '#3b82f6' }}>
+          <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: '#2563EB' }}>
             🌐 Global Lens
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
@@ -159,7 +159,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
-                  style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}
+                  style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
                 >
                   <div className="relative aspect-video bg-muted overflow-hidden">
                     {thumb ? (
@@ -168,7 +168,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                       <div className="w-full h-full flex items-center justify-center"><span className="text-muted-foreground text-3xl">📰</span></div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-[#ffffff66] to-transparent" />
-                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(59,130,246,0.8)', color: 'white' }}>
+                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: '#2563EB', color: 'white' }}>
                       {regionFlag(region)} {region}
                     </span>
                   </div>
@@ -203,12 +203,12 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex gap-3 items-start rounded-xl p-3 transition-all"
-                  style={{ borderLeft: '3px solid #3b82f6', background: 'rgba(0,0,0,0.03)', marginBottom: '6px' }}
+                  style={{ borderLeft: '3px solid #2563EB', background: '#ffffff', marginBottom: '6px' }}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                       <span className="text-sm">{regionFlag(region)}</span>
-                      <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: '#3b82f6' }}>{region}</span>
+                      <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: '#2563EB' }}>{region}</span>
                     </div>
                     <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{title}</h3>
                     {summary && <p className="text-sm text-muted-foreground mt-0.5 line-clamp-3 leading-relaxed mb-2">{summary}</p>}
@@ -229,7 +229,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
         )}
 
         <div className="mt-5">
-          <Link href="/stories?filter=global" className="text-sm font-semibold transition-opacity hover:opacity-80" style={{ color: '#3b82f6' }}>
+          <Link href="/stories?filter=global" className="text-sm font-semibold transition-opacity hover:opacity-80" style={{ color: '#2563EB' }}>
             See all global coverage →
           </Link>
         </div>

@@ -22,7 +22,7 @@ export default async function PreferencesPage({
     <>
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
-        <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
+        <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             Top News Clips
           </p>

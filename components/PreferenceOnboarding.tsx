@@ -44,7 +44,7 @@ function Pill({
       onClick={onClick}
       className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
         selected
-          ? 'border-[#3b82f6] bg-[#3b82f6]/15 text-foreground'
+          ? 'border-[#2563EB] bg-[#2563EB]/15 text-foreground'
           : 'border-border bg-muted text-muted-foreground hover:border-foreground/30 hover:text-foreground'
       }`}
     >
@@ -269,7 +269,7 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
                 }
               }}
               placeholder="AI chips, private equity, local policing..."
-              className="min-w-0 flex-1 rounded-lg border border-border bg-white px-3 py-2 text-sm text-[#111827] placeholder:text-[#6b7280] outline-none focus:border-[#3b82f6]"
+              className="min-w-0 flex-1 rounded-lg border border-border bg-white px-3 py-2 text-sm text-[#111827] placeholder:text-[#6b7280] outline-none focus:border-[#2563EB]"
               maxLength={80}
             />
             <button
@@ -291,7 +291,7 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
                   key={keyword}
                   type="button"
                   onClick={() => setKeywords(items => items.filter(item => item !== keyword))}
-                  className="rounded-full border border-[#3b82f6]/40 bg-[#3b82f6]/15 px-3 py-1 text-xs font-semibold text-foreground hover:border-[#3b82f6]"
+                  className="rounded-full border border-[#2563EB]/40 bg-[#2563EB]/15 px-3 py-1 text-xs font-semibold text-foreground hover:border-[#2563EB]"
                   title="Remove interest"
                 >
                   {keyword} x
@@ -312,7 +312,7 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
                 type="button"
                 onClick={() => setFormatPreference(value)}
                 className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold capitalize ${
-                  formatPreference === value ? 'bg-[#3b82f6] text-white' : 'text-muted-foreground hover:text-foreground'
+                  formatPreference === value ? 'bg-[#2563EB] text-white' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {value}
@@ -331,7 +331,7 @@ export default function PreferenceOnboarding({ token }: PreferenceOnboardingProp
           type="button"
           onClick={() => save(false)}
           disabled={status === 'loading'}
-          className="rounded-lg bg-[#3b82f6] px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+          className="rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-85 disabled:opacity-50"
         >
           {status === 'loading' ? 'Saving...' : 'Save preferences'}
         </button>

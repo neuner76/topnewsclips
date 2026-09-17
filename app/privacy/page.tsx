@@ -26,7 +26,7 @@ export default function PrivacyPage() {
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
-        <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
+        <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Privacy
@@ -59,7 +59,7 @@ export default function PrivacyPage() {
               third parties for marketing purposes.
             </p>
             <p className="mt-3">
-              Emails are sent via <a href="https://resend.com" className="text-[oklch(0.52_0.14_196)] underline underline-offset-2">Resend</a>.
+              Emails are sent via <a href="https://resend.com" className="text-[#2563EB] underline underline-offset-2">Resend</a>.
               Your email address is stored securely in our database.
             </p>
           </section>
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
                 { name: 'Resend', purpose: 'Email delivery' },
               ].map(({ name, purpose }) => (
                 <li key={name} className="flex gap-2">
-                  <span className="text-[oklch(0.52_0.14_196)] shrink-0">›</span>
+                  <span className="text-[#2563EB] shrink-0">›</span>
                   <span><strong className="text-foreground">{name}</strong>, {purpose}</span>
                 </li>
               ))}
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-black tracking-tight uppercase mb-3 text-foreground">Contact</h2>
             <p>
               Questions about this policy?{' '}
-              <Link href="/contact" className="text-[oklch(0.52_0.14_196)] underline underline-offset-2">Contact us</Link>.
+              <Link href="/contact" className="text-[#2563EB] underline underline-offset-2">Contact us</Link>.
             </p>
           </section>
 

@@ -216,7 +216,7 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Hero card */}
         <div
-          className="relative rounded-2xl overflow-hidden mb-6"
+          className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-6"
           style={{ background: '#ffffff', minHeight: 300 }}
         >
           {/* CSS globe grid */}
@@ -224,11 +224,11 @@ export default async function StoryPage({ params }: Props) {
             className="absolute inset-0 pointer-events-none"
             style={{
               backgroundImage: `
-                radial-gradient(ellipse at 70% 50%, rgba(59,130,246,0.12) 0%, transparent 65%),
-                linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px),
-                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)
+                radial-gradient(ellipse at 70% 50%, rgba(37,99,235,0.04) 0%, transparent 65%),
+                linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
+                linear-gradient(rgba(37,99,235,0.008) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,99,235,0.008) 1px, transparent 1px)
               `,
               backgroundSize: '100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
             }}
@@ -254,7 +254,7 @@ export default async function StoryPage({ params }: Props) {
 
             {/* Archived banner */}
             {!s.published && (
-              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-muted-foreground" style={{ background: 'rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.1)' }}>
+              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-muted-foreground" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.1)' }}>
                 Archived story, cycled out of the daily feed.{' '}
                 <Link href="/" className="font-semibold text-foreground hover:underline underline-offset-2">See today&apos;s stories →</Link>
               </div>
@@ -287,8 +287,8 @@ export default async function StoryPage({ params }: Props) {
         )}
 
         {/* Source Video */}
-        <SectionCard accent="#3b82f6" className="mb-4">
-          <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#3b82f6] mb-3">📹 Source Video</p>
+        <SectionCard accent="#2563EB" className="mb-4">
+          <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#2563EB] mb-3">📹 Source Video</p>
           <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
         </SectionCard>
 
@@ -345,11 +345,11 @@ export default async function StoryPage({ params }: Props) {
             )}
             {s.verified_interpretation.interpretation.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold tracking-widest text-[#3b82f6] uppercase mb-2">~ Interpretation</p>
+                <p className="text-[10px] font-bold tracking-widest text-[#2563EB] uppercase mb-2">~ Interpretation</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.interpretation.map((claim, i) => (
                     <li key={i} className="flex gap-2 text-sm text-muted-foreground">
-                      <span className="text-[#3b82f6] shrink-0">~</span>
+                      <span className="text-[#2563EB] shrink-0">~</span>
                       <span>{claim}</span>
                     </li>
                   ))}

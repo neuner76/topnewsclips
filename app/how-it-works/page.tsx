@@ -87,7 +87,7 @@ export default function HowItWorksPage() {
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
-        <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
+        <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}How It Works
@@ -110,7 +110,7 @@ export default function HowItWorksPage() {
           <ol className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-1.5 text-sm">
             {['Pull broadly', 'Filter noise', 'Classify sources', 'Measure coverage', 'Challenge and summarize'].map((label, i) => (
               <li key={label} className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 rounded-full bg-[oklch(0.52_0.14_196)] text-foreground text-[10px] font-bold">{i + 1}</span>
+                <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 rounded-full bg-[#2563EB] text-foreground text-[10px] font-bold">{i + 1}</span>
                 <span className="font-semibold text-muted-foreground">{label}</span>
                 {i < 4 && <span className="hidden sm:inline text-muted-foreground ml-1.5">→</span>}
               </li>
@@ -143,7 +143,7 @@ export default function HowItWorksPage() {
                 <p className="mt-3 text-sm text-muted-foreground italic">{note}</p>
               )}
               {link && (
-                <Link href={link.href} className="inline-block mt-3 text-sm font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+                <Link href={link.href} className="inline-block mt-3 text-sm font-semibold text-[#2563EB] hover:underline">
                   {link.label}
                 </Link>
               )}
@@ -198,7 +198,7 @@ export default function HowItWorksPage() {
         </div>
 
         {/* How Stories Are Selected */}
-        <div id="selection" className="mt-12 border-t-2 border-[oklch(0.52_0.14_196)] pt-8">
+        <div id="selection" className="mt-12 border-t-2 border-[#2563EB] pt-8">
           <h2 className="text-xl font-black tracking-tight mb-2 text-foreground">How Stories Are Selected</h2>
           <p className="text-sm text-muted-foreground mb-6">
             A story qualifies for the daily briefing when it meets at least one of these criteria.
@@ -231,7 +231,7 @@ export default function HowItWorksPage() {
               },
             ].map(({ label, body }) => (
               <div key={label} className="flex gap-3">
-                <span className="shrink-0 text-[oklch(0.52_0.14_196)] font-bold mt-0.5"></span>
+                <span className="shrink-0 text-[#2563EB] font-bold mt-0.5"></span>
                 <p>
                   <span className="font-semibold text-foreground">{label}</span>
                   {' '}
@@ -259,13 +259,13 @@ export default function HowItWorksPage() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-4 text-sm">
-          <Link href="/trust" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+          <Link href="/trust" className="font-semibold text-[#2563EB] hover:underline">
             Why trust this →
           </Link>
-          <Link href="/taxonomy" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+          <Link href="/taxonomy" className="font-semibold text-[#2563EB] hover:underline">
             Source taxonomy →
           </Link>
-          <Link href="/faq" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+          <Link href="/faq" className="font-semibold text-[#2563EB] hover:underline">
             FAQ →
           </Link>
         </div>

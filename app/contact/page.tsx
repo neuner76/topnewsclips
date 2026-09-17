@@ -26,7 +26,7 @@ export default function ContactPage() {
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
-        <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
+        <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Contact
@@ -58,7 +58,7 @@ export default function ContactPage() {
               },
             ].map(({ label, body, email }) => (
               <div key={label} className="p-5 border border-border bg-muted rounded-lg">
-                <p className="text-xs font-bold tracking-widest text-[oklch(0.52_0.14_196)] uppercase mb-1">{label}</p>
+                <p className="text-xs font-bold tracking-widest text-[#2563EB] uppercase mb-1">{label}</p>
                 <p className="text-sm text-muted-foreground mb-3">{body}</p>
                 <a
                   href={`mailto:${email}`}

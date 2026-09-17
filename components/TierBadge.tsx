@@ -36,24 +36,24 @@ const BAND_STYLES: Record<Band, {
 }> = {
   high: {
     bar: 'bg-slate-300 h-4',
-    bg: 'rgba(226,232,240,0.1)',
-    border: 'rgba(226,232,240,0.2)',
-    labelColor: '#e2e8f0',
-    tierColor: 'rgba(226,232,240,0.5)',
+    bg: 'rgba(226,232,240,0.45)',
+    border: '#D8E0EA',
+    labelColor: '#334155',
+    tierColor: '#64748b',
   },
   mid: {
     bar: 'bg-slate-500 h-3.5',
-    bg: 'rgba(148,163,184,0.08)',
-    border: 'rgba(148,163,184,0.2)',
-    labelColor: '#94a3b8',
-    tierColor: 'rgba(148,163,184,0.5)',
+    bg: 'rgba(148,163,184,0.12)',
+    border: '#D8E0EA',
+    labelColor: '#475569',
+    tierColor: '#64748b',
   },
   low: {
     bar: 'bg-slate-600 h-3',
-    bg: 'rgba(100,116,139,0.06)',
-    border: 'rgba(100,116,139,0.18)',
-    labelColor: '#64748b',
-    tierColor: 'rgba(100,116,139,0.5)',
+    bg: 'rgba(100,116,139,0.1)',
+    border: '#D8E0EA',
+    labelColor: '#475569',
+    tierColor: '#64748b',
   },
 }
 

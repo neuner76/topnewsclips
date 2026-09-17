@@ -28,7 +28,7 @@ export default function HeroStory({ story }: HeroStoryProps) {
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden mb-6"
+      className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-6"
       style={{ background: '#ffffff', minHeight: 340 }}
     >
       {/* CSS globe grid background, renders instantly */}
@@ -36,11 +36,11 @@ export default function HeroStory({ story }: HeroStoryProps) {
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse at 70% 50%, rgba(59,130,246,0.12) 0%, transparent 65%),
-            linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px),
-            linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)
+            radial-gradient(ellipse at 70% 50%, rgba(37,99,235,0.04) 0%, transparent 65%),
+            linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(rgba(37,99,235,0.008) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.008) 1px, transparent 1px)
           `,
           backgroundSize: '100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}
@@ -92,7 +92,7 @@ export default function HeroStory({ story }: HeroStoryProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto text-sm font-semibold px-5 py-2.5 rounded-xl transition-opacity hover:opacity-80"
-            style={{ background: '#3b82f6', color: 'white' }}
+            style={{ background: '#2563EB', color: 'white' }}
           >
             Full story →
           </Link>

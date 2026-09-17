@@ -78,7 +78,7 @@ export default function SubmitForm() {
           onChange={e => setChannelUrl(e.target.value)}
           placeholder="https://www.youtube.com/@channelname"
           required
-          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
+          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[#2563EB]"
         />
         <p className="text-xs text-muted-foreground mt-1">YouTube channel, website, or social profile URL.</p>
       </div>
@@ -95,7 +95,7 @@ export default function SubmitForm() {
           minLength={10}
           maxLength={500}
           rows={3}
-          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[oklch(0.52_0.14_196)] resize-none"
+          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[#2563EB] resize-none"
         />
         <p className="text-xs text-muted-foreground mt-1 text-right">{reason.length}/500</p>
       </div>
@@ -107,7 +107,7 @@ export default function SubmitForm() {
         <select
           value={suggestedTier}
           onChange={e => setSuggestedTier(e.target.value)}
-          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-white text-slate-950 focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
+          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-white text-slate-950 focus:outline-none focus:border-[#2563EB]"
         >
           <option value=""> Not sure</option>
           {TIERS.map(t => (
@@ -128,7 +128,7 @@ export default function SubmitForm() {
           value={email}
           onChange={e => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
+          className="w-full text-sm px-3 py-2.5 rounded border border-border bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[#2563EB]"
         />
         <p className="text-xs text-muted-foreground mt-1">
           We&apos;ll notify you when your submission is reviewed. Not shared or used for anything else.
@@ -142,7 +142,7 @@ export default function SubmitForm() {
       <button
         type="submit"
         disabled={status === 'loading'}
-        className="w-full sm:w-auto text-sm font-semibold px-6 py-2.5 rounded bg-[oklch(0.52_0.14_196)] text-foreground hover:opacity-80 transition-opacity disabled:opacity-50"
+        className="w-full sm:w-auto text-sm font-semibold px-6 py-2.5 rounded bg-[#2563EB] text-foreground hover:opacity-80 transition-opacity disabled:opacity-50"
       >
         {status === 'loading' ? 'Submitting…' : 'Submit recommendation'}
       </button>

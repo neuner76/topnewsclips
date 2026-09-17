@@ -21,7 +21,7 @@ function SectionDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 my-8">
       <div className="flex-1 border-t border-border" />
-      <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0">
+      <span className="text-[10px] font-bold tracking-widest text-[#475569] uppercase shrink-0">
         {label}
       </span>
       <div className="flex-1 border-t border-border" />
@@ -42,7 +42,7 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
       <div className="space-y-4">
         {item.paragraphs.slice(0, 2).map((p, i) => (
           <div key={i}>
-            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">
+            <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase mb-1">
               {PARA_LABELS[i]}
             </p>
             <p className="text-sm leading-relaxed text-foreground/90">{p}</p>
@@ -51,12 +51,12 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
       </div>
       {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
         <div className="mt-4 pl-3 border-l-2 border-border space-y-2">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase">
             World view
           </p>
           {item.howWorldSeesIt.map((w, i) => (
             <div key={i} className="flex gap-2.5 items-start">
-              <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 pt-0.5 w-20">
+              <span className="text-[10px] font-bold tracking-widest text-[#475569] uppercase shrink-0 pt-0.5 w-20">
                 {w.region}
               </span>
               <a
@@ -71,7 +71,7 @@ function NeedToKnowStory({ item }: { item: NeedToKnowItem }) {
       )}
       <Link
         href={`/story/${item.slug}`}
-        className="inline-block mt-3 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-block mt-3 text-xs font-bold text-[#2563EB] hover:underline underline-offset-2 transition-colors"
       >
         Full story →
       </Link>
@@ -96,7 +96,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
     <div>
       {/* Masthead */}
       <div className="mb-8 border-b-2 border-foreground pb-4">
-        <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+        <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase mb-2">
           {formatDate(date)}
         </p>
         <p className="text-3xl sm:text-4xl font-black tracking-tight">TopNewsClips Daily</p>
@@ -107,7 +107,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
 
       {/* Need To Know */}
       <section>
-        <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-6">
+        <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase mb-6">
           Need To Know
         </p>
         {content.needToKnow.map((item) => (
@@ -128,7 +128,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
           if (!items.length) return null
           return (
             <div key={name}>
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-3">
+              <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase mb-3">
                 {name}
               </p>
               <ul className="divide-y divide-border/50">
@@ -181,7 +181,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
               {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => (
                 <li key={i} className="flex gap-3 items-baseline py-1.5 border-b border-border/50 last:border-0">
                   <div className="shrink-0 w-24">
-                    <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block">
+                    <span className="text-[10px] font-bold tracking-widest text-[#475569] uppercase block">
                       {item.source}
                     </span>
                     <span className="text-[9px] text-muted-foreground/60 leading-none">{item.descriptor}</span>
@@ -215,7 +215,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
             <div className="space-y-4">
               {content.globalBlindspots.slice(0, DIGEST_SECTION_LIMITS['Global Blindspot']).map((item: GlobalBlindspotItem) => (
                 <div key={item.slug} className="border-b border-border/50 pb-4 last:border-0 last:pb-0">
-                  <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block mb-1">
+                  <span className="text-[10px] font-bold tracking-widest text-[#475569] uppercase block mb-1">
                     {item.region}
                   </span>
                   <Link
@@ -245,7 +245,7 @@ export function DigestDisplay({ content, date }: { content: DigestContent; date:
             <div className="space-y-4">
               {content.globalLens.slice(0, DIGEST_SECTION_LIMITS['Global Lens']).map((item: GlobalLensItem) => (
                 <div key={item.slug} className="border-b border-border/50 pb-4 last:border-0 last:pb-0">
-                  <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase block mb-1">
+                  <span className="text-[10px] font-bold tracking-widest text-[#475569] uppercase block mb-1">
                     {item.region}
                   </span>
                   <Link

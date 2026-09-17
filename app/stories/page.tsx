@@ -114,7 +114,7 @@ export default async function StoriesPage({
                 href={categoryUrl(c.value)}
                 className={`text-xs font-semibold px-3 py-1.5 rounded border transition-colors ${
                   active
-                    ? 'bg-[oklch(0.52_0.14_196)] text-foreground border-[oklch(0.52_0.14_196)]'
+                    ? 'bg-[#2563EB] text-foreground border-[#2563EB]'
                     : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
                 }`}
               >

@@ -39,7 +39,7 @@ export default function Header() {
             <Link
               href="/"
               className="text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-              style={{ background: '#3b82f6' }}
+              style={{ background: '#2563EB' }}
             >
               Get the digest
             </Link>

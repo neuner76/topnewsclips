@@ -96,7 +96,7 @@ export default function FAQPage() {
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
-        <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
+        <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}FAQ
@@ -115,16 +115,16 @@ export default function FAQPage() {
         </dl>
 
         <div className="mt-10 flex flex-wrap gap-4 text-sm border-t border-border pt-6">
-          <Link href="/how-it-works" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+          <Link href="/how-it-works" className="font-semibold text-[#2563EB] hover:underline">
             How it works →
           </Link>
-          <Link href="/trust" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+          <Link href="/trust" className="font-semibold text-[#2563EB] hover:underline">
             Why trust this →
           </Link>
-          <Link href="/taxonomy" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+          <Link href="/taxonomy" className="font-semibold text-[#2563EB] hover:underline">
             Source taxonomy →
           </Link>
-          <Link href="/corrections" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+          <Link href="/corrections" className="font-semibold text-[#2563EB] hover:underline">
             Submit a correction →
           </Link>
         </div>

@@ -114,7 +114,7 @@ export default async function RecommendASourcePage() {
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
-        <div className="mb-10 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
+        <div className="mb-10 border-b-2 border-[#2563EB] pb-6">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Recommend a Source
@@ -147,7 +147,7 @@ export default async function RecommendASourcePage() {
             <div className="space-y-4">
               {CRITERIA.map(({ label, body }, i) => (
                 <div key={label} className="flex gap-4">
-                  <span className="text-[oklch(0.52_0.14_196)] font-black text-lg leading-snug shrink-0 w-5 text-right">
+                  <span className="text-[#2563EB] font-black text-lg leading-snug shrink-0 w-5 text-right">
                     {i + 1}.
                   </span>
                   <div>

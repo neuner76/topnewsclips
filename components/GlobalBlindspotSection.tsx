@@ -49,7 +49,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
   if (!stories.length) return null
 
   return (
-    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid rgba(0,0,0,0.07)' }}>
+    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: 'var(--navy-950)', border: '1px solid #D8E0EA' }}>
       <TrackEvent name="feed_section_impression" properties={{ section: 'Global Blindspot', story_count: stories.length }} />
 
       {/* CSS globe grid */}
@@ -59,10 +59,10 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
           backgroundImage: `
             radial-gradient(ellipse at 65% 45%, rgba(249,115,22,0.15) 0%, transparent 60%),
             radial-gradient(ellipse at 25% 75%, rgba(249,115,22,0.06) 0%, transparent 50%),
-            linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px),
-            linear-gradient(rgba(59,130,246,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.02) 1px, transparent 1px)
+            linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(rgba(37,99,235,0.006) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.006) 1px, transparent 1px)
           `,
           backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}
@@ -102,7 +102,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
-                  style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}
+                  style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
                 >
                   <div className="relative aspect-video bg-muted overflow-hidden">
                     {thumb ? (
@@ -130,7 +130,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                         Under-reported
                       </span>
                       {isSingleSourceReport(story) && (
-                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.06)', color: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,0,0,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
+                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: '#ffffff', color: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,0,0,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
                           Single-source international report
                         </span>
                       )}
@@ -152,7 +152,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex gap-3 items-start rounded-xl p-3 transition-all"
-                  style={{ borderLeft: '3px solid var(--blindspot-orange)', background: 'rgba(0,0,0,0.03)', marginBottom: '6px' }}
+                  style={{ borderLeft: '3px solid var(--blindspot-orange)', background: '#ffffff', marginBottom: '6px' }}
                 >
                   <div className="flex-1 min-w-0">
                     {story.region && (
@@ -172,7 +172,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                         Under-reported
                       </span>
                       {isSingleSourceReport(story) && (
-                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.06)', color: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,0,0,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
+                        <span className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded" style={{ background: '#ffffff', color: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,0,0,0.15)' }} title="Only one outlet has covered this so far — treat details as preliminary">
                           Single-source international report
                         </span>
                       )}

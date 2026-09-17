@@ -53,7 +53,7 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
       {canNativeShare && (
         <button
           onClick={handleNativeShare}
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded border border-[oklch(0.52_0.14_196)] text-[oklch(0.52_0.14_196)] hover:bg-[oklch(0.96_0.02_196)] transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded border border-[#2563EB] text-[#2563EB] hover:bg-[oklch(0.96_0.02_196)] transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />

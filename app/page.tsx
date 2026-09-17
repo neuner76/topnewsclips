@@ -52,12 +52,12 @@ export default async function LandingPage() {
             className="absolute inset-0 pointer-events-none"
             style={{
               backgroundImage: `
-                radial-gradient(ellipse at 60% 40%, rgba(59,130,246,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at 60% 40%, rgba(37,99,235,0.06) 0%, transparent 60%),
                 radial-gradient(ellipse at 20% 80%, rgba(249,115,22,0.08) 0%, transparent 50%),
-                linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px),
-                linear-gradient(rgba(59,130,246,0.025) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59,130,246,0.025) 1px, transparent 1px)
+                linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
+                linear-gradient(rgba(37,99,235,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,99,235,0.015) 1px, transparent 1px)
               `,
               backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
             }}
@@ -65,12 +65,12 @@ export default async function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#ffffff] pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl mx-auto text-center">
-            <p className="text-[11px] font-bold tracking-[0.2em] text-[#3b82f6] uppercase mb-4">
+            <p className="text-[11px] font-bold tracking-[0.2em] text-[#2563EB] uppercase mb-4">
               Free Daily Briefing
             </p>
             <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-foreground mb-6">
               The full picture,<br />
-              <span style={{ color: '#3b82f6' }}>not the profitable one.</span>
+              <span style={{ color: '#2563EB' }}>not the profitable one.</span>
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-lg mx-auto leading-relaxed">
               Every source labeled by source tier. International context every morning. Undercovered stories surfaced daily, with preferences you can tune after subscribing.
@@ -93,7 +93,7 @@ export default async function LandingPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
 
           {/* Start here — orientation for first-time visitors */}
-          <div className="rounded-2xl px-6 py-6 sm:px-8 mb-8" style={{ background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.07)' }}>
+          <div className="rounded-2xl px-6 py-6 sm:px-8 mb-8" style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}>
             <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-3 text-muted-foreground">👋 New here? Start here</span>
             <ol className="space-y-3">
               {[
@@ -102,7 +102,7 @@ export default async function LandingPage() {
                 { n: '3', t: 'See how it’s made', d: <>The whole pipeline is public — <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground underline underline-offset-2">how it works</Link>, from broad intake to finished digest.</> },
               ].map(s => (
                 <li key={s.n} className="flex gap-3">
-                  <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 mt-0.5 rounded-full bg-[#3b82f6] text-white text-[10px] font-bold">{s.n}</span>
+                  <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 mt-0.5 rounded-full bg-[#2563EB] text-white text-[10px] font-bold">{s.n}</span>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{s.t}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{s.d}</p>
@@ -117,7 +117,7 @@ export default async function LandingPage() {
             <WorldMapSection
               title="Need To Know"
               icon="📌"
-              accent="#3b82f6"
+              accent="#2563EB"
               subtitle="Today's most important stories"
               stories={needToKnowStories}
               seeAllHref="/feed"
@@ -126,16 +126,16 @@ export default async function LandingPage() {
 
           {/* What you get */}
           <div
-            className="relative rounded-2xl overflow-hidden mb-8"
-            style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
+            className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-8"
+            style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
           >
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
                 backgroundImage: `
                   radial-gradient(ellipse at 70% 40%, rgba(20,184,166,0.12) 0%, transparent 60%),
-                  linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px)
+                  linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px)
                 `,
                 backgroundSize: '100% 100%, 48px 48px, 48px 48px',
               }}
@@ -146,7 +146,7 @@ export default async function LandingPage() {
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-6">Built for readers who want more than headlines</h2>
               <ul className="space-y-4">
                 {FEATURES.map(f => (
-                  <li key={f.label} className="flex gap-3 rounded-xl px-3 py-3" style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.05)', borderLeft: '3px solid #14b8a6' }}>
+                  <li key={f.label} className="flex gap-3 rounded-xl px-3 py-3" style={{ background: '#ffffff', border: '1px solid #D8E0EA', borderLeft: '3px solid #14b8a6' }}>
                     <span className="text-lg shrink-0 mt-0.5">{f.icon}</span>
                     <div>
                       <p className="text-sm font-semibold text-foreground">{f.label}</p>
@@ -161,7 +161,7 @@ export default async function LandingPage() {
           {/* Final CTA */}
           <div
             className="relative rounded-2xl overflow-hidden mb-16"
-            style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
+            style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
           >
             <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#f97316' }} />
             <div className="relative z-10 px-6 py-10 sm:px-8 text-center">

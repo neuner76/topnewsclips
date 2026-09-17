@@ -45,7 +45,7 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
   if (status === 'success') {
     return (
       <div className="mt-3">
-        <p className="text-xs font-medium text-[oklch(0.52_0.14_196)]">
+        <p className="text-xs font-medium text-[#2563EB]">
           ✓ You&apos;re in, check your inbox.
         </p>
         <Link
@@ -68,12 +68,12 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
           onChange={e => setEmail(e.target.value)}
           onFocus={handleFocus}
           required
-          className="flex-1 text-sm px-3 py-2 rounded border border-border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[oklch(0.52_0.14_196)] min-w-0"
+          className="flex-1 text-sm px-3 py-2 rounded border border-border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] min-w-0"
         />
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="text-sm font-semibold px-4 py-2 rounded bg-[oklch(0.52_0.14_196)] text-foreground hover:opacity-80 transition-opacity shrink-0 disabled:opacity-50"
+          className="text-sm font-semibold px-4 py-2 rounded bg-[#2563EB] text-foreground hover:opacity-80 transition-opacity shrink-0 disabled:opacity-50"
         >
           {status === 'loading' ? '...' : 'Get the digest'}
         </button>

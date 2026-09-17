@@ -106,9 +106,9 @@ export default function WorldMapSection({
   const displayStories = orderedStories(title, stories)
   return (
     <section
-      className="relative rounded-2xl overflow-hidden mb-8"
+      className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-8"
       data-map-mode={mapMode}
-      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
+      style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
     >
       <TrackEvent name="feed_section_impression" properties={{ section: title, story_count: displayStories.length }} />
       {/* CSS globe grid */}
@@ -118,10 +118,10 @@ export default function WorldMapSection({
           backgroundImage: `
             radial-gradient(ellipse at 70% 40%, ${accent}18 0%, transparent 60%),
             radial-gradient(ellipse at 20% 80%, ${accent}08 0%, transparent 50%),
-            linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px),
-            linear-gradient(rgba(59,130,246,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.02) 1px, transparent 1px)
+            linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(rgba(37,99,235,0.006) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.006) 1px, transparent 1px)
           `,
           backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}
@@ -187,7 +187,7 @@ export default function WorldMapSection({
                         treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact',
                       }}
                       className="group flex gap-3 items-center rounded-xl overflow-hidden p-2.5 transition-transform hover:-translate-y-0.5"
-                      style={{ background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(0,0,0,0.05)' }}
+                      style={{ background: 'rgba(0,0,0,0.72)', border: '1px solid #D8E0EA' }}
                     >
                       <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
                       {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}
@@ -308,7 +308,7 @@ export default function WorldMapSection({
                         treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact',
                       }}
                       className="group flex gap-3 items-start rounded-xl px-3 py-2 transition-all"
-                      style={{ borderLeft: '3px solid #64748b', background: 'rgba(0,0,0,0.018)', marginBottom: '6px' }}
+                      style={{ borderLeft: '3px solid #64748b', background: '#ffffff', marginBottom: '6px' }}
                     >
                       <TrackEvent name="feed_story_rendered_compact" properties={{ story_slug: story.slug, section: title, position: index + 1, treatment: zeroCoverage ? 'zero_coverage_compact' : 'compact' }} />
                       {zeroCoverage && <TrackEvent name="feed_zero_coverage_story_impression" properties={{ story_slug: story.slug, section: title, position: index + 1, coverage_count: 0, coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: sourceType, source_tier: tier, confidence, treatment: 'compact' }} />}

@@ -77,7 +77,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
   const emergingSignal = story ? isLimitedSourceNeedToKnow(story, 'Need To Know') : false
   const treatment = emergingSignal ? 'emerging_signal' : 'standard'
   return (
-    <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)', borderLeft: '3px solid #3b82f6' }}>
+    <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: '#ffffff', border: '1px solid #D8E0EA', borderLeft: '3px solid #2563EB' }}>
       {emergingSignal && story && (
         <TrackEvent name="feed_emerging_signal_impression" properties={{ story_slug: story.slug, section: 'Need To Know', position, coverage_count: coverageCount(story), coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: badge?.sourceType, source_tier: badge?.tier, confidence, treatment }} />
       )}
@@ -120,7 +120,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
       <div className="space-y-4">
         {item.paragraphs.slice(0, 2).map((p, i) => (
           <div key={i}>
-            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">
+            <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase mb-1">
               {PARA_LABELS[i]}
             </p>
             <p className="editorial-body text-muted-foreground">{displaySummary(p, i === 0 ? 65 : 55)}</p>
@@ -149,19 +149,19 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
           is_lower_confidence: false,
           treatment,
         }}
-        className="inline-block mt-4 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-block mt-4 text-xs font-bold text-[#2563EB] hover:underline underline-offset-2 transition-colors"
       >
         Full story →
       </FeedStoryLink>
       {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
         <div className="mt-5 pt-4 border-t border-border">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-3">
+          <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase mb-3">
             World view
           </p>
           <div className="space-y-2">
             {item.howWorldSeesIt.slice(0, 2).map((w: HowWorldSeesItItem, i: number) => (
               <div key={i} className="flex gap-2.5 items-start">
-                <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0 pt-0.5 w-20">
+                <span className="text-[10px] font-bold tracking-widest text-[#475569] uppercase shrink-0 pt-0.5 w-20">
                   {w.region}
                 </span>
                 <Link
@@ -183,7 +183,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
 
 // Per-category config for In The Know
 const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string; subtitle: string }> = {
-  'Politics & World Affairs':        { color: '#3b82f6', icon: '🌐', subtitle: 'What\'s moving in politics and around the world' },
+  'Politics & World Affairs':        { color: '#2563EB', icon: '🌐', subtitle: 'What\'s moving in politics and around the world' },
   'Science, Health & Environment':   { color: '#a855f7', icon: '🔬', subtitle: 'Science, health, climate, and environmental shifts' },
   'Business & Markets':              { color: '#22c55e', icon: '📈', subtitle: 'Economic signals, market moves, and industry shifts' },
   'Culture, Media & Society':        { color: '#f97316', icon: '🎭', subtitle: 'Culture, media, sports, and social stories people are talking about' },
@@ -201,7 +201,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
   })
   const categoryBlocks = CANONICAL_IN_THE_KNOW_SECTIONS.map(({ name, sourceKeys }) => {
     const items = sourceKeys.flatMap(key => content.inTheKnow[key] ?? [])
-    const cfg = ITK_CATEGORY_CONFIG[name] ?? { color: '#3b82f6', icon: '📌', subtitle: '' }
+    const cfg = ITK_CATEGORY_CONFIG[name] ?? { color: '#2563EB', icon: '📌', subtitle: '' }
     const stories = items
       .filter(item => item.slug)
       .map(item => storyMap.get(item.slug!))
@@ -234,7 +234,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Need To Know */}
       <WorldMapSection
-        title="Need To Know" icon="📌" accent="#3b82f6" mapMode="hero"
+        title="Need To Know" icon="📌" accent="#2563EB" mapMode="hero"
         subtitle="The stories that matter most today, verified, sourced, in context"
         stories={[]}
         footer={
@@ -275,7 +275,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Etcetera */}
       {etceteraItems.length > 0 && (
-        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}>
+        <div className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-8" style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}>
           <TrackEvent name="feed_section_impression" properties={{ section: 'Also Worth Knowing', story_count: Math.min(etceteraItems.length, 3) }} />
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#64748b' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
@@ -290,7 +290,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               const reassigned = story ? reassignedEtcetera.find(reassignedItem => reassignedItem.slug === story.slug) : null
               const text = <span className="text-[0.84rem] leading-relaxed text-muted-foreground">{displaySummary(etc.text, 34)}</span>
               return (
-                <li key={i} className="flex flex-col gap-1 px-3 py-2.5 rounded-xl mb-2 last:mb-0" style={{ background: 'rgba(0,0,0,0.018)', border: '1px solid rgba(0,0,0,0.045)', borderLeft: '3px solid #64748b' }}>
+                <li key={i} className="flex flex-col gap-1 px-3 py-2.5 rounded-xl mb-2 last:mb-0" style={{ background: '#ffffff', border: '1px solid #D8E0EA', borderLeft: '3px solid #64748b' }}>
                   {reassigned && story && (
                     <TrackEvent name="feed_story_reassigned_section" properties={{ story_slug: story.slug, original_section: reassigned.originalSection, final_section: 'Also Worth Knowing', treatment: 'weak_singleton' }} />
                   )}
@@ -329,7 +329,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Mainstream Pulse */}
       {content.mainstreamPulse && content.mainstreamPulse.length > 0 && (
-        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}>
+        <div className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-8" style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}>
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#94a3b8' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#94a3b8]">📺 Mainstream Pulse</span>
@@ -343,7 +343,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
             {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => {
               const standardizedDescriptor = getOutletDescriptor(item.source)
               return (
-              <li key={i} className="group flex gap-3 items-start py-2.5 px-3 rounded-xl mb-2 last:mb-0 transition-colors" style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.05)', borderLeft: '3px solid #94a3b8' }}>
+              <li key={i} className="group flex gap-3 items-start py-2.5 px-3 rounded-xl mb-2 last:mb-0 transition-colors" style={{ background: '#ffffff', border: '1px solid #D8E0EA', borderLeft: '3px solid #94a3b8' }}>
                 <div className="shrink-0 w-20 pt-0.5">
                   <span className="text-[11px] font-bold text-muted-foreground block leading-tight">{item.source}</span>
                   <span className="text-[9px] text-muted-foreground leading-none italic" title={item.descriptor}>{standardizedDescriptor}</span>
@@ -399,13 +399,13 @@ const LANE_CONFIG: Record<string, { accent: string; icon: string; mapMode: 'hero
   'Verified Reporting':  { accent: '#22c55e', icon: '✅', mapMode: 'hero' },
   'Context / Analysis':  { accent: '#f59e0b', icon: '🧠', mapMode: 'hero' },
   'Raw Footage':         { accent: '#94a3b8', icon: '📹', mapMode: 'hero' },
-  'More Clips':          { accent: '#3b82f6', icon: '📡', mapMode: 'hero' },
+  'More Clips':          { accent: '#2563EB', icon: '📡', mapMode: 'hero' },
   'Limited Coverage':    { accent: '#ef4444', icon: '⚠️', mapMode: 'blindspot' },
 }
 
 function Lane({ title, subtitle, categorySlug, stories }: LaneProps) {
   if (stories.length === 0) return null
-  const cfg = LANE_CONFIG[title] ?? { accent: '#3b82f6', icon: '📌', mapMode: 'hero' as const }
+  const cfg = LANE_CONFIG[title] ?? { accent: '#2563EB', icon: '📌', mapMode: 'hero' as const }
 
   return (
     <WorldMapSection
@@ -525,20 +525,20 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-[780px] mx-auto px-4 sm:px-6 py-8">
 
         {/* Hero + email capture — Clips view only; the Digest view jumps straight into headlines */}
         {activeView !== 'digest' && <EmailCaptureInline placement="hero" />}
 
         {/* Tab switcher */}
         {digest && (
-          <div className="flex rounded-xl overflow-hidden mb-6" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)' }}>
+          <div className="flex rounded-xl overflow-hidden mb-6" style={{ background: '#ffffff', border: '1px solid #EFF6FF' }}>
             <Link
               href="/feed"
               className={`flex-1 text-center px-4 py-3 transition-all ${
                 activeView === 'digest' ? 'text-foreground' : 'text-muted-foreground hover:text-muted-foreground'
               }`}
-              style={activeView === 'digest' ? { background: 'rgba(59,130,246,0.15)', borderBottom: '2px solid #3b82f6' } : {}}
+              style={activeView === 'digest' ? { background: '#EFF6FF', borderBottom: '2px solid #2563EB' } : {}}
             >
               <div className="text-sm font-bold">📋 Digest</div>
               <div className="text-[10px] text-muted-foreground mt-0.5">Read the day</div>
@@ -548,7 +548,7 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
               className={`flex-1 text-center px-4 py-3 transition-all border-l border-border ${
                 activeView === 'clips' ? 'text-foreground' : 'text-muted-foreground hover:text-muted-foreground'
               }`}
-              style={activeView === 'clips' ? { background: 'rgba(59,130,246,0.15)', borderBottom: '2px solid #3b82f6' } : {}}
+              style={activeView === 'clips' ? { background: '#EFF6FF', borderBottom: '2px solid #2563EB' } : {}}
             >
               <div className="text-sm font-bold">🎬 Clips</div>
               <div className="text-[10px] text-muted-foreground mt-0.5">Scan the signal</div>
@@ -566,21 +566,21 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
             {/* Clips hero */}
             <div
               className="relative rounded-2xl overflow-hidden mb-6 px-6 py-10 sm:px-10 sm:py-12"
-              style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
+              style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
             >
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   backgroundImage: `
-                    radial-gradient(ellipse at 70% 40%, rgba(59,130,246,0.14) 0%, transparent 60%),
-                    linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px)
+                    radial-gradient(ellipse at 70% 40%, rgba(37,99,235,0.05) 0%, transparent 60%),
+                    linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px)
                   `,
                   backgroundSize: '100% 100%, 48px 48px, 48px 48px',
                 }}
               />
               <div className="relative z-10 max-w-lg">
-                <p className="text-[11px] font-bold tracking-[0.2em] text-[#3b82f6] uppercase mb-3">
+                <p className="text-[11px] font-bold tracking-[0.2em] text-[#2563EB] uppercase mb-3">
                   🎬 Clips
                 </p>
                 <h2 className="text-3xl sm:text-4xl font-black text-foreground leading-tight mb-3">
@@ -621,7 +621,7 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
                 <div
                   key={title}
                   className="rounded-xl px-4 py-4"
-                  style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
+                  style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
                 >
                   <div className="text-xl mb-2">{icon}</div>
                   <p className="text-sm font-bold text-foreground mb-1">{title}</p>

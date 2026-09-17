@@ -80,7 +80,7 @@ export default function TrustPage() {
       <Header />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
-        <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
+        <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
           <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Why Trust This
@@ -115,11 +115,11 @@ export default function TrustPage() {
             <h2 className="text-lg font-black tracking-tight uppercase mb-6 text-foreground">What earns trust here</h2>
             <div className="space-y-6">
               {TRUST_POINTS.map(({ title, body, link }) => (
-                <div key={title} className="border-l-2 border-[oklch(0.52_0.14_196)] pl-4">
+                <div key={title} className="border-l-2 border-[#2563EB] pl-4">
                   <p className="font-bold mb-1 text-foreground">{title}</p>
                   <p className="text-muted-foreground text-sm">{body}</p>
                   {link && (
-                    <Link href={link.href} className="inline-block mt-2 text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+                    <Link href={link.href} className="inline-block mt-2 text-xs font-semibold text-[#2563EB] hover:underline">
                       {link.label}
                     </Link>
                   )}
@@ -142,13 +142,13 @@ export default function TrustPage() {
           </section>
 
           <div className="flex flex-wrap gap-4 text-sm pt-4 border-t border-border">
-            <Link href="/how-it-works" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+            <Link href="/how-it-works" className="font-semibold text-[#2563EB] hover:underline">
               See how it works →
             </Link>
-            <Link href="/taxonomy" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+            <Link href="/taxonomy" className="font-semibold text-[#2563EB] hover:underline">
               Source taxonomy →
             </Link>
-            <Link href="/corrections" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+            <Link href="/corrections" className="font-semibold text-[#2563EB] hover:underline">
               Submit a correction →
             </Link>
           </div>

@@ -95,11 +95,11 @@ export default async function SearchPage({
                 placeholder="Search stories, topics, journalists..."
                 autoFocus
                 autoComplete="off"
-                className="flex-1 text-base px-4 py-2.5 rounded-lg border border-border bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[oklch(0.52_0.14_196)] focus:ring-1 focus:ring-[oklch(0.52_0.14_196)]"
+                className="flex-1 text-base px-4 py-2.5 rounded-lg border border-border bg-white text-slate-950 placeholder:text-slate-500 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-lg bg-[oklch(0.52_0.14_196)] text-foreground text-sm font-semibold hover:opacity-80 transition-opacity shrink-0"
+                className="px-5 py-2.5 rounded-lg bg-[#2563EB] text-foreground text-sm font-semibold hover:opacity-80 transition-opacity shrink-0"
               >
                 Search
               </button>

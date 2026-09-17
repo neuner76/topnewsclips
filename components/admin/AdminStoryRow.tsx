@@ -96,7 +96,7 @@ export default function AdminStoryRow({ story, isReview = false }: { story: Stor
             <span className="ml-2 font-medium">@{story.journalist_username}</span>
           )}
           {story.region && (
-            <span className="ml-2 font-medium text-[oklch(0.52_0.14_196)]">{story.region}</span>
+            <span className="ml-2 font-medium text-[#2563EB]">{story.region}</span>
           )}
           {story.pinned && (
             <span className="ml-2 font-semibold text-foreground">PINNED</span>
@@ -176,7 +176,7 @@ export default function AdminStoryRow({ story, isReview = false }: { story: Stor
             <button
               onClick={handleRewrite}
               disabled={rewriting}
-              className="text-xs font-medium text-[oklch(0.52_0.14_196)] hover:underline transition-colors disabled:opacity-50"
+              className="text-xs font-medium text-[#2563EB] hover:underline transition-colors disabled:opacity-50"
             >
               {rewriting ? '...' : 'Rewrite'}
             </button>

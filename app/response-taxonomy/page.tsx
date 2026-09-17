@@ -110,7 +110,7 @@ export default function ResponseTaxonomyPage() {
             stories do not receive response prompts by default.
           </p>
           <p className="mt-4 text-sm">
-            <Link href="/trust" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+            <Link href="/trust" className="font-semibold text-[#2563EB] hover:underline">
               Read more about trust and methodology →
             </Link>
           </p>

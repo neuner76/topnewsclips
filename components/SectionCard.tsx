@@ -13,18 +13,18 @@ export default function SectionCard({ accent, children, className = '' }: Sectio
   return (
     <div
       className={`relative rounded-2xl overflow-hidden mb-8 dark ${className}`}
-      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
+      style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
     >
       {/* CSS globe grid, longitude/latitude lines as instant background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse at 60% 50%, rgba(59,130,246,0.06) 0%, transparent 70%),
-            linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px),
-            linear-gradient(rgba(59,130,246,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.02) 1px, transparent 1px)
+            radial-gradient(ellipse at 60% 50%, rgba(37,99,235,0.02) 0%, transparent 70%),
+            linear-gradient(rgba(37,99,235,0.015) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.015) 1px, transparent 1px),
+            linear-gradient(rgba(37,99,235,0.006) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.006) 1px, transparent 1px)
           `,
           backgroundSize: '100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}

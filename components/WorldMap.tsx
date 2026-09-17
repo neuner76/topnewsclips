@@ -114,7 +114,7 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
               key={city.name}
               cx={0} cy={0}
               r={r}
-              fill={isBlindspot ? 'rgba(59,130,246,0.8)' : '#3b82f6'}
+              fill={isBlindspot ? 'rgba(59,130,246,0.8)' : '#2563EB'}
               opacity={opacity}
               transform={`translate(${toX(city.coords[0])}, ${toY(city.coords[1])})`}
             />

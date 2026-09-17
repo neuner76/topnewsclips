@@ -181,11 +181,11 @@ export default async function PipelinePage() {
                     {reason ? (
                       <span className="line-clamp-2">{reason}</span>
                     ) : decision === 'hold' ? (
-                      <a href="/admin/qc-holds" className="text-[oklch(0.52_0.14_196)] hover:underline">
+                      <a href="/admin/qc-holds" className="text-[#2563EB] hover:underline">
                         Review in QC Holds →
                       </a>
                     ) : decision === 'published' ? (
-                      <a href={`/story/${c.slug}`} className="text-[oklch(0.52_0.14_196)] hover:underline" target="_blank" rel="noopener noreferrer">
+                      <a href={`/story/${c.slug}`} className="text-[#2563EB] hover:underline" target="_blank" rel="noopener noreferrer">
                         View story →
                       </a>
                     ) : null}

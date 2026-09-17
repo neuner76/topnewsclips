@@ -122,7 +122,7 @@ function EmbedFallback({ url }: { url: string }) {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-sm font-semibold text-[oklch(0.52_0.14_196)] hover:underline"
+        className="text-sm font-semibold text-[#2563EB] hover:underline"
       >
         Watch on YouTube →
       </a>

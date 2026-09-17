@@ -88,7 +88,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
   return (
     <article
       className="group relative flex flex-col rounded-xl overflow-hidden transition-transform hover:-translate-y-0.5"
-      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}
+      style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
     >
       {/* Image */}
       <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block relative aspect-video bg-muted overflow-hidden">
