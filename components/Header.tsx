@@ -2,13 +2,13 @@ import Link from 'next/link'
 
 export default function Header() {
   return (
-    <header className="border-b border-border bg-background sticky top-0 z-50" style={{ backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.85)' }}>
+    <header className="border-b border-[#E2E8F0] bg-background sticky top-0 z-50" style={{ backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.85)' }}>
       <div className="max-w-5xl mx-auto pl-2 pr-3 sm:px-6">
         <div className="flex items-center justify-between h-14">
 
           {/* Logo → landing page */}
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="font-black text-sm sm:text-xl tracking-tight text-foreground">
+            <span className="font-black text-sm sm:text-xl tracking-tight text-[#0F172A]">
               TOP NEWS CLIPS
             </span>
           </Link>
@@ -38,8 +38,7 @@ export default function Header() {
             </Link>
             <Link
               href="/"
-              className="text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-              style={{ background: '#2563EB' }}
+              className="text-white text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 transition-colors"
             >
               Get the digest
             </Link>

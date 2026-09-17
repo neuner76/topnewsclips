@@ -52,12 +52,12 @@ export default async function LandingPage() {
             className="absolute inset-0 pointer-events-none"
             style={{
               backgroundImage: `
-                radial-gradient(ellipse at 60% 40%, rgba(37,99,235,0.06) 0%, transparent 60%),
-                radial-gradient(ellipse at 20% 80%, rgba(249,115,22,0.08) 0%, transparent 50%),
-                linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
-                linear-gradient(rgba(37,99,235,0.015) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(37,99,235,0.015) 1px, transparent 1px)
+                radial-gradient(ellipse at 60% 40%, rgba(37,99,235,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(251,146,60,0.035) 0%, transparent 50%),
+                linear-gradient(rgba(37,99,235,0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,99,235,0.012) 1px, transparent 1px),
+                linear-gradient(rgba(37,99,235,0.008) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,99,235,0.008) 1px, transparent 1px)
               `,
               backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
             }}
@@ -65,26 +65,26 @@ export default async function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#ffffff] pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl mx-auto text-center">
-            <p className="text-[11px] font-bold tracking-[0.2em] text-[#2563EB] uppercase mb-4">
+            <p className="text-[11px] font-bold tracking-[0.2em] text-[#1D4ED8] uppercase mb-4">
               Free Daily Briefing
             </p>
-            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-foreground mb-6">
+            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-[#0F172A] mb-6">
               The full picture,<br />
               <span style={{ color: '#2563EB' }}>not the profitable one.</span>
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-lg mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-[#475569] mb-8 max-w-lg mx-auto leading-relaxed">
               Every source labeled by source tier. International context every morning. Undercovered stories surfaced daily, with preferences you can tune after subscribing.
             </p>
             <div className="max-w-sm mx-auto mb-3">
               <EmailCaptureInline placement="landing-hero" />
             </div>
-            <p className="text-xs text-muted-foreground mb-5">
+            <p className="text-xs text-[#64748B] mb-5">
               Not ready to sign up?{' '}
-              <Link href="/digest" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+              <Link href="/digest" className="text-[#334155] hover:text-[#2563EB] underline underline-offset-2 transition-colors">
                 See a sample issue
               </Link>{' '}first.
             </p>
-            <Link href="/feed" className="text-sm text-muted-foreground hover:text-muted-foreground transition-colors">
+            <Link href="/feed" className="text-sm font-medium text-[#334155] hover:text-[#2563EB] transition-colors">
               Browse today&apos;s feed without subscribing →
             </Link>
           </div>
@@ -134,8 +134,8 @@ export default async function LandingPage() {
               style={{
                 backgroundImage: `
                   radial-gradient(ellipse at 70% 40%, rgba(20,184,166,0.12) 0%, transparent 60%),
-                  linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px)
+                  linear-gradient(rgba(37,99,235,0.012) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(37,99,235,0.012) 1px, transparent 1px)
                 `,
                 backgroundSize: '100% 100%, 48px 48px, 48px 48px',
               }}

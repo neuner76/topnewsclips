@@ -68,17 +68,17 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
           onChange={e => setEmail(e.target.value)}
           onFocus={handleFocus}
           required
-          className="flex-1 text-sm px-3 py-2 rounded border border-border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] min-w-0"
+          className="flex-1 text-sm px-3 py-2 rounded border border-[#CBD5E1] bg-white text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 min-w-0"
         />
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="text-sm font-semibold px-4 py-2 rounded bg-[#2563EB] text-foreground hover:opacity-80 transition-opacity shrink-0 disabled:opacity-50"
+          className="text-sm font-semibold px-4 py-2 rounded bg-[#2563EB] text-white hover:bg-[#1D4ED8] focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 transition-colors shrink-0 disabled:opacity-50"
         >
           {status === 'loading' ? '...' : 'Get the digest'}
         </button>
       </form>
-      <p className="text-[11px] text-muted-foreground mt-1.5">Free. No spam. Unsubscribe anytime.</p>
+      <p className="text-[11px] text-[#64748B] mt-1.5">Free. No spam. Unsubscribe anytime.</p>
       {status === 'error' && (
         <p className="text-xs text-red-500 mt-1">Something went wrong, try again.</p>
       )}
