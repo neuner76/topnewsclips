@@ -57,6 +57,18 @@ describe('live QC content checks (Section 2)', () => {
     expect(ids(failures)).not.toContain('region_consistency')
   })
 
+  it('does not flag a continent-level story that names its own region (Europe flooding)', () => {
+    // Previously a false positive: "europe" was not a place token, so the tag had
+    // no anchor and a bled token from an adjacent card could trip the check.
+    const { failures } = run('Global Lens Europe Flash floods strike Europe as heavy rains trigger water rescues 5 of 15 outlets Reported')
+    expect(ids(failures)).not.toContain('region_consistency')
+  })
+
+  it('does not flag a US analysis about the Middle East tagged Middle East', () => {
+    const { failures } = run('Global Lens Middle East bin Laden expected the United States to leave the Middle East 5 of 15 outlets Analysis')
+    expect(ids(failures)).not.toContain('region_consistency')
+  })
+
   it('warns when a governance/regulation story renders in Science (UK platform ban in Science)', () => {
     const { warnings } = run('Science, Health & Environment UK parliament moves to ban under-16s from social media platforms 2 of 15 outlets Reported')
     expect(ids(warnings)).toContain('section_fit')

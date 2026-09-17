@@ -238,7 +238,13 @@ export function runContentChecks(html, text, path) {
   for (const c of cards) {
     const tags = regionTagsInText(c.text)
     if (tags.size === 0) continue
-    const placeRegions = namedPlaceRegions(c.text)
+    // Strip the region-tag CHROME (its first occurrence — the badge that precedes
+    // the headline) before scanning for named places. Continent names are place
+    // tokens now, so without this the label would always self-agree and the check
+    // could never fire. Legit in-body mentions (e.g. "...strike Europe") survive.
+    let body = c.text
+    for (const t of tags) body = body.replace(t, ' ')
+    const placeRegions = namedPlaceRegions(body)
     if (placeRegions.size === 0) continue
     const agrees = [...tags].some(t => placeRegions.has(t))
     if (!agrees) {
