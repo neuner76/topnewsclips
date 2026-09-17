@@ -52,7 +52,7 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-semibold text-muted-foreground" htmlFor="reader-question">
+      <label className="block text-sm font-semibold text-[#334155]" htmlFor="reader-question">
         What do you still want to understand?
       </label>
       <textarea
@@ -60,14 +60,14 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
         value={question}
         onChange={e => setQuestion(e.target.value.slice(0, 500))}
         placeholder="What is still unclear?"
-        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
+        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#0F172A] placeholder:text-[#94A3B8] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
         rows={3}
       />
       <input
         value={email}
         onChange={e => setEmail(e.target.value)}
         placeholder="Email optional"
-        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
+        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#0F172A] placeholder:text-[#94A3B8] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
       />
       <input
         value={website}
@@ -86,7 +86,7 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
         >
           {status === 'submitting' ? 'Submitting...' : 'Submit question'}
         </button>
-        <span className="text-[11px] text-muted-foreground">Questions are reviewed before any public use.</span>
+        <span className="text-[11px] text-[#64748B]">Questions are reviewed before any public use.</span>
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>

@@ -7,13 +7,14 @@ interface SectionCardProps {
   accent: string
   children: React.ReactNode
   className?: string
+  tint?: string // optional card background tint (default white)
 }
 
-export default function SectionCard({ accent, children, className = '' }: SectionCardProps) {
+export default function SectionCard({ accent, children, className = '', tint = '#ffffff' }: SectionCardProps) {
   return (
     <div
-      className={`relative rounded-2xl overflow-hidden mb-8 dark ${className}`}
-      style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
+      className={`relative rounded-2xl overflow-hidden mb-8 ${className}`}
+      style={{ background: tint, border: '1px solid #D8E0EA' }}
     >
       {/* CSS globe grid, longitude/latitude lines as instant background */}
       <div
@@ -30,8 +31,6 @@ export default function SectionCard({ accent, children, className = '' }: Sectio
         }}
       />
 
-      {/* Fade edges so grid doesn't fight content */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#ffffffbb] via-transparent to-[#ffffff88]" />
 
       {/* Colored top accent bar */}
       <div

@@ -57,8 +57,8 @@ function YouTubeEmbed({ videoId, embedUrl, title }: { videoId: string; embedUrl:
 
   return (
     <div className={isShort
-      ? "relative mx-auto rounded overflow-hidden bg-zinc-100 w-full max-w-[340px] aspect-[9/16]"
-      : "relative w-full aspect-video rounded overflow-hidden bg-zinc-100"
+      ? "relative mx-auto rounded-xl overflow-hidden bg-zinc-100 w-full max-w-[340px] aspect-[9/16]"
+      : "relative w-full aspect-video rounded-xl overflow-hidden bg-zinc-100"
     }>
       <iframe
         ref={iframeRef}

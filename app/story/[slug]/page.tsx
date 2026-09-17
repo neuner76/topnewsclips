@@ -237,14 +237,14 @@ export default async function StoryPage({ params }: Props) {
           {/* Thumbnail right half */}
           {thumbnail && (
             <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden sm:block">
-              <Image src={thumbnail} alt={s.title} fill className="object-cover opacity-35" unoptimized />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff55] to-transparent" />
+              <Image src={thumbnail} alt={s.title} fill className="object-cover opacity-70" unoptimized />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff22] to-transparent" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff66] via-transparent to-transparent pointer-events-none" />
 
           {/* Content */}
-          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 max-w-xl">
+          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 max-w-lg">
             {/* Badges */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <PlatformBadge platform={s.platform} />
@@ -265,7 +265,7 @@ export default async function StoryPage({ params }: Props) {
 
             {/* Description */}
             {s.description && (
-              <p className="text-sm text-muted-foreground line-clamp-3 mb-5 leading-relaxed">{s.description}</p>
+              <p className="text-[15px] text-[#475569] line-clamp-3 mb-5 leading-relaxed">{s.description}</p>
             )}
 
             {/* Tier meter + share */}
@@ -288,20 +288,20 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Source Video */}
         <SectionCard accent="#2563EB" className="mb-4">
-          <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#2563EB] mb-3">📹 Source Video</p>
+          <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1D4ED8] mb-3">📹 Source Video</p>
           <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
         </SectionCard>
 
         {/* What we know / What remains unclear — major stories only (Phase 3) */}
         {((s.what_we_know && s.what_we_know.length > 0) || (s.what_remains_unclear && s.what_remains_unclear.length > 0)) && (
-          <SectionCard accent="#22c55e" className="mb-4">
+          <SectionCard accent="#16A34A" className="mb-4" tint="#F8FCFA">
             {s.what_we_know && s.what_we_know.length > 0 && (
               <div className="mb-4">
-                <p className="text-[10px] font-bold tracking-widest text-[#22c55e] uppercase mb-2">What we know</p>
+                <p className="text-[11px] font-bold tracking-widest text-[#15803D] uppercase mb-2">What we know</p>
                 <ul className="space-y-1.5">
                   {s.what_we_know.map((fact, i) => (
                     <li key={i} className="flex gap-2 text-sm text-muted-foreground">
-                      <span className="text-[#22c55e] shrink-0">✓</span>
+                      <span className="text-[#16A34A] shrink-0">✓</span>
                       <span>{fact}</span>
                     </li>
                   ))}
@@ -326,17 +326,20 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Verified vs Interpretation */}
         {s.verified_interpretation && (s.verified_interpretation.verified.length > 0 || s.verified_interpretation.interpretation.length > 0) && (
-          <SectionCard accent="#22c55e" className="mb-4">
+          <SectionCard accent="#16A34A" className="mb-4" tint="#F8FCFA">
             {s.verified_interpretation.headerNote && (
-              <p className="text-xs text-[#f59e0b] mb-3">{s.verified_interpretation.headerNote}</p>
+              <div className="mb-4">
+                <p className="text-[11px] font-bold tracking-widest text-[#EA580C] uppercase mb-1">Editorial note</p>
+                <p className="text-sm text-[#475569] leading-relaxed">{s.verified_interpretation.headerNote}</p>
+              </div>
             )}
             {s.verified_interpretation.verified.length > 0 && (
               <div className="mb-4">
-                <p className="text-[10px] font-bold tracking-widest text-[#22c55e] uppercase mb-2">✓ Verified</p>
+                <p className="text-[11px] font-bold tracking-widest text-[#15803D] uppercase mb-2">✓ Verified</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.verified.map((claim, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
-                      <span className="text-[#22c55e] shrink-0">✓</span>
+                    <li key={i} className="flex gap-2 text-sm leading-relaxed text-[#334155]">
+                      <span className="text-[#16A34A] shrink-0">✓</span>
                       <span>{claim}</span>
                     </li>
                   ))}
@@ -345,10 +348,10 @@ export default async function StoryPage({ params }: Props) {
             )}
             {s.verified_interpretation.interpretation.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold tracking-widest text-[#2563EB] uppercase mb-2">~ Interpretation</p>
+                <p className="text-[11px] font-bold tracking-widest text-[#2563EB] uppercase mb-2">~ Interpretation</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.interpretation.map((claim, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+                    <li key={i} className="flex gap-2 text-sm leading-relaxed text-[#475569]">
                       <span className="text-[#2563EB] shrink-0">~</span>
                       <span>{claim}</span>
                     </li>
@@ -409,8 +412,8 @@ export default async function StoryPage({ params }: Props) {
         {/* Why This Is Here */}
         <SectionCard accent="#94a3b8" className="mb-4">
           <details className="group">
-            <summary className="cursor-pointer list-none flex items-center justify-between gap-2 rounded-lg bg-[#F8FAFC] px-3 py-2 text-[11px] font-bold tracking-[0.12em] text-[#475569] uppercase select-none hover:text-[#334155] transition-colors">
-              <span>Why this is here</span>
+            <summary className="cursor-pointer list-none flex items-center justify-between gap-2 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-[11px] font-bold tracking-[0.12em] text-[#334155] uppercase select-none hover:bg-[#F1F5F9] transition-colors">
+              <span>Why we included this story</span>
               <span className="text-[#64748B] text-sm leading-none">
                 <span className="group-open:hidden">▾</span>
                 <span className="hidden group-open:inline">▴</span>
@@ -471,9 +474,9 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Subscribe nudge */}
         {s.published && (
-          <SectionCard accent="#14b8a6" className="mb-4">
-            <p className="text-sm font-semibold text-foreground mb-1">Get stories like this every morning.</p>
-            <p className="text-xs text-muted-foreground mb-3">Free daily briefing, 5 minutes, no spin.</p>
+          <SectionCard accent="#2563EB" className="mb-4" tint="#F8FAFF">
+            <p className="text-lg font-bold text-[#111827] mb-1">Get stories like this every morning.</p>
+            <p className="text-sm text-[#475569] mb-4">Free daily briefing, 5 minutes, no spin.</p>
             <EmailCaptureInline placement="story" />
           </SectionCard>
         )}
