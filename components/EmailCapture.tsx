@@ -37,17 +37,17 @@ export default function EmailCapture() {
   }
 
   return (
-    <section id="subscribe" className="bg-foreground text-background rounded-lg px-6 py-8 sm:px-10 sm:py-10 my-12">
+    <section id="subscribe" className="bg-[#F8FAFC] border border-[#D8E0EA] text-foreground rounded-lg px-6 py-8 sm:px-10 sm:py-10 my-12">
       <div className="max-w-xl mx-auto text-center">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-2 text-[#111827]">
           Get the full picture in 5 minutes.
         </h2>
-        <p className="text-sm text-background/70 mb-6">
+        <p className="text-sm text-[#64748B] mb-6">
           Every source labeled. Every story in context. No spin, no outrage.
         </p>
 
         {status === 'success' ? (
-          <p className="text-sm font-medium text-background/90 bg-background/10 rounded px-4 py-3">
+          <p className="text-sm font-medium text-foreground bg-white border border-[#D8E0EA] rounded px-4 py-3">
             {message}
           </p>
         ) : (
@@ -59,22 +59,22 @@ export default function EmailCapture() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-white border-border text-slate-950 placeholder:text-slate-500 focus-visible:ring-ring"
+                className="bg-white border-[#CBD5E1] text-slate-950 placeholder:text-slate-500 focus-visible:ring-ring"
               />
               <Button
                 type="submit"
                 disabled={status === 'loading'}
-                className="bg-background text-foreground hover:bg-background/90 font-semibold shrink-0"
+                className="bg-[#2563EB] text-white hover:bg-[#1d4ed8] font-semibold shrink-0"
               >
                 {status === 'loading' ? '...' : 'Get the digest'}
               </Button>
             </form>
-            <p className="text-xs text-background/50 mt-2 text-center">Free. No spam. Unsubscribe anytime.</p>
+            <p className="text-xs text-[#64748B] mt-2 text-center">Free. No spam. Unsubscribe anytime.</p>
           </>
         )}
 
         {status === 'error' && (
-          <p className="text-xs text-background/60 mt-2">{message}</p>
+          <p className="text-xs text-red-600 mt-2">{message}</p>
         )}
       </div>
     </section>

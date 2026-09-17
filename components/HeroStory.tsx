@@ -53,18 +53,18 @@ export default function HeroStory({ story }: HeroStoryProps) {
             src={thumbnail}
             alt={story.title}
             fill
-            className="object-cover opacity-40"
+            className="object-cover opacity-75"
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff55] to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff33] to-transparent" />
         </div>
       )}
 
       {/* Bottom fade for legibility */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff66] via-transparent to-transparent pointer-events-none" />
 
       {/* Content */}
-      <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12 max-w-xl">
+      <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12 max-w-lg">
         {/* Label row */}
         <div className="flex items-center gap-2 mb-4">
           <CategoryBadge category={story.category} />

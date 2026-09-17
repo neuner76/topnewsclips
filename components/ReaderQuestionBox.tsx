@@ -60,14 +60,14 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
         value={question}
         onChange={e => setQuestion(e.target.value.slice(0, 500))}
         placeholder="What is still unclear?"
-        className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
+        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
         rows={3}
       />
       <input
         value={email}
         onChange={e => setEmail(e.target.value)}
         placeholder="Email optional"
-        className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
+        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
       />
       <input
         value={website}
@@ -82,13 +82,13 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
           type="button"
           onClick={submit}
           disabled={status === 'submitting'}
-          className="rounded-full bg-white px-4 py-2 text-xs font-bold text-black transition-opacity disabled:opacity-50"
+          className="rounded-full bg-[#2563EB] px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {status === 'submitting' ? 'Submitting...' : 'Submit question'}
         </button>
         <span className="text-[11px] text-muted-foreground">Questions are reviewed before any public use.</span>
       </div>
-      {error && <p className="text-xs text-red-300">{error}</p>}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )
 }

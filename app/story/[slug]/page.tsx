@@ -409,10 +409,12 @@ export default async function StoryPage({ params }: Props) {
         {/* Why This Is Here */}
         <SectionCard accent="#94a3b8" className="mb-4">
           <details className="group">
-            <summary className="cursor-pointer list-none flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] text-muted-foreground uppercase select-none hover:text-muted-foreground transition-colors">
-              <span className="group-open:hidden">▸</span>
-              <span className="hidden group-open:inline">▾</span>
-              Why this is here
+            <summary className="cursor-pointer list-none flex items-center justify-between gap-2 rounded-lg bg-[#F8FAFC] px-3 py-2 text-[11px] font-bold tracking-[0.12em] text-[#475569] uppercase select-none hover:text-[#334155] transition-colors">
+              <span>Why this is here</span>
+              <span className="text-[#64748B] text-sm leading-none">
+                <span className="group-open:hidden">▾</span>
+                <span className="hidden group-open:inline">▴</span>
+              </span>
             </summary>
             <div className="mt-4 space-y-2 text-sm">
               {s.journalist_username && (

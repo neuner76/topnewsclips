@@ -49,7 +49,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
   if (!stories.length) return null
 
   return (
-    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#111827', border: '1px solid #1F2937' }}>
+    <section className="relative my-10 rounded-2xl overflow-hidden" style={{ background: '#FFFBF7', border: '1px solid #D8E0EA' }}>
       <TrackEvent name="feed_section_impression" properties={{ section: 'Global Blindspot', story_count: stories.length }} />
 
       {/* CSS globe grid */}
@@ -73,16 +73,15 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
 
         {/* Header */}
         <div className="mb-6">
-          <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: 'var(--blindspot-orange)' }}>
-            🌍 Global Blindspot
+          <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: '#C2410C' }}>            🌍 Global Blindspot
           </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#111827] leading-tight">
             What the world is ignoring right now
           </h2>
-          <p className="text-sm mt-1" style={{ color: '#D1D5DB' }}>
+          <p className="text-sm mt-1" style={{ color: '#526071' }}>
             Important international stories receiving limited attention from major U.S. outlets.
           </p>
-          <p className="text-xs mt-2" style={{ color: '#D1D5DB' }}>
+          <p className="text-xs mt-2" style={{ color: '#526071' }}>
             What an outlet leaves out shapes your picture as much as what it covers — these are the gaps worth knowing about.
           </p>
         </div>
@@ -150,15 +149,15 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex gap-3 items-start rounded-xl p-3 transition-all"
-                  style={{ borderLeft: '3px solid var(--blindspot-orange)', background: '#ffffff', marginBottom: '6px' }}
+                  style={{ borderLeft: '3px solid #EA580C', background: '#ffffff', border: '1px solid #D8E0EA', marginBottom: '6px' }}
                 >
                   <div className="flex-1 min-w-0">
                     {story.region && (
                       <span className="text-[10px] font-bold tracking-wide uppercase block mb-1" style={{ color: 'var(--blindspot-orange)' }}>{story.region}</span>
                     )}
-                    <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{story.title}</h3>
+                    <h3 className="text-sm sm:text-[0.95rem] font-bold text-[#1F2937] line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{story.title}</h3>
                     {story.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed mb-2">{displaySummary(story.description, 65)}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 65)}</p>
                     )}
                     <div className="flex items-center gap-2 flex-wrap">
                       <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
@@ -183,8 +182,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
         )}
 
         <div className="mt-5">
-          <Link href="/stories?filter=blindspot" className="text-sm font-semibold transition-opacity hover:opacity-80" style={{ color: 'var(--blindspot-orange)' }}>
-            See all blindspot stories →
+          <Link href="/stories?filter=blindspot" className="text-sm font-semibold transition-opacity hover:opacity-80" style={{ color: '#C2410C' }}>            See all blindspot stories →
           </Link>
         </div>
       </div>

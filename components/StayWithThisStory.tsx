@@ -28,7 +28,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
   const issueTracker = getIssueTrackerForStory(story, eligibility.storyCategory)
 
   return (
-    <SectionCard accent="#14b8a6" className="mb-4">
+    <SectionCard accent="#0F9F95" className="mb-4">
       <TrackEvent
         name="response_module_impression"
         properties={{
@@ -40,7 +40,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
         }}
       />
       <div className="mb-4">
-        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#14b8a6] mb-1">Stay with this story</p>
+        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#0F9F95] mb-1">Stay with this story</p>
         <p className="text-xs text-muted-foreground">
           Response links are not endorsements. They are restrained ways to learn more, track updates, and ask better questions.
         </p>
@@ -48,7 +48,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
 
       <div className="grid gap-3 sm:grid-cols-2">
         {allowed.has('learn') && (
-          <div className="rounded-xl border border-border bg-muted p-3">
+          <div className="rounded-xl border border-[#D8E0EA] bg-[#F8FAFC] p-3">
             <p className="text-sm font-bold text-foreground mb-1">Learn</p>
             <p className="text-xs text-muted-foreground mb-2">Read the primary source or background context before reacting.</p>
             {primarySource ? (
@@ -64,7 +64,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
         )}
 
         {allowed.has('track') && (
-          <div className="rounded-xl border border-border bg-muted p-3">
+          <div className="rounded-xl border border-[#D8E0EA] bg-[#F8FAFC] p-3">
             <p className="text-sm font-bold text-foreground mb-1">Track</p>
             <p className="text-xs text-muted-foreground mb-2">Follow updates as this story develops.</p>
             <ResponseActionLink href={`/issues/${issueTracker.slug}?q=${encodeURIComponent(relatedSearchQuery)}&story=${encodeURIComponent(story.slug)}`} storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} responseType="track">
@@ -74,7 +74,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
         )}
 
         {allowed.has('share_responsibly') && (
-          <div className="rounded-xl border border-border bg-muted p-3">
+          <div className="rounded-xl border border-[#D8E0EA] bg-[#F8FAFC] p-3">
             <p className="text-sm font-bold text-foreground mb-1">Share responsibly</p>
             <p className="text-xs text-muted-foreground">
               Share the story with context, not outrage. Include what is known and what remains unclear.
@@ -89,7 +89,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
         )}
 
         {resources.map(resource => (
-          <div key={resource.id} className="rounded-xl border border-border bg-muted p-3">
+          <div key={resource.id} className="rounded-xl border border-[#D8E0EA] bg-[#F8FAFC] p-3">
             <p className="text-sm font-bold text-foreground mb-1">{resource.title}</p>
             <p className="text-xs text-muted-foreground mb-2">{resource.description}</p>
             <ResponseActionLink href={resource.url} storySlug={story.slug} storyCategory={eligibility.storyCategory} eligibility={eligibility.eligibility} responseType={resource.responseType}>
@@ -99,7 +99,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
         ))}
       </div>
 
-      <div className="mt-4 rounded-xl border border-border bg-muted p-3">
+      <div className="mt-4 rounded-xl border border-[#D8E0EA] bg-[#F8FAFC] p-3">
         <ReaderQuestionBox
           storySlug={story.slug}
           storyId={story.id}
