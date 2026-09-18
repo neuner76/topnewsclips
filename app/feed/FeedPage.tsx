@@ -77,7 +77,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
   const emergingSignal = story ? isLimitedSourceNeedToKnow(story, 'Need To Know') : false
   const treatment = emergingSignal ? 'emerging_signal' : 'standard'
   return (
-    <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: '#ffffff', border: '1px solid #D8E0EA', borderLeft: '3px solid #2563EB' }}>
+    <article className="pl-4 pb-5 mb-5 last:mb-0 last:pb-0 border-b border-[#E5E7EB] last:border-b-0" style={{ borderLeft: '3px solid #2563EB' }}>
       {emergingSignal && story && (
         <TrackEvent name="feed_emerging_signal_impression" properties={{ story_slug: story.slug, section: 'Need To Know', position, coverage_count: coverageCount(story), coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: badge?.sourceType, source_tier: badge?.tier, confidence, treatment }} />
       )}
@@ -113,7 +113,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
         }}
         className="group block mb-3"
       >
-        <h2 className="text-2xl font-black tracking-tight leading-snug text-foreground group-hover:underline underline-offset-2">
+        <h2 className="text-xl sm:text-2xl font-black tracking-tight leading-snug text-foreground group-hover:underline underline-offset-2">
           {item.sectionTitle}
         </h2>
       </FeedStoryLink>

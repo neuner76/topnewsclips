@@ -131,7 +131,7 @@ export default function WorldMapSection({
       <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: accent }} />
 
       {/* Content */}
-      <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
+      <div className="relative z-10 px-4 py-6 sm:px-8 sm:py-8">
 
         {/* Header */}
         <div className="mb-6">
@@ -141,7 +141,7 @@ export default function WorldMapSection({
                 {icon} {title}
               </span>
               {subtitle && (
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+                <h2 className="text-xl sm:text-3xl font-bold text-foreground leading-tight">
                   {subtitle}
                 </h2>
               )}
