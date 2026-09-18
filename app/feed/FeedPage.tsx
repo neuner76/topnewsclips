@@ -224,6 +224,18 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
     ...(content.etcetera ?? []),
   ]
 
+  // Global Lens fallback: the digest generator omits `globalLens` when there are
+  // few international stories, but the story pool often still has regional stories.
+  // Derive one top story per region (excluding Blindspot stories) so the section
+  // appears reliably — same rule the clips view uses.
+  const lensPool = [...storyMap.values()].filter(s => !!s.region)
+  const lensBlindspotIds = new Set(lensPool.filter(s => s.msm_gap).map(s => s.id))
+  const lensByRegion = new Map<string, Story>()
+  for (const s of lensPool) {
+    if (!lensBlindspotIds.has(s.id) && s.region && !lensByRegion.has(s.region)) lensByRegion.set(s.region, s)
+  }
+  const fallbackLens = [...lensByRegion.values()]
+
   return (
     <div>
       <TrackEvent name="digest_read" />
@@ -375,10 +387,12 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
       )}
 
 
-      {/* Global Lens */}
-      {content.globalLens && content.globalLens.length > 0 && (
+      {/* Global Lens — use the digest's if present, otherwise the derived fallback */}
+      {content.globalLens && content.globalLens.length > 0 ? (
         <GlobalLensSection items={content.globalLens} storyMap={storyMap} layout="list" />
-      )}
+      ) : fallbackLens.length > 0 ? (
+        <GlobalLensSection stories={fallbackLens} layout="list" />
+      ) : null}
     </div>
   )
 }

@@ -36,12 +36,6 @@ export default function Header() {
                 <path d="m21 21-4.3-4.3" />
               </svg>
             </Link>
-            <Link
-              href="/"
-              className="text-white text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 transition-colors"
-            >
-              Get the digest
-            </Link>
           </nav>
 
         </div>
