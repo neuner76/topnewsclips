@@ -16,7 +16,7 @@ name: Digest Watchdog
 # late ingest from re-sending.
 on:
   schedule:
-    - cron: '30 14 * * *'  # 14:30 UTC — recover a dropped MORNING ingest (sched 10:40) same-morning
+    - cron: '30 14 * * *'  # 14:30 UTC — recover a missed MORNING ingest (external cron @ 3:40am PT) same-morning
     - cron: '0 18 * * *'   # 18:00 UTC — later recovery draw if the morning edition never landed
     - cron: '0 21 * * *'   # 21:00 UTC — redundant final draw
   workflow_dispatch:
