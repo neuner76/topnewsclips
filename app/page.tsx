@@ -78,12 +78,6 @@ export default async function LandingPage() {
             <div className="max-w-sm mx-auto mb-3">
               <EmailCaptureInline placement="landing-hero" />
             </div>
-            <p className="text-xs text-[#64748B] mb-5">
-              Not ready to sign up?{' '}
-              <Link href="/digest" className="text-[#334155] hover:text-[#2563EB] underline underline-offset-2 transition-colors">
-                See a sample issue
-              </Link>{' '}first.
-            </p>
             <Link href="/feed" className="text-sm font-medium text-[#334155] hover:text-[#2563EB] transition-colors">
               Browse today&apos;s feed without subscribing →
             </Link>
