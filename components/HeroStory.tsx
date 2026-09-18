@@ -28,19 +28,19 @@ export default function HeroStory({ story }: HeroStoryProps) {
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden mb-6"
-      style={{ background: '#0a0f1e', minHeight: 340 }}
+      className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-6"
+      style={{ background: '#ffffff', minHeight: 340 }}
     >
       {/* CSS globe grid background, renders instantly */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse at 70% 50%, rgba(59,130,246,0.12) 0%, transparent 65%),
-            linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px),
-            linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)
+            radial-gradient(ellipse at 70% 50%, rgba(37,99,235,0.04) 0%, transparent 65%),
+            linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
+            linear-gradient(rgba(37,99,235,0.008) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.008) 1px, transparent 1px)
           `,
           backgroundSize: '100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
         }}
@@ -53,18 +53,18 @@ export default function HeroStory({ story }: HeroStoryProps) {
             src={thumbnail}
             alt={story.title}
             fill
-            className="object-cover opacity-40"
+            className="object-cover opacity-75"
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1e55] to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff33] to-transparent" />
         </div>
       )}
 
       {/* Bottom fade for legibility */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff66] via-transparent to-transparent pointer-events-none" />
 
       {/* Content */}
-      <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12 max-w-xl">
+      <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12 max-w-lg">
         {/* Label row */}
         <div className="flex items-center gap-2 mb-4">
           <CategoryBadge category={story.category} />
@@ -72,14 +72,14 @@ export default function HeroStory({ story }: HeroStoryProps) {
 
         {/* Headline */}
         <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer">
-          <h1 className="editorial-title text-white hover:underline underline-offset-4 decoration-white/30 line-clamp-3 mb-4 leading-tight">
+          <h1 className="editorial-title text-foreground hover:underline underline-offset-4 decoration-foreground/30 line-clamp-3 mb-4 leading-tight">
             {story.title}
           </h1>
         </Link>
 
         {/* Description */}
         {story.description && (
-          <p className="text-sm sm:text-base text-white/60 line-clamp-2 mb-6 leading-relaxed">
+          <p className="text-sm sm:text-base text-muted-foreground line-clamp-2 mb-6 leading-relaxed">
             {story.description}
           </p>
         )}
@@ -92,7 +92,7 @@ export default function HeroStory({ story }: HeroStoryProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto text-sm font-semibold px-5 py-2.5 rounded-xl transition-opacity hover:opacity-80"
-            style={{ background: '#3b82f6', color: 'white' }}
+            style={{ background: '#2563EB', color: 'white' }}
           >
             Full story →
           </Link>

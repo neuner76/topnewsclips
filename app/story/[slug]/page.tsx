@@ -202,33 +202,33 @@ export default async function StoryPage({ params }: Props) {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-white/70 transition-colors">Home</Link>
+        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-muted-foreground transition-colors">Home</Link>
           <span>›</span>
-          <Link href="/feed/clips" className="hover:text-white/70 transition-colors">Clips</Link>
+          <Link href="/feed/clips" className="hover:text-muted-foreground transition-colors">Clips</Link>
           {s.category && (
             <>
               <span>›</span>
-              <span className="capitalize text-white/60">{s.category}</span>
+              <span className="capitalize text-muted-foreground">{s.category}</span>
             </>
           )}
         </nav>
 
         {/* Hero card */}
         <div
-          className="relative rounded-2xl overflow-hidden mb-6"
-          style={{ background: '#0a0f1e', minHeight: 300 }}
+          className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-6"
+          style={{ background: '#ffffff', minHeight: 300 }}
         >
           {/* CSS globe grid */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               backgroundImage: `
-                radial-gradient(ellipse at 70% 50%, rgba(59,130,246,0.12) 0%, transparent 65%),
-                linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px),
-                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)
+                radial-gradient(ellipse at 70% 50%, rgba(37,99,235,0.04) 0%, transparent 65%),
+                linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
+                linear-gradient(rgba(37,99,235,0.008) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,99,235,0.008) 1px, transparent 1px)
               `,
               backgroundSize: '100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
             }}
@@ -237,14 +237,14 @@ export default async function StoryPage({ params }: Props) {
           {/* Thumbnail right half */}
           {thumbnail && (
             <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden sm:block">
-              <Image src={thumbnail} alt={s.title} fill className="object-cover opacity-35" unoptimized />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1e55] to-transparent" />
+              <Image src={thumbnail} alt={s.title} fill className="object-cover opacity-70" unoptimized />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff22] to-transparent" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1e] via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff66] via-transparent to-transparent pointer-events-none" />
 
           {/* Content */}
-          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 max-w-xl">
+          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 max-w-lg">
             {/* Badges */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <PlatformBadge platform={s.platform} />
@@ -254,18 +254,18 @@ export default async function StoryPage({ params }: Props) {
 
             {/* Archived banner */}
             {!s.published && (
-              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-white/60" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-muted-foreground" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.1)' }}>
                 Archived story, cycled out of the daily feed.{' '}
-                <Link href="/" className="font-semibold text-white hover:underline underline-offset-2">See today&apos;s stories →</Link>
+                <Link href="/" className="font-semibold text-foreground hover:underline underline-offset-2">See today&apos;s stories →</Link>
               </div>
             )}
 
             {/* Title */}
-            <h1 className="editorial-title text-white mb-3 leading-tight">{s.title}</h1>
+            <h1 className="editorial-title text-foreground mb-3 leading-tight">{s.title}</h1>
 
             {/* Description */}
             {s.description && (
-              <p className="text-sm text-white/60 line-clamp-3 mb-5 leading-relaxed">{s.description}</p>
+              <p className="text-[15px] text-[#475569] line-clamp-3 mb-5 leading-relaxed">{s.description}</p>
             )}
 
             {/* Tier meter + share */}
@@ -282,26 +282,26 @@ export default async function StoryPage({ params }: Props) {
         {s.in_context && (
           <SectionCard accent="#a855f7" className="mb-4">
             <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#a855f7] mb-3">🧭 In Context</p>
-            <p className="text-sm text-white/80 leading-relaxed">{s.in_context}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{s.in_context}</p>
           </SectionCard>
         )}
 
         {/* Source Video */}
-        <SectionCard accent="#3b82f6" className="mb-4">
-          <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#3b82f6] mb-3">📹 Source Video</p>
+        <SectionCard accent="#2563EB" className="mb-4">
+          <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1D4ED8] mb-3">📹 Source Video</p>
           <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
         </SectionCard>
 
         {/* What we know / What remains unclear — major stories only (Phase 3) */}
         {((s.what_we_know && s.what_we_know.length > 0) || (s.what_remains_unclear && s.what_remains_unclear.length > 0)) && (
-          <SectionCard accent="#22c55e" className="mb-4">
+          <SectionCard accent="#16A34A" className="mb-4" tint="#F8FCFA">
             {s.what_we_know && s.what_we_know.length > 0 && (
               <div className="mb-4">
-                <p className="text-[10px] font-bold tracking-widest text-[#22c55e] uppercase mb-2">What we know</p>
+                <p className="text-[11px] font-bold tracking-widest text-[#15803D] uppercase mb-2">What we know</p>
                 <ul className="space-y-1.5">
                   {s.what_we_know.map((fact, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-white/80">
-                      <span className="text-[#22c55e] shrink-0">✓</span>
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+                      <span className="text-[#16A34A] shrink-0">✓</span>
                       <span>{fact}</span>
                     </li>
                   ))}
@@ -313,7 +313,7 @@ export default async function StoryPage({ params }: Props) {
                 <p className="text-[10px] font-bold tracking-widest text-[#f59e0b] uppercase mb-2">What remains unclear</p>
                 <ul className="space-y-1.5">
                   {s.what_remains_unclear.map((q, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-white/60">
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
                       <span className="text-[#f59e0b] shrink-0">?</span>
                       <span>{q}</span>
                     </li>
@@ -326,17 +326,20 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Verified vs Interpretation */}
         {s.verified_interpretation && (s.verified_interpretation.verified.length > 0 || s.verified_interpretation.interpretation.length > 0) && (
-          <SectionCard accent="#22c55e" className="mb-4">
+          <SectionCard accent="#16A34A" className="mb-4" tint="#F8FCFA">
             {s.verified_interpretation.headerNote && (
-              <p className="text-xs text-[#f59e0b] mb-3">{s.verified_interpretation.headerNote}</p>
+              <div className="mb-4">
+                <p className="text-[11px] font-bold tracking-widest text-[#EA580C] uppercase mb-1">Editorial note</p>
+                <p className="text-sm text-[#475569] leading-relaxed">{s.verified_interpretation.headerNote}</p>
+              </div>
             )}
             {s.verified_interpretation.verified.length > 0 && (
               <div className="mb-4">
-                <p className="text-[10px] font-bold tracking-widest text-[#22c55e] uppercase mb-2">✓ Verified</p>
+                <p className="text-[11px] font-bold tracking-widest text-[#15803D] uppercase mb-2">✓ Verified</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.verified.map((claim, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-white/80">
-                      <span className="text-[#22c55e] shrink-0">✓</span>
+                    <li key={i} className="flex gap-2 text-sm leading-relaxed text-[#334155]">
+                      <span className="text-[#16A34A] shrink-0">✓</span>
                       <span>{claim}</span>
                     </li>
                   ))}
@@ -345,11 +348,11 @@ export default async function StoryPage({ params }: Props) {
             )}
             {s.verified_interpretation.interpretation.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold tracking-widest text-[#3b82f6] uppercase mb-2">~ Interpretation</p>
+                <p className="text-[11px] font-bold tracking-widest text-[#2563EB] uppercase mb-2">~ Interpretation</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.interpretation.map((claim, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-white/60">
-                      <span className="text-[#3b82f6] shrink-0">~</span>
+                    <li key={i} className="flex gap-2 text-sm leading-relaxed text-[#475569]">
+                      <span className="text-[#2563EB] shrink-0">~</span>
                       <span>{claim}</span>
                     </li>
                   ))}
@@ -366,20 +369,20 @@ export default async function StoryPage({ params }: Props) {
             {s.msm_outlet_coverage ? (
               <div className="space-y-2">
                 {s.msm_outlet_coverage.covered.length > 0 && (
-                  <p className="text-sm text-white/80">
-                    <span className="font-semibold text-white">Covered by: </span>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground">Covered by: </span>
                     {s.msm_outlet_coverage.covered.map(o => OUTLET_LABELS[o] ?? o).join(', ')}
                   </p>
                 )}
                 {s.msm_outlet_coverage.notCovered.length > 0 && (
-                  <p className="text-sm text-white/50">
-                    <span className="font-semibold text-white/70">Not covered by: </span>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-muted-foreground">Not covered by: </span>
                     {s.msm_outlet_coverage.notCovered.map(o => OUTLET_LABELS[o] ?? o).join(', ')}
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-white/70">Fewer than 3 of the 15 major US outlets we monitor have covered this story.</p>
+              <p className="text-sm text-muted-foreground">Fewer than 3 of the 15 major US outlets we monitor have covered this story.</p>
             )}
           </SectionCard>
         )}
@@ -390,16 +393,16 @@ export default async function StoryPage({ params }: Props) {
             <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#f97316] mb-4">🌍 World View, How others are covering this</p>
             <div className="space-y-3">
               {worldView.map(r => (
-                <div key={r.id} className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
+                <div key={r.id} className="border-b border-border last:border-0 pb-3 last:pb-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase">{r.region ?? 'US'}</span>
+                    <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{r.region ?? 'US'}</span>
                     {r.msm_gap && r.region && <GlobalBlindspotBadge />}
                   </div>
                   <Link href={`/story/${r.slug}`} target="_blank" rel="noopener noreferrer"
-                    className="text-sm font-semibold text-white/90 hover:underline underline-offset-2 leading-snug block">
+                    className="text-sm font-semibold text-muted-foreground hover:underline underline-offset-2 leading-snug block">
                     {r.title}
                   </Link>
-                  {r.description && <p className="text-xs text-white/40 mt-0.5 line-clamp-2">{r.description}</p>}
+                  {r.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.description}</p>}
                 </div>
               ))}
             </div>
@@ -409,55 +412,57 @@ export default async function StoryPage({ params }: Props) {
         {/* Why This Is Here */}
         <SectionCard accent="#94a3b8" className="mb-4">
           <details className="group">
-            <summary className="cursor-pointer list-none flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] text-white/50 uppercase select-none hover:text-white/80 transition-colors">
-              <span className="group-open:hidden">▸</span>
-              <span className="hidden group-open:inline">▾</span>
-              Why this is here
+            <summary className="cursor-pointer list-none flex items-center justify-between gap-2 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-[11px] font-bold tracking-[0.12em] text-[#334155] uppercase select-none hover:bg-[#F1F5F9] transition-colors">
+              <span>Why we included this story</span>
+              <span className="text-[#64748B] text-sm leading-none">
+                <span className="group-open:hidden">▾</span>
+                <span className="hidden group-open:inline">▴</span>
+              </span>
             </summary>
             <div className="mt-4 space-y-2 text-sm">
               {s.journalist_username && (
                 <div className="flex gap-3">
-                  <span className="font-semibold text-white/40 w-28 shrink-0">Source</span>
-                  <span className="text-white/80">@{s.journalist_username}</span>
+                  <span className="font-semibold text-muted-foreground w-28 shrink-0">Source</span>
+                  <span className="text-muted-foreground">@{s.journalist_username}</span>
                 </div>
               )}
               {badge.sourceType && (
                 <div className="flex gap-3">
-                  <span className="font-semibold text-white/40 w-28 shrink-0">Source type</span>
+                  <span className="font-semibold text-muted-foreground w-28 shrink-0">Source type</span>
                   <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
                 </div>
               )}
               {contentTypeLabel && (
                 <div className="flex gap-3">
-                  <span className="font-semibold text-white/40 w-28 shrink-0">Content type</span>
-                  <span className="text-white/80">{contentTypeLabel}</span>
+                  <span className="font-semibold text-muted-foreground w-28 shrink-0">Content type</span>
+                  <span className="text-muted-foreground">{contentTypeLabel}</span>
                 </div>
               )}
               {/* Confidence labels are reserved for news — satire shows Cultural lens */}
               <div className="flex gap-3">
-                <span className="font-semibold text-white/40 w-28 shrink-0">{s.category === 'comedy' ? 'Content type' : 'Confidence'}</span>
+                <span className="font-semibold text-muted-foreground w-28 shrink-0">{s.category === 'comedy' ? 'Content type' : 'Confidence'}</span>
                 <ConfidenceBadge label={confidence} category={s.category} />
               </div>
               <div className="flex gap-3">
-                <span className="font-semibold text-white/40 w-28 shrink-0">Coverage</span>
-                <span className="text-white/80">{coverageDisplay}</span>
+                <span className="font-semibold text-muted-foreground w-28 shrink-0">Coverage</span>
+                <span className="text-muted-foreground">{coverageDisplay}</span>
               </div>
               <div className="flex gap-3">
-                <span className="font-semibold text-white/40 w-28 shrink-0">Published</span>
-                <span className="text-white/60">{publishedLabel}</span>
+                <span className="font-semibold text-muted-foreground w-28 shrink-0">Published</span>
+                <span className="text-muted-foreground">{publishedLabel}</span>
               </div>
               {updatedLabel && (
                 <div className="flex gap-3">
-                  <span className="font-semibold text-white/40 w-28 shrink-0">Updated</span>
-                  <span className="text-white/60">{updatedLabel}</span>
+                  <span className="font-semibold text-muted-foreground w-28 shrink-0">Updated</span>
+                  <span className="text-muted-foreground">{updatedLabel}</span>
                 </div>
               )}
-              <p className="mt-3 pt-3 border-t border-white/10 text-xs text-white/30">
-                <Link href="/taxonomy#confidence" className="font-semibold text-white/50 hover:text-white transition-colors">
+              <p className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                <Link href="/taxonomy#confidence" className="font-semibold text-muted-foreground hover:text-foreground transition-colors">
                   Learn about our confidence system →
                 </Link>
                 {' · '}
-                <Link href="/how-it-works#selection" className="font-semibold text-white/50 hover:text-white transition-colors">
+                <Link href="/how-it-works#selection" className="font-semibold text-muted-foreground hover:text-foreground transition-colors">
                   What qualifies a story →
                 </Link>
               </p>
@@ -469,19 +474,19 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Subscribe nudge */}
         {s.published && (
-          <SectionCard accent="#14b8a6" className="mb-4">
-            <p className="text-sm font-semibold text-white mb-1">Get stories like this every morning.</p>
-            <p className="text-xs text-white/50 mb-3">Free daily briefing, 5 minutes, no spin.</p>
+          <SectionCard accent="#2563EB" className="mb-4" tint="#F8FAFF">
+            <p className="text-lg font-bold text-[#111827] mb-1">Get stories like this every morning.</p>
+            <p className="text-sm text-[#475569] mb-4">Free daily briefing, 5 minutes, no spin.</p>
             <EmailCaptureInline placement="story" />
           </SectionCard>
         )}
 
         {/* Back nav */}
-        <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between">
-          <Link href="/feed/clips" className="text-sm font-semibold text-white/50 hover:text-white transition-colors">
+        <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
+          <Link href="/feed/clips" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
             ← Today&apos;s clips
           </Link>
-          <Link href="/stories" className="text-sm font-semibold text-white/40 hover:text-white transition-colors">
+          <Link href="/stories" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
             Browse all stories →
           </Link>
         </div>

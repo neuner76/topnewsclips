@@ -26,7 +26,7 @@ export const VARIANT_CONFIG: Record<SectionVariant, {
   icon: string
   size: 'lg' | 'sm'
 }> = {
-  'need-to-know':  { accent: '#3b82f6',  icon: '📌', size: 'lg' },
+  'need-to-know':  { accent: '#2563EB',  icon: '📌', size: 'lg' },
   'in-the-know':   { accent: '#14b8a6',  icon: '🔍', size: 'lg' },
   'mainstream':    { accent: '#94a3b8',  icon: '📺', size: 'lg' },
   'limited':       { accent: '#ef4444',  icon: '⚠️', size: 'lg' },
@@ -56,13 +56,13 @@ export default function SectionHeader({ variant, title, subtitle, seeAllHref, se
             {title}
           </h2>
           {seeAllHref && (
-            <a href={seeAllHref} className="text-xs text-white/40 hover:text-white/80 transition-colors font-medium ml-1">
+            <a href={seeAllHref} className="text-xs text-muted-foreground hover:text-muted-foreground transition-colors font-medium ml-1">
               {seeAllLabel ?? 'See all →'}
             </a>
           )}
         </div>
         {subtitle && (
-          <p className="text-xs text-white/50 mt-0.5 leading-snug">{subtitle}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>
         )}
       </div>
     </div>

@@ -76,7 +76,7 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
 
   const mapOpacity = isHero ? 0.35 : isWatermark ? 0.07 : 0.55
   const strokeColor = isBlindspot ? 'rgba(59,130,246,0.4)' : isWatermark ? 'rgba(59,130,246,0.5)' : 'rgba(59,130,246,0.5)'
-  const fillColor = isBlindspot ? 'rgba(29,78,216,0.15)' : isWatermark ? 'rgba(17,24,39,0.0)' : 'rgba(29,78,216,0.12)'
+  const fillColor = isBlindspot ? 'rgba(29,78,216,0.15)' : isWatermark ? 'rgba(0,0,0,0.0)' : 'rgba(29,78,216,0.12)'
 
   return (
     <div
@@ -114,7 +114,7 @@ export default function WorldMap({ mode, className = '' }: WorldMapProps) {
               key={city.name}
               cx={0} cy={0}
               r={r}
-              fill={isBlindspot ? 'rgba(59,130,246,0.8)' : '#3b82f6'}
+              fill={isBlindspot ? 'rgba(59,130,246,0.8)' : '#2563EB'}
               opacity={opacity}
               transform={`translate(${toX(city.coords[0])}, ${toY(city.coords[1])})`}
             />

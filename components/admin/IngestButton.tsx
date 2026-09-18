@@ -76,7 +76,7 @@ export default function IngestButton() {
         <button
           onClick={handleFetch}
           disabled={fetchPhase === 'running'}
-          className="inline-flex items-center gap-1 bg-slate-600 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-slate-700 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1 bg-slate-600 text-foreground text-xs font-semibold px-3 py-1.5 rounded hover:bg-slate-700 disabled:opacity-50 transition-colors"
         >
           {fetchPhase === 'running' ? '⏳ Fetching...' : '⬇ Fetch'}
         </button>
@@ -90,7 +90,7 @@ export default function IngestButton() {
         <button
           onClick={handleProcessBulk}
           disabled={processPhase === 'running'}
-          className="inline-flex items-center gap-1 bg-indigo-600 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1 bg-indigo-600 text-foreground text-xs font-semibold px-3 py-1.5 rounded hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
           {processPhase === 'running' ? '⏳ Processing...' : '⚡ Process 9'}
         </button>

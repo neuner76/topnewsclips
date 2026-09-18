@@ -99,7 +99,7 @@ export default function ReviewForm({ submissionId, currentStatus, submitterEmail
             : 'e.g. Accepted as Tier 7 Independent Commentary, consistent independent reporting on housing policy.'}
           rows={2}
           maxLength={300}
-          className="w-full text-xs px-2 py-1.5 rounded border border-border bg-background resize-none focus:outline-none focus:border-[oklch(0.52_0.14_196)]"
+          className="w-full text-xs px-2 py-1.5 rounded border border-border bg-background resize-none focus:outline-none focus:border-[#2563EB]"
         />
       </div>
 

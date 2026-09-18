@@ -131,7 +131,7 @@ export default async function ReferralsPage({
               href={`https://twitter.com/intent/tweet?text=${tweetText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-semibold px-3 py-2 rounded bg-black text-white hover:opacity-80 transition-opacity"
+              className="text-xs font-semibold px-3 py-2 rounded bg-black text-foreground hover:opacity-80 transition-opacity"
             >
               Share on X
             </a>
@@ -139,7 +139,7 @@ export default async function ReferralsPage({
               href={`https://wa.me/?text=${whatsappText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-semibold px-3 py-2 rounded bg-[#25d366] text-white hover:opacity-80 transition-opacity"
+              className="text-xs font-semibold px-3 py-2 rounded bg-[#25d366] text-foreground hover:opacity-80 transition-opacity"
             >
               WhatsApp
             </a>

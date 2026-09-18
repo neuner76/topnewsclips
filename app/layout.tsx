@@ -68,13 +68,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    // Dark-only by design: every surface is built white-on-navy. Render the
-    // `dark` class from the server so the theme is correct on first paint. The
-    // old pre-hydration script added the class client-side, but React reconciled
-    // <html> and stripped it on hydration, leaving fresh visitors with near-black
-    // theme-token text on the navy body. suppressHydrationWarning guards against
-    // extensions mutating <html>.
-    <html lang="en" className="dark" suppressHydrationWarning>
+    // Light-only by design (it's a morning brief, and it matches the emailed
+    // edition). The site renders with the default light `:root` tokens; surfaces
+    // use semantic color tokens (text-foreground / text-muted-foreground /
+    // border-border) rather than hardcoded colors. suppressHydrationWarning guards
+    // against extensions mutating <html>.
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geist.variable} antialiased`}>
         <script
           type="application/ld+json"

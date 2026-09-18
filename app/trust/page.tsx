@@ -78,24 +78,24 @@ export default function TrustPage() {
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-white">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
-        <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+        <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
+          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Why Trust This
           </p>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-white">Why Trust This</h1>
-          <p className="text-base text-white/70 leading-relaxed">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-foreground">Why Trust This</h1>
+          <p className="text-base text-muted-foreground leading-relaxed">
             You should not trust a news product because it sounds confident.
             You should trust it only to the degree that its method deserves trust.
           </p>
-          <p className="text-sm text-white/60 mt-3">
+          <p className="text-sm text-muted-foreground mt-3">
             That is our view too.
           </p>
         </div>
 
-        <div className="text-[15px] leading-relaxed space-y-10 text-white/80">
+        <div className="text-[15px] leading-relaxed space-y-10 text-muted-foreground">
 
           <div className="space-y-3">
             <p>
@@ -112,14 +112,14 @@ export default function TrustPage() {
 
           {/* What earns trust */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-6 text-white">What earns trust here</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-6 text-foreground">What earns trust here</h2>
             <div className="space-y-6">
               {TRUST_POINTS.map(({ title, body, link }) => (
-                <div key={title} className="border-l-2 border-[oklch(0.52_0.14_196)] pl-4">
-                  <p className="font-bold mb-1 text-white">{title}</p>
-                  <p className="text-white/60 text-sm">{body}</p>
+                <div key={title} className="border-l-2 border-[#2563EB] pl-4">
+                  <p className="font-bold mb-1 text-foreground">{title}</p>
+                  <p className="text-muted-foreground text-sm">{body}</p>
                   {link && (
-                    <Link href={link.href} className="inline-block mt-2 text-xs font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+                    <Link href={link.href} className="inline-block mt-2 text-xs font-semibold text-[#2563EB] hover:underline">
                       {link.label}
                     </Link>
                   )}
@@ -130,25 +130,25 @@ export default function TrustPage() {
 
           {/* What we don't claim */}
           <section>
-            <h2 className="text-lg font-black tracking-tight uppercase mb-6 text-white">What we do not claim</h2>
+            <h2 className="text-lg font-black tracking-tight uppercase mb-6 text-foreground">What we do not claim</h2>
             <div className="space-y-5">
               {DONT_CLAIM.map(({ title, body }) => (
                 <div key={title}>
-                  <p className="font-semibold mb-1 text-white">{title}</p>
-                  <p className="text-white/60 text-sm">{body}</p>
+                  <p className="font-semibold mb-1 text-foreground">{title}</p>
+                  <p className="text-muted-foreground text-sm">{body}</p>
                 </div>
               ))}
             </div>
           </section>
 
-          <div className="flex flex-wrap gap-4 text-sm pt-4 border-t border-white/10">
-            <Link href="/how-it-works" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+          <div className="flex flex-wrap gap-4 text-sm pt-4 border-t border-border">
+            <Link href="/how-it-works" className="font-semibold text-[#2563EB] hover:underline">
               See how it works →
             </Link>
-            <Link href="/taxonomy" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+            <Link href="/taxonomy" className="font-semibold text-[#2563EB] hover:underline">
               Source taxonomy →
             </Link>
-            <Link href="/corrections" className="font-semibold text-[oklch(0.52_0.14_196)] hover:underline">
+            <Link href="/corrections" className="font-semibold text-[#2563EB] hover:underline">
               Submit a correction →
             </Link>
           </div>

@@ -77,7 +77,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
   const emergingSignal = story ? isLimitedSourceNeedToKnow(story, 'Need To Know') : false
   const treatment = emergingSignal ? 'emerging_signal' : 'standard'
   return (
-    <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderLeft: '3px solid #3b82f6' }}>
+    <article className="rounded-xl p-4 mb-3 last:mb-0" style={{ background: '#ffffff', border: '1px solid #D8E0EA', borderLeft: '3px solid #2563EB' }}>
       {emergingSignal && story && (
         <TrackEvent name="feed_emerging_signal_impression" properties={{ story_slug: story.slug, section: 'Need To Know', position, coverage_count: coverageCount(story), coverage_total: story.msm_outlet_coverage ? story.msm_outlet_coverage.covered.length + story.msm_outlet_coverage.notCovered.length : 15, source_type: badge?.sourceType, source_tier: badge?.tier, confidence, treatment }} />
       )}
@@ -90,9 +90,9 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
           )}
           {(badge?.tier || badge?.sourceType) && <TierBadge tier={badge.tier} sourceType={badge.sourceType} />}
           {story && <ConfidenceBadge label={confidence} category={story.category} />}
-          {story && <span className="text-[10px] text-white/30">{coverageText(story)}</span>}
+          {story && <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>}
           {story?.journalist_username && (
-            <span className="text-xs text-white/40">@{story.journalist_username}</span>
+            <span className="text-xs text-muted-foreground">@{story.journalist_username}</span>
           )}
           {story?.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
         </div>
@@ -113,17 +113,17 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
         }}
         className="group block mb-3"
       >
-        <h2 className="text-2xl font-black tracking-tight leading-snug text-white group-hover:underline underline-offset-2">
+        <h2 className="text-2xl font-black tracking-tight leading-snug text-foreground group-hover:underline underline-offset-2">
           {item.sectionTitle}
         </h2>
       </FeedStoryLink>
       <div className="space-y-4">
         {item.paragraphs.slice(0, 2).map((p, i) => (
           <div key={i}>
-            <p className="text-[10px] font-bold tracking-widest text-white/40 uppercase mb-1">
+            <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase mb-1">
               {PARA_LABELS[i]}
             </p>
-            <p className="editorial-body text-white/80">{displaySummary(p, i === 0 ? 65 : 55)}</p>
+            <p className="editorial-body text-muted-foreground">{displaySummary(p, i === 0 ? 65 : 55)}</p>
           </div>
         ))}
       </div>
@@ -133,7 +133,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
         </p>
       )}
       {cautionNote && (
-        <p className="mt-3 text-[11px] text-white/40">{cautionNote}</p>
+        <p className="mt-3 text-[11px] text-muted-foreground">{cautionNote}</p>
       )}
       <FeedStoryLink
         href={`/story/${item.slug}`}
@@ -149,26 +149,26 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
           is_lower_confidence: false,
           treatment,
         }}
-        className="inline-block mt-4 text-xs font-semibold text-white/50 hover:text-white transition-colors"
+        className="inline-block mt-4 text-xs font-bold text-[#2563EB] hover:underline underline-offset-2 transition-colors"
       >
         Full story →
       </FeedStoryLink>
       {item.howWorldSeesIt && item.howWorldSeesIt.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-white/10">
-          <p className="text-[10px] font-bold tracking-widest text-white/40 uppercase mb-3">
+        <div className="mt-5 pt-4 border-t border-border">
+          <p className="text-[10px] font-bold tracking-widest text-[#475569] uppercase mb-3">
             World view
           </p>
           <div className="space-y-2">
             {item.howWorldSeesIt.slice(0, 2).map((w: HowWorldSeesItItem, i: number) => (
               <div key={i} className="flex gap-2.5 items-start">
-                <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase shrink-0 pt-0.5 w-20">
+                <span className="text-[10px] font-bold tracking-widest text-[#475569] uppercase shrink-0 pt-0.5 w-20">
                   {w.region}
                 </span>
                 <Link
                   href={`/story/${w.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-white/60 hover:text-white transition-colors leading-snug"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors leading-snug"
                 >
                   {displaySummary(w.summary, 40)}
                 </Link>
@@ -183,10 +183,10 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
 
 // Per-category config for In The Know
 const ITK_CATEGORY_CONFIG: Record<string, { color: string; icon: string; subtitle: string }> = {
-  'Politics & World Affairs':        { color: '#3b82f6', icon: '🌐', subtitle: 'What\'s moving in politics and around the world' },
-  'Science, Health & Environment':   { color: '#a855f7', icon: '🔬', subtitle: 'Science, health, climate, and environmental shifts' },
-  'Business & Markets':              { color: '#22c55e', icon: '📈', subtitle: 'Economic signals, market moves, and industry shifts' },
-  'Culture, Media & Society':        { color: '#f97316', icon: '🎭', subtitle: 'Culture, media, sports, and social stories people are talking about' },
+  'Politics & World Affairs':        { color: '#2563EB', icon: '🌐', subtitle: 'What\'s moving in politics and around the world' },
+  'Science, Health & Environment':   { color: '#7E22CE', icon: '🔬', subtitle: 'Science, health, climate, and environmental shifts' },
+  'Business & Markets':              { color: '#16A34A', icon: '📈', subtitle: 'Economic signals, market moves, and industry shifts' },
+  'Culture, Media & Society':        { color: '#EA580C', icon: '🎭', subtitle: 'Culture, media, sports, and social stories people are talking about' },
 }
 
 function DigestView({ content, date, storyMap }: { content: DigestContent; date: string; storyMap: Map<string, Story> }) {
@@ -201,7 +201,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
   })
   const categoryBlocks = CANONICAL_IN_THE_KNOW_SECTIONS.map(({ name, sourceKeys }) => {
     const items = sourceKeys.flatMap(key => content.inTheKnow[key] ?? [])
-    const cfg = ITK_CATEGORY_CONFIG[name] ?? { color: '#3b82f6', icon: '📌', subtitle: '' }
+    const cfg = ITK_CATEGORY_CONFIG[name] ?? { color: '#2563EB', icon: '📌', subtitle: '' }
     const stories = items
       .filter(item => item.slug)
       .map(item => storyMap.get(item.slug!))
@@ -228,22 +228,22 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
     <div>
       <TrackEvent name="digest_read" />
       {/* Date */}
-      <p className="text-xs font-bold tracking-widest text-white/40 uppercase mb-6">
+      <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-6">
         {formattedDate}
       </p>
 
       {/* Need To Know */}
       <WorldMapSection
-        title="Need To Know" icon="📌" accent="#3b82f6" mapMode="hero"
+        title="Need To Know" icon="📌" accent="#2563EB" mapMode="hero"
         subtitle="The stories that matter most today, verified, sourced, in context"
         stories={[]}
         footer={
-          <div className="divide-y divide-white/10 -mt-2">
+          <div className="divide-y divide-border -mt-2">
             {content.needToKnow.map((item, i) => (
               <div key={item.slug}>
                 <NeedToKnowStory item={item} storyMap={storyMap} position={i + 1} />
                 {i === 0 && content.needToKnow.length > 1 && (
-                  <div className="py-4 border-t border-white/10">
+                  <div className="py-4 border-t border-border">
                     <EmailCaptureInline placement="post-ntk" />
                   </div>
                 )}
@@ -275,12 +275,12 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Etcetera */}
       {etceteraItems.length > 0 && (
-        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-8" style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}>
           <TrackEvent name="feed_section_impression" properties={{ section: 'Also Worth Knowing', story_count: Math.min(etceteraItems.length, 3) }} />
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#64748b' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
-          <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-white/40">··· Also Worth Knowing</span>
-          <p className="text-xs text-white/45 mb-4">Lower-stakes stories and visual moments from the wider news cycle.</p>
+          <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-muted-foreground">··· Also Worth Knowing</span>
+          <p className="text-xs text-muted-foreground mb-4">Lower-stakes stories and visual moments from the wider news cycle.</p>
           <ul className="space-y-2 rounded-lg px-2 py-1">
             {etceteraItems.slice(0, 3).map((item: EtceteraItem | string, i: number) => {
               const etc: EtceteraItem = typeof item === 'string' ? { text: item, slug: null } : item
@@ -288,9 +288,9 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
               const badge = story ? resolvedBadge(story) : null
               const confidence = story ? getConfidenceLabel(story) : null
               const reassigned = story ? reassignedEtcetera.find(reassignedItem => reassignedItem.slug === story.slug) : null
-              const text = <span className="text-[0.84rem] leading-relaxed text-white/62">{displaySummary(etc.text, 34)}</span>
+              const text = <span className="text-[0.84rem] leading-relaxed text-muted-foreground">{displaySummary(etc.text, 34)}</span>
               return (
-                <li key={i} className="flex flex-col gap-1 px-3 py-2.5 rounded-xl mb-2 last:mb-0" style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid rgba(255,255,255,0.045)', borderLeft: '3px solid #64748b' }}>
+                <li key={i} className="flex flex-col gap-1 px-3 py-2.5 rounded-xl mb-2 last:mb-0" style={{ background: '#ffffff', border: '1px solid #D8E0EA', borderLeft: '3px solid #64748b' }}>
                   {reassigned && story && (
                     <TrackEvent name="feed_story_reassigned_section" properties={{ story_slug: story.slug, original_section: reassigned.originalSection, final_section: 'Also Worth Knowing', treatment: 'weak_singleton' }} />
                   )}
@@ -316,7 +316,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                     <div className="flex flex-wrap items-center gap-1.5">
                       <TierBadge tier={badge?.tier ?? null} sourceType={badge?.sourceType ?? null} />
                       <ConfidenceBadge label={confidence} category={story.category} />
-                      <span className="text-[10px] text-white/30">{coverageText(story)}</span>
+                      <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
                     </div>
                   )}
                 </li>
@@ -329,36 +329,36 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
 
       {/* Mainstream Pulse */}
       {content.mainstreamPulse && content.mainstreamPulse.length > 0 && (
-        <div className="relative rounded-2xl overflow-hidden mb-8" style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-8" style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}>
           <div className="absolute top-0 left-0 right-0 h-[5px] rounded-t-2xl" style={{ background: '#94a3b8' }} />
           <div className="relative z-10 px-6 py-7 sm:px-8 sm:py-8">
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase mb-1.5 block text-[#94a3b8]">📺 Mainstream Pulse</span>
-          <p className="text-xs text-white/50 mb-1.5">What major U.S. outlets are leading with today.</p>
-          <p className="text-sm text-white/60 mb-3 leading-relaxed">{deriveMainstreamPulseSynthesis(content.mainstreamPulse)}</p>
-          <p className="text-[11px] text-white/35 mb-4 italic">Headline selections from major tracked outlets — not TopNewsClips endorsements.</p>
-          <Link href="/corrections" className="block text-[10px] text-white/40 hover:text-white/80 transition-colors mb-3">
+          <p className="text-xs text-muted-foreground mb-1.5">What major U.S. outlets are leading with today.</p>
+          <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{deriveMainstreamPulseSynthesis(content.mainstreamPulse)}</p>
+          <p className="text-[11px] text-muted-foreground mb-4 italic">Headline selections from major tracked outlets — not TopNewsClips endorsements.</p>
+          <Link href="/corrections" className="block text-[10px] text-muted-foreground hover:text-muted-foreground transition-colors mb-3">
             ✓ No corrections today
           </Link>
           <ul className="space-y-2">
             {content.mainstreamPulse.map((item: MainstreamPulseItem, i: number) => {
               const standardizedDescriptor = getOutletDescriptor(item.source)
               return (
-              <li key={i} className="group flex gap-3 items-start py-2.5 px-3 rounded-xl mb-2 last:mb-0 transition-colors" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '3px solid #94a3b8' }}>
+              <li key={i} className="group flex gap-3 items-start py-2.5 px-3 rounded-xl mb-2 last:mb-0 transition-colors" style={{ background: '#ffffff', border: '1px solid #D8E0EA', borderLeft: '3px solid #94a3b8' }}>
                 <div className="shrink-0 w-20 pt-0.5">
-                  <span className="text-[11px] font-bold text-white/80 block leading-tight">{item.source}</span>
-                  <span className="text-[9px] text-white/30 leading-none italic" title={item.descriptor}>{standardizedDescriptor}</span>
+                  <span className="text-[11px] font-bold text-muted-foreground block leading-tight">{item.source}</span>
+                  <span className="text-[9px] text-muted-foreground leading-none italic" title={item.descriptor}>{standardizedDescriptor}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   {item.slug ? (
-                    <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug text-white/80 hover:text-white hover:underline underline-offset-2 font-medium transition-colors">
+                    <Link href={`/story/${item.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug text-muted-foreground hover:text-foreground hover:underline underline-offset-2 font-medium transition-colors">
                       {item.headline}
                     </Link>
                   ) : item.url ? (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug text-white/80 hover:text-white hover:underline underline-offset-2 font-medium transition-colors">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm leading-snug text-muted-foreground hover:text-foreground hover:underline underline-offset-2 font-medium transition-colors">
                       {item.headline}
                     </a>
                   ) : (
-                    <span className="text-sm leading-snug font-medium text-white/60">{item.headline}</span>
+                    <span className="text-sm leading-snug font-medium text-muted-foreground">{item.headline}</span>
                   )}
                 </div>
               </li>
@@ -399,13 +399,13 @@ const LANE_CONFIG: Record<string, { accent: string; icon: string; mapMode: 'hero
   'Verified Reporting':  { accent: '#22c55e', icon: '✅', mapMode: 'hero' },
   'Context / Analysis':  { accent: '#f59e0b', icon: '🧠', mapMode: 'hero' },
   'Raw Footage':         { accent: '#94a3b8', icon: '📹', mapMode: 'hero' },
-  'More Clips':          { accent: '#3b82f6', icon: '📡', mapMode: 'hero' },
+  'More Clips':          { accent: '#2563EB', icon: '📡', mapMode: 'hero' },
   'Limited Coverage':    { accent: '#ef4444', icon: '⚠️', mapMode: 'blindspot' },
 }
 
 function Lane({ title, subtitle, categorySlug, stories }: LaneProps) {
   if (stories.length === 0) return null
-  const cfg = LANE_CONFIG[title] ?? { accent: '#3b82f6', icon: '📌', mapMode: 'hero' as const }
+  const cfg = LANE_CONFIG[title] ?? { accent: '#2563EB', icon: '📌', mapMode: 'hero' as const }
 
   return (
     <WorldMapSection
@@ -525,33 +525,33 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-[780px] mx-auto px-4 sm:px-6 py-8">
 
         {/* Hero + email capture — Clips view only; the Digest view jumps straight into headlines */}
         {activeView !== 'digest' && <EmailCaptureInline placement="hero" />}
 
         {/* Tab switcher */}
         {digest && (
-          <div className="flex rounded-xl overflow-hidden mb-6" style={{ background: '#0d1628', border: '1px solid rgba(59,130,246,0.15)' }}>
+          <div className="flex rounded-xl overflow-hidden mb-6" style={{ background: '#ffffff', border: '1px solid #EFF6FF' }}>
             <Link
               href="/feed"
               className={`flex-1 text-center px-4 py-3 transition-all ${
-                activeView === 'digest' ? 'text-white' : 'text-white/40 hover:text-white/70'
+                activeView === 'digest' ? 'text-foreground' : 'text-muted-foreground hover:text-muted-foreground'
               }`}
-              style={activeView === 'digest' ? { background: 'rgba(59,130,246,0.15)', borderBottom: '2px solid #3b82f6' } : {}}
+              style={activeView === 'digest' ? { background: '#EFF6FF', borderBottom: '2px solid #2563EB' } : {}}
             >
               <div className="text-sm font-bold">📋 Digest</div>
-              <div className="text-[10px] text-white/40 mt-0.5">Read the day</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">Read the day</div>
             </Link>
             <Link
               href="/feed/clips"
-              className={`flex-1 text-center px-4 py-3 transition-all border-l border-white/10 ${
-                activeView === 'clips' ? 'text-white' : 'text-white/40 hover:text-white/70'
+              className={`flex-1 text-center px-4 py-3 transition-all border-l border-border ${
+                activeView === 'clips' ? 'text-foreground' : 'text-muted-foreground hover:text-muted-foreground'
               }`}
-              style={activeView === 'clips' ? { background: 'rgba(59,130,246,0.15)', borderBottom: '2px solid #3b82f6' } : {}}
+              style={activeView === 'clips' ? { background: '#EFF6FF', borderBottom: '2px solid #2563EB' } : {}}
             >
               <div className="text-sm font-bold">🎬 Clips</div>
-              <div className="text-[10px] text-white/40 mt-0.5">Scan the signal</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">Scan the signal</div>
             </Link>
           </div>
         )}
@@ -566,36 +566,36 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
             {/* Clips hero */}
             <div
               className="relative rounded-2xl overflow-hidden mb-6 px-6 py-10 sm:px-10 sm:py-12"
-              style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+              style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
             >
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   backgroundImage: `
-                    radial-gradient(ellipse at 70% 40%, rgba(59,130,246,0.14) 0%, transparent 60%),
-                    linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px)
+                    radial-gradient(ellipse at 70% 40%, rgba(37,99,235,0.05) 0%, transparent 60%),
+                    linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px)
                   `,
                   backgroundSize: '100% 100%, 48px 48px, 48px 48px',
                 }}
               />
               <div className="relative z-10 max-w-lg">
-                <p className="text-[11px] font-bold tracking-[0.2em] text-[#3b82f6] uppercase mb-3">
+                <p className="text-[11px] font-bold tracking-[0.2em] text-[#2563EB] uppercase mb-3">
                   🎬 Clips
                 </p>
-                <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight mb-3">
+                <h2 className="text-3xl sm:text-4xl font-black text-foreground leading-tight mb-3">
                   See the signal faster.
                 </h2>
-                <p className="text-base text-white/60 leading-relaxed mb-2">
+                <p className="text-base text-muted-foreground leading-relaxed mb-2">
                   A clip-first view of the news with visible source labels, confidence markers, and undercovered stories worth your attention.
                 </p>
-                <p className="text-sm text-white/40 mb-6">
+                <p className="text-sm text-muted-foreground mb-6">
                   Scan what&apos;s happening in minutes. Then go deeper when something matters.
                 </p>
                 {digest && (
                   <Link
                     href="/feed"
-                    className="text-sm text-white/40 hover:text-white/70 transition-colors"
+                    className="text-sm text-muted-foreground hover:text-muted-foreground transition-colors"
                   >
                     Prefer the written version? Read today&apos;s digest →
                   </Link>
@@ -604,9 +604,9 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
             </div>
 
             {/* Intro: set expectations vs. the digest */}
-            <p className="text-xs text-white/40 mb-6">
+            <p className="text-xs text-muted-foreground mb-6">
               Clips are a fast scan of visual signal. For the structured briefing,{' '}
-              <Link href="/feed" className="text-white/60 hover:text-white underline underline-offset-2 transition-colors">
+              <Link href="/feed" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
                 read the digest
               </Link>.
             </p>
@@ -621,11 +621,11 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
                 <div
                   key={title}
                   className="rounded-xl px-4 py-4"
-                  style={{ background: '#0d1628', border: '1px solid rgba(255,255,255,0.07)' }}
+                  style={{ background: '#ffffff', border: '1px solid #D8E0EA' }}
                 >
                   <div className="text-xl mb-2">{icon}</div>
-                  <p className="text-sm font-bold text-white mb-1">{title}</p>
-                  <p className="text-xs text-white/50 leading-relaxed">{body}</p>
+                  <p className="text-sm font-bold text-foreground mb-1">{title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{body}</p>
                 </div>
               ))}
             </div>

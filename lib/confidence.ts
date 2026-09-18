@@ -56,7 +56,7 @@ export const CONFIDENCE_META: Record<ConfidenceLabel, ConfidenceMeta> = {
   CORROBORATED: {
     label: 'Corroborated',
     description: '5+ independent outlets or 3+ outlets including Tier 1-5 sources confirm the core facts.',
-    className: 'text-[oklch(0.38_0.13_145)] bg-[oklch(0.96_0.03_145)] border-[oklch(0.88_0.07_145)]',
+    className: 'text-[#166534] bg-[#DCFCE7] border-[#BBF7D0]',
   },
   REPORTED: {
     label: 'Reported',

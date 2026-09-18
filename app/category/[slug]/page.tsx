@@ -110,7 +110,7 @@ export default async function CategoryPage({
             <Link href="/stories" className="hover:text-foreground transition-colors">Stories</Link>
             {' › '}{meta.label}
           </p>
-          <div className="border-l-4 border-[oklch(0.52_0.14_196)] pl-3">
+          <div className="border-l-4 border-[#2563EB] pl-3">
             <h1 className={`text-3xl sm:text-4xl font-black tracking-tight uppercase ${meta.accentClass}`}>
               {meta.label}
             </h1>
@@ -129,7 +129,7 @@ export default async function CategoryPage({
               href={`/category/${s}`}
               className={`text-xs font-semibold px-3 py-1.5 rounded border transition-colors ${
                 s === slug
-                  ? 'bg-[oklch(0.52_0.14_196)] text-white border-[oklch(0.52_0.14_196)]'
+                  ? 'bg-[#2563EB] text-foreground border-[#2563EB]'
                   : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground'
               }`}
             >

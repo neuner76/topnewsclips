@@ -21,15 +21,15 @@ export default async function PreferencesPage({
   return (
     <>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-white">
-        <div className="mb-8 border-b-2 border-[oklch(0.52_0.14_196)] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-white/45 uppercase mb-2">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
+        <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
+          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             Top News Clips
           </p>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-white">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-foreground">
             Customize your briefing
           </h1>
-          <p className="text-base text-white/70 leading-relaxed">
+          <p className="text-base text-muted-foreground leading-relaxed">
             Choose what you want more of. Your top stories stay editorial. We never narrow the news, we add to it.
           </p>
         </div>

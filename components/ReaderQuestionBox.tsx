@@ -44,7 +44,7 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
 
   if (status === 'submitted') {
     return (
-      <p className="text-sm text-white/70">
+      <p className="text-sm text-muted-foreground">
         Thanks. We&apos;ll use reader questions to guide follow-up coverage.
       </p>
     )
@@ -52,7 +52,7 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-semibold text-white/70" htmlFor="reader-question">
+      <label className="block text-sm font-semibold text-[#334155]" htmlFor="reader-question">
         What do you still want to understand?
       </label>
       <textarea
@@ -60,14 +60,14 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
         value={question}
         onChange={e => setQuestion(e.target.value.slice(0, 500))}
         placeholder="What is still unclear?"
-        className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/25"
+        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#0F172A] placeholder:text-[#94A3B8] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
         rows={3}
       />
       <input
         value={email}
         onChange={e => setEmail(e.target.value)}
         placeholder="Email optional"
-        className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/25"
+        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#0F172A] placeholder:text-[#94A3B8] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
       />
       <input
         value={website}
@@ -82,13 +82,13 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
           type="button"
           onClick={submit}
           disabled={status === 'submitting'}
-          className="rounded-full bg-white px-4 py-2 text-xs font-bold text-black transition-opacity disabled:opacity-50"
+          className="rounded-full bg-[#2563EB] px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {status === 'submitting' ? 'Submitting...' : 'Submit question'}
         </button>
-        <span className="text-[11px] text-white/35">Questions are reviewed before any public use.</span>
+        <span className="text-[11px] text-[#64748B]">Questions are reviewed before any public use.</span>
       </div>
-      {error && <p className="text-xs text-red-300">{error}</p>}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )
 }

@@ -57,8 +57,8 @@ function YouTubeEmbed({ videoId, embedUrl, title }: { videoId: string; embedUrl:
 
   return (
     <div className={isShort
-      ? "relative mx-auto rounded overflow-hidden bg-zinc-100 w-full max-w-[340px] aspect-[9/16]"
-      : "relative w-full aspect-video rounded overflow-hidden bg-zinc-100"
+      ? "relative mx-auto rounded-xl overflow-hidden bg-zinc-100 w-full max-w-[340px] aspect-[9/16]"
+      : "relative w-full aspect-video rounded-xl overflow-hidden bg-zinc-100"
     }>
       <iframe
         ref={iframeRef}
@@ -122,7 +122,7 @@ function EmbedFallback({ url }: { url: string }) {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-sm font-semibold text-[oklch(0.52_0.14_196)] hover:underline"
+        className="text-sm font-semibold text-[#2563EB] hover:underline"
       >
         Watch on YouTube →
       </a>
