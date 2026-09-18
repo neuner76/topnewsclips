@@ -6,13 +6,14 @@ export const dynamic = 'force-dynamic'
 // Punctual external trigger for the Daily Ingest.
 //
 // GitHub delays scheduled-event crons by ~4-5h (the 10:40 UTC ingest has been
-// firing ~15:xx), so the morning edition + email land mid-afternoon. Vercel Cron
-// (Pro, on-time within a minute) hits this route on schedule, and we dispatch the
-// GitHub "Daily Ingest" workflow via the REST API. The digest still chains off the
-// ingest as usual; the GitHub cron + watchdog remain as fallbacks.
+// firing ~15:xx), so the morning edition + email land mid-afternoon. A punctual
+// external cron (cron-job.org, minute-precise and free) hits this route on
+// schedule with `Authorization: Bearer ${CRON_SECRET}`, and we dispatch the GitHub
+// "Daily Ingest" workflow via the REST API. The digest still chains off the ingest
+// as usual; the GitHub cron + watchdog remain as fallbacks. (Works equally with a
+// Vercel Cron on Pro; Hobby cron timing is best-effort, hence the external cron.)
 //
-// Auth: Vercel Cron sends `Authorization: Bearer ${CRON_SECRET}` automatically
-// (CRON_SECRET is already configured for the /api/ingest/* routes).
+// Auth reuses CRON_SECRET (already configured for the /api/ingest/* routes).
 // Requires: GITHUB_DISPATCH_TOKEN (fine-grained PAT with Actions: read/write on
 // this repo) and GITHUB_REPO ("owner/name").
 export async function GET(request: Request) {
