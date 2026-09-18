@@ -268,12 +268,9 @@ export default async function StoryPage({ params }: Props) {
               <p className="text-[15px] text-[#475569] line-clamp-3 mb-5 leading-relaxed">{s.description}</p>
             )}
 
-            {/* Tier meter + share */}
+            {/* Tier meter */}
             <div className="flex items-center gap-4 flex-wrap">
               <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
-              <div className="ml-auto">
-                <ShareButtons title={s.title} slug={s.slug} />
-              </div>
             </div>
           </div>
         </div>
@@ -290,6 +287,9 @@ export default async function StoryPage({ params }: Props) {
         <SectionCard accent="#2563EB" className="mb-4">
           <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1D4ED8] mb-3">📹 Source Video</p>
           <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
+          <div className="mt-4">
+            <ShareButtons title={s.title} slug={s.slug} />
+          </div>
         </SectionCard>
 
         {/* What we know / What remains unclear — major stories only (Phase 3) */}
