@@ -47,7 +47,7 @@ export default async function LandingPage() {
       <main>
 
         {/* Hero */}
-        <section className="relative overflow-hidden py-20 px-4 sm:px-6" style={{ minHeight: 480 }}>
+        <section className="relative overflow-hidden py-10 sm:py-20 px-4 sm:px-6">
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -68,11 +68,11 @@ export default async function LandingPage() {
             <p className="text-[11px] font-bold tracking-[0.2em] text-[#1D4ED8] uppercase mb-4">
               Free Daily Briefing
             </p>
-            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-[#0F172A] mb-6">
+            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-[#0F172A] mb-5 sm:mb-6">
               The full picture,<br />
               <span style={{ color: '#2563EB' }}>not the profitable one.</span>
             </h1>
-            <p className="text-base sm:text-lg text-[#475569] mb-8 max-w-lg mx-auto leading-relaxed">
+            <p className="hidden sm:block text-base sm:text-lg text-[#475569] mb-8 max-w-lg mx-auto leading-relaxed">
               Every source labeled by source tier. International context every morning. Undercovered stories surfaced daily, with preferences you can tune after subscribing.
             </p>
             <div className="max-w-sm mx-auto mb-3">
