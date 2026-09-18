@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import MobileMenu from './MobileMenu'
 
 export default function Header() {
   return (
@@ -17,7 +18,7 @@ export default function Header() {
             <Link href="/feed" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
               Today&apos;s Digest
             </Link>
-            <Link href="/clips" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/clips" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
               Clips
             </Link>
             <Link href="/stories" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
@@ -36,6 +37,7 @@ export default function Header() {
                 <path d="m21 21-4.3-4.3" />
               </svg>
             </Link>
+            <MobileMenu />
           </nav>
 
         </div>
