@@ -89,7 +89,14 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
           : <Stat label="Air quality" value="Unavailable" />}
         {env.tide?.nextHigh && <Stat label="Next high tide" value={env.tide.nextHigh.time.slice(11) || env.tide.nextHigh.time} />}
         {env.tide?.nextLow && <Stat label="Next low tide" value={env.tide.nextLow.time.slice(11) || env.tide.nextLow.time} />}
-        <Stat label="Thermal anomalies" value={env.thermalAnomalies ? String(env.thermalAnomalies.count) : 'None'} />
+        <Stat
+          label="Active fire detections"
+          value={
+            env.thermalAnomalies && env.thermalAnomalies.count > 0
+              ? `${env.thermalAnomalies.count}${env.thermalAnomalies.nearestMiles != null ? ` · nearest ~${env.thermalAnomalies.nearestMiles} mi` : ''}`
+              : 'None nearby'
+          }
+        />
       </div>
       {env.activeAlerts.length > 0 && (
         <div className="mt-3 space-y-2">

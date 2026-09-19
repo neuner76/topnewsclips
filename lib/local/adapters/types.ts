@@ -62,7 +62,7 @@ export interface EnvironmentSnapshot {
   tide?: TideReading
   activeAlerts: NwsAlertSummary[]
   recentEarthquakes: QuakeSummary[]
-  thermalAnomalies?: { count: number }
+  thermalAnomalies?: { count: number; nearestMiles?: number }
   dataAsOf: string
 }
 

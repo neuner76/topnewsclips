@@ -17,6 +17,8 @@ import { normalizeUsgsEarthquakes } from './adapters/usgs'
 import { normalizeNoaaTides } from './adapters/noaa-tides'
 import { normalizeAirNow } from './adapters/airnow'
 import { fetchPurpleAir } from './adapters/purpleair'
+import { fetchFirms } from './adapters/firms'
+import { fetch511Events } from './adapters/bay511'
 import { fetchMarinPermits } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
@@ -67,7 +69,7 @@ export interface SnapshotParts {
   quakes?: QuakeSummary[]
   tide?: TideReading
   airQuality?: AirQualityReading
-  thermalAnomalies?: { count: number }
+  thermalAnomalies?: { count: number; nearestMiles?: number }
 }
 
 export function buildEnvironmentSnapshot(parts: SnapshotParts): EnvironmentSnapshot {
@@ -168,7 +170,11 @@ async function buildLiveEnvironment(point: { lat: number; lng: number }): Promis
     return normalizeNoaaTides(await res.json(), { station: TIDE_STATION, now: new Date() })
   })
   const airQuality = await resolveAirQuality(point)
-  return buildEnvironmentSnapshot({ forecast, alerts, quakes, tide, airQuality })
+  // Active-fire / thermal anomalies near the point (NASA FIRMS). Key-gated.
+  const thermalAnomalies = process.env.NASA_FIRMS_MAP_KEY
+    ? await safe(() => fetchFirms(point, process.env.NASA_FIRMS_MAP_KEY!))
+    : undefined
+  return buildEnvironmentSnapshot({ forecast, alerts, quakes, tide, airQuality, thermalAnomalies })
 }
 
 // Air quality: prefer AirNow (official EPA monitors); fall back to PurpleAir
@@ -238,10 +244,17 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     agendaItems, agendas ?? [], GOVERNMENT_MAX, new Set(blindspots.map(b => b.id)),
   )
 
+  // Roads & Incidents (Build C) — 511 SF Bay traffic events near the point. Key-gated;
+  // if no key it stays a "coming soon" placeholder, matching the honest-sections rule.
+  const roads = process.env.BAY511_API_KEY
+    ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, representativePoint()))) ?? []
+    : []
+
   // Honest sections only — never fabricated data. A section with no live source
-  // yet (Need To Know alerts, Roads & Incidents) is marked "coming soon" and shown
-  // as a placeholder; a live section that fetched nothing is simply empty (omitted).
-  const comingSoonSections = ['needToKnow', 'roadsAndIncidents']
+  // yet (Need To Know alerts) is marked "coming soon" and shown as a placeholder;
+  // a live section that fetched nothing is simply empty (omitted).
+  const comingSoonSections = ['needToKnow']
+  if (!process.env.BAY511_API_KEY) comingSoonSections.push('roadsAndIncidents')
 
   return assembleMyLocalDigest({
     places,
@@ -250,7 +263,7 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
       needToKnow: [], // no live alert source wired yet (Build C)
       changingAroundYou: changing,
       yourGovernment: government,
-      roadsAndIncidents: [], // no live traffic/incident source wired yet (Build C)
+      roadsAndIncidents: roads,
       localReporting: reporting,
       localBlindspot: blindspots, // engine output; empty -> section omitted
     },
