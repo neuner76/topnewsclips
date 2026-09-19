@@ -159,7 +159,10 @@ export function validateGlobalLensSourceConsistency(item: {
   const outlet = normalizeOutletName(item.outletName ?? outletNameForStory(story) ?? '')
   const text = normalizeOutletName(item.summary ?? item.text ?? '')
 
-  if (!outlet) return { valid: false, reason: 'Missing outlet name' }
+  // Can't verify source consistency without a resolvable outlet — don't drop a
+  // legitimate digest item over it (the email renders these fine). Only a genuine
+  // cross-attribution (below) invalidates.
+  if (!outlet) return { valid: true }
 
   const knownOutlets = [
     'dw news',
@@ -167,6 +170,8 @@ export function validateGlobalLensSourceConsistency(item: {
     'france 24',
     'wion',
     'abc australia',
+    'abc news australia',
+    'abc news in-depth',
     'trt world',
     'bbc',
     'reuters',
@@ -189,9 +194,13 @@ export function validateGlobalLensSourceConsistency(item: {
       .filter(([canonical, aliases]) => canonical === outlet || canonical.replace(/\s+/g, '') === compactOutlet || aliases.includes(outlet) || aliases.includes(compactOutlet))
       .flatMap(([canonical, aliases]) => [canonical, canonical.replace(/\s+/g, ''), ...aliases]),
   ])
+  const outletWords = new Set(outlet.split(/\s+/).filter(w => w.length > 2))
   const mentionedOtherOutlet = knownOutlets.find(name => {
     if (allowedNames.has(name) || allowedNames.has(name.replace(/\s+/g, ''))) return false
     if (outlet.includes(name) || name.includes(outlet)) return false
+    // Same outlet family if they share a significant word (e.g. "abc australia"
+    // vs "abc news australia") — not a cross-attribution conflict.
+    if (name.split(/\s+/).some(w => w.length > 2 && outletWords.has(w))) return false
     return text.includes(name)
   })
 
