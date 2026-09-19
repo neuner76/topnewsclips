@@ -128,10 +128,10 @@
     "requiresKey": true,
     "envVar": "NASA_FIRMS_MAP_KEY",
     "refreshMinutes": 15,
-    "termsNotes": "MAP_KEY required (not set). Optional in Build A; thermal anomalies near saved places only.",
-    "status": "needs_key",
+    "termsNotes": "Wired 2026-09 (lib/local/adapters/firms.ts): area CSV API, VIIRS_SNPP_NRT, bbox around the point, nominal/high-confidence count + nearest distance -> Thermal/Active fire stat. Needs NASA_FIRMS_MAP_KEY.",
+    "status": "ready",
     "buildPhase": "A",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-19"
   },
   {
     "id": "usgs-water-gauges",
@@ -428,10 +428,10 @@
     "requiresKey": true,
     "envVar": "BAY511_API_KEY",
     "refreshMinutes": 5,
-    "termsNotes": "Free key required (not set). Traffic events + transit (GTFS-RT). Build C.",
-    "status": "needs_key",
+    "termsNotes": "Wired 2026-09 (lib/local/adapters/bay511.ts): Open511 traffic events, active + near the point, severity-ranked -> Roads & Incidents. JSON has a UTF-8 BOM (stripped). Needs BAY511_API_KEY.",
+    "status": "ready",
     "buildPhase": "C",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-19"
   },
   {
     "id": "caltrans-cameras",

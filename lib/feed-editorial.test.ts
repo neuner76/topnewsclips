@@ -87,6 +87,24 @@ describe('feed editorial hierarchy', () => {
     expect(result.reason).toContain('al jazeera')
   })
 
+  it('does not drop a Global Lens item when the outlet cannot be resolved', () => {
+    // Previously returned invalid ("Missing outlet name"), silently dropping valid
+    // digest items the email renders fine — pushing the section under its 2-item floor.
+    const result = validateGlobalLensSourceConsistency(
+      { summary: 'ABC News In-depth centers the paradox of US pressure unifying Canada.' },
+      null
+    )
+    expect(result.valid).toBe(true)
+  })
+
+  it('does not false-flag "ABC News Australia" against the "abc australia" alias', () => {
+    const result = validateGlobalLensSourceConsistency(
+      { summary: 'ABC News Australia centers renewable energy access as a policy equity issue.', outletName: 'ABC News Australia' },
+      null
+    )
+    expect(result.valid).toBe(true)
+  })
+
   it('clamps Global Lens and Blindspot display text', () => {
     const long = Array.from({ length: 80 }, (_, i) => `word${i}`).join(' ')
     expect(clampWords(long, 65).split(/\s+/)).toHaveLength(65)

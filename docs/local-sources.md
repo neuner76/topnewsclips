@@ -25,7 +25,7 @@ Adapters may only be written for sources whose status is `ready` or `needs_key` 
 | Source | Status | Phase | Access | Key | Entry |
 |---|---|---|---|---|---|
 | AirNow — Air Quality (AQI) | `needs_key` | A | api (airnowapi.org) | AIRNOW_API_KEY | https://www.airnowapi.org/aq/observation/latLong/current/ |
-| NASA FIRMS — Thermal Anomalies / Active Fire | `needs_key` | A | api (firms.modaps.eosdis.nasa.gov) | NASA_FIRMS_MAP_KEY | https://firms.modaps.eosdis.nasa.gov/api/area/ |
+| NASA FIRMS — Thermal Anomalies / Active Fire | `ready` | A | api (firms.modaps.eosdis.nasa.gov) | NASA_FIRMS_MAP_KEY | https://firms.modaps.eosdis.nasa.gov/api/area/ |
 | NOAA CO-OPS Tides — Point Reyes | `ready` | A | api (tidesandcurrents.noaa.gov) | — | https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9415020&product=predictions&interval=hilo&datum=MLLW&units=english&time_zone=lst_ldt&format=json&date=today |
 | National Weather Service — Active Alerts | `ready` | A | api (api.weather.gov) | — | https://api.weather.gov/alerts/active?point={lat},{lng} |
 | National Weather Service — Forecast + Fire Weather Zone | `ready` | A | api (api.weather.gov) | — | https://api.weather.gov/points/{lat},{lng} |
@@ -75,7 +75,7 @@ Adapters may only be written for sources whose status is `ready` or `needs_key` 
 
 | Source | Status | Phase | Access | Key | Entry |
 |---|---|---|---|---|---|
-| 511 SF Bay — traffic + transit | `needs_key` | C | api (511.org) | BAY511_API_KEY | https://511.org/open-data |
+| 511 SF Bay — traffic + transit | `ready` | C | api (511.org) | BAY511_API_KEY | https://511.org/open-data |
 | Golden Gate Ferry service alerts | `stub` | C | api (gtfs-rt) | — | https://www.goldengate.org/ferry/ |
 | SMART rail service alerts | `stub` | C | api (gtfs-rt) | — | https://www.sonomamarintrain.org/ |
 
