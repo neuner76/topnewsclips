@@ -65,6 +65,24 @@ function EventSection({ title, events, comingSoon }: { title: string; events: Lo
   )
 }
 
+// Need To Know is the urgent, act-now subset. When there's nothing urgent we
+// show a positive "all clear" — an empty section here means the check ran and
+// found nothing, which is itself reassuring information (not "coming soon").
+function NeedToKnowSection({ events }: { events: LocalEvent[] }) {
+  return (
+    <section className="mb-8">
+      <SectionHeader title="Need To Know Near You" />
+      {events.length === 0 ? (
+        <div className="rounded-lg border border-[#DCFCE7] bg-[#F0FDF4] p-3 text-xs text-[#166534]">
+          ✓ Nothing urgent near you right now — no active weather alerts, nearby earthquakes, fire detections, or full road closures.
+        </div>
+      ) : (
+        <div className="space-y-2">{events.map(e => <EventCard key={e.id} e={e} />)}</div>
+      )}
+    </section>
+  )
+}
+
 function CameraSection({ cameras }: { cameras: MyLocalDigest['trafficCameras'] }) {
   if (!cameras || cameras.length === 0) return null
   return (
@@ -175,7 +193,7 @@ export default async function LocalPage() {
         <p className="mt-1 text-xs text-muted-foreground">What changed around you — from your block to your county.</p>
       </header>
 
-      <EventSection title="Need To Know Near You" events={digest.needToKnow} comingSoon={comingSoon('needToKnow')} />
+      <NeedToKnowSection events={digest.needToKnow} />
       <EventSection title="Changing Around You" events={digest.changingAroundYou} />
       <EventSection title="Your Government" events={digest.yourGovernment} />
       {digest.environment && <EnvironmentModule env={digest.environment} />}
