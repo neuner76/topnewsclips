@@ -19,6 +19,7 @@ import { normalizeAirNow } from './adapters/airnow'
 import { fetchPurpleAir } from './adapters/purpleair'
 import { fetchFirms } from './adapters/firms'
 import { fetch511Events } from './adapters/bay511'
+import { fetchCaltransCameras, type LocalCamera } from './adapters/caltrans-cameras'
 import { fetchMarinPermits } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
@@ -60,6 +61,7 @@ export interface MyLocalDigest {
   roadsAndIncidents: LocalEvent[]
   localReporting: LocalEvent[]
   localBlindspot: LocalEvent[]
+  trafficCameras: LocalCamera[]
   comingSoonSections: string[]
 }
 
@@ -96,6 +98,7 @@ export interface AssembleInput {
     localReporting: LocalEvent[]
     localBlindspot: LocalEvent[]
   }
+  trafficCameras?: LocalCamera[]
   comingSoonSections: string[]
   generatedAt?: string
 }
@@ -111,6 +114,7 @@ export function assembleMyLocalDigest(input: AssembleInput): MyLocalDigest {
     roadsAndIncidents: input.sections.roadsAndIncidents,
     localReporting: input.sections.localReporting,
     localBlindspot: input.sections.localBlindspot,
+    trafficCameras: input.trafficCameras ?? [],
     comingSoonSections: input.comingSoonSections,
   }
 }
@@ -249,6 +253,8 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const roads = process.env.BAY511_API_KEY
     ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, representativePoint()))) ?? []
     : []
+  // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key).
+  const trafficCameras = (await safe(() => fetchCaltransCameras(representativePoint()))) ?? []
 
   // Honest sections only — never fabricated data. A section with no live source
   // yet (Need To Know alerts) is marked "coming soon" and shown as a placeholder;
@@ -267,6 +273,7 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
       localReporting: reporting,
       localBlindspot: blindspots, // engine output; empty -> section omitted
     },
+    trafficCameras,
     comingSoonSections,
   })
 }

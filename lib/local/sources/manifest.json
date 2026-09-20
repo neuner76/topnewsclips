@@ -446,10 +446,10 @@
     "entryUrl": "https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json",
     "requiresKey": false,
     "refreshMinutes": 5,
-    "termsNotes": "Public JSON (District 4). Verify format + license at Build C; show cameras only when a nearby event is relevant.",
-    "status": "stub",
+    "termsNotes": "Public JSON (District 4). Nearest in-service cameras within 15 mi (limit 6) rendered as live thumbnails in the Traffic Cameras section.",
+    "status": "ready",
     "buildPhase": "C",
-    "verifiedAt": "2026-09-07"
+    "verifiedAt": "2026-09-20"
   },
   {
     "id": "chp-incidents",

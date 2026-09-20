@@ -65,6 +65,34 @@ function EventSection({ title, events, comingSoon }: { title: string; events: Lo
   )
 }
 
+function CameraSection({ cameras }: { cameras: MyLocalDigest['trafficCameras'] }) {
+  if (!cameras || cameras.length === 0) return null
+  return (
+    <section className="mb-8">
+      <SectionHeader title="Traffic Cameras" />
+      <div className="grid grid-cols-2 gap-2">
+        {cameras.map(cam => (
+          <a
+            key={cam.id}
+            href={cam.streamUrl || cam.imageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block overflow-hidden rounded-lg border border-border hover:border-foreground/30 transition-colors"
+          >
+            {/* Live Caltrans snapshot (~5-min refresh). Plain img on purpose — do
+                not let next/image cache a stale frame of a live camera. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={cam.imageUrl} alt={cam.name} loading="lazy" className="aspect-video w-full bg-muted object-cover" />
+            <div className="truncate p-2 text-[11px] text-muted-foreground">
+              {cam.route ? `${cam.route} · ` : ''}{cam.name}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border p-3">
@@ -151,6 +179,7 @@ export default async function LocalPage() {
       <EventSection title="Your Government" events={digest.yourGovernment} />
       {digest.environment && <EnvironmentModule env={digest.environment} />}
       <EventSection title="Roads & Incidents" events={digest.roadsAndIncidents} comingSoon={comingSoon('roadsAndIncidents')} />
+      <CameraSection cameras={digest.trafficCameras} />
       <EventSection title="Local Reporting" events={digest.localReporting} />
       <EventSection title="Local Blindspot" events={digest.localBlindspot} />
     </main>
