@@ -18,6 +18,7 @@ import { normalizeNoaaTides } from './adapters/noaa-tides'
 import { normalizeAirNow } from './adapters/airnow'
 import { fetchPurpleAir } from './adapters/purpleair'
 import { fetchFirms } from './adapters/firms'
+import { buildNeedToKnow } from './need-to-know'
 import { fetch511Events } from './adapters/bay511'
 import { fetchCaltransCameras, type LocalCamera } from './adapters/caltrans-cameras'
 import { fetchCaltransClosures } from './adapters/caltrans-lcs'
@@ -265,17 +266,21 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key).
   const trafficCameras = (await safe(() => fetchCaltransCameras(representativePoint()))) ?? []
 
-  // Honest sections only — never fabricated data. A section with no live source
-  // yet (Need To Know alerts) is marked "coming soon" and shown as a placeholder;
-  // a live section that fetched nothing is simply empty (omitted). Roads is now
-  // always live (Caltrans closures need no key), so it's never "coming soon".
-  const comingSoonSections = ['needToKnow']
+  // Need To Know Near You — the urgent, act-now subset synthesized from the live
+  // signals above (NWS alerts, nearby significant quakes, active-fire detections,
+  // full closures happening now). Empty is honest ("nothing urgent right now").
+  const needToKnow = buildNeedToKnow(environment, roads, { near: representativePoint() })
+
+  // Honest sections only — never fabricated data. A live section that fetched
+  // nothing is simply empty; Need To Know now renders an "all clear" state
+  // instead, so no section needs a "coming soon" placeholder anymore.
+  const comingSoonSections: string[] = []
 
   return assembleMyLocalDigest({
     places,
     environment,
     sections: {
-      needToKnow: [], // no live alert source wired yet (Build C)
+      needToKnow,
       changingAroundYou: changing,
       yourGovernment: government,
       roadsAndIncidents: roads,
