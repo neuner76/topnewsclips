@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import { parseCctvCameras, nearbyCameras } from './caltrans-cameras'
+import { parseCctvCameras, nearbyCameras, cleanCameraName } from './caltrans-cameras'
 
 const raw = JSON.parse(fs.readFileSync(path.join('fixtures', 'sources', 'caltrans-cctv', 'sample.json'), 'utf8'))
 const NOVATO = { lat: 38.1074, lng: -122.5697 }
@@ -14,6 +14,14 @@ describe('parseCctvCameras', () => {
     const cam = cams.find(c => c.route === 'US-101')!
     expect(cam.name).toBe('US-101 : Wilfred Avenue') // "TV127 -- " stripped
     expect(cam.county).toBe('Sonoma')
+  })
+})
+
+describe('cleanCameraName', () => {
+  it('strips the route prefix, drops "AT", and expands Caltrans codes', () => {
+    expect(cleanCameraName('US-101', 'US-101 : AT JNO CENTRAL SRF')).toBe('Just North of Central San Rafael')
+    expect(cleanCameraName('I-580', 'I-580 : AT WOF FRANCISCO BLVD')).toBe('West of Francisco Blvd')
+    expect(cleanCameraName('US-101', 'US-101 :  JNO LINCOLN AV')).toBe('Just North of Lincoln Ave')
   })
 })
 

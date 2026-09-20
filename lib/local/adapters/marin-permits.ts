@@ -3,6 +3,7 @@
 // enabled for Marin. Rows are already geocoded (lat/lng, APN, valuation). Feeds
 // the "Changing Around You" section with real permit activity.
 import type { LocalEvent } from '../types'
+import { haversineMiles } from '../geography'
 
 const DATASET = 'mkbn-caye'
 const DATASET_URL = `https://data.marincounty.gov/d/${DATASET}`
@@ -77,7 +78,10 @@ function prettyPermitTitle(desc: string): string {
   return s.replace(/\s+/g, ' ').trim()
 }
 
-export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: number; sort?: 'consequence' | 'recency' } = {}): LocalEvent[] {
+export function normalizeMarinPermits(
+  rows: MarinPermitRow[],
+  opts: { limit?: number; sort?: 'consequence' | 'recency'; near?: { lat: number; lng: number }; radiusMiles?: number } = {},
+): LocalEvent[] {
   const events: LocalEvent[] = []
   for (const r of rows) {
     if (isExpiredPermit(r)) continue // stale — not a current change
@@ -85,6 +89,14 @@ export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: nu
     const lat = r.latitude != null ? Number(r.latitude) : NaN
     const lng = r.longitude != null ? Number(r.longitude) : NaN
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue // can't place it
+
+    // Proximity gate: when a point is given, keep only permits within the radius
+    // so "Changing Around You" is genuinely near the reader, not county-wide.
+    let distanceMiles: number | undefined
+    if (opts.near) {
+      distanceMiles = haversineMiles(opts.near.lat, opts.near.lng, lat, lng)
+      if (opts.radiusMiles != null && distanceMiles > opts.radiusMiles) continue
+    }
 
     const value = Number(r.construction_value ?? 0) || 0
     const received = r.received_date ?? undefined
@@ -97,6 +109,7 @@ export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: nu
     const changedParts = [
       `Permit ${issued ? 'issued' : 'received'}${received ? ' ' + received.slice(0, 10) : ''}`,
       r.address ? cleanAddress(r.address) : null,
+      distanceMiles != null ? `~${distanceMiles < 1 ? '<1' : Math.round(distanceMiles)} mi away` : null,
     ].filter(Boolean)
 
     events.push({
@@ -126,9 +139,14 @@ export function normalizeMarinPermits(rows: MarinPermitRow[], opts: { limit?: nu
 }
 
 // Live fetch: most-recent permits, then normalize (which ranks by valuation).
-export async function fetchMarinPermits(limit = 6, sort: 'consequence' | 'recency' = 'consequence'): Promise<LocalEvent[]> {
-  const url = `https://data.marincounty.gov/resource/${DATASET}.json?$order=received_date%20DESC&$limit=100`
+// Pass `near`/`radiusMiles` to keep only permits within range of the reader.
+export async function fetchMarinPermits(
+  limit = 6,
+  sort: 'consequence' | 'recency' = 'consequence',
+  opts: { near?: { lat: number; lng: number }; radiusMiles?: number } = {},
+): Promise<LocalEvent[]> {
+  const url = `https://data.marincounty.gov/resource/${DATASET}.json?$order=received_date%20DESC&$limit=200`
   const res = await fetch(url, { headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' } })
   if (!res.ok) throw new Error(`Marin permits HTTP ${res.status}`)
-  return normalizeMarinPermits(await res.json(), { limit, sort })
+  return normalizeMarinPermits(await res.json(), { limit, sort, near: opts.near, radiusMiles: opts.radiusMiles })
 }

@@ -38,6 +38,32 @@ export const COVERAGE_OUTLET_NAMES = ['Marin IJ', 'Pacific Sun', 'Point Reyes Li
 
 const UA = 'TopNewsClipsLocal/1.0 (neuner@gmail.com)'
 
+// Outlets that are inherently Marin-local — their stories are local by default,
+// even when the copy doesn't literally say "Marin".
+export const LOCAL_MARIN_OUTLETS = new Set(['Point Reyes Light', 'Pacific Sun', 'Marin IJ'])
+
+// Marin / Novato place terms used to keep regional outlets (e.g. KQED) honest:
+// a KQED story only counts as Local Reporting if it names one of these.
+export const MARIN_LOCAL_TERMS = [
+  'marin', 'novato', 'san rafael', 'mill valley', 'sausalito', 'tiburon', 'belvedere',
+  'corte madera', 'larkspur', 'ross', 'kentfield', 'greenbrae', 'san anselmo', 'fairfax',
+  'point reyes', 'tomales', 'west marin', 'bolinas', 'stinson beach', 'nicasio', 'inverness',
+  'marin city', 'san geronimo', 'lagunitas', 'olema', 'dillon beach', 'muir beach',
+]
+const MARIN_TERM_RE = new RegExp(`\\b(${MARIN_LOCAL_TERMS.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'i')
+
+// True if the text names a Marin/Novato place.
+export function mentionsMarinLocal(text: string): boolean {
+  return MARIN_TERM_RE.test(text)
+}
+
+// Local Reporting gate: inherently-local outlets always pass; regional outlets
+// (KQED) pass only when the headline/summary names a Marin place.
+export function isLocalToMarin(a: LocalArticle): boolean {
+  if (LOCAL_MARIN_OUTLETS.has(a.outlet)) return true
+  return mentionsMarinLocal(`${a.title} ${a.description ?? ''}`)
+}
+
 function stripCdata(s: string): string {
   return s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
 }

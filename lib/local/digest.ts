@@ -24,7 +24,7 @@ import { fetchCaltransClosures } from './adapters/caltrans-lcs'
 import { fetchMarinPermits } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
-import { fetchLocalNews, fetchCoverageArticles, articleToLocalEvent, COVERAGE_OUTLET_NAMES } from './adapters/local-news'
+import { fetchLocalNews, fetchCoverageArticles, articleToLocalEvent, isLocalToMarin, COVERAGE_OUTLET_NAMES } from './adapters/local-news'
 import { detectLocalCoverage } from './coverage'
 import { buildAgendaItemEvents } from './agenda-extract'
 
@@ -208,7 +208,9 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
 
   // Build B/C live sections. A failed fetch yields an empty section (omitted) —
   // never fabricated fixture data.
-  const changing = (await safe(() => fetchMarinPermits(6, 'consequence'))) ?? [] // most consequential recent permits (expired dropped, titles cleaned in the adapter)
+  // Changing Around You: most consequential recent permits WITHIN ~10 mi of the
+  // reader (Novato-tight) — county-wide ranking put Mill Valley/Tiburon on top.
+  const changing = (await safe(() => fetchMarinPermits(6, 'consequence', { near: representativePoint(), radiusMiles: 10 }))) ?? []
   const agendas = await safe(() => fetchMarinAgendas(5))
 
   // Agenda-item LLM extraction (Build B/C): pull the consequential items
@@ -223,7 +225,9 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   // (real links); the Blindspot's coverage check also queries the Marin IJ via
   // Google News, so "no coverage" reflects the county daily, not just the weeklies.
   const articles = (await safe(() => fetchLocalNews())) ?? []
-  const reporting = articles.slice(0, 6).map(articleToLocalEvent)
+  // Hard-filter to Marin: local weeklies pass; regional outlets (KQED) only when
+  // the story names a Marin/Novato place. Keeps the section genuinely local.
+  const reporting = articles.filter(isLocalToMarin).slice(0, 6).map(articleToLocalEvent)
   const coverageArticles = (await safe(() => fetchCoverageArticles())) ?? articles
 
   // Local Blindspot: MAJOR public records (>= ~$250k) checked for coverage against
@@ -255,7 +259,8 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const roads511 = process.env.BAY511_API_KEY
     ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, representativePoint()))) ?? []
     : []
-  const closures = (await safe(() => fetchCaltransClosures(representativePoint()))) ?? []
+  // Novato-tight: 12 mi and Marin/Sonoma only (drops SR-29 Napa/Solano across the bay).
+  const closures = (await safe(() => fetchCaltransClosures(representativePoint(), { radiusMiles: 12, counties: ['Marin', 'Sonoma'] }))) ?? []
   const roads = [...roads511, ...closures].sort((a, b) => (b.consequenceScore ?? 0) - (a.consequenceScore ?? 0)).slice(0, 8)
   // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key).
   const trafficCameras = (await safe(() => fetchCaltransCameras(representativePoint()))) ?? []

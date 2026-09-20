@@ -5,13 +5,50 @@ import { haversineMiles } from '../geography'
 
 export interface LocalCamera {
   id: string
-  name: string // display name, "TVxxx -- " prefix stripped
+  name: string // raw display name, "TVxxx -- " prefix stripped
+  label: string // human-readable: route stripped, Caltrans abbreviations expanded
   route: string
   county: string
   imageUrl: string // static JPG, refreshed ~5 min
   streamUrl?: string // HLS m3u8, if present
   lat: number
   lng: number
+}
+
+// Caltrans camera names are terse dispatch code — "US-101 : AT JNO CENTRAL SRF".
+// Turn them into readable labels: strip the leading route (shown separately),
+// drop the noise "AT", expand directional/structure codes, title-case the rest.
+const CAM_ABBREV: Record<string, string> = {
+  JNO: 'just north of', JSO: 'just south of', JEO: 'just east of', JWO: 'just west of',
+  NOF: 'north of', SOF: 'south of', EOF: 'east of', WOF: 'west of',
+  OC: 'overcrossing', UC: 'undercrossing', OH: 'overhead', PED: 'pedestrian',
+  OFR: 'off-ramp', ONR: 'on-ramp', SRF: 'San Rafael', JCT: 'junction',
+  AV: 'Ave', BL: 'Blvd', BLVD: 'Blvd', ST: 'St', RD: 'Rd', DR: 'Dr', LN: 'Ln', HWY: 'Hwy',
+}
+const LOWER_WORDS = new Set(['of', 'at', 'and', 'the'])
+
+export function cleanCameraName(route: string, raw: string): string {
+  let s = (raw ?? '').trim()
+  // Strip a leading "<route> :" / "<route> -" prefix (route is shown on its own).
+  if (route) s = s.replace(new RegExp(`^${route.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*[:\\-]?\\s*`, 'i'), '')
+  // Also strip any leading route token (some names cite a cross-route, e.g.
+  // "US-101 : N101 at JCT 37" on an SR-37 camera).
+  s = s.replace(/^(US|SR|I|CA)-?\d+\s*[:\-]\s*/i, '')
+  s = s.replace(/^AT\s+/i, '') // leading "AT" is noise
+  const words = s.split(/\s+/).filter(Boolean).map(w => {
+    const up = w.toUpperCase()
+    if (CAM_ABBREV[up]) return CAM_ABBREV[up]
+    if (/^(US|SR|I|CA)-?\d+$/i.test(w)) return w.toUpperCase() // keep route tokens
+    return w
+  })
+  const expanded = words.join(' ')
+  // Title-case, keeping small joining words lowercase (unless first).
+  return expanded.split(/\s+/).map((w, i) => {
+    const lw = w.toLowerCase()
+    if (i > 0 && LOWER_WORDS.has(lw)) return lw
+    if (/^(US|SR|I|CA)-?\d+$/i.test(w)) return w.toUpperCase() // keep route tokens
+    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+  }).join(' ').trim() || (route || 'Traffic camera')
 }
 
 interface CctvEntry {
@@ -34,9 +71,11 @@ export function parseCctvCameras(raw: CctvResponse): LocalCamera[] {
     const lng = Number(loc.longitude)
     const imageUrl = c.imageData?.static?.currentImageURL
     if (!Number.isFinite(lat) || !Number.isFinite(lng) || !imageUrl) continue
+    const name = (loc.locationName ?? '').replace(/^TV\w+\s*--\s*/i, '').trim() || loc.route || 'Traffic camera'
     out.push({
       id: c.index ?? `${lat},${lng}`,
-      name: (loc.locationName ?? '').replace(/^TV\w+\s*--\s*/i, '').trim() || loc.route || 'Traffic camera',
+      name,
+      label: cleanCameraName(loc.route ?? '', name),
       route: loc.route ?? '',
       county: loc.county ?? '',
       imageUrl,

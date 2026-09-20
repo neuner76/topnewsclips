@@ -53,19 +53,23 @@ export function normalizeLaneClosures(
     radiusMiles?: number
     limit?: number
     lookaheadHours?: number
+    counties?: string[] // if set, keep only closures whose begin county matches
     now?: number // epoch seconds; defaults to real now
   },
 ): LocalEvent[] {
   const radius = opts.radiusMiles ?? 20
   const lookahead = (opts.lookaheadHours ?? 24) * 3600
   const now = opts.now ?? Math.floor(Date.now() / 1000)
-  const events: Array<LocalEvent & { _score: number }> = []
+  const countySet = opts.counties ? new Set(opts.counties.map(c => c.toLowerCase())) : null
+  const events: Array<LocalEvent & { _score: number; _key: string }> = []
 
   for (const entry of raw?.data ?? []) {
     const l = entry.lcs
     const begin = l?.location?.begin
     const cl = l?.closure
     if (!begin || !cl) continue
+
+    if (countySet && !countySet.has((begin.beginCounty ?? '').toLowerCase())) continue
 
     const lat = Number(begin.beginLatitude)
     const lng = Number(begin.beginLongitude)
@@ -103,11 +107,10 @@ export function normalizeLaneClosures(
     if ((cl.isCHINReportable ?? 'false').toLowerCase() === 'true') score = Math.min(0.85, score + 0.05)
 
     const closureLabel = isFull ? 'Full closure' : (lanesClosed.toLowerCase() === 'all' ? 'Full closure' : 'Lane closure')
-    const where = begin.beginFreeFormDescription || begin.beginNearbyPlace
-    const title = [
-      [route, dir].filter(Boolean).join(' '),
-      where ? `${closureLabel} ${where}` : closureLabel,
-    ].join(' — ')
+    // Prefer the free-form description (usually "at X"); fall back to "near <place>".
+    const desc = begin.beginFreeFormDescription?.trim()
+    const where = desc ? `${closureLabel} ${desc}` : begin.beginNearbyPlace ? `${closureLabel} near ${begin.beginNearbyPlace}` : closureLabel
+    const title = [[route, dir].filter(Boolean).join(' '), where].join(' — ')
 
     const laneText =
       lanesClosed && lanesClosed.toLowerCase() !== 'all' && Number(totalLanes) > 0
@@ -126,8 +129,13 @@ export function normalizeLaneClosures(
 
     const observedAt = start != null ? new Date(start * 1000).toISOString() : new Date(now * 1000).toISOString()
 
+    // Collapse near-identical closures (same route + direction + work type) that
+    // the LCS feed lists once per segment — e.g. six "SR-29 … Demolition" rows.
+    const dedupeKey = [route, dir ?? '', cl.typeOfWork ?? '', cl.typeOfClosure ?? ''].join('|').toLowerCase()
+
     events.push({
       _score: score,
+      _key: dedupeKey,
       id: `caltrans-lcs-${cl.closureID ?? l?.index ?? `${lat},${lng}`}`,
       title: title.length > 110 ? title.slice(0, 108) + '…' : title,
       eventType: 'traffic',
@@ -143,13 +151,16 @@ export function normalizeLaneClosures(
   }
 
   events.sort((a, b) => b._score - a._score)
-  const limited = opts.limit != null ? events.slice(0, opts.limit) : events
-  return limited.map(({ _score, ...e }) => { void _score; return e })
+  // Dedupe after ranking so the highest-scored representative of each group wins.
+  const seen = new Set<string>()
+  const deduped = events.filter(e => (seen.has(e._key) ? false : (seen.add(e._key), true)))
+  const limited = opts.limit != null ? deduped.slice(0, opts.limit) : deduped
+  return limited.map(({ _score, _key, ...e }) => { void _score; void _key; return e })
 }
 
 export async function fetchCaltransClosures(
   point: { lat: number; lng: number },
-  opts: { radiusMiles?: number; limit?: number; lookaheadHours?: number } = {},
+  opts: { radiusMiles?: number; limit?: number; lookaheadHours?: number; counties?: string[] } = {},
 ): Promise<LocalEvent[]> {
   const res = await fetch('https://cwwp2.dot.ca.gov/data/d4/lcs/lcsStatusD04.json', {
     headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' },
@@ -160,5 +171,6 @@ export async function fetchCaltransClosures(
     radiusMiles: opts.radiusMiles ?? 20,
     limit: opts.limit ?? 6,
     lookaheadHours: opts.lookaheadHours ?? 24,
+    counties: opts.counties,
   })
 }

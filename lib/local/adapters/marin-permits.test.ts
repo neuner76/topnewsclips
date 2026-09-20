@@ -43,6 +43,18 @@ describe('normalizeMarinPermits', () => {
     expect(normalizeMarinPermits([row({ latitude: undefined, longitude: undefined })])).toHaveLength(0)
   })
 
+  it('with `near`+radius, keeps only permits in range and notes the distance', () => {
+    const NOVATO = { lat: 38.1074, lng: -122.5697 }
+    const rows = [
+      row({ unique_id: 'near', latitude: '38.11', longitude: '-122.56', construction_value: '20000' }), // ~1 mi
+      row({ unique_id: 'far', latitude: '37.906', longitude: '-122.545', construction_value: '9000000' }), // Mill Valley ~14 mi, huge $
+    ]
+    const out = normalizeMarinPermits(rows, { near: NOVATO, radiusMiles: 10 })
+    expect(out).toHaveLength(1) // the far high-dollar permit is filtered out despite its value
+    expect(out[0].id).toContain('near')
+    expect(out[0].whatChanged).toMatch(/mi away/)
+  })
+
   it('drops expired permits — they are not "changing around you"', () => {
     const rows = [
       row({ unique_id: 'live', description: 'Replace 1 Window & 1 Door', construction_value: '20000' }),
