@@ -4,6 +4,7 @@
 // 511 (live collisions) with scheduled construction/maintenance closures.
 import type { LocalEvent } from '../types'
 import { haversineMiles } from '../geography'
+import { nearAnyAnchor, type Anchor } from '../anchors'
 
 interface LcsBegin {
   beginRoute?: string
@@ -54,6 +55,7 @@ export function normalizeLaneClosures(
     limit?: number
     lookaheadHours?: number
     counties?: string[] // if set, keep only closures whose begin county matches
+    anchors?: Anchor[] // multi-place: keep closures near ANY anchor (overrides near/radius)
     now?: number // epoch seconds; defaults to real now
   },
 ): LocalEvent[] {
@@ -74,8 +76,11 @@ export function normalizeLaneClosures(
     const lat = Number(begin.beginLatitude)
     const lng = Number(begin.beginLongitude)
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
-    const dist = haversineMiles(opts.near.lat, opts.near.lng, lat, lng)
-    if (dist > radius) continue
+    if (opts.anchors && opts.anchors.length > 0) {
+      if (!nearAnyAnchor(lat, lng, opts.anchors).ok) continue
+    } else if (haversineMiles(opts.near.lat, opts.near.lng, lat, lng) > radius) {
+      continue
+    }
 
     const ts = cl.closureTimestamp ?? {}
     const start = toEpoch(ts.closureStartEpoch)
@@ -160,7 +165,7 @@ export function normalizeLaneClosures(
 
 export async function fetchCaltransClosures(
   point: { lat: number; lng: number },
-  opts: { radiusMiles?: number; limit?: number; lookaheadHours?: number; counties?: string[] } = {},
+  opts: { radiusMiles?: number; limit?: number; lookaheadHours?: number; counties?: string[]; anchors?: Anchor[] } = {},
 ): Promise<LocalEvent[]> {
   const res = await fetch('https://cwwp2.dot.ca.gov/data/d4/lcs/lcsStatusD04.json', {
     headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' },
@@ -172,5 +177,6 @@ export async function fetchCaltransClosures(
     limit: opts.limit ?? 6,
     lookaheadHours: opts.lookaheadHours ?? 24,
     counties: opts.counties,
+    anchors: opts.anchors,
   })
 }

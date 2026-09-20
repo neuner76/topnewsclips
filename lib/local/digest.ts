@@ -19,6 +19,8 @@ import { normalizeAirNow } from './adapters/airnow'
 import { fetchPurpleAir } from './adapters/purpleair'
 import { fetchFirms } from './adapters/firms'
 import { buildNeedToKnow } from './need-to-know'
+import { type Anchor } from './anchors'
+import { PUBLIC_SEED_PLACES } from './seed-places'
 import { fetch511Events } from './adapters/bay511'
 import { fetchCaltransCameras, type LocalCamera } from './adapters/caltrans-cameras'
 import { fetchCaltransClosures } from './adapters/caltrans-lcs'
@@ -149,6 +151,50 @@ function representativePoint(): { lat: number; lng: number } {
   return { lat: MARIN_POINT.lat, lng: MARIN_POINT.lng }
 }
 
+// PostGIS geometry columns come back from PostgREST as GeoJSON ({type,coordinates})
+// — sometimes as an object, sometimes a JSON string. Pull [lng,lat] out of either.
+function coordsFromCenter(center: unknown): { lat: number; lng: number } | null {
+  let obj: unknown = center
+  if (typeof center === 'string') { try { obj = JSON.parse(center) } catch { return null } }
+  const c = (obj as { coordinates?: unknown } | null)?.coordinates
+  if (Array.isArray(c) && typeof c[0] === 'number' && typeof c[1] === 'number') return { lat: c[1], lng: c[0] }
+  return null
+}
+
+// A place broader than this is treated as context, not a proximity anchor — an
+// 18 mi "county" circle centered mid-county is basically county-wide and would
+// re-admit far towns (Mill Valley, Tiburon). Only tight, point-scale places
+// (a town, a neighborhood) drive the "near you" filtering.
+const MAX_ANCHOR_RADIUS_MILES = 14
+
+// Multi-place anchors: one point+radius per saved place. Coordinates come from the
+// DB `center` geometry; if PostgREST doesn't hand back parseable GeoJSON we fall
+// back to the committed seed coordinates by label, and finally to the env home
+// point — so relevance never regresses, it only sharpens once geometry is read.
+async function getPlaceAnchors(): Promise<Anchor[]> {
+  const seedByLabel = new Map(PUBLIC_SEED_PLACES.map(p => [p.label.toLowerCase(), p]))
+  const anchors: Anchor[] = []
+  try {
+    const sb = getServiceClient()
+    const { data } = await sb.from('local_saved_places').select('label, radius_miles, center')
+    for (const r of (data ?? []) as Array<{ label: string; radius_miles: number | null; center: unknown }>) {
+      let pt = coordsFromCenter(r.center)
+      let radius = r.radius_miles ?? undefined
+      if (!pt) {
+        const seed = seedByLabel.get((r.label ?? '').toLowerCase())
+        if (seed) { pt = { lat: seed.latitude, lng: seed.longitude }; radius = radius ?? seed.radiusMiles }
+      }
+      const r2 = radius ?? 10
+      if (pt && r2 <= MAX_ANCHOR_RADIUS_MILES) anchors.push({ lat: pt.lat, lng: pt.lng, radiusMiles: r2, label: r.label })
+    }
+  } catch { /* fall through to the env home point */ }
+  if (anchors.length === 0) {
+    const home = representativePoint()
+    return [{ lat: home.lat, lng: home.lng, radiusMiles: 10, label: 'Home' }]
+  }
+  return anchors
+}
+
 async function safe<T>(fn: () => Promise<T>): Promise<T | undefined> {
   try { return await fn() } catch { return undefined }
 }
@@ -206,12 +252,14 @@ async function resolveAirQuality(point: { lat: number; lng: number }): Promise<A
 export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   const places = await getSavedPlaces()
   const environment = await buildLiveEnvironment(representativePoint())
+  // Multi-place anchors: proximity now honors EVERY saved place (Novato, West
+  // Marin, …), not just one home point — each with its own radius.
+  const anchors = await getPlaceAnchors()
 
   // Build B/C live sections. A failed fetch yields an empty section (omitted) —
   // never fabricated fixture data.
-  // Changing Around You: most consequential recent permits WITHIN ~10 mi of the
-  // reader (Novato-tight) — county-wide ranking put Mill Valley/Tiburon on top.
-  const changing = (await safe(() => fetchMarinPermits(6, 'consequence', { near: representativePoint(), radiusMiles: 10 }))) ?? []
+  // Changing Around You: most consequential recent permits near ANY saved place.
+  const changing = (await safe(() => fetchMarinPermits(6, 'consequence', { anchors }))) ?? []
   const agendas = await safe(() => fetchMarinAgendas(5))
 
   // Agenda-item LLM extraction (Build B/C): pull the consequential items
@@ -258,13 +306,13 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   // with Caltrans D4 lane closures (public, no key). 511 gives live collisions;
   // Caltrans LCS adds scheduled construction/maintenance closures.
   const roads511 = process.env.BAY511_API_KEY
-    ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, representativePoint()))) ?? []
+    ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, representativePoint(), { anchors }))) ?? []
     : []
-  // Novato-tight: 12 mi and Marin/Sonoma only (drops SR-29 Napa/Solano across the bay).
-  const closures = (await safe(() => fetchCaltransClosures(representativePoint(), { radiusMiles: 12, counties: ['Marin', 'Sonoma'] }))) ?? []
+  // Near any saved place; still Marin/Sonoma only (drops SR-29 Napa/Solano across the bay).
+  const closures = (await safe(() => fetchCaltransClosures(representativePoint(), { anchors, counties: ['Marin', 'Sonoma'] }))) ?? []
   const roads = [...roads511, ...closures].sort((a, b) => (b.consequenceScore ?? 0) - (a.consequenceScore ?? 0)).slice(0, 8)
-  // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key).
-  const trafficCameras = (await safe(() => fetchCaltransCameras(representativePoint()))) ?? []
+  // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key), near any place.
+  const trafficCameras = (await safe(() => fetchCaltransCameras(representativePoint(), { anchors }))) ?? []
 
   // Need To Know Near You — the urgent, act-now subset synthesized from the live
   // signals above (NWS alerts, nearby significant quakes, active-fire detections,
