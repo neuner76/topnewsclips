@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import { parseLocalNewsRss, parseGoogleNewsRss, articleToLocalEvent } from './local-news'
+import { parseLocalNewsRss, parseGoogleNewsRss, articleToLocalEvent, mentionsMarinLocal, isLocalToMarin } from './local-news'
 
 const fixture = fs.readFileSync(path.join('fixtures', 'sources', 'point-reyes-light', 'sample.xml'), 'utf8')
 const gnews = fs.readFileSync(path.join('fixtures', 'sources', 'marin-ij-googlenews', 'sample.xml'), 'utf8')
@@ -41,5 +41,22 @@ describe('articleToLocalEvent', () => {
     expect(e.sources[0].type).toBe('local_news')
     expect(e.sources[0].label).toBe('Point Reyes Light')
     expect(e.sources[0].url).toBe('https://x/story')
+  })
+})
+
+describe('Marin-local filtering', () => {
+  it('detects Marin/Novato place names', () => {
+    expect(mentionsMarinLocal('Novato City Council approves budget')).toBe(true)
+    expect(mentionsMarinLocal('Flooding closes roads in West Marin')).toBe(true)
+    expect(mentionsMarinLocal('Santa Clara County foster care investigation')).toBe(false)
+  })
+
+  it('passes local-outlet stories always, regional outlets only when they name a Marin place', () => {
+    const local = { outlet: 'Point Reyes Light', title: 'New dock opens', publishedAt: '2026-09-09T00:00:00Z' }
+    const kqedLocal = { outlet: 'KQED', title: 'San Rafael housing plan advances', publishedAt: '2026-09-09T00:00:00Z' }
+    const kqedRegional = { outlet: 'KQED', title: 'Bay Area security workers strike', publishedAt: '2026-09-09T00:00:00Z' }
+    expect(isLocalToMarin(local)).toBe(true) // inherently local outlet
+    expect(isLocalToMarin(kqedLocal)).toBe(true) // names San Rafael
+    expect(isLocalToMarin(kqedRegional)).toBe(false) // regional, no Marin place
   })
 })

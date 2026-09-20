@@ -82,9 +82,10 @@ function CameraSection({ cameras }: { cameras: MyLocalDigest['trafficCameras'] }
             {/* Live Caltrans snapshot (~5-min refresh). Plain img on purpose — do
                 not let next/image cache a stale frame of a live camera. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={cam.imageUrl} alt={cam.name} loading="lazy" className="aspect-video w-full bg-muted object-cover" />
+            <img src={cam.imageUrl} alt={cam.label} loading="lazy" className="aspect-video w-full bg-muted object-cover" />
             <div className="truncate p-2 text-[11px] text-muted-foreground">
-              {cam.route ? `${cam.route} · ` : ''}{cam.name}
+              {cam.route && <span className="font-semibold text-foreground">{cam.route}</span>}
+              {cam.route && cam.label ? ' · ' : ''}{cam.label}
             </div>
           </a>
         ))}

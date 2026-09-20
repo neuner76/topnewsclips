@@ -33,3 +33,27 @@ describe('normalizeLaneClosures', () => {
     expect(lane.whatChanged).toContain('1 of 3')
   })
 })
+
+describe('county filter + dedupe', () => {
+  const mk = (id: string, county: string, route: string, dir: string, work: string) => ({
+    lcs: {
+      index: id,
+      location: { travelFlowDirection: dir, begin: { beginRoute: route, beginCounty: county, beginLatitude: '38.11', beginLongitude: '-122.56' } },
+      closure: {
+        closureID: id, typeOfClosure: 'Lane', typeOfWork: work, lanesClosed: '1', totalExistingLanes: '2',
+        closureTimestamp: { closureStartEpoch: String(NOW - 3600), closureEndEpoch: String(NOW + 3600), isClosureEndIndefinite: 'false' },
+      },
+    },
+  })
+
+  it('drops out-of-county closures and collapses same route+direction+work', () => {
+    const raw = { data: [
+      mk('a', 'Marin', 'US-101', 'North', 'Demolition'),
+      mk('b', 'Marin', 'US-101', 'North', 'Demolition'), // duplicate segment of a
+      mk('c', 'Napa', 'SR-29', 'North', 'Electrical Work'), // across the bay
+    ] }
+    const events = normalizeLaneClosures(raw, { near: NOVATO, radiusMiles: 20, counties: ['Marin', 'Sonoma'], now: NOW })
+    expect(events.length).toBe(1) // duplicate collapsed, Napa dropped
+    expect(events[0].title).toContain('US-101')
+  })
+})
