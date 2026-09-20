@@ -435,7 +435,7 @@
   },
   {
     "id": "caltrans-cameras",
-    "name": "Caltrans QuickMap / CWWP2 cameras + closures",
+    "name": "Caltrans CWWP2 D4 cameras (CCTV)",
     "category": "camera",
     "jurisdiction": [
       "Marin County",
@@ -447,6 +447,24 @@
     "requiresKey": false,
     "refreshMinutes": 5,
     "termsNotes": "Public JSON (District 4). Nearest in-service cameras within 15 mi (limit 6) rendered as live thumbnails in the Traffic Cameras section.",
+    "status": "ready",
+    "buildPhase": "C",
+    "verifiedAt": "2026-09-20"
+  },
+  {
+    "id": "caltrans-lane-closures",
+    "name": "Caltrans CWWP2 D4 lane closures (LCS)",
+    "category": "transportation",
+    "jurisdiction": [
+      "Marin County",
+      "Bay Area"
+    ],
+    "accessMethod": "api",
+    "platform": "caltrans-cwwp2",
+    "entryUrl": "https://cwwp2.dot.ca.gov/data/d4/lcs/lcsStatusD04.json",
+    "requiresKey": false,
+    "refreshMinutes": 15,
+    "termsNotes": "Public JSON (District 4). Active + next-24h closures within 20 mi merged into Roads & Incidents alongside live 511 events; full closures ranked first.",
     "status": "ready",
     "buildPhase": "C",
     "verifiedAt": "2026-09-20"

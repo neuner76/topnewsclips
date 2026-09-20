@@ -20,6 +20,7 @@ import { fetchPurpleAir } from './adapters/purpleair'
 import { fetchFirms } from './adapters/firms'
 import { fetch511Events } from './adapters/bay511'
 import { fetchCaltransCameras, type LocalCamera } from './adapters/caltrans-cameras'
+import { fetchCaltransClosures } from './adapters/caltrans-lcs'
 import { fetchMarinPermits } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
@@ -248,19 +249,22 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     agendaItems, agendas ?? [], GOVERNMENT_MAX, new Set(blindspots.map(b => b.id)),
   )
 
-  // Roads & Incidents (Build C) — 511 SF Bay traffic events near the point. Key-gated;
-  // if no key it stays a "coming soon" placeholder, matching the honest-sections rule.
-  const roads = process.env.BAY511_API_KEY
+  // Roads & Incidents (Build C) — live 511 SF Bay incidents (key-gated) merged
+  // with Caltrans D4 lane closures (public, no key). 511 gives live collisions;
+  // Caltrans LCS adds scheduled construction/maintenance closures.
+  const roads511 = process.env.BAY511_API_KEY
     ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, representativePoint()))) ?? []
     : []
+  const closures = (await safe(() => fetchCaltransClosures(representativePoint()))) ?? []
+  const roads = [...roads511, ...closures].sort((a, b) => (b.consequenceScore ?? 0) - (a.consequenceScore ?? 0)).slice(0, 8)
   // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key).
   const trafficCameras = (await safe(() => fetchCaltransCameras(representativePoint()))) ?? []
 
   // Honest sections only — never fabricated data. A section with no live source
   // yet (Need To Know alerts) is marked "coming soon" and shown as a placeholder;
-  // a live section that fetched nothing is simply empty (omitted).
+  // a live section that fetched nothing is simply empty (omitted). Roads is now
+  // always live (Caltrans closures need no key), so it's never "coming soon".
   const comingSoonSections = ['needToKnow']
-  if (!process.env.BAY511_API_KEY) comingSoonSections.push('roadsAndIncidents')
 
   return assembleMyLocalDigest({
     places,

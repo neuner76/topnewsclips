@@ -1,0 +1,179 @@
+{
+  "data": [
+    {
+      "lcs": {
+        "index": "ACTIVE-NEAR-1",
+        "location": {
+          "travelFlowDirection": "North",
+          "begin": {
+            "beginRoute": "SR-37",
+            "beginNearbyPlace": "Novato",
+            "beginCounty": "Marin",
+            "beginLatitude": "38.1150",
+            "beginLongitude": "-122.5600",
+            "beginFreeFormDescription": "at Atherton Ave"
+          }
+        },
+        "closure": {
+          "closureID": "AN1",
+          "facility": "Highway",
+          "typeOfClosure": "Full",
+          "typeOfWork": "Maintenance Operation",
+          "estimatedDelay": "Not Reported",
+          "lanesClosed": "All",
+          "totalExistingLanes": "2",
+          "isCHINReportable": "true",
+          "closureTimestamp": {
+            "closureStartDate": "2026-09-20",
+            "closureStartTime": "22:01",
+            "closureStartEpoch": "1789996400",
+            "closureEndDate": "2026-09-21",
+            "closureEndTime": "04:30",
+            "closureEndEpoch": "1790007200",
+            "isClosureEndIndefinite": "false"
+          }
+        }
+      }
+    },
+    {
+      "lcs": {
+        "index": "UPCOMING-NEAR-2",
+        "location": {
+          "travelFlowDirection": "South",
+          "begin": {
+            "beginRoute": "US-101",
+            "beginNearbyPlace": "Novato",
+            "beginCounty": "Marin",
+            "beginLatitude": "38.1000",
+            "beginLongitude": "-122.5700",
+            "beginFreeFormDescription": "at De Long Ave"
+          }
+        },
+        "closure": {
+          "closureID": "UN2",
+          "facility": "Highway",
+          "typeOfClosure": "Lane",
+          "typeOfWork": "Construction",
+          "estimatedDelay": "15 minutes",
+          "lanesClosed": "1",
+          "totalExistingLanes": "3",
+          "isCHINReportable": "false",
+          "closureTimestamp": {
+            "closureStartDate": "2026-09-21",
+            "closureStartTime": "10:00",
+            "closureStartEpoch": "1790043200",
+            "closureEndDate": "2026-09-21",
+            "closureEndTime": "15:00",
+            "closureEndEpoch": "1790057600",
+            "isClosureEndIndefinite": "false"
+          }
+        }
+      }
+    },
+    {
+      "lcs": {
+        "index": "EXPIRED-NEAR-3",
+        "location": {
+          "travelFlowDirection": "North",
+          "begin": {
+            "beginRoute": "US-101",
+            "beginNearbyPlace": "Novato",
+            "beginCounty": "Marin",
+            "beginLatitude": "38.1050",
+            "beginLongitude": "-122.5650",
+            "beginFreeFormDescription": ""
+          }
+        },
+        "closure": {
+          "closureID": "EN3",
+          "facility": "Highway",
+          "typeOfClosure": "Lane",
+          "typeOfWork": "Maintenance Operation",
+          "estimatedDelay": "Not Reported",
+          "lanesClosed": "1",
+          "totalExistingLanes": "3",
+          "isCHINReportable": "false",
+          "closureTimestamp": {
+            "closureStartDate": "2026-09-18",
+            "closureStartTime": "22:00",
+            "closureStartEpoch": "1789827200",
+            "closureEndDate": "2026-09-19",
+            "closureEndTime": "05:00",
+            "closureEndEpoch": "1789913600",
+            "isClosureEndIndefinite": "false"
+          }
+        }
+      }
+    },
+    {
+      "lcs": {
+        "index": "FAR-ACTIVE-4",
+        "location": {
+          "travelFlowDirection": "East",
+          "begin": {
+            "beginRoute": "I-280",
+            "beginNearbyPlace": "San Jose",
+            "beginCounty": "Santa Clara",
+            "beginLatitude": "37.3300",
+            "beginLongitude": "-121.8900",
+            "beginFreeFormDescription": ""
+          }
+        },
+        "closure": {
+          "closureID": "FA4",
+          "facility": "Highway",
+          "typeOfClosure": "Full",
+          "typeOfWork": "Emergency",
+          "estimatedDelay": "Not Reported",
+          "lanesClosed": "All",
+          "totalExistingLanes": "4",
+          "isCHINReportable": "true",
+          "closureTimestamp": {
+            "closureStartDate": "2026-09-20",
+            "closureStartTime": "22:01",
+            "closureStartEpoch": "1789996400",
+            "closureEndDate": "2026-09-21",
+            "closureEndTime": "04:30",
+            "closureEndEpoch": "1790007200",
+            "isClosureEndIndefinite": "false"
+          }
+        }
+      }
+    },
+    {
+      "lcs": {
+        "index": "FUTURE-NEAR-5",
+        "location": {
+          "travelFlowDirection": "North",
+          "begin": {
+            "beginRoute": "US-101",
+            "beginNearbyPlace": "Novato",
+            "beginCounty": "Marin",
+            "beginLatitude": "38.1080",
+            "beginLongitude": "-122.5690",
+            "beginFreeFormDescription": ""
+          }
+        },
+        "closure": {
+          "closureID": "FN5",
+          "facility": "Highway",
+          "typeOfClosure": "Lane",
+          "typeOfWork": "Construction",
+          "estimatedDelay": "Not Reported",
+          "lanesClosed": "1",
+          "totalExistingLanes": "3",
+          "isCHINReportable": "false",
+          "closureTimestamp": {
+            "closureStartDate": "2026-09-25",
+            "closureStartTime": "22:00",
+            "closureStartEpoch": "1790432000",
+            "closureEndDate": "2026-09-26",
+            "closureEndTime": "05:00",
+            "closureEndEpoch": "1790518400",
+            "isClosureEndIndefinite": "false"
+          }
+        }
+      }
+    }
+  ]
+}

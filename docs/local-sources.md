@@ -2,7 +2,7 @@
 
 _Generated from `lib/local/sources/manifest.json` (the source of truth). Verified 2026-09-07._
 
-**Totals:** 33 sources — 11 ready, 4 needs_key, 16 stub, 2 blocked.
+**Totals:** 34 sources — 12 ready, 4 needs_key, 16 stub, 2 blocked.
 
 Adapters may only be written for sources whose status is `ready` or `needs_key` (key present). Build A ships live environmental feeds; every other section is fixture-backed until its build phase.
 
@@ -10,7 +10,7 @@ Adapters may only be written for sources whose status is `ready` or `needs_key` 
 
 | Source | Status | Phase | Access | Key | Entry |
 |---|---|---|---|---|---|
-| Caltrans QuickMap / CWWP2 cameras + closures | `ready` | C | api (caltrans-cwwp2) | — | https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json |
+| Caltrans CWWP2 D4 cameras (CCTV) | `ready` | C | api (caltrans-cwwp2) | — | https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json |
 
 ## emergency
 
@@ -76,6 +76,7 @@ Adapters may only be written for sources whose status is `ready` or `needs_key` 
 | Source | Status | Phase | Access | Key | Entry |
 |---|---|---|---|---|---|
 | 511 SF Bay — traffic + transit | `ready` | C | api (511.org) | BAY511_API_KEY | https://511.org/open-data |
+| Caltrans CWWP2 D4 lane closures (LCS) | `ready` | C | api (caltrans-cwwp2) | — | https://cwwp2.dot.ca.gov/data/d4/lcs/lcsStatusD04.json |
 | Golden Gate Ferry service alerts | `stub` | C | api (gtfs-rt) | — | https://www.goldengate.org/ferry/ |
 | SMART rail service alerts | `stub` | C | api (gtfs-rt) | — | https://www.sonomamarintrain.org/ |
 
