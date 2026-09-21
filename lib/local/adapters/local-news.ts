@@ -73,12 +73,24 @@ function decode(s: string): string {
     .replace(/\s+/g, ' ').trim()
 }
 
+// WordPress RSS trails every item with "The post <title> appeared first on
+// <Outlet>." and marks excerpt cut-offs with "[…]"/"[...]". Strip both so the
+// summary reads like a sentence, not a feed dump.
+export function cleanRssSummary(s: string): string {
+  return s
+    .replace(/\s*The post\b[\s\S]*?\bappeared first on\b[\s\S]*$/i, '')
+    .replace(/\s*\[\s*(?:…|\.{2,})?\s*\]\s*/g, ' … ')
+    .replace(/\s+([.,!?])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export function parseLocalNewsRss(xml: string, outlet: string): LocalArticle[] {
   const out: LocalArticle[] = []
   for (const block of xml.split('<item>').slice(1)) {
     const title = decode(block.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? '')
     const url = decode(block.match(/<link>([\s\S]*?)<\/link>/)?.[1] ?? '')
-    const description = decode(block.match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? '').slice(0, 500)
+    const description = cleanRssSummary(decode(block.match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? '')).slice(0, 400)
     const pub = (block.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? '').trim()
     if (!title) continue
     const t = Date.parse(pub)

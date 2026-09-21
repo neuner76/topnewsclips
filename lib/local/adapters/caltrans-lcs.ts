@@ -47,6 +47,29 @@ function toEpoch(s?: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
+// "22:01:00" / "07:01" -> "10:01 PM" / "7:01 AM". Returns null if unparseable.
+export function formatClockTime(t?: string): string | null {
+  const m = (t ?? '').match(/^(\d{1,2}):(\d{2})/)
+  if (!m) return null
+  let h = Number(m[1])
+  const min = m[2]
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  h = h % 12
+  if (h === 0) h = 12
+  return `${h}:${min} ${ampm}`
+}
+
+// A readable closure window: "10:01 PM–4:30 AM". Collapses a same start/end
+// (a feed quirk) to a single time; falls back to "until further notice".
+export function closureWindow(start?: string, end?: string, indefinite = false): string | undefined {
+  const s = formatClockTime(start)
+  const e = formatClockTime(end)
+  if (s && e) return s === e ? s : `${s}–${e}`
+  if (s) return s
+  if (indefinite) return 'until further notice'
+  return undefined
+}
+
 export function normalizeLaneClosures(
   raw: LcsResponse,
   opts: {
@@ -123,12 +146,7 @@ export function normalizeLaneClosures(
         : lanesClosed.toLowerCase() === 'all'
           ? 'all lanes'
           : undefined
-    const window =
-      ts.closureStartTime && ts.closureEndTime
-        ? `${ts.closureStartTime}–${ts.closureEndTime}`
-        : indefinite
-          ? 'until further notice'
-          : undefined
+    const window = closureWindow(ts.closureStartTime, ts.closureEndTime, indefinite)
     const delay = cl.estimatedDelay && cl.estimatedDelay.toLowerCase() !== 'not reported' ? `~${cl.estimatedDelay} delay` : undefined
     const whatChanged = [cl.typeOfWork, laneText, window, delay].filter(Boolean).join(' · ') || undefined
 
