@@ -2,6 +2,7 @@
 // (public JSON, no key). Surfaces the nearest in-service cameras as live traffic
 // views on /local. Each camera has a static image URL refreshed every ~5 min.
 import { haversineMiles } from '../geography'
+import { nearestAnchorMiles, nearAnyAnchor, type Anchor } from '../anchors'
 
 export interface LocalCamera {
   id: string
@@ -89,12 +90,15 @@ export function parseCctvCameras(raw: CctvResponse): LocalCamera[] {
 
 export function nearbyCameras(
   cameras: LocalCamera[],
-  opts: { near: { lat: number; lng: number }; radiusMiles?: number; limit?: number },
+  opts: { near: { lat: number; lng: number }; radiusMiles?: number; limit?: number; anchors?: Anchor[] },
 ): LocalCamera[] {
   const radius = opts.radiusMiles ?? 15
+  const anchors = opts.anchors
   const withDist = cameras
-    .map(c => ({ c, d: haversineMiles(opts.near.lat, opts.near.lng, c.lat, c.lng) }))
-    .filter(x => x.d <= radius)
+    .map(c => anchors && anchors.length > 0
+      ? { c, d: nearestAnchorMiles(c.lat, c.lng, anchors), ok: nearAnyAnchor(c.lat, c.lng, anchors).ok }
+      : { c, d: haversineMiles(opts.near.lat, opts.near.lng, c.lat, c.lng), ok: haversineMiles(opts.near.lat, opts.near.lng, c.lat, c.lng) <= radius })
+    .filter(x => x.ok)
     .sort((a, b) => a.d - b.d)
   const capped = opts.limit != null ? withDist.slice(0, opts.limit) : withDist
   return capped.map(x => x.c)
@@ -102,7 +106,7 @@ export function nearbyCameras(
 
 export async function fetchCaltransCameras(
   point: { lat: number; lng: number },
-  opts: { radiusMiles?: number; limit?: number } = {},
+  opts: { radiusMiles?: number; limit?: number; anchors?: Anchor[] } = {},
 ): Promise<LocalCamera[]> {
   const res = await fetch('https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json', {
     headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' },
@@ -112,5 +116,6 @@ export async function fetchCaltransCameras(
     near: point,
     radiusMiles: opts.radiusMiles ?? 15,
     limit: opts.limit ?? 6,
+    anchors: opts.anchors,
   })
 }

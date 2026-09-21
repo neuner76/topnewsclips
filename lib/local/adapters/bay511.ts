@@ -5,6 +5,7 @@
 // breaks JSON.parse, so fetch text and strip it.
 import type { LocalEvent } from '../types'
 import { haversineMiles } from '../geography'
+import { nearAnyAnchor, type Anchor } from '../anchors'
 
 interface Open511Road { name?: string; direction?: string; state?: string; article?: string }
 interface Open511Event {
@@ -34,7 +35,7 @@ function eventPoint(geo?: Open511Event['geography']): { lat: number; lng: number
 
 export function normalize511Events(
   raw: Bay511Response,
-  opts: { near: { lat: number; lng: number }; radiusMiles?: number; limit?: number },
+  opts: { near: { lat: number; lng: number }; radiusMiles?: number; limit?: number; anchors?: Anchor[] },
 ): LocalEvent[] {
   const radius = opts.radiusMiles ?? 15
   const events: Array<LocalEvent & { _sev: number }> = []
@@ -43,8 +44,11 @@ export function normalize511Events(
     if ((ev.status ?? 'ACTIVE').toUpperCase() !== 'ACTIVE') continue
     const pt = eventPoint(ev.geography)
     if (!pt) continue
-    const dist = haversineMiles(opts.near.lat, opts.near.lng, pt.lat, pt.lng)
-    if (dist > radius) continue
+    if (opts.anchors && opts.anchors.length > 0) {
+      if (!nearAnyAnchor(pt.lat, pt.lng, opts.anchors).ok) continue
+    } else if (haversineMiles(opts.near.lat, opts.near.lng, pt.lat, pt.lng) > radius) {
+      continue
+    }
 
     const sev = SEVERITY_SCORE[(ev.severity ?? 'unknown').toLowerCase()] ?? 0.3
     const roads = (ev.roads ?? []).map(r => [r.name, r.direction].filter(Boolean).join(' ')).filter(Boolean)
@@ -75,7 +79,7 @@ export function normalize511Events(
 export async function fetch511Events(
   apiKey: string,
   point: { lat: number; lng: number },
-  opts: { radiusMiles?: number; limit?: number } = {},
+  opts: { radiusMiles?: number; limit?: number; anchors?: Anchor[] } = {},
 ): Promise<LocalEvent[]> {
   const url = `https://api.511.org/traffic/events?api_key=${apiKey}&format=json`
   const res = await fetch(url, { headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' } })
@@ -83,5 +87,5 @@ export async function fetch511Events(
   // 511 JSON carries a UTF-8 BOM; strip it before parsing.
   const text = (await res.text()).replace(/^﻿/, '')
   const json = JSON.parse(text) as Bay511Response
-  return normalize511Events(json, { near: point, radiusMiles: opts.radiusMiles ?? 15, limit: opts.limit ?? 6 })
+  return normalize511Events(json, { near: point, radiusMiles: opts.radiusMiles ?? 15, limit: opts.limit ?? 6, anchors: opts.anchors })
 }
