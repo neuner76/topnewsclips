@@ -41,6 +41,24 @@ describe('buildNeedToKnow', () => {
     expect(ntk.some(e => e.title.includes('Full closure'))).toBe(true)
   })
 
+  it('merges named CAL FIRE wildfires and ranks them at the top', () => {
+    const wildfire: LocalEvent = {
+      id: 'calfire-chileno', title: 'Chileno Fire — 341 ac, 45% contained', eventType: 'fire', status: 'ongoing',
+      firstSeenAt: new Date(NOW * 1000).toISOString(), latestUpdateAt: new Date(NOW * 1000).toISOString(),
+      geo: { latitude: 38.22, longitude: -122.8, counties: ['Marin County'] },
+      consequenceScore: 0.95, confidence: 'high',
+      sources: [{ type: 'official_alert', label: 'CAL FIRE', url: 'https://incidents.fire.ca.gov/', observedAt: new Date(NOW * 1000).toISOString(), status: 'confirmed' }],
+    }
+    const env: EnvironmentSnapshot = {
+      ...emptyEnv,
+      activeAlerts: [{ event: 'Wind Advisory', severity: 'Moderate', headline: 'gusts to 40', area: 'Marin' }], // Moderate non-warning: dropped
+    }
+    const ntk = buildNeedToKnow(env, [], { near: NOVATO, now: NOW, wildfires: [wildfire] })
+    expect(ntk.length).toBe(1) // only the wildfire (the moderate advisory is filtered)
+    expect(ntk[0].id).toBe('calfire-chileno')
+    expect(ntk[0].title).toContain('Chileno Fire')
+  })
+
   it('surfaces nearby active fire detections but ignores distant/small quakes', () => {
     const env: EnvironmentSnapshot = {
       ...emptyEnv,

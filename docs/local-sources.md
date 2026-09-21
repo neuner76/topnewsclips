@@ -2,7 +2,7 @@
 
 _Generated from `lib/local/sources/manifest.json` (the source of truth). Verified 2026-09-07._
 
-**Totals:** 34 sources — 12 ready, 4 needs_key, 16 stub, 2 blocked.
+**Totals:** 35 sources — 13 ready, 4 needs_key, 16 stub, 2 blocked.
 
 Adapters may only be written for sources whose status is `ready` or `needs_key` (key present). Build A ships live environmental feeds; every other section is fixture-backed until its build phase.
 
@@ -16,6 +16,7 @@ Adapters may only be written for sources whose status is `ready` or `needs_key` 
 
 | Source | Status | Phase | Access | Key | Entry |
 |---|---|---|---|---|---|
+| CAL FIRE active incidents | `ready` | C | api (calfire-incidents) | — | https://incidents.fire.ca.gov/umbraco/api/IncidentApi/List?inactive=false |
 | AlertMarin (emergency notifications) | `blocked` | C | none (everbridge) | — | https://www.marinsheriff.org/services/emergency-services/alert-marin |
 | Marin County Sheriff — alerts / press | `stub` | C | html | — | https://www.marinsheriff.org/ |
 | Nixle / local agency alerts | `stub` | C | none (nixle) | — | https://www.nixle.com/ |

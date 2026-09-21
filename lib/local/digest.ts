@@ -19,6 +19,7 @@ import { normalizeAirNow } from './adapters/airnow'
 import { fetchPurpleAir } from './adapters/purpleair'
 import { fetchFirms } from './adapters/firms'
 import { buildNeedToKnow } from './need-to-know'
+import { fetchCalFire } from './adapters/calfire'
 import { type Anchor } from './anchors'
 import { PUBLIC_SEED_PLACES } from './seed-places'
 import { fetch511Events } from './adapters/bay511'
@@ -314,10 +315,14 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key), near any place.
   const trafficCameras = (await safe(() => fetchCaltransCameras(representativePoint(), { anchors }))) ?? []
 
+  // Emergency layer: named active wildfires (CAL FIRE) near any place, within a
+  // wider fire-relevance radius (a fire 30 mi upwind is still act-now info).
+  const wildfires = (await safe(() => fetchCalFire({ anchors, near: representativePoint(), radiusMiles: 40 }))) ?? []
+
   // Need To Know Near You — the urgent, act-now subset synthesized from the live
-  // signals above (NWS alerts, nearby significant quakes, active-fire detections,
-  // full closures happening now). Empty is honest ("nothing urgent right now").
-  const needToKnow = buildNeedToKnow(environment, roads, { near: representativePoint() })
+  // signals above (NWS alerts, CAL FIRE wildfires, nearby significant quakes,
+  // active-fire detections, full closures now). Empty is honest ("nothing urgent").
+  const needToKnow = buildNeedToKnow(environment, roads, { near: representativePoint(), wildfires })
 
   // Honest sections only — never fabricated data. A live section that fetched
   // nothing is simply empty; Need To Know now renders an "all clear" state
