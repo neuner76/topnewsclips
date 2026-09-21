@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import { normalizeLaneClosures } from './caltrans-lcs'
+import { normalizeLaneClosures, formatClockTime, closureWindow } from './caltrans-lcs'
 
 const raw = JSON.parse(fs.readFileSync(path.join('fixtures', 'sources', 'caltrans-lcs', 'sample.json'), 'utf8'))
 const NOVATO = { lat: 38.1074, lng: -122.5697 }
@@ -55,5 +55,21 @@ describe('county filter + dedupe', () => {
     const events = normalizeLaneClosures(raw, { near: NOVATO, radiusMiles: 20, counties: ['Marin', 'Sonoma'], now: NOW })
     expect(events.length).toBe(1) // duplicate collapsed, Napa dropped
     expect(events[0].title).toContain('US-101')
+  })
+})
+
+describe('formatClockTime / closureWindow', () => {
+  it('formats 24h clock strings (with or without seconds) to 12h', () => {
+    expect(formatClockTime('22:01:00')).toBe('10:01 PM')
+    expect(formatClockTime('07:01')).toBe('7:01 AM')
+    expect(formatClockTime('00:30:00')).toBe('12:30 AM')
+    expect(formatClockTime('bogus')).toBeNull()
+  })
+
+  it('builds a readable window and collapses a same start/end quirk', () => {
+    expect(closureWindow('22:01:00', '04:30:00')).toBe('10:01 PM–4:30 AM')
+    expect(closureWindow('17:01:00', '17:01:00')).toBe('5:01 PM') // feed quirk, not a range
+    expect(closureWindow(undefined, undefined, true)).toBe('until further notice')
+    expect(closureWindow(undefined, undefined)).toBeUndefined()
   })
 })

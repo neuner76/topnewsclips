@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import { parseLocalNewsRss, parseGoogleNewsRss, articleToLocalEvent, mentionsMarinLocal, isLocalToMarin } from './local-news'
+import { parseLocalNewsRss, parseGoogleNewsRss, articleToLocalEvent, mentionsMarinLocal, isLocalToMarin, cleanRssSummary } from './local-news'
 
 const fixture = fs.readFileSync(path.join('fixtures', 'sources', 'point-reyes-light', 'sample.xml'), 'utf8')
 const gnews = fs.readFileSync(path.join('fixtures', 'sources', 'marin-ij-googlenews', 'sample.xml'), 'utf8')
@@ -41,6 +41,18 @@ describe('articleToLocalEvent', () => {
     expect(e.sources[0].type).toBe('local_news')
     expect(e.sources[0].label).toBe('Point Reyes Light')
     expect(e.sources[0].url).toBe('https://x/story')
+  })
+})
+
+describe('cleanRssSummary', () => {
+  it('strips the WordPress "appeared first on" boilerplate', () => {
+    const raw = 'Salvage crews have dismantled the ship, leaving fishermen to ask why. The post Squid boat dismantled at North Beach appeared first on Point Reyes Light .'
+    expect(cleanRssSummary(raw)).toBe('Salvage crews have dismantled the ship, leaving fishermen to ask why.')
+  })
+
+  it('turns excerpt cut-off markers into a single ellipsis', () => {
+    expect(cleanRssSummary('He said upon […] and left.')).toBe('He said upon … and left.')
+    expect(cleanRssSummary('roughly 40 tons of squid [...]')).toBe('roughly 40 tons of squid …')
   })
 })
 
