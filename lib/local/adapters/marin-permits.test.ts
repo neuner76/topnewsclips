@@ -43,6 +43,16 @@ describe('normalizeMarinPermits', () => {
     expect(normalizeMarinPermits([row({ latitude: undefined, longitude: undefined })])).toHaveLength(0)
   })
 
+  it('reads the date from most_recent_issued_received_date (received/issued columns are empty)', () => {
+    // Real dataset shape: received_date/issued_date are null; only the combined field is set.
+    const [e] = normalizeMarinPermits([
+      row({ received_date: null, issued_date: null, most_recent_issued_received_date: '2026-09-18T00:00:00.000' }),
+    ])
+    expect(e.latestUpdateAt).toBe('2026-09-18T00:00:00.000')
+    expect(e.firstSeenAt).toBe('2026-09-18T00:00:00.000')
+    expect(e.whatChanged).toContain('Permit issued')
+  })
+
   it('with `near`+radius, keeps only permits in range and notes the distance', () => {
     const NOVATO = { lat: 38.1074, lng: -122.5697 }
     const rows = [
