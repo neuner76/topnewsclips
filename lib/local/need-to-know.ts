@@ -13,6 +13,7 @@ interface Opts {
   quakeMinMagnitude?: number
   quakeMaxMiles?: number
   fireMaxMiles?: number
+  wildfires?: LocalEvent[] // pre-built CAL FIRE incidents to merge (named active fires)
 }
 
 // Severity → base urgency score. Only Extreme/Severe (or a Moderate *Warning*,
@@ -108,7 +109,13 @@ export function buildNeedToKnow(env: EnvironmentSnapshot, roads: LocalEvent[], o
     })
   }
 
-  // 4) Full road closures happening now (promoted from Roads & Incidents).
+  // 4) Named active wildfires (CAL FIRE) — an emergency by nature; use each
+  //    incident's own consequence score (proximity/size/containment weighted).
+  for (const wf of opts.wildfires ?? []) {
+    out.push({ _score: Math.max(0.85, wf.consequenceScore ?? 0.85), ...wf })
+  }
+
+  // 5) Full road closures happening now (promoted from Roads & Incidents).
   for (const r of roads) {
     if (r.status !== 'new') continue // active now, not a future closure
     if (!/full closure/i.test(r.title)) continue

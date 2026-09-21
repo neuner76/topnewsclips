@@ -74,7 +74,7 @@ function NeedToKnowSection({ events }: { events: LocalEvent[] }) {
       <SectionHeader title="Need To Know Near You" />
       {events.length === 0 ? (
         <div className="rounded-lg border border-[#DCFCE7] bg-[#F0FDF4] p-3 text-xs text-[#166534]">
-          ✓ Nothing urgent near you right now — no active weather alerts, nearby earthquakes, fire detections, or full road closures.
+          ✓ Nothing urgent near you right now — no active weather alerts, wildfires, nearby earthquakes, fire detections, or full road closures.
         </div>
       ) : (
         <div className="space-y-2">{events.map(e => <EventCard key={e.id} e={e} />)}</div>

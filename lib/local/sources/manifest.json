@@ -360,6 +360,25 @@
     "verifiedAt": "2026-09-07"
   },
   {
+    "id": "calfire-incidents",
+    "name": "CAL FIRE active incidents",
+    "category": "emergency",
+    "jurisdiction": [
+      "Marin County",
+      "Bay Area",
+      "California"
+    ],
+    "accessMethod": "api",
+    "platform": "calfire-incidents",
+    "entryUrl": "https://incidents.fire.ca.gov/umbraco/api/IncidentApi/List?inactive=false",
+    "requiresKey": false,
+    "refreshMinutes": 15,
+    "termsNotes": "Public JSON of named active wildfires (lat/lng, acreage, containment). Feeds Need To Know within ~40 mi of any saved place; fully-contained incidents dropped.",
+    "status": "ready",
+    "buildPhase": "C",
+    "verifiedAt": "2026-09-21"
+  },
+  {
     "id": "alertmarin",
     "name": "AlertMarin (emergency notifications)",
     "category": "emergency",
