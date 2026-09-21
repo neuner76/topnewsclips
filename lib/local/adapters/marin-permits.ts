@@ -105,15 +105,16 @@ export function normalizeMarinPermits(
     }
 
     const value = Number(r.construction_value ?? 0) || 0
-    const received = r.received_date ?? undefined
-    const issued = r.issued_date ?? undefined
-    const updated = r.most_recent_issued_received_date ?? issued ?? received ?? new Date().toISOString()
+    // The dataset's `received_date`/`issued_date` columns are empty; the only
+    // populated date is `most_recent_issued_received_date`. Use it as THE date.
+    const effectiveDate = r.most_recent_issued_received_date ?? r.issued_date ?? r.received_date ?? undefined
+    const updated = effectiveDate ?? new Date().toISOString()
     const desc = prettyPermitTitle((r.description ?? '').trim())
     const title = desc || `${titleCase(r.type_permit ?? 'Building')} permit`
 
     // Valuation is rendered as the amount badge (amountUsd), so keep it out of the text.
     const changedParts = [
-      `Permit ${issued ? 'issued' : 'received'}${received ? ' ' + received.slice(0, 10) : ''}`,
+      'Permit issued',
       r.address ? cleanAddress(r.address) : null,
       distanceMiles != null ? `~${distanceMiles < 1 ? '<1' : Math.round(distanceMiles)} mi away` : null,
     ].filter(Boolean)
@@ -123,7 +124,7 @@ export function normalizeMarinPermits(
       title: title.length > 90 ? title.slice(0, 88) + '…' : title,
       eventType: 'building_permit',
       status: 'new',
-      firstSeenAt: received ?? updated,
+      firstSeenAt: updated,
       latestUpdateAt: updated,
       geo: {
         latitude: lat, longitude: lng,
@@ -146,12 +147,17 @@ export function normalizeMarinPermits(
 
 // Live fetch: most-recent permits, then normalize (which ranks by valuation).
 // Pass `near`/`radiusMiles` to keep only permits within range of the reader.
+// NOTE: this dataset's `received_date`/`issued_date` columns are EMPTY — the only
+// populated date is `most_recent_issued_received_date`, so we MUST order by it.
+// Ordering by an empty column silently returns an arbitrary (mostly ancient) page.
+// Fetch a wide recent pool (500) so sparse areas (West Marin) still fill after the
+// near-anchor filter, then normalize ranks by valuation.
 export async function fetchMarinPermits(
   limit = 6,
   sort: 'consequence' | 'recency' = 'consequence',
   opts: { near?: { lat: number; lng: number }; radiusMiles?: number; anchors?: Anchor[] } = {},
 ): Promise<LocalEvent[]> {
-  const url = `https://data.marincounty.gov/resource/${DATASET}.json?$order=received_date%20DESC&$limit=200`
+  const url = `https://data.marincounty.gov/resource/${DATASET}.json?$order=most_recent_issued_received_date%20DESC&$limit=500`
   const res = await fetch(url, { headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' } })
   if (!res.ok) throw new Error(`Marin permits HTTP ${res.status}`)
   return normalizeMarinPermits(await res.json(), { limit, sort, near: opts.near, radiusMiles: opts.radiusMiles, anchors: opts.anchors })
