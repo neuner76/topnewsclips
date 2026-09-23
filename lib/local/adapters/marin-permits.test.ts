@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import sample from '../../../fixtures/sources/marin-permits/sample.json'
-import { normalizeMarinPermits, permitConsequence, type MarinPermitRow } from './marin-permits'
+import { normalizeMarinPermits, permitConsequence, permitDetailUrl, type MarinPermitRow } from './marin-permits'
 
 const row = (over: Partial<MarinPermitRow>): MarinPermitRow => ({
   address: '1 MAIN ST, NOVATO, CA 94945', city_town: 'NOVATO', zipcode: '94945',
@@ -17,7 +17,27 @@ describe('permitConsequence', () => {
   })
 })
 
+describe('permitDetailUrl', () => {
+  it('deep-links to the single permit record via a unique_id SoQL filter', () => {
+    const url = permitDetailUrl('OM_94521')
+    expect(url).toContain('/County-Government/Building-Permit/mkbn-caye/explore/query/')
+    expect(url).toContain('OM_94521')
+    expect(url).toContain(encodeURIComponent('WHERE `unique_id`='))
+    expect(url.endsWith('/page/filter')).toBe(true)
+  })
+  it('falls back to the dataset page when there is no unique_id', () => {
+    expect(permitDetailUrl(undefined)).toBe('https://data.marincounty.gov/County-Government/Building-Permit/mkbn-caye')
+    expect(permitDetailUrl('')).not.toContain('/explore/query/')
+  })
+})
+
 describe('normalizeMarinPermits', () => {
+  it('links each permit to its own county open-data record (by unique_id)', () => {
+    const [e] = normalizeMarinPermits([row({ unique_id: 'OM_94521' })])
+    expect(e.sources[0].url).toContain('/explore/query/')
+    expect(e.sources[0].url).toContain('OM_94521')
+  })
+
   it('maps a permit row to a geocoded building_permit LocalEvent', () => {
     const [e] = normalizeMarinPermits([row({ description: '26-unit residential project', construction_value: '4000000' })])
     expect(e.eventType).toBe('building_permit')

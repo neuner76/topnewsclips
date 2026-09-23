@@ -7,7 +7,20 @@ import { haversineMiles } from '../geography'
 import { nearAnyAnchor, type Anchor } from '../anchors'
 
 const DATASET = 'mkbn-caye'
-const DATASET_URL = `https://data.marincounty.gov/d/${DATASET}`
+// Canonical human dataset page (the /d/ short URL 302s here). The Socrata data
+// explorer accepts a SoQL filter deep-link, so we can link a card straight to
+// that one permit's record instead of the whole dataset.
+const DATASET_HUMAN_URL = `https://data.marincounty.gov/County-Government/Building-Permit/${DATASET}`
+
+// Deep link to a single permit's public record on the county open-data portal,
+// filtered by unique_id — the only key present on EVERY row (permit_number is
+// empty on complex "OM_" permits). Falls back to the dataset page when absent.
+export function permitDetailUrl(uniqueId?: string | null): string {
+  const id = (uniqueId ?? '').trim()
+  if (!id) return DATASET_HUMAN_URL
+  const soql = `SELECT * WHERE \`unique_id\`='${id.replace(/'/g, "''")}'`
+  return `${DATASET_HUMAN_URL}/explore/query/${encodeURIComponent(soql)}/page/filter`
+}
 
 export interface MarinPermitRow {
   address?: string
@@ -135,7 +148,7 @@ export function normalizeMarinPermits(
       consequenceScore: permitConsequence(value),
       confidence: 'high',
       amountUsd: value > 0 ? value : undefined,
-      sources: [{ type: 'public_record', label: 'Marin County permits', url: DATASET_URL, observedAt: updated, status: 'confirmed' }],
+      sources: [{ type: 'public_record', label: 'Marin County permits', url: permitDetailUrl(r.unique_id), observedAt: updated, status: 'confirmed' }],
       whatChanged: changedParts.join(' · '),
     })
   }
