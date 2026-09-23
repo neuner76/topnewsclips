@@ -11,6 +11,7 @@ import { getSourceTier } from './source-tier'
 import { runQCAndInsert } from './qc-publish'
 import { runSectionQC } from './section-qc'
 import { isSatireSource } from '../satire-sources'
+import { isBusinessCandidate } from '../business-sources'
 import { summarizeLight } from './summarize-light'
 import { getConfidenceLabel, CONFIDENCE_META } from '@/lib/confidence'
 import type { QCConfidenceLabel } from './qc-gate'
@@ -504,14 +505,19 @@ export function channelDailyCap(journalistUsername: string | null | undefined, s
 }
 
 // Processing-slot priority for a fetched candidate. Slots are scarce — fetch
-// outruns process (~122 vs ~78/day) — so the old pure newest-first selection let
-// a foreign broadcaster's Nth clip of the day crowd out US-domestic newsroom
-// clips that are exactly the Need-To-Know material. Priority spends the scarce
-// slots on the starved high-value pool: satire first (a reserved slot so comedy is
-// never crowded out), then US-domestic / non-global newsrooms, then global
-// broadcasters (which already dominate supply and feed the world sections).
-export function candidatePriority(c: { journalist_username?: string | null; source?: string | null }): number {
-  if (isSatireSource(c.journalist_username, c.source)) return 3
+// outruns process (~122 vs ~20/day) — so pure newest-first let a foreign
+// broadcaster's Nth clip, or a politics-heavy day's deluge, crowd out the
+// starved high-value pools. Tiers (high→low):
+//   4 satire      — strictly reserved so comedy is never crowded out
+//   3 business    — reserved lane so daily markets clips (CNBC/Bloomberg/Yahoo)
+//                   and markets-topic stories survive the politics volume; the
+//                   Business & Markets section otherwise runs thin (topic-blind
+//                   selection spent every slot on the newest politics clips)
+//   2 US-domestic — general US / non-global newsrooms
+//   1 global      — broadcasters that already dominate supply, feed world sections
+export function candidatePriority(c: { journalist_username?: string | null; source?: string | null; title?: string | null }): number {
+  if (isSatireSource(c.journalist_username, c.source)) return 4
+  if (isBusinessCandidate(c.journalist_username, c.source, c.title)) return 3
   if (isGlobalBroadcaster(c.journalist_username, c.source)) return 1
   return 2
 }
@@ -521,7 +527,7 @@ export function candidatePriority(c: { journalist_username?: string | null; sour
 // `limit`. Re-ranking WITHIN the newest-N window (runProcess) preserves freshness
 // — the stale backlog is never in that window — while spending slots on value
 // rather than raw recency.
-export function orderCandidatesByPriority<T extends { journalist_username?: string | null; source?: string | null; fetched_at?: string | null }>(candidates: T[]): T[] {
+export function orderCandidatesByPriority<T extends { journalist_username?: string | null; source?: string | null; title?: string | null; fetched_at?: string | null }>(candidates: T[]): T[] {
   return [...candidates].sort((a, b) => {
     const byPriority = candidatePriority(b) - candidatePriority(a)
     if (byPriority !== 0) return byPriority
