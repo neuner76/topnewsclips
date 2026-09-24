@@ -12,14 +12,54 @@ const DATASET = 'mkbn-caye'
 // that one permit's record instead of the whole dataset.
 const DATASET_HUMAN_URL = `https://data.marincounty.gov/County-Government/Building-Permit/${DATASET}`
 
-// Deep link to a single permit's public record on the county open-data portal,
-// filtered by unique_id — the only key present on EVERY row (permit_number is
-// empty on complex "OM_" permits). Falls back to the dataset page when absent.
+// Where a permit card links. Marin has no public per-permit page, and the
+// open-data "explore" SPA ignores a URL filter (it just opened the whole
+// dataset), so we render our own detail view at /local/permit/[id] keyed on
+// unique_id (the only id present on EVERY row). Falls back to the dataset page
+// when a row somehow lacks a unique_id.
 export function permitDetailUrl(uniqueId?: string | null): string {
   const id = (uniqueId ?? '').trim()
   if (!id) return DATASET_HUMAN_URL
-  const soql = `SELECT * WHERE \`unique_id\`='${id.replace(/'/g, "''")}'`
-  return `${DATASET_HUMAN_URL}/explore/query/${encodeURIComponent(soql)}/page/filter`
+  return `/local/permit/${encodeURIComponent(id)}`
+}
+
+// The county open-data dataset page — used as the "view the public record"
+// provenance link on our detail page.
+export const MARIN_PERMITS_DATASET_URL = DATASET_HUMAN_URL
+
+// Pure: raw row -> the fields we render on the permit detail page.
+export function permitDetailFields(r: MarinPermitRow): PermitDetail {
+  const desc = prettyPermitTitle((r.description ?? '').trim())
+  const value = Number(r.construction_value ?? 0) || 0
+  const date = r.most_recent_issued_received_date ?? r.issued_date ?? r.received_date ?? undefined
+  const lat = r.latitude != null ? Number(r.latitude) : NaN
+  const lng = r.longitude != null ? Number(r.longitude) : NaN
+  return {
+    uniqueId: r.unique_id ?? '',
+    permitNumber: (r.permit_number || r.permit_tracking_id) ?? undefined,
+    title: desc || `${titleCase(r.type_permit ?? 'Building')} permit`,
+    description: desc || undefined,
+    address: r.address ? cleanAddress(r.address) : undefined,
+    valuationUsd: value > 0 ? value : undefined,
+    type: r.type_permit ? titleCase(r.type_permit) : undefined,
+    category: r.permit_category || undefined,
+    workClass: r.permit_work_class ? titleCase(r.permit_work_class) : undefined,
+    parcelNumber: r.parcel_number || undefined,
+    contractorAddress: r.contractor_address ? cleanAddress(r.contractor_address) : undefined,
+    dateLabel: date ? date.slice(0, 10) : undefined,
+    lat: Number.isFinite(lat) ? lat : undefined,
+    lng: Number.isFinite(lng) ? lng : undefined,
+  }
+}
+
+// Fetch one permit's record by unique_id from the county open-data API. Returns
+// null when not found. This is the authoritative public record for the permit.
+export async function fetchMarinPermitDetail(uniqueId: string): Promise<PermitDetail | null> {
+  const url = `https://data.marincounty.gov/resource/${DATASET}.json?unique_id=${encodeURIComponent(uniqueId)}&$limit=1`
+  const res = await fetch(url, { headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' } })
+  if (!res.ok) throw new Error(`Marin permit detail HTTP ${res.status}`)
+  const rows = (await res.json()) as MarinPermitRow[]
+  return rows.length > 0 ? permitDetailFields(rows[0]) : null
 }
 
 export interface MarinPermitRow {
@@ -33,12 +73,33 @@ export interface MarinPermitRow {
   permit_category?: string
   permit_work_class?: string
   permit_number?: string
+  permit_tracking_id?: string
+  contractor_address?: string
   received_date?: string | null
   issued_date?: string | null
   most_recent_issued_received_date?: string | null
   latitude?: string
   longitude?: string
   unique_id?: string
+}
+
+// Display shape for a single permit's detail page — everything we surface at
+// /local/permit/[id], derived purely from a raw row (unit-testable).
+export interface PermitDetail {
+  uniqueId: string
+  permitNumber?: string
+  title: string
+  description?: string
+  address?: string
+  valuationUsd?: number
+  type?: string
+  category?: string
+  workClass?: string
+  parcelNumber?: string
+  contractorAddress?: string
+  dateLabel?: string // YYYY-MM-DD (issued or received)
+  lat?: number
+  lng?: number
 }
 
 // Valuation -> [0, 1] consequence, log-scaled: $1 -> 0, $1M -> 1.0.
