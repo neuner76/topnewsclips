@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import sample from '../../../fixtures/sources/marin-permits/sample.json'
-import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, type MarinPermitRow } from './marin-permits'
+import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, permitOpenDataRecordUrl, type MarinPermitRow } from './marin-permits'
 
 const row = (over: Partial<MarinPermitRow>): MarinPermitRow => ({
   address: '1 MAIN ST, NOVATO, CA 94945', city_town: 'NOVATO', zipcode: '94945',
@@ -26,6 +26,15 @@ describe('permitDetailUrl', () => {
   it('falls back to the dataset page when there is no unique_id', () => {
     expect(permitDetailUrl(undefined)).toBe('https://data.marincounty.gov/County-Government/Building-Permit/mkbn-caye')
     expect(permitDetailUrl('')).not.toContain('/local/permit/')
+  })
+})
+
+describe('permitOpenDataRecordUrl', () => {
+  it('points at the single permit record on the open-data API', () => {
+    expect(permitOpenDataRecordUrl('OM_94521')).toBe('https://data.marincounty.gov/resource/mkbn-caye.json?unique_id=OM_94521')
+  })
+  it('falls back to the dataset page when there is no unique_id', () => {
+    expect(permitOpenDataRecordUrl('')).toBe('https://data.marincounty.gov/County-Government/Building-Permit/mkbn-caye')
   })
 })
 

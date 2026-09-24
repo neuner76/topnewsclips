@@ -27,6 +27,21 @@ export function permitDetailUrl(uniqueId?: string | null): string {
 // provenance link on our detail page.
 export const MARIN_PERMITS_DATASET_URL = DATASET_HUMAN_URL
 
+// Marin's official public permit-lookup dashboard (48-month, searchable by
+// permit number). The county blocks per-permit deep links, so we send users
+// here to search — with the permit number copied to their clipboard.
+export const MARIN_PERMIT_LOOKUP_URL =
+  'https://www.marincounty.gov/departments/cda/building-and-safety/how-apply-building-permit/look-permit'
+
+// Link to the ONE permit's authoritative record on the county open-data API
+// (filtered by unique_id). The open-data "explore" SPA ignores a URL filter, so
+// this API view is the reliable single-record link. Falls back to the dataset.
+export function permitOpenDataRecordUrl(uniqueId?: string | null): string {
+  const id = (uniqueId ?? '').trim()
+  if (!id) return DATASET_HUMAN_URL
+  return `https://data.marincounty.gov/resource/${DATASET}.json?unique_id=${encodeURIComponent(id)}`
+}
+
 // Pure: raw row -> the fields we render on the permit detail page.
 export function permitDetailFields(r: MarinPermitRow): PermitDetail {
   const desc = prettyPermitTitle((r.description ?? '').trim())
