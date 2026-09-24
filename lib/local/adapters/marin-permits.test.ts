@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import sample from '../../../fixtures/sources/marin-permits/sample.json'
-import { normalizeMarinPermits, permitConsequence, permitDetailUrl, type MarinPermitRow } from './marin-permits'
+import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, type MarinPermitRow } from './marin-permits'
 
 const row = (over: Partial<MarinPermitRow>): MarinPermitRow => ({
   address: '1 MAIN ST, NOVATO, CA 94945', city_town: 'NOVATO', zipcode: '94945',
@@ -18,24 +18,38 @@ describe('permitConsequence', () => {
 })
 
 describe('permitDetailUrl', () => {
-  it('deep-links to the single permit record via a unique_id SoQL filter', () => {
-    const url = permitDetailUrl('OM_94521')
-    expect(url).toContain('/County-Government/Building-Permit/mkbn-caye/explore/query/')
-    expect(url).toContain('OM_94521')
-    expect(url).toContain(encodeURIComponent('WHERE `unique_id`='))
-    expect(url.endsWith('/page/filter')).toBe(true)
+  it('links to our in-app detail route keyed on unique_id', () => {
+    expect(permitDetailUrl('OM_94521')).toBe('/local/permit/OM_94521')
+    // ids with URL-special chars are encoded
+    expect(permitDetailUrl('IN_B4/8455')).toBe('/local/permit/IN_B4%2F8455')
   })
   it('falls back to the dataset page when there is no unique_id', () => {
     expect(permitDetailUrl(undefined)).toBe('https://data.marincounty.gov/County-Government/Building-Permit/mkbn-caye')
-    expect(permitDetailUrl('')).not.toContain('/explore/query/')
+    expect(permitDetailUrl('')).not.toContain('/local/permit/')
+  })
+})
+
+describe('permitDetailFields', () => {
+  it('maps a raw row to display fields, cleaning the title and date', () => {
+    const d = permitDetailFields(row({
+      unique_id: 'OM_94521', permit_number: '', permit_tracking_id: '94521',
+      description: 'New Construction Of An Aircraft Hanger', construction_value: '300000',
+      type_permit: 'COMMERCIAL', permit_category: 'All other Construction',
+      most_recent_issued_received_date: '2026-09-18T00:00:00.000', address: '451 AIRPORT RD, NOVATO, CA 94945',
+    }))
+    expect(d.uniqueId).toBe('OM_94521')
+    expect(d.permitNumber).toBe('94521') // falls back to tracking id when permit_number empty
+    expect(d.title).toContain('Aircraft Hanger')
+    expect(d.valuationUsd).toBe(300000)
+    expect(d.dateLabel).toBe('2026-09-18')
+    expect(d.address).toContain('Novato')
   })
 })
 
 describe('normalizeMarinPermits', () => {
-  it('links each permit to its own county open-data record (by unique_id)', () => {
+  it('links each permit to its own in-app detail page (by unique_id)', () => {
     const [e] = normalizeMarinPermits([row({ unique_id: 'OM_94521' })])
-    expect(e.sources[0].url).toContain('/explore/query/')
-    expect(e.sources[0].url).toContain('OM_94521')
+    expect(e.sources[0].url).toBe('/local/permit/OM_94521')
   })
 
   it('maps a permit row to a geocoded building_permit LocalEvent', () => {
