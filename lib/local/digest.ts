@@ -205,7 +205,15 @@ async function safe<T>(fn: () => Promise<T>): Promise<T | undefined> {
 
 async function buildLiveEnvironment(point: { lat: number; lng: number }): Promise<EnvironmentSnapshot> {
   const forecast = await safe(async () => {
-    const res = await fetch('https://api.weather.gov/gridpoints/MTR/83,121/forecast', { headers: { 'User-Agent': UA } })
+    // Resolve the forecast gridpoint for THIS point (so a shared location gets
+    // its own weather, not Novato's); fall back to the default San Rafael grid.
+    const resolved = await safe(async () => {
+      const r = await fetch(`https://api.weather.gov/points/${point.lat},${point.lng}`, { headers: { 'User-Agent': UA } })
+      if (!r.ok) throw new Error(`points ${r.status}`)
+      return (await r.json())?.properties?.forecast as string | undefined
+    })
+    const forecastUrl = resolved || 'https://api.weather.gov/gridpoints/MTR/83,121/forecast'
+    const res = await fetch(forecastUrl, { headers: { 'User-Agent': UA } })
     if (!res.ok) throw new Error(`forecast ${res.status}`)
     return normalizeNwsForecast(await res.json())
   })
@@ -271,12 +279,24 @@ async function resolveAirQuality(point: { lat: number; lng: number }): Promise<A
   return purpleair ?? airnow // PurpleAir if we got one, else whatever AirNow returned
 }
 
-export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
-  const places = await getSavedPlaces()
-  const environment = await buildLiveEnvironment(representativePoint())
-  // Multi-place anchors: proximity now honors EVERY saved place (Novato, West
-  // Marin, …), not just one home point — each with its own radius.
-  const anchors = await getPlaceAnchors()
+// A shared, location-scoped build (public share link): center on `point`, use a
+// single `anchor` for that place, DON'T read/expose the owner's saved places,
+// and DON'T spend the owner's LLM key on public traffic.
+export interface LocalBuildContext {
+  point: { lat: number; lng: number }
+  anchors: Anchor[]
+  coverageAreas: string[]
+}
+
+export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLocalDigest> {
+  const shared = !!ctx
+  const point = ctx?.point ?? representativePoint()
+  // Owner mode reads saved places; shared mode never touches them.
+  const places = shared ? [] : await getSavedPlaces()
+  const environment = await buildLiveEnvironment(point)
+  // Multi-place anchors: proximity honors EVERY saved place (Novato, West
+  // Marin, …), each with its own radius — or the single shared-location anchor.
+  const anchors = ctx?.anchors ?? await getPlaceAnchors()
 
   // Build B/C live sections. A failed fetch yields an empty section (omitted) —
   // never fabricated fixture data.
@@ -287,7 +307,9 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   // Agenda-item LLM extraction (Build B/C): pull the consequential items
   // (contracts, grants, dollar figures) out of the soonest meeting's agenda so a
   // meeting becomes specific decisions. Needs an API key; degrades to meetings-only.
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  // Shared/public links skip the LLM extraction so public traffic can't burn the
+  // owner's Anthropic key (Government degrades to plain meetings).
+  const apiKey = shared ? undefined : process.env.ANTHROPIC_API_KEY
   const agendaItems = agendas && apiKey
     ? (await safe(() => buildAgendaItemEvents(agendas, apiKey))) ?? []
     : []
@@ -328,22 +350,22 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
   // with Caltrans D4 lane closures (public, no key). 511 gives live collisions;
   // Caltrans LCS adds scheduled construction/maintenance closures.
   const roads511 = process.env.BAY511_API_KEY
-    ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, representativePoint(), { anchors }))) ?? []
+    ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, point, { anchors }))) ?? []
     : []
   // Near any saved place; still Marin/Sonoma only (drops SR-29 Napa/Solano across the bay).
-  const closures = (await safe(() => fetchCaltransClosures(representativePoint(), { anchors, counties: ['Marin', 'Sonoma'] }))) ?? []
+  const closures = (await safe(() => fetchCaltransClosures(point, { anchors, counties: ['Marin', 'Sonoma'] }))) ?? []
   const roads = [...roads511, ...closures].sort((a, b) => (b.consequenceScore ?? 0) - (a.consequenceScore ?? 0)).slice(0, 8)
   // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key), near any place.
-  const trafficCameras = (await safe(() => fetchCaltransCameras(representativePoint(), { anchors }))) ?? []
+  const trafficCameras = (await safe(() => fetchCaltransCameras(point, { anchors }))) ?? []
 
   // Emergency layer: named active wildfires (CAL FIRE) near any place, within a
   // wider fire-relevance radius (a fire 30 mi upwind is still act-now info).
-  const wildfires = (await safe(() => fetchCalFire({ anchors, near: representativePoint(), radiusMiles: 40 }))) ?? []
+  const wildfires = (await safe(() => fetchCalFire({ anchors, near: point, radiusMiles: 40 }))) ?? []
 
   // Need To Know Near You — the urgent, act-now subset synthesized from the live
   // signals above (NWS alerts, CAL FIRE wildfires, nearby significant quakes,
   // active-fire detections, full closures now). Empty is honest ("nothing urgent").
-  const needToKnow = buildNeedToKnow(environment, roads, { near: representativePoint(), wildfires })
+  const needToKnow = buildNeedToKnow(environment, roads, { near: point, wildfires })
 
   // Honest sections only — never fabricated data. A live section that fetched
   // nothing is simply empty; Need To Know now renders an "all clear" state
@@ -364,7 +386,7 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
     trafficCameras,
     // The tight anchors are the areas actually driving filtering — surface them
     // so the page can label the coverage area (e.g. "Novato + West Marin").
-    coverageAreas: anchors.map(a => a.label).filter((l): l is string => !!l),
+    coverageAreas: ctx ? ctx.coverageAreas : anchors.map(a => a.label).filter((l): l is string => !!l),
     comingSoonSections,
   })
 }
