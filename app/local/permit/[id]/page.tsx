@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { fetchMarinPermitDetail, MARIN_PERMITS_DATASET_URL, type PermitDetail } from '@/lib/local/adapters/marin-permits'
+import { fetchMarinPermitDetail, permitOpenDataRecordUrl, MARIN_PERMIT_LOOKUP_URL, type PermitDetail } from '@/lib/local/adapters/marin-permits'
+import { CopyPermitNumber } from './CopyPermitNumber'
 
 // Owner-gated, dynamic — mirrors /local. Renders one permit's public record,
 // fetched live from the county open-data API (Marin has no linkable per-permit
@@ -72,7 +73,12 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
       </header>
 
       <section className="mt-4 rounded-lg border border-border px-4 pt-1 pb-2">
-        <Field label="Permit number" value={permit.permitNumber} />
+        {permit.permitNumber && (
+          <div className="border-t border-border py-3">
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Permit number</div>
+            <div className="mt-0.5"><CopyPermitNumber permitNumber={permit.permitNumber} /></div>
+          </div>
+        )}
         <Field label="Date issued / received" value={permit.dateLabel} />
         <Field label="Type" value={permit.type} />
         <Field label="Category" value={permit.category} />
@@ -88,13 +94,17 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
             View on map →
           </a>
         )}
-        <a href={MARIN_PERMITS_DATASET_URL} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">
+        <a href={MARIN_PERMIT_LOOKUP_URL} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">
+          Look up the official county record →
+        </a>
+        <a href={permitOpenDataRecordUrl(permit.uniqueId)} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">
           County open-data record →
         </a>
       </div>
 
       <p className="mt-6 text-[11px] text-muted-foreground">
-        Source: Marin County Building Permits (open data), unincorporated areas. Updated daily.
+        Source: Marin County Building Permits (open data), unincorporated areas. Updated daily. The county’s
+        official permit lookup can’t link to a single permit — click above, then paste the copied permit number.
       </p>
     </main>
   )
