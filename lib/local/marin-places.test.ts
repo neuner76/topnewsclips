@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MARIN_PLACES, findMarinPlace } from './marin-places'
+import { MARIN_PLACES, MARIN_ZIP_TO_SLUG, findMarinPlace, findMarinPlaceByZip, resolveMarinPlace } from './marin-places'
 import { encodeShareToken, decodeShareToken } from './share'
 
 describe('MARIN_PLACES', () => {
@@ -26,5 +26,28 @@ describe('MARIN_PLACES', () => {
     expect(findMarinPlace('point-reyes-station')?.label).toBe('Point Reyes Station')
     expect(findMarinPlace('MARSHALL')?.label).toBe('Marshall')
     expect(findMarinPlace('nope')).toBeUndefined()
+  })
+})
+
+describe('Marin ZIP resolution', () => {
+  it('maps every listed ZIP to a real place slug', () => {
+    for (const [zip, slug] of Object.entries(MARIN_ZIP_TO_SLUG)) {
+      expect(/^\d{5}$/.test(zip)).toBe(true)
+      expect(findMarinPlace(slug), `ZIP ${zip} -> unknown slug ${slug}`).toBeDefined()
+    }
+  })
+
+  it('findMarinPlaceByZip resolves known Marin ZIPs', () => {
+    expect(findMarinPlaceByZip('94940')?.label).toBe('Marshall')
+    expect(findMarinPlaceByZip('94956')?.label).toBe('Point Reyes Station')
+    expect(findMarinPlaceByZip('94901')?.label).toBe('San Rafael')
+    expect(findMarinPlaceByZip('99999')).toBeUndefined()
+  })
+
+  it('resolveMarinPlace accepts a slug OR a ZIP, not garbage', () => {
+    expect(resolveMarinPlace('bolinas')?.label).toBe('Bolinas')
+    expect(resolveMarinPlace('94924')?.label).toBe('Bolinas')
+    expect(resolveMarinPlace('90210')).toBeUndefined() // valid ZIP shape, not Marin
+    expect(resolveMarinPlace('whatever')).toBeUndefined()
   })
 })
