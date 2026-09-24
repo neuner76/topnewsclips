@@ -1,5 +1,6 @@
 import { buildMyLocalDigest, type MyLocalDigest } from '@/lib/local/digest'
-import { decodeShareToken } from '@/lib/local/share'
+import { decodeShareToken, type ShareLocation } from '@/lib/local/share'
+import { findMarinPlace } from '@/lib/local/marin-places'
 import { LocalDigestView } from '../../LocalDigestView'
 
 // PUBLIC, link-only share of a location-scoped local briefing. No owner login,
@@ -11,12 +12,21 @@ export const metadata = { title: 'Local briefing — TopNewsClips' }
 
 export default async function SharedLocalPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const loc = decodeShareToken(token)
+  // Accept either an opaque share token OR a readable Marin town slug, so the
+  // URL is human-editable — swap "marshall" for "bolinas" and it just works.
+  let loc: ShareLocation | null = decodeShareToken(token)
+  if (!loc) {
+    const place = findMarinPlace(token)
+    if (place) loc = { lat: place.lat, lng: place.lng, label: place.label, radiusMiles: place.radiusMiles }
+  }
 
   if (!loc) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-        <p className="text-sm text-muted-foreground">This shared link is invalid or has expired.</p>
+        <p className="text-sm text-muted-foreground">
+          This link isn’t a place we recognize.{' '}
+          <a href="/local/share" className="text-[#2563EB] hover:underline">Pick your Marin town →</a>
+        </p>
       </main>
     )
   }
