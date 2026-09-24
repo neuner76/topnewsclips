@@ -112,13 +112,19 @@ function CameraSection({ cameras }: { cameras: MyLocalDigest['trafficCameras'] }
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-border p-3">
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+function Stat({ label, value, href }: { label: string; value: string; href?: string }) {
+  const inner = (
+    <>
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+        {label}{href && <span aria-hidden className="text-muted-foreground"> ↗</span>}
+      </div>
       <div className="mt-0.5 text-sm font-semibold text-foreground">{value}</div>
-    </div>
+    </>
   )
+  const cls = 'rounded-lg border border-border p-3'
+  return href
+    ? <a href={href} target="_blank" rel="noopener noreferrer" className={`${cls} block hover:border-foreground/30 transition-colors`}>{inner}</a>
+    : <div className={cls}>{inner}</div>
 }
 
 function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
@@ -129,13 +135,13 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
         <span className="ml-2 text-[10px] font-medium normal-case tracking-normal text-muted-foreground">data as of {formatFreshness(env.dataAsOf)}</span>
       </h2>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {env.fireRisk && env.fireRisk.level !== 'unknown' && <Stat label="Fire risk" value={env.fireRisk.level} />}
-        {env.wind && <Stat label="Wind" value={env.wind.text || `${env.wind.direction ?? ''} ${env.wind.speedMph ?? ''} mph`} />}
+        {env.fireRisk && env.fireRisk.level !== 'unknown' && <Stat label="Fire risk" value={env.fireRisk.level} href={env.sources?.fireRisk} />}
+        {env.wind && <Stat label="Wind" value={env.wind.text || `${env.wind.direction ?? ''} ${env.wind.speedMph ?? ''} mph`} href={env.sources?.wind} />}
         {env.airQuality && env.airQuality.aqi > 0
-          ? <Stat label={`Air quality${env.airQuality.source ? ` · ${env.airQuality.source}` : ''}`} value={`AQI ${env.airQuality.aqi} · ${env.airQuality.category}`} />
-          : <Stat label="Air quality" value="Unavailable" />}
-        {env.tide?.nextHigh && <Stat label="Next high tide" value={env.tide.nextHigh.time.slice(11) || env.tide.nextHigh.time} />}
-        {env.tide?.nextLow && <Stat label="Next low tide" value={env.tide.nextLow.time.slice(11) || env.tide.nextLow.time} />}
+          ? <Stat label={`Air quality${env.airQuality.source ? ` · ${env.airQuality.source}` : ''}`} value={`AQI ${env.airQuality.aqi} · ${env.airQuality.category}`} href={env.sources?.airQuality} />
+          : <Stat label="Air quality" value="Unavailable" href={env.sources?.airQuality} />}
+        {env.tide?.nextHigh && <Stat label="Next high tide" value={env.tide.nextHigh.time.slice(11) || env.tide.nextHigh.time} href={env.sources?.tide} />}
+        {env.tide?.nextLow && <Stat label="Next low tide" value={env.tide.nextLow.time.slice(11) || env.tide.nextLow.time} href={env.sources?.tide} />}
         <Stat
           label="Active fire detections"
           value={
@@ -143,21 +149,34 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
               ? `${env.thermalAnomalies.count}${env.thermalAnomalies.nearestMiles != null ? ` · nearest ~${env.thermalAnomalies.nearestMiles} mi` : ''}`
               : 'None nearby'
           }
+          href={env.sources?.thermalAnomalies}
         />
       </div>
       {env.activeAlerts.length > 0 && (
         <div className="mt-3 space-y-2">
-          {env.activeAlerts.map((a, i) => (
-            <div key={i} className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
-              <div className="text-sm font-semibold text-foreground">{a.event}</div>
-              <p className="mt-0.5 text-xs text-muted-foreground">{a.area}</p>
-            </div>
-          ))}
+          {env.activeAlerts.map((a, i) => {
+            const body = (
+              <>
+                <div className="text-sm font-semibold text-foreground">{a.event}{env.sources?.alerts && <span aria-hidden className="text-muted-foreground"> ↗</span>}</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">{a.area}</p>
+              </>
+            )
+            const cls = 'block rounded-lg border border-red-500/20 bg-red-500/5 p-3'
+            return env.sources?.alerts
+              ? <a key={i} href={env.sources.alerts} target="_blank" rel="noopener noreferrer" className={`${cls} hover:border-red-500/40 transition-colors`}>{body}</a>
+              : <div key={i} className={cls}>{body}</div>
+          })}
         </div>
       )}
       {env.recentEarthquakes.length > 0 && (
         <div className="mt-3">
-          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Recent earthquakes</div>
+          {env.sources?.earthquakes ? (
+            <a href={env.sources.earthquakes} target="_blank" rel="noopener noreferrer" className="text-[11px] uppercase tracking-wide text-muted-foreground hover:text-[#2563EB]">
+              Recent earthquakes <span aria-hidden>↗</span>
+            </a>
+          ) : (
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Recent earthquakes</div>
+          )}
           <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
             {env.recentEarthquakes.slice(0, 5).map((q, i) => (
               <li key={i}>M {q.magnitude} — {q.place}{q.distanceMiles != null ? ` (${Math.round(q.distanceMiles)} mi)` : ''}</li>
@@ -187,9 +206,11 @@ export default async function LocalPage() {
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 text-foreground">
       <header className="mb-8">
         <h1 className="text-2xl font-black tracking-tight text-foreground">My Local</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {digest.places.map(p => p.label).join(' · ') || 'No saved places yet'}
-        </p>
+        {digest.coverageAreas.length > 0 && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Covering <span className="font-semibold text-foreground">{digest.coverageAreas.join(' + ')}</span>
+          </p>
+        )}
         <p className="mt-1 text-xs text-muted-foreground">What changed around you — from your block to your county.</p>
       </header>
 

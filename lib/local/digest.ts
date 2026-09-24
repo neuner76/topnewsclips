@@ -9,7 +9,7 @@ import { createClient } from '@supabase/supabase-js'
 import { toPublicPlace, type PublicSavedPlace } from './privacy'
 import type { SavedPlace, LocalEvent } from './types'
 import type {
-  EnvironmentSnapshot, WindReading, FireRisk, NwsAlertSummary, QuakeSummary,
+  EnvironmentSnapshot, EnvironmentSources, WindReading, FireRisk, NwsAlertSummary, QuakeSummary,
   TideReading, AirQualityReading,
 } from './adapters/types'
 import { normalizeNwsForecast, normalizeNwsAlerts } from './adapters/nws'
@@ -59,6 +59,7 @@ const TIDE_STATION = '9415020' // Point Reyes
 export interface MyLocalDigest {
   generatedAt: string
   places: PublicSavedPlace[]
+  coverageAreas: string[] // the tight saved-place areas that actually drive filtering (e.g. Novato, West Marin)
   needToKnow: LocalEvent[]
   changingAroundYou: LocalEvent[]
   yourGovernment: LocalEvent[]
@@ -104,6 +105,7 @@ export interface AssembleInput {
     localBlindspot: LocalEvent[]
   }
   trafficCameras?: LocalCamera[]
+  coverageAreas?: string[]
   comingSoonSections: string[]
   generatedAt?: string
 }
@@ -112,6 +114,7 @@ export function assembleMyLocalDigest(input: AssembleInput): MyLocalDigest {
   return {
     generatedAt: input.generatedAt ?? new Date().toISOString(),
     places: input.places.map(toPublicPlace),
+    coverageAreas: input.coverageAreas ?? [],
     needToKnow: input.sections.needToKnow.slice(0, NEED_TO_KNOW_MAX),
     changingAroundYou: input.sections.changingAroundYou,
     yourGovernment: input.sections.yourGovernment,
@@ -227,7 +230,25 @@ async function buildLiveEnvironment(point: { lat: number; lng: number }): Promis
   const thermalAnomalies = process.env.NASA_FIRMS_MAP_KEY
     ? await safe(() => fetchFirms(point, process.env.NASA_FIRMS_MAP_KEY!))
     : undefined
-  return buildEnvironmentSnapshot({ forecast, alerts, quakes, tide, airQuality, thermalAnomalies })
+  return { ...buildEnvironmentSnapshot({ forecast, alerts, quakes, tide, airQuality, thermalAnomalies }), sources: environmentSources(point, airQuality) }
+}
+
+// Direct-source links for each environment reading — location-specific where the
+// provider supports it (NWS point forecast, NOAA tide station).
+function environmentSources(point: { lat: number; lng: number }, airQuality?: AirQualityReading): EnvironmentSources {
+  const nws = `https://forecast.weather.gov/MapClick.php?lat=${point.lat}&lon=${point.lng}`
+  const aq = (airQuality?.source ?? '').toLowerCase().includes('purpleair')
+    ? 'https://map.purpleair.com/'
+    : 'https://www.airnow.gov/'
+  return {
+    wind: nws,
+    fireRisk: nws,
+    alerts: nws,
+    airQuality: aq,
+    tide: `https://tidesandcurrents.noaa.gov/stationhome.html?id=${TIDE_STATION}`,
+    thermalAnomalies: 'https://firms.modaps.eosdis.nasa.gov/map/',
+    earthquakes: 'https://earthquake.usgs.gov/earthquakes/map/',
+  }
 }
 
 // Air quality: prefer AirNow (official EPA monitors); fall back to PurpleAir
@@ -341,6 +362,9 @@ export async function buildMyLocalDigest(): Promise<MyLocalDigest> {
       localBlindspot: blindspots, // engine output; empty -> section omitted
     },
     trafficCameras,
+    // The tight anchors are the areas actually driving filtering — surface them
+    // so the page can label the coverage area (e.g. "Novato + West Marin").
+    coverageAreas: anchors.map(a => a.label).filter((l): l is string => !!l),
     comingSoonSections,
   })
 }
