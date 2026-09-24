@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { fetchMarinPermitDetail, permitOpenDataRecordUrl, MARIN_PERMIT_LOOKUP_URL, type PermitDetail } from '@/lib/local/adapters/marin-permits'
-import { CopyPermitNumber } from './CopyPermitNumber'
+import { CopyChip } from './CopyChip'
 
 // Owner-gated, dynamic — mirrors /local. Renders one permit's public record,
 // fetched live from the county open-data API (Marin has no linkable per-permit
@@ -73,18 +73,18 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
       </header>
 
       <section className="mt-4 rounded-lg border border-border px-4 pt-1 pb-2">
-        {permit.permitNumber && (
-          <div className="border-t border-border py-3">
-            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Permit number</div>
-            <div className="mt-0.5"><CopyPermitNumber permitNumber={permit.permitNumber} /></div>
-          </div>
-        )}
+        <Field label="Permit number" value={permit.permitNumber} />
         <Field label="Date issued / received" value={permit.dateLabel} />
         <Field label="Type" value={permit.type} />
         <Field label="Category" value={permit.category} />
         <Field label="Work class" value={permit.workClass} />
         <Field label="Description" value={permit.description} />
-        <Field label="Parcel (APN)" value={permit.parcelNumber} />
+        {permit.parcelNumber && (
+          <div className="border-t border-border py-3">
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Parcel (APN)</div>
+            <div className="mt-0.5"><CopyChip value={permit.parcelNumber} label="parcel number" /></div>
+          </div>
+        )}
         <Field label="Contractor address" value={permit.contractorAddress} />
       </section>
 
@@ -95,7 +95,7 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
           </a>
         )}
         <a href={MARIN_PERMIT_LOOKUP_URL} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">
-          Look up the official county record →
+          Look up official records for this parcel →
         </a>
         <a href={permitOpenDataRecordUrl(permit.uniqueId)} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">
           County open-data record →
@@ -104,7 +104,8 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
 
       <p className="mt-6 text-[11px] text-muted-foreground">
         Source: Marin County Building Permits (open data), unincorporated areas. Updated daily. The county’s
-        official permit lookup can’t link to a single permit — click above, then paste the copied permit number.
+        permit report can’t link to a single permit — click above, then paste the copied parcel number (APN)
+        into its search to see every permit on this parcel.
       </p>
     </main>
   )
