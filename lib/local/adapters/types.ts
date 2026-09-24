@@ -55,6 +55,18 @@ export interface QuakeSummary {
   distanceMiles?: number
 }
 
+// Direct-source links for each environment reading (so each stat is clickable
+// through to the authoritative provider).
+export interface EnvironmentSources {
+  wind?: string
+  fireRisk?: string
+  airQuality?: string
+  tide?: string
+  thermalAnomalies?: string
+  alerts?: string
+  earthquakes?: string
+}
+
 export interface EnvironmentSnapshot {
   wind?: WindReading
   fireRisk?: FireRisk
@@ -63,6 +75,7 @@ export interface EnvironmentSnapshot {
   activeAlerts: NwsAlertSummary[]
   recentEarthquakes: QuakeSummary[]
   thermalAnomalies?: { count: number; nearestMiles?: number }
+  sources?: EnvironmentSources
   dataAsOf: string
 }
 
