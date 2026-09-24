@@ -27,11 +27,13 @@ export function permitDetailUrl(uniqueId?: string | null): string {
 // provenance link on our detail page.
 export const MARIN_PERMITS_DATASET_URL = DATASET_HUMAN_URL
 
-// Marin's official public permit-lookup dashboard (48-month, searchable by
-// permit number). The county blocks per-permit deep links, so we send users
-// here to search — with the permit number copied to their clipboard.
+// Marin's public "Building Permits Report" — a full-text-searchable grid of the
+// county's permits (the one with the real county permit numbers). The county
+// blocks per-permit deep links, so we send users here to search by the parcel
+// number (APN), which they copy from our detail page. Verified: a full-text
+// search on the APN returns that parcel's permits.
 export const MARIN_PERMIT_LOOKUP_URL =
-  'https://www.marincounty.gov/departments/cda/building-and-safety/how-apply-building-permit/look-permit'
+  'https://data.marincounty.gov/County-Government/Building-Permits-Report/nits-hbvx'
 
 // Link to the ONE permit's authoritative record on the county open-data API
 // (filtered by unique_id). The open-data "explore" SPA ignores a URL filter, so
@@ -51,7 +53,9 @@ export function permitDetailFields(r: MarinPermitRow): PermitDetail {
   const lng = r.longitude != null ? Number(r.longitude) : NaN
   return {
     uniqueId: r.unique_id ?? '',
-    permitNumber: (r.permit_number || r.permit_tracking_id) ?? undefined,
+    // Only the REAL permit number (present on simple permits). The tracking id is
+    // an internal ref, not the county's public permit number, so never show it.
+    permitNumber: r.permit_number || undefined,
     title: desc || `${titleCase(r.type_permit ?? 'Building')} permit`,
     description: desc || undefined,
     address: r.address ? cleanAddress(r.address) : undefined,

@@ -43,15 +43,20 @@ describe('permitDetailFields', () => {
     const d = permitDetailFields(row({
       unique_id: 'OM_94521', permit_number: '', permit_tracking_id: '94521',
       description: 'New Construction Of An Aircraft Hanger', construction_value: '300000',
-      type_permit: 'COMMERCIAL', permit_category: 'All other Construction',
+      type_permit: 'COMMERCIAL', permit_category: 'All other Construction', parcel_number: '125-190-54',
       most_recent_issued_received_date: '2026-09-18T00:00:00.000', address: '451 AIRPORT RD, NOVATO, CA 94945',
     }))
     expect(d.uniqueId).toBe('OM_94521')
-    expect(d.permitNumber).toBe('94521') // falls back to tracking id when permit_number empty
+    expect(d.permitNumber).toBeUndefined() // tracking id is NOT the public permit number — never shown
+    expect(d.parcelNumber).toBe('125-190-54') // APN is the reliable county-lookup key
     expect(d.title).toContain('Aircraft Hanger')
     expect(d.valuationUsd).toBe(300000)
     expect(d.dateLabel).toBe('2026-09-18')
     expect(d.address).toContain('Novato')
+  })
+
+  it('shows the real permit number when present (simple permits)', () => {
+    expect(permitDetailFields(row({ permit_number: 'B44461' })).permitNumber).toBe('B44461')
   })
 })
 
