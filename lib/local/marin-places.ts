@@ -43,3 +43,43 @@ export const MARIN_PLACES: MarinPlace[] = [
 export function findMarinPlace(slug: string): MarinPlace | undefined {
   return MARIN_PLACES.find(p => p.slug === slug.toLowerCase())
 }
+
+// Marin residential ZIP codes -> the nearest town in MARIN_PLACES, so a briefing
+// can be reached by ZIP too (e.g. /local/share/94940). ZIPs whose exact hamlet
+// isn't its own entry map to the closest listed town (Olema->Point Reyes Station,
+// Dillon Beach->Tomales, the San Geronimo Valley hamlets->San Geronimo Valley).
+export const MARIN_ZIP_TO_SLUG: Record<string, string> = {
+  // North Marin — Novato
+  '94945': 'novato', '94947': 'novato', '94948': 'novato', '94949': 'novato',
+  // Central Marin
+  '94901': 'san-rafael', '94903': 'san-rafael', '94912': 'san-rafael', '94913': 'san-rafael', '94915': 'san-rafael',
+  '94960': 'san-anselmo', '94979': 'san-anselmo',
+  '94930': 'fairfax', '94978': 'fairfax',
+  '94957': 'ross',
+  '94904': 'kentfield', '94914': 'kentfield',
+  '94939': 'larkspur', '94977': 'larkspur',
+  '94925': 'corte-madera', '94976': 'corte-madera',
+  // Southern Marin
+  '94941': 'mill-valley', '94942': 'mill-valley',
+  '94920': 'tiburon',
+  '94965': 'sausalito', '94966': 'sausalito',
+  // West Marin
+  '94956': 'point-reyes-station', '94950': 'point-reyes-station', // 94950 = Olema
+  '94937': 'inverness',
+  '94940': 'marshall',
+  '94971': 'tomales', '94929': 'tomales', // 94929 = Dillon Beach
+  '94946': 'nicasio',
+  '94963': 'san-geronimo-valley', '94973': 'san-geronimo-valley', '94938': 'san-geronimo-valley', '94933': 'san-geronimo-valley',
+  '94924': 'bolinas',
+  '94970': 'stinson-beach',
+}
+
+export function findMarinPlaceByZip(zip: string): MarinPlace | undefined {
+  const slug = MARIN_ZIP_TO_SLUG[zip.trim()]
+  return slug ? findMarinPlace(slug) : undefined
+}
+
+// Resolve a URL segment to a Marin place: town slug OR ZIP code.
+export function resolveMarinPlace(segment: string): MarinPlace | undefined {
+  return findMarinPlace(segment) ?? (/^\d{5}$/.test(segment.trim()) ? findMarinPlaceByZip(segment) : undefined)
+}

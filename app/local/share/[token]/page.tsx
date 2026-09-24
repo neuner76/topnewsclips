@@ -1,6 +1,6 @@
 import { buildMyLocalDigest, type MyLocalDigest } from '@/lib/local/digest'
 import { decodeShareToken, type ShareLocation } from '@/lib/local/share'
-import { findMarinPlace } from '@/lib/local/marin-places'
+import { resolveMarinPlace } from '@/lib/local/marin-places'
 import { LocalDigestView } from '../../LocalDigestView'
 
 // PUBLIC, link-only share of a location-scoped local briefing. No owner login,
@@ -12,11 +12,11 @@ export const metadata = { title: 'Local briefing — TopNewsClips' }
 
 export default async function SharedLocalPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  // Accept either an opaque share token OR a readable Marin town slug, so the
-  // URL is human-editable — swap "marshall" for "bolinas" and it just works.
+  // Accept an opaque share token, a readable Marin town slug, OR a Marin ZIP —
+  // so the URL is human-editable: /local/share/marshall or /local/share/94940.
   let loc: ShareLocation | null = decodeShareToken(token)
   if (!loc) {
-    const place = findMarinPlace(token)
+    const place = resolveMarinPlace(token)
     if (place) loc = { lat: place.lat, lng: place.lng, label: place.label, radiusMiles: place.radiusMiles }
   }
 

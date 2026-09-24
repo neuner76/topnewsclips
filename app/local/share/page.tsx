@@ -44,6 +44,10 @@ export default function MarinPickerPage() {
       </div>
 
       <p className="mt-8 text-[11px] text-muted-foreground">
+        Tip: you can also go straight to your area by ZIP or name — e.g.{' '}
+        <span className="font-mono">/local/share/94940</span> or <span className="font-mono">/local/share/point-reyes-station</span>.
+      </p>
+      <p className="mt-2 text-[11px] text-muted-foreground">
         Building-permit activity is richest in unincorporated (West &amp; North) Marin; weather, roads, fire, tides, and
         local reporting cover the whole county. Powered by TopNewsClips.
       </p>
