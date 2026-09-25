@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { createClient } from '@/lib/supabase/server'
-import { fetchMarinPermitDetail, permitOpenDataRecordUrl, MARIN_PERMIT_LOOKUP_URL, type PermitDetail } from '@/lib/local/adapters/marin-permits'
+import { fetchMarinPermitDetail, MARIN_PERMIT_LOOKUP_URL, type PermitDetail } from '@/lib/local/adapters/marin-permits'
 import { CopyChip } from './CopyChip'
 
 // Owner-gated, dynamic — mirrors /local. Renders one permit's public record,
@@ -92,6 +92,7 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
         <Field label="Category" value={permit.category} />
         <Field label="Work class" value={permit.workClass} />
         <Field label="Description" value={permit.description} />
+        <Field label="Contractor" value={permit.contractor} />
         {permit.parcelNumber && (
           <div className="border-t border-[#EFF2F6] py-3">
             <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Parcel (APN)</div>
@@ -110,15 +111,16 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
         <a href={MARIN_PERMIT_LOOKUP_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-[#2563EB] hover:underline">
           Look up official records for this parcel →
         </a>
-        <a href={permitOpenDataRecordUrl(permit.uniqueId)} target="_blank" rel="noopener noreferrer" className="font-medium text-[#2563EB] hover:underline">
-          County open-data record →
-        </a>
       </div>
 
       <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
-        Source: Marin County Building Permits (open data), unincorporated areas. Updated daily. The county’s
-        permit report can’t link to a single permit — click above, then paste the copied parcel number (APN)
-        into its search to see every permit on this parcel.
+        Source:{' '}
+        <a href={MARIN_PERMIT_LOOKUP_URL} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">
+          Marin County Building Permits
+        </a>{' '}
+        (open data), unincorporated areas, updated daily. The county’s permit report can’t link to a single
+        permit — use “Look up official records” above and paste the copied parcel number (APN) into its search
+        to see every permit on this parcel.
       </p>
     </Shell>
   )

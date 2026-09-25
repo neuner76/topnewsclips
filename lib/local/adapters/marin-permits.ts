@@ -35,15 +35,6 @@ export const MARIN_PERMITS_DATASET_URL = DATASET_HUMAN_URL
 export const MARIN_PERMIT_LOOKUP_URL =
   'https://data.marincounty.gov/County-Government/Building-Permits-Report/nits-hbvx'
 
-// Link to the ONE permit's authoritative record on the county open-data API
-// (filtered by unique_id). The open-data "explore" SPA ignores a URL filter, so
-// this API view is the reliable single-record link. Falls back to the dataset.
-export function permitOpenDataRecordUrl(uniqueId?: string | null): string {
-  const id = (uniqueId ?? '').trim()
-  if (!id) return DATASET_HUMAN_URL
-  return `https://data.marincounty.gov/resource/${DATASET}.json?unique_id=${encodeURIComponent(id)}`
-}
-
 // Pure: raw row -> the fields we render on the permit detail page.
 export function permitDetailFields(r: MarinPermitRow): PermitDetail {
   const desc = prettyPermitTitle((r.description ?? '').trim())
@@ -64,6 +55,7 @@ export function permitDetailFields(r: MarinPermitRow): PermitDetail {
     category: r.permit_category || undefined,
     workClass: r.permit_work_class ? titleCase(r.permit_work_class) : undefined,
     parcelNumber: r.parcel_number || undefined,
+    contractor: r.contractor ? titleCase(r.contractor) : undefined,
     contractorAddress: r.contractor_address ? cleanAddress(r.contractor_address) : undefined,
     dateLabel: date ? date.slice(0, 10) : undefined,
     lat: Number.isFinite(lat) ? lat : undefined,
@@ -93,6 +85,7 @@ export interface MarinPermitRow {
   permit_work_class?: string
   permit_number?: string
   permit_tracking_id?: string
+  contractor?: string
   contractor_address?: string
   received_date?: string | null
   issued_date?: string | null
@@ -115,6 +108,7 @@ export interface PermitDetail {
   category?: string
   workClass?: string
   parcelNumber?: string
+  contractor?: string
   contractorAddress?: string
   dateLabel?: string // YYYY-MM-DD (issued or received)
   lat?: number

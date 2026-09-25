@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import sample from '../../../fixtures/sources/marin-permits/sample.json'
-import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, permitOpenDataRecordUrl, type MarinPermitRow } from './marin-permits'
+import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, type MarinPermitRow } from './marin-permits'
 
 const row = (over: Partial<MarinPermitRow>): MarinPermitRow => ({
   address: '1 MAIN ST, NOVATO, CA 94945', city_town: 'NOVATO', zipcode: '94945',
@@ -29,26 +29,19 @@ describe('permitDetailUrl', () => {
   })
 })
 
-describe('permitOpenDataRecordUrl', () => {
-  it('points at the single permit record on the open-data API', () => {
-    expect(permitOpenDataRecordUrl('OM_94521')).toBe('https://data.marincounty.gov/resource/mkbn-caye.json?unique_id=OM_94521')
-  })
-  it('falls back to the dataset page when there is no unique_id', () => {
-    expect(permitOpenDataRecordUrl('')).toBe('https://data.marincounty.gov/County-Government/Building-Permit/mkbn-caye')
-  })
-})
-
 describe('permitDetailFields', () => {
   it('maps a raw row to display fields, cleaning the title and date', () => {
     const d = permitDetailFields(row({
       unique_id: 'OM_94521', permit_number: '', permit_tracking_id: '94521',
       description: 'New Construction Of An Aircraft Hanger', construction_value: '300000',
       type_permit: 'COMMERCIAL', permit_category: 'All other Construction', parcel_number: '125-190-54',
+      contractor: 'KASTEN BUILDERS',
       most_recent_issued_received_date: '2026-09-18T00:00:00.000', address: '451 AIRPORT RD, NOVATO, CA 94945',
     }))
     expect(d.uniqueId).toBe('OM_94521')
     expect(d.permitNumber).toBeUndefined() // tracking id is NOT the public permit number — never shown
     expect(d.parcelNumber).toBe('125-190-54') // APN is the reliable county-lookup key
+    expect(d.contractor).toBe('Kasten Builders') // title-cased contractor name
     expect(d.title).toContain('Aircraft Hanger')
     expect(d.valuationUsd).toBe(300000)
     expect(d.dateLabel).toBe('2026-09-18')
