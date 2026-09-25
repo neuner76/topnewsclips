@@ -32,8 +32,10 @@ export const MARIN_PERMITS_DATASET_URL = DATASET_HUMAN_URL
 // blocks per-permit deep links, so we send users here to search by the parcel
 // number (APN), which they copy from our detail page. Verified: a full-text
 // search on the APN returns that parcel's permits.
+// The `/explore` suffix opens the searchable data grid (the view with the search
+// box); the bare dataset URL opens the overview/primer, which has no search.
 export const MARIN_PERMIT_LOOKUP_URL =
-  'https://data.marincounty.gov/County-Government/Building-Permits-Report/nits-hbvx'
+  'https://data.marincounty.gov/County-Government/Building-Permits-Report/nits-hbvx/explore'
 
 // The county dataset occasionally carries a garbage construction_value (e.g. a
 // $173M "751 sq ft addition" — a data-entry error). Such outliers otherwise max
