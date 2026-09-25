@@ -204,40 +204,40 @@ async function safe<T>(fn: () => Promise<T>): Promise<T | undefined> {
 }
 
 async function buildLiveEnvironment(point: { lat: number; lng: number }): Promise<EnvironmentSnapshot> {
-  const forecast = await safe(async () => {
-    // Resolve the forecast gridpoint for THIS point (so a shared location gets
-    // its own weather, not Novato's); fall back to the default San Rafael grid.
-    const resolved = await safe(async () => {
-      const r = await fetch(`https://api.weather.gov/points/${point.lat},${point.lng}`, { headers: { 'User-Agent': UA } })
-      if (!r.ok) throw new Error(`points ${r.status}`)
-      return (await r.json())?.properties?.forecast as string | undefined
-    })
-    const forecastUrl = resolved || 'https://api.weather.gov/gridpoints/MTR/83,121/forecast'
-    const res = await fetch(forecastUrl, { headers: { 'User-Agent': UA } })
-    if (!res.ok) throw new Error(`forecast ${res.status}`)
-    return normalizeNwsForecast(await res.json())
-  })
-  const alerts = await safe(async () => {
-    const res = await fetch(`https://api.weather.gov/alerts/active?point=${point.lat},${point.lng}`, { headers: { 'User-Agent': UA } })
-    if (!res.ok) throw new Error(`alerts ${res.status}`)
-    return normalizeNwsAlerts(await res.json())
-  })
-  const quakes = await safe(async () => {
-    const res = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', { headers: { 'User-Agent': UA } })
-    if (!res.ok) throw new Error(`usgs ${res.status}`)
-    return normalizeUsgsEarthquakes(await res.json(), { near: { latitude: point.lat, longitude: point.lng }, radiusMiles: 100 })
-  })
-  const tide = await safe(async () => {
-    const url = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&station=${TIDE_STATION}&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json`
-    const res = await fetch(url, { headers: { 'User-Agent': UA } })
-    if (!res.ok) throw new Error(`tides ${res.status}`)
-    return normalizeNoaaTides(await res.json(), { station: TIDE_STATION, now: new Date() })
-  })
-  const airQuality = await resolveAirQuality(point)
-  // Active-fire / thermal anomalies near the point (NASA FIRMS). Key-gated.
-  const thermalAnomalies = process.env.NASA_FIRMS_MAP_KEY
-    ? await safe(() => fetchFirms(point, process.env.NASA_FIRMS_MAP_KEY!))
-    : undefined
+  // All six readings are independent — fetch them concurrently, not one-by-one.
+  const [forecast, alerts, quakes, tide, airQuality, thermalAnomalies] = await Promise.all([
+    safe(async () => {
+      // Resolve the forecast gridpoint for THIS point (so a shared location gets
+      // its own weather, not Novato's); fall back to the default San Rafael grid.
+      const resolved = await safe(async () => {
+        const r = await fetch(`https://api.weather.gov/points/${point.lat},${point.lng}`, { headers: { 'User-Agent': UA } })
+        if (!r.ok) throw new Error(`points ${r.status}`)
+        return (await r.json())?.properties?.forecast as string | undefined
+      })
+      const forecastUrl = resolved || 'https://api.weather.gov/gridpoints/MTR/83,121/forecast'
+      const res = await fetch(forecastUrl, { headers: { 'User-Agent': UA } })
+      if (!res.ok) throw new Error(`forecast ${res.status}`)
+      return normalizeNwsForecast(await res.json())
+    }),
+    safe(async () => {
+      const res = await fetch(`https://api.weather.gov/alerts/active?point=${point.lat},${point.lng}`, { headers: { 'User-Agent': UA } })
+      if (!res.ok) throw new Error(`alerts ${res.status}`)
+      return normalizeNwsAlerts(await res.json())
+    }),
+    safe(async () => {
+      const res = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', { headers: { 'User-Agent': UA } })
+      if (!res.ok) throw new Error(`usgs ${res.status}`)
+      return normalizeUsgsEarthquakes(await res.json(), { near: { latitude: point.lat, longitude: point.lng }, radiusMiles: 100 })
+    }),
+    safe(async () => {
+      const url = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&station=${TIDE_STATION}&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json`
+      const res = await fetch(url, { headers: { 'User-Agent': UA } })
+      if (!res.ok) throw new Error(`tides ${res.status}`)
+      return normalizeNoaaTides(await res.json(), { station: TIDE_STATION, now: new Date() })
+    }),
+    resolveAirQuality(point),
+    process.env.NASA_FIRMS_MAP_KEY ? safe(() => fetchFirms(point, process.env.NASA_FIRMS_MAP_KEY!)) : Promise.resolve(undefined),
+  ])
   return { ...buildEnvironmentSnapshot({ forecast, alerts, quakes, tide, airQuality, thermalAnomalies }), sources: environmentSources(point, airQuality) }
 }
 
@@ -291,43 +291,54 @@ export interface LocalBuildContext {
 export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLocalDigest> {
   const shared = !!ctx
   const point = ctx?.point ?? representativePoint()
-  // Owner mode reads saved places; shared mode never touches them.
-  const places = shared ? [] : await getSavedPlaces()
-  const environment = await buildLiveEnvironment(point)
-  // Multi-place anchors: proximity honors EVERY saved place (Novato, West
-  // Marin, …), each with its own radius — or the single shared-location anchor.
-  const anchors = ctx?.anchors ?? await getPlaceAnchors()
 
-  // Build B/C live sections. A failed fetch yields an empty section (omitted) —
-  // never fabricated fixture data.
-  // Changing Around You: most consequential recent permits near ANY saved place.
-  const changing = (await safe(() => fetchMarinPermits(6, 'consequence', { anchors }))) ?? []
-  const agendas = await safe(() => fetchMarinAgendas(5))
-
-  // Agenda-item LLM extraction (Build B/C): pull the consequential items
-  // (contracts, grants, dollar figures) out of the soonest meeting's agenda so a
-  // meeting becomes specific decisions. Needs an API key; degrades to meetings-only.
   // Shared/public links skip the LLM extraction so public traffic can't burn the
   // owner's Anthropic key (Government degrades to plain meetings).
   const apiKey = shared ? undefined : process.env.ANTHROPIC_API_KEY
-  const agendaItems = agendas && apiKey
-    ? (await safe(() => buildAgendaItemEvents(agendas, apiKey))) ?? []
-    : []
 
-  // Local journalism (Build C). Local Reporting shows directly-fetchable outlets
-  // (real links); the Blindspot's coverage check also queries the Marin IJ via
-  // Google News, so "no coverage" reflects the county daily, not just the weeklies.
-  const articles = (await safe(() => fetchLocalNews())) ?? []
-  // Hard-filter to Marin: local weeklies pass; regional outlets (KQED) only when
-  // the story names a Marin/Novato place. Keeps the section genuinely local.
+  // Resolve places + anchors first (fast DB reads); everything downstream needs
+  // the anchors. Owner mode reads saved places; shared mode never touches them.
+  const [places, anchors] = await Promise.all([
+    shared ? Promise.resolve([] as SavedPlace[]) : getSavedPlaces(),
+    ctx?.anchors ? Promise.resolve(ctx.anchors) : getPlaceAnchors(),
+  ])
+
+  // Fire every independent section fetch CONCURRENTLY — previously these ran one
+  // after another (~15 sequential round trips), the main reason /local was slow.
+  // A failed fetch yields an empty section (omitted) — never fabricated data.
+  const agendasP = safe(() => fetchMarinAgendas(5))
+  const [
+    environment, changing, agendas, articles, coverageArticlesRaw, permitPool,
+    roads511, closures, trafficCameras, wildfires, agendaItems,
+  ] = await Promise.all([
+    buildLiveEnvironment(point),
+    safe(() => fetchMarinPermits(6, 'consequence', { anchors })).then(r => r ?? []),
+    agendasP,
+    safe(() => fetchLocalNews()).then(r => r ?? []),
+    safe(() => fetchCoverageArticles()),
+    safe(() => fetchMarinPermits(50, 'consequence')).then(r => r ?? []),
+    process.env.BAY511_API_KEY
+      ? safe(() => fetch511Events(process.env.BAY511_API_KEY!, point, { anchors })).then(r => r ?? [])
+      : Promise.resolve([]),
+    safe(() => fetchCaltransClosures(point, { anchors, counties: ['Marin', 'Sonoma'] })).then(r => r ?? []),
+    safe(() => fetchCaltransCameras(point, { anchors })).then(r => r ?? []),
+    safe(() => fetchCalFire({ anchors, near: point, radiusMiles: 40 })).then(r => r ?? []),
+    // Agenda-item LLM extraction chains off the agendas fetch, but still runs
+    // concurrently with all the others above.
+    apiKey
+      ? agendasP.then(a => a ? safe(() => buildAgendaItemEvents(a, apiKey)).then(r => r ?? []) : [])
+      : Promise.resolve([]),
+  ])
+
+  // Local Reporting — hard-filter to Marin: local weeklies pass; regional outlets
+  // (KQED) only when the story names a Marin/Novato place.
   const reporting = articles.filter(isLocalToMarin).slice(0, 6).map(articleToLocalEvent)
-  const coverageArticles = (await safe(() => fetchCoverageArticles())) ?? articles
+  const coverageArticles = coverageArticlesRaw ?? articles
 
   // Local Blindspot: MAJOR public records (>= ~$250k) checked for coverage against
   // the local outlets (incl. Marin IJ). An uncovered major record is a blindspot;
   // one covered by 2+ outlets is not. Agenda-item contracts join the permit pool,
   // so a big uncovered county contract can surface. Empty -> section omitted.
-  const permitPool = (await safe(() => fetchMarinPermits(50, 'consequence'))) ?? []
   const blindspotPool = [...permitPool, ...agendaItems]
   const outletsChecked = COVERAGE_OUTLET_NAMES.join(', ')
   const blindspots = selectLocalBlindspots(
@@ -346,21 +357,9 @@ export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLoc
     agendaItems, agendas ?? [], GOVERNMENT_MAX, new Set(blindspots.map(b => b.id)),
   )
 
-  // Roads & Incidents (Build C) — live 511 SF Bay incidents (key-gated) merged
-  // with Caltrans D4 lane closures (public, no key). 511 gives live collisions;
-  // Caltrans LCS adds scheduled construction/maintenance closures.
-  const roads511 = process.env.BAY511_API_KEY
-    ? (await safe(() => fetch511Events(process.env.BAY511_API_KEY!, point, { anchors }))) ?? []
-    : []
-  // Near any saved place; still Marin/Sonoma only (drops SR-29 Napa/Solano across the bay).
-  const closures = (await safe(() => fetchCaltransClosures(point, { anchors, counties: ['Marin', 'Sonoma'] }))) ?? []
+  // Roads & Incidents — live 511 SF Bay incidents merged with Caltrans D4 lane
+  // closures (both fetched above, in parallel). Marin/Sonoma only.
   const roads = [...roads511, ...closures].sort((a, b) => (b.consequenceScore ?? 0) - (a.consequenceScore ?? 0)).slice(0, 8)
-  // Nearby live traffic cameras (Caltrans D4 CCTV — public, no key), near any place.
-  const trafficCameras = (await safe(() => fetchCaltransCameras(point, { anchors }))) ?? []
-
-  // Emergency layer: named active wildfires (CAL FIRE) near any place, within a
-  // wider fire-relevance radius (a fire 30 mi upwind is still act-now info).
-  const wildfires = (await safe(() => fetchCalFire({ anchors, near: point, radiusMiles: 40 }))) ?? []
 
   // Need To Know Near You — the urgent, act-now subset synthesized from the live
   // signals above (NWS alerts, CAL FIRE wildfires, nearby significant quakes,
