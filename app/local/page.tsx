@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { buildMyLocalDigest, type MyLocalDigest } from '@/lib/local/digest'
+import { type MyLocalDigest } from '@/lib/local/digest'
+import { buildMyLocalDigestCached } from '@/lib/local/digest-cache'
 import { LocalDigestView } from './LocalDigestView'
 
 // Owner-gated, dynamic (reads the admin session). Renders only real, live data;
@@ -16,7 +17,7 @@ export default async function LocalPage() {
 
   let digest: MyLocalDigest
   try {
-    digest = await buildMyLocalDigest()
+    digest = await buildMyLocalDigestCached()
   } catch {
     return <main className="mx-auto max-w-2xl px-4 py-10"><p className="text-sm text-red-600">My Local is temporarily unavailable.</p></main>
   }

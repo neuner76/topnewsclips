@@ -1,4 +1,5 @@
-import { buildMyLocalDigest, type MyLocalDigest } from '@/lib/local/digest'
+import { type MyLocalDigest } from '@/lib/local/digest'
+import { buildMyLocalDigestCached } from '@/lib/local/digest-cache'
 import { decodeShareToken, type ShareLocation } from '@/lib/local/share'
 import { resolveMarinPlace } from '@/lib/local/marin-places'
 import { LocalDigestView } from '../../LocalDigestView'
@@ -33,7 +34,7 @@ export default async function SharedLocalPage({ params }: { params: Promise<{ to
 
   let digest: MyLocalDigest
   try {
-    digest = await buildMyLocalDigest({
+    digest = await buildMyLocalDigestCached({
       point: { lat: loc.lat, lng: loc.lng },
       anchors: [{ lat: loc.lat, lng: loc.lng, radiusMiles: loc.radiusMiles, label: loc.label }],
       coverageAreas: [loc.label],
