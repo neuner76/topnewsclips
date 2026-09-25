@@ -35,10 +35,21 @@ export const MARIN_PERMITS_DATASET_URL = DATASET_HUMAN_URL
 export const MARIN_PERMIT_LOOKUP_URL =
   'https://data.marincounty.gov/County-Government/Building-Permits-Report/nits-hbvx'
 
+// The county dataset occasionally carries a garbage construction_value (e.g. a
+// $173M "751 sq ft addition" — a data-entry error). Such outliers otherwise max
+// out the consequence score and dominate Local Blindspot. Above this ceiling we
+// treat the valuation as unknown (0): no fake amount shown, no inflated ranking.
+// Legit unincorporated-Marin permits top out around $10M, so $50M is safe.
+export const MAX_PLAUSIBLE_VALUATION = 50_000_000
+export function plausibleValuation(raw?: string | null): number {
+  const v = Number(raw ?? 0) || 0
+  return v > 0 && v <= MAX_PLAUSIBLE_VALUATION ? v : 0
+}
+
 // Pure: raw row -> the fields we render on the permit detail page.
 export function permitDetailFields(r: MarinPermitRow): PermitDetail {
   const desc = prettyPermitTitle((r.description ?? '').trim())
-  const value = Number(r.construction_value ?? 0) || 0
+  const value = plausibleValuation(r.construction_value)
   const date = r.most_recent_issued_received_date ?? r.issued_date ?? r.received_date ?? undefined
   const lat = r.latitude != null ? Number(r.latitude) : NaN
   const lng = r.longitude != null ? Number(r.longitude) : NaN
@@ -191,7 +202,7 @@ export function normalizeMarinPermits(
       if (opts.radiusMiles != null && distanceMiles > opts.radiusMiles) continue
     }
 
-    const value = Number(r.construction_value ?? 0) || 0
+    const value = plausibleValuation(r.construction_value)
     // The dataset's `received_date`/`issued_date` columns are empty; the only
     // populated date is `most_recent_issued_received_date`. Use it as THE date.
     const effectiveDate = r.most_recent_issued_received_date ?? r.issued_date ?? r.received_date ?? undefined

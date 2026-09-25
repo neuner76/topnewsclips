@@ -51,6 +51,16 @@ describe('permitDetailFields', () => {
   it('shows the real permit number when present (simple permits)', () => {
     expect(permitDetailFields(row({ permit_number: 'B44461' })).permitNumber).toBe('B44461')
   })
+
+  it('treats an implausible construction_value as unknown (county data errors)', () => {
+    // $173M for a "751 sq ft addition" is a real data-entry error in the dataset.
+    const bad = permitDetailFields(row({ construction_value: '173456950', description: '(N) 751 Sf Addition' }))
+    expect(bad.valuationUsd).toBeUndefined()
+    // and it must not top the ranking / become a blindspot
+    const [e] = normalizeMarinPermits([row({ construction_value: '173456950' })])
+    expect(e.amountUsd).toBeUndefined()
+    expect(e.consequenceScore).toBe(0)
+  })
 })
 
 describe('normalizeMarinPermits', () => {
