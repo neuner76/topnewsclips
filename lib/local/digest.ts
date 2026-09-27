@@ -22,6 +22,7 @@ import { buildNeedToKnow } from './need-to-know'
 import { fetchCalFire } from './adapters/calfire'
 import { type Anchor } from './anchors'
 import { PUBLIC_SEED_PLACES } from './seed-places'
+import { sectionSource, type LocalSectionKey } from './config'
 import { fetch511Events } from './adapters/bay511'
 import { fetchCaltransCameras, type LocalCamera } from './adapters/caltrans-cameras'
 import { fetchCaltransClosures } from './adapters/caltrans-lcs'
@@ -288,27 +289,24 @@ export interface LocalBuildContext {
   coverageAreas: string[]
 }
 
-export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLocalDigest> {
+// Everything the section resolvers read, fetched ONCE and concurrently — this is
+// the shared "live" data load. Owner mode reads saved places + runs the LLM
+// extraction; shared/public mode does neither. A failed fetch yields an empty
+// slice (its section renders empty), never fabricated data.
+async function loadLocalInputs(ctx?: LocalBuildContext) {
   const shared = !!ctx
   const point = ctx?.point ?? representativePoint()
-
-  // Shared/public links skip the LLM extraction so public traffic can't burn the
-  // owner's Anthropic key (Government degrades to plain meetings).
   const apiKey = shared ? undefined : process.env.ANTHROPIC_API_KEY
 
-  // Resolve places + anchors first (fast DB reads); everything downstream needs
-  // the anchors. Owner mode reads saved places; shared mode never touches them.
+  // Places + anchors first (fast DB reads); everything downstream needs anchors.
   const [places, anchors] = await Promise.all([
     shared ? Promise.resolve([] as SavedPlace[]) : getSavedPlaces(),
     ctx?.anchors ? Promise.resolve(ctx.anchors) : getPlaceAnchors(),
   ])
 
-  // Fire every independent section fetch CONCURRENTLY — previously these ran one
-  // after another (~15 sequential round trips), the main reason /local was slow.
-  // A failed fetch yields an empty section (omitted) — never fabricated data.
   const agendasP = safe(() => fetchMarinAgendas(5))
   const [
-    environment, changing, agendas, articles, coverageArticlesRaw, permitPool,
+    environment, changingPermits, agendas, articles, coverageArticlesRaw, permitPool,
     roads511, closures, trafficCameras, wildfires, agendaItems,
   ] = await Promise.all([
     buildLiveEnvironment(point),
@@ -319,60 +317,96 @@ export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLoc
     safe(() => fetchMarinPermits(50, 'consequence')).then(r => r ?? []),
     process.env.BAY511_API_KEY
       ? safe(() => fetch511Events(process.env.BAY511_API_KEY!, point, { anchors })).then(r => r ?? [])
-      : Promise.resolve([]),
+      : Promise.resolve([] as LocalEvent[]),
     safe(() => fetchCaltransClosures(point, { anchors, counties: ['Marin', 'Sonoma'] })).then(r => r ?? []),
     safe(() => fetchCaltransCameras(point, { anchors })).then(r => r ?? []),
     safe(() => fetchCalFire({ anchors, near: point, radiusMiles: 40 })).then(r => r ?? []),
-    // Agenda-item LLM extraction chains off the agendas fetch, but still runs
-    // concurrently with all the others above.
+    // LLM agenda extraction chains off the agendas fetch, still concurrently.
     apiKey
-      ? agendasP.then(a => a ? safe(() => buildAgendaItemEvents(a, apiKey)).then(r => r ?? []) : [])
-      : Promise.resolve([]),
+      ? agendasP.then(a => a ? safe(() => buildAgendaItemEvents(a, apiKey)).then(r => r ?? []) : ([] as LocalEvent[]))
+      : Promise.resolve([] as LocalEvent[]),
   ])
 
-  // Local Reporting — hard-filter to Marin: local weeklies pass; regional outlets
-  // (KQED) only when the story names a Marin/Novato place.
-  const reporting = articles.filter(isLocalToMarin).slice(0, 6).map(articleToLocalEvent)
-  const coverageArticles = coverageArticlesRaw ?? articles
+  return {
+    point, anchors, places,
+    // Tight anchors are the areas actually driving filtering — surface their labels.
+    coverageAreas: ctx ? ctx.coverageAreas : anchors.map(a => a.label).filter((l): l is string => !!l),
+    environment, changingPermits, agendas, agendaItems, articles,
+    coverageArticles: coverageArticlesRaw ?? articles,
+    permitPool, roads511, closures, trafficCameras, wildfires,
+  }
+}
+type LocalInputs = Awaited<ReturnType<typeof loadLocalInputs>>
 
-  // Local Blindspot: MAJOR public records (>= ~$250k) checked for coverage against
-  // the local outlets (incl. Marin IJ). An uncovered major record is a blindspot;
-  // one covered by 2+ outlets is not. Agenda-item contracts join the permit pool,
-  // so a big uncovered county contract can surface. Empty -> section omitted.
-  const blindspotPool = [...permitPool, ...agendaItems]
+// --- Per-section LIVE resolvers (pure transforms over the loaded inputs) ---
+// Each is the "live" arm of one briefing section; the "store" arm slots in behind
+// resolveSection (D1) without touching these.
+
+function resolveChanging(i: LocalInputs): LocalEvent[] { return i.changingPermits }
+function resolveEnvironment(i: LocalInputs): EnvironmentSnapshot { return i.environment }
+function resolveCameras(i: LocalInputs): LocalCamera[] { return i.trafficCameras }
+
+function resolveReporting(i: LocalInputs): LocalEvent[] {
+  // Hard-filter to Marin: local weeklies pass; regional outlets (KQED) only when
+  // the story names a Marin/Novato place.
+  return i.articles.filter(isLocalToMarin).slice(0, 6).map(articleToLocalEvent)
+}
+
+function resolveRoads(i: LocalInputs): LocalEvent[] {
+  // Live 511 incidents merged with Caltrans D4 closures, ranked and capped.
+  return [...i.roads511, ...i.closures].sort((a, b) => (b.consequenceScore ?? 0) - (a.consequenceScore ?? 0)).slice(0, 8)
+}
+
+function resolveBlindspot(i: LocalInputs): LocalEvent[] {
+  // MAJOR public records (>= ~$250k) not covered by the local outlets we track.
+  const blindspotPool = [...i.permitPool, ...i.agendaItems]
   const outletsChecked = COVERAGE_OUTLET_NAMES.join(', ')
-  const blindspots = selectLocalBlindspots(
-    blindspotPool.map(e => ({ event: e, localMediaOutlets: detectLocalCoverage(e, coverageArticles) })),
+  return selectLocalBlindspots(
+    blindspotPool.map(e => ({ event: e, localMediaOutlets: detectLocalCoverage(e, i.coverageArticles) })),
     { minConsequence: 0.9, limit: 3 },
   ).map(b => ({
     ...b.event,
     whyItMatters: `${b.event.whatChanged ? b.event.whatChanged + ' · ' : ''}${b.localMediaOutlets === 0 ? `Not found in the local outlets we track (${outletsChecked}).` : `Covered by only ${b.localMediaOutlets} of the local outlets we track (${outletsChecked}).`}`,
   }))
+}
 
-  // Your Government: the consequential extracted decisions, ranked and capped —
-  // EXCLUDING anything the Blindspot already surfaced, so the two sections never
-  // repeat the same item. Falls back to the bare meeting only when nothing was
-  // extracted (no API key / fetch failed).
-  const government = selectGovernmentEvents(
-    agendaItems, agendas ?? [], GOVERNMENT_MAX, new Set(blindspots.map(b => b.id)),
-  )
+function resolveGovernment(i: LocalInputs, blindspots: LocalEvent[]): LocalEvent[] {
+  // Consequential extracted decisions, EXCLUDING anything the Blindspot surfaced.
+  return selectGovernmentEvents(i.agendaItems, i.agendas ?? [], GOVERNMENT_MAX, new Set(blindspots.map(b => b.id)))
+}
 
-  // Roads & Incidents — live 511 SF Bay incidents merged with Caltrans D4 lane
-  // closures (both fetched above, in parallel). Marin/Sonoma only.
-  const roads = [...roads511, ...closures].sort((a, b) => (b.consequenceScore ?? 0) - (a.consequenceScore ?? 0)).slice(0, 8)
+function resolveNeedToKnow(i: LocalInputs, environment: EnvironmentSnapshot, roads: LocalEvent[]): LocalEvent[] {
+  // The urgent, act-now subset synthesized from NWS alerts, CAL FIRE wildfires,
+  // nearby quakes, fire detections and full closures. Empty is honest.
+  return buildNeedToKnow(environment, roads, { near: i.point, wildfires: i.wildfires })
+}
 
-  // Need To Know Near You — the urgent, act-now subset synthesized from the live
-  // signals above (NWS alerts, CAL FIRE wildfires, nearby significant quakes,
-  // active-fire detections, full closures now). Empty is honest ("nothing urgent").
-  const needToKnow = buildNeedToKnow(environment, roads, { near: point, wildfires })
+// D1 dispatch: a section is served by the store OR live-computes, never both. The
+// store arm throws until it's wired — flip a flag to 'store' in lib/local/config
+// only once that section's store read exists.
+async function resolveSection<T>(key: LocalSectionKey, live: () => T): Promise<T> {
+  if (sectionSource(key) === 'store') {
+    throw new Error(`Local section "${key}" is flagged 'store' but the event store isn't wired yet (D1). Implement its store read or set it back to 'live' in lib/local/config.`)
+  }
+  return live()
+}
 
-  // Honest sections only — never fabricated data. A live section that fetched
-  // nothing is simply empty; Need To Know now renders an "all clear" state
-  // instead, so no section needs a "coming soon" placeholder anymore.
-  const comingSoonSections: string[] = []
+export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLocalDigest> {
+  const inputs = await loadLocalInputs(ctx)
+
+  // Each section goes through the store/live flag. Order respects dependencies:
+  // blindspot before government; environment + roads before Need To Know.
+  const environment = await resolveSection('environment', () => resolveEnvironment(inputs))
+  const changing = await resolveSection('changingAroundYou', () => resolveChanging(inputs))
+  const trafficCameras = await resolveSection('trafficCameras', () => resolveCameras(inputs))
+  const reporting = await resolveSection('localReporting', () => resolveReporting(inputs))
+  const roads = await resolveSection('roadsAndIncidents', () => resolveRoads(inputs))
+  const blindspots = await resolveSection('localBlindspot', () => resolveBlindspot(inputs))
+  const government = await resolveSection('yourGovernment', () => resolveGovernment(inputs, blindspots))
+  const needToKnow = await resolveSection('needToKnow', () => resolveNeedToKnow(inputs, environment, roads))
 
   return assembleMyLocalDigest({
-    places,
+    places: inputs.places,
     environment,
     sections: {
       needToKnow,
@@ -383,9 +417,7 @@ export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLoc
       localBlindspot: blindspots, // engine output; empty -> section omitted
     },
     trafficCameras,
-    // The tight anchors are the areas actually driving filtering — surface them
-    // so the page can label the coverage area (e.g. "Novato + West Marin").
-    coverageAreas: ctx ? ctx.coverageAreas : anchors.map(a => a.label).filter((l): l is string => !!l),
-    comingSoonSections,
+    coverageAreas: inputs.coverageAreas,
+    comingSoonSections: [], // no section is a "coming soon" placeholder anymore
   })
 }
