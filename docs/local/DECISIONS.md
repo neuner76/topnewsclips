@@ -85,9 +85,11 @@ AQI, reservoirs, US-101 closures) show everywhere.
 
 ## Open — resolve before/during Phase 0
 
-- **O1 — Region polygons seed.** D11 needs 4 Marin region polygons for point-in-polygon,
-  but §8's gazetteer seed list omits them. Add them as a Phase-0 seed artifact (source:
-  derived from city/community centroids or a hand-drawn N/C/S/W split; record provenance).
+- ~~**O1 — Region polygons seed.**~~ **RESOLVED** — seeded in `lib/local/regions.ts`:
+  4 approximate axis-aligned region polygons (bands over the Marin bbox) + a
+  point-in-polygon (`regionForPoint`), validated by test against every seeded town
+  centroid. Provenance recorded in the module header; refine to a real boundary layer
+  (Census/OSM) when the DB gazetteer (`local_place`, kind='region') lands in Phase 0.
 - **O2 — Dispatcher concurrency budget.** D4's per-source timeouts don't bound the single
   serverless invocation's wall-clock. Decide: run due sources **concurrently**
   (`Promise.allSettled`) and cap the batch within the function `maxDuration` (Vercel Pro
