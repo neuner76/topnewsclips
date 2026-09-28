@@ -70,6 +70,22 @@ AQI, reservoirs, US-101 closures) show everywhere.
 
 ---
 
+**D13 — "Changing Around You" is a Change product, not a permit feed.** The
+building-permit dataset is ~99% routine private construction; the consequential
+land-use items (subdivisions, zoning, use permits, environmental review, major
+projects) are planning actions, not building permits. So "Changing Around You" is
+redefined as an AI-generated **Change** product: detect the real-world change,
+render what it means to a resident (place · current → future state · stage ·
+timing · distance), and attach the underlying records as evidence — built on the
+event/lifecycle model (Proposed → Under Review → Approved → Underway → Completed)
+across a change-type family (Development & land use, Businesses, Public realm,
+Schools & community facilities, Environment & land, Infrastructure, Government
+decisions). Full build is **Phase 3**; the substrate is the Phase-0 spine. Interim
+(Phase 1): rename the live building-permit section to "Nearby building permits" and
+apply a significance filter. See `docs/local/CHANGES_MODEL.md`.
+
+---
+
 ## Repo substitutions (D5/D6/D7 in practice)
 
 | Spec says | Repo uses | Why |
