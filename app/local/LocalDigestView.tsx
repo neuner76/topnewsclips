@@ -11,7 +11,7 @@ import type { EnvironmentSnapshot } from '@/lib/local/adapters/types'
 // tracked-uppercase eyebrow), one accent per local section.
 const SECTION = {
   needToKnow: { icon: '📌', title: 'Need To Know Near You', accent: '#DC2626' },
-  changing: { icon: '🏗️', title: 'Changing Around You', accent: '#16A34A' },
+  changing: { icon: '🏗️', title: 'Nearby Building Permits', accent: '#16A34A' },
   government: { icon: '🏛️', title: 'Your Government', accent: '#2563EB' },
   environment: { icon: '🌤️', title: 'Your Environment', accent: '#0F766E' },
   roads: { icon: '🚧', title: 'Roads & Incidents', accent: '#EA580C' },

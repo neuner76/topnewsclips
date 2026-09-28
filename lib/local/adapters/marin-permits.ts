@@ -48,6 +48,29 @@ export function plausibleValuation(raw?: string | null): number {
   return v > 0 && v <= MAX_PLAUSIBLE_VALUATION ? v : 0
 }
 
+// Interim significance filter (D13). The building-permit dataset is ~99% routine
+// private construction — reroof / MEP / solar / remodels / additions — which we
+// drop. We keep only genuinely consequential building permits: major/new
+// construction, large commercial, infrastructure. (The richer land-use "changes"
+// — subdivisions, zoning, use permits, environmental review — come from the
+// planning/agenda side, not this feed; see docs/local/CHANGES_MODEL.md.)
+const ROUTINE_PERMIT_CATEGORIES = new Set(['maintenance', 'minor improvement'])
+const ROUTINE_PERMIT_RE =
+  /(re-?roof|\broof(ing)?\b|electric|plumb|re-?pipe|mechanical|\bhvac\b|furnace|air.?condition|mini.?split|heat ?pump|\bsolar\b|photovolta|\bpv\b|water heater|ev charg|\bwindows?\b|\bdoors?\b|siding|gutter|generator|batter|\bess\b|repair|replace|replaster|plaster|in.?kind|\bdeck|fence|retaining wall|\bshed\b|remodel|renovat|\bbath|kitchen|\bgarage|\baddition|accessory|\badu\b|\bjadu\b|\bpool)/i
+const SIGNIFICANT_PERMIT_RE =
+  /(subdivision|new construction|new commercial|use permit|rezone|zoning|general plan|environmental|\beir\b|mixed.?use|apartment|multi.?family|\bunits?\b|affordable|hotel|motel|winery|brewery|cannabis|dispensary|cell tower|wireless|master plan|planned (unit )?development|\bpud\b|hangar|commercial building|warehouse|\bretail\b|office building|medical|\bschool\b|church|assembly|child.?care|day.?care|infrastructure|water main|\bsewer|treatment plant|substation)/i
+
+export function isSignificantPermit(row: MarinPermitRow): boolean {
+  const desc = (row.description ?? '').toString()
+  if (SIGNIFICANT_PERMIT_RE.test(desc)) return true // strong keep signal wins
+  const cat = (row.permit_category ?? '').toLowerCase()
+  if (ROUTINE_PERMIT_CATEGORIES.has(cat)) return false
+  if (ROUTINE_PERMIT_RE.test(desc)) return false
+  // Ambiguous ("All other Construction" w/o keywords): keep only substantial
+  // commercial work; unlabeled residential is treated as routine.
+  return (row.type_permit ?? '').toUpperCase() === 'COMMERCIAL' && plausibleValuation(row.construction_value) >= 250_000
+}
+
 // Pure: raw row -> the fields we render on the permit detail page.
 export function permitDetailFields(r: MarinPermitRow): PermitDetail {
   const desc = prettyPermitTitle((r.description ?? '').trim())
@@ -181,11 +204,12 @@ function prettyPermitTitle(desc: string): string {
 
 export function normalizeMarinPermits(
   rows: MarinPermitRow[],
-  opts: { limit?: number; sort?: 'consequence' | 'recency'; near?: { lat: number; lng: number }; radiusMiles?: number; anchors?: Anchor[] } = {},
+  opts: { limit?: number; sort?: 'consequence' | 'recency'; near?: { lat: number; lng: number }; radiusMiles?: number; anchors?: Anchor[]; significantOnly?: boolean } = {},
 ): LocalEvent[] {
   const events: LocalEvent[] = []
   for (const r of rows) {
     if (isExpiredPermit(r)) continue // stale — not a current change
+    if (opts.significantOnly && !isSignificantPermit(r)) continue // D13: drop routine private construction
 
     const lat = r.latitude != null ? Number(r.latitude) : NaN
     const lng = r.longitude != null ? Number(r.longitude) : NaN
@@ -255,10 +279,10 @@ export function normalizeMarinPermits(
 export async function fetchMarinPermits(
   limit = 6,
   sort: 'consequence' | 'recency' = 'consequence',
-  opts: { near?: { lat: number; lng: number }; radiusMiles?: number; anchors?: Anchor[] } = {},
+  opts: { near?: { lat: number; lng: number }; radiusMiles?: number; anchors?: Anchor[]; significantOnly?: boolean } = {},
 ): Promise<LocalEvent[]> {
   const url = `https://data.marincounty.gov/resource/${DATASET}.json?$order=most_recent_issued_received_date%20DESC&$limit=500`
   const res = await fetch(url, { headers: { 'User-Agent': 'TopNewsClipsLocal/1.0 (neuner@gmail.com)' } })
   if (!res.ok) throw new Error(`Marin permits HTTP ${res.status}`)
-  return normalizeMarinPermits(await res.json(), { limit, sort, near: opts.near, radiusMiles: opts.radiusMiles, anchors: opts.anchors })
+  return normalizeMarinPermits(await res.json(), { limit, sort, near: opts.near, radiusMiles: opts.radiusMiles, anchors: opts.anchors, significantOnly: opts.significantOnly })
 }
