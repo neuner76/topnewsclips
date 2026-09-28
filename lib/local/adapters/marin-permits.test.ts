@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import sample from '../../../fixtures/sources/marin-permits/sample.json'
-import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, type MarinPermitRow } from './marin-permits'
+import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, isSignificantPermit, type MarinPermitRow } from './marin-permits'
 
 const row = (over: Partial<MarinPermitRow>): MarinPermitRow => ({
   address: '1 MAIN ST, NOVATO, CA 94945', city_town: 'NOVATO', zipcode: '94945',
@@ -14,6 +14,23 @@ describe('permitConsequence', () => {
     expect(permitConsequence(0)).toBe(0)
     expect(permitConsequence(1_000_000)).toBeCloseTo(1, 5)
     expect(permitConsequence(50_000)).toBeGreaterThan(permitConsequence(500))
+  })
+})
+
+describe('isSignificantPermit (D13 interim filter)', () => {
+  const r = (over: Partial<MarinPermitRow>): MarinPermitRow => ({ description: '', type_permit: 'RESIDENTIAL', permit_category: 'All other Construction', ...over })
+  it('drops routine private construction', () => {
+    for (const d of ['Re-roof', 'Reroof with Comp Shingle', 'Replace 18 Windows & 3 Patio Doors', 'Kitchen Remodel', 'Furnace', 'Replace 4 Zone Mini Split Sys', 'Solar PV', 'Water Heater', 'Pool Replaster', 'Siding', '2 Baths Remodel', 'New S F D; Garage']) {
+      expect(isSignificantPermit(r({ description: d })), d).toBe(false)
+    }
+    // Maintenance / Minor Improvement categories are routine regardless of text
+    expect(isSignificantPermit(r({ description: 'Whatever', permit_category: 'Maintenance' }))).toBe(false)
+  })
+  it('keeps major/new construction and large commercial', () => {
+    expect(isSignificantPermit(r({ description: 'New Construction Of An Aircraft Hangar', type_permit: 'COMMERCIAL' }))).toBe(true)
+    expect(isSignificantPermit(r({ description: '48-unit affordable housing project' }))).toBe(true)
+    expect(isSignificantPermit(r({ description: 'Subdivision improvements' }))).toBe(true)
+    expect(isSignificantPermit(r({ description: 'Tenant improvement', type_permit: 'COMMERCIAL', construction_value: '900000' }))).toBe(true)
   })
 })
 

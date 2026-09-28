@@ -310,7 +310,7 @@ async function loadLocalInputs(ctx?: LocalBuildContext) {
     roads511, closures, trafficCameras, wildfires, agendaItems,
   ] = await Promise.all([
     buildLiveEnvironment(point),
-    safe(() => fetchMarinPermits(6, 'consequence', { anchors })).then(r => r ?? []),
+    safe(() => fetchMarinPermits(6, 'consequence', { anchors, significantOnly: true })).then(r => r ?? []),
     agendasP,
     safe(() => fetchLocalNews()).then(r => r ?? []),
     safe(() => fetchCoverageArticles()),
