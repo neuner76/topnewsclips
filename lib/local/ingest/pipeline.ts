@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SourceAdapter } from './types'
+import { archiveRawPayload } from './raw-archive'
 
 // Phase-0 slice of the §5.2 pipeline: FETCH → NORMALIZE → DEDUPE-UPSERT into
 // local_source_item. (GEOLOCATE / OBSERVATIONS / EVENT creation / VERIFY / SCORE /
@@ -23,6 +24,9 @@ export async function runSource(
 
   const payloads = await adapter.fetch({ now: new Date() })
   for (const raw of payloads) {
+    // ARCHIVE RAW (§5.3) before normalizing; the ref threads onto every item.
+    const rawRef = await archiveRawPayload(supabase, source, raw)
+
     const items = await adapter.normalize(raw)
     itemsFetched += items.length
     if (items.length === 0) continue
@@ -34,6 +38,7 @@ export async function runSource(
       title: it.title ?? null,
       body_text: it.bodyText ?? null,
       url: it.url ?? null,
+      raw_ref: rawRef,
       place_text: it.placeText ?? null,
       published_at: it.publishedAt ?? null,
       geo_precision: it.geo?.precision ?? null,
