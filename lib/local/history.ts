@@ -53,3 +53,16 @@ export interface HistorySectionView {
   def: HistorySectionDef
   events: HistoryEvent[]
 }
+
+export function formatActiveDuration(startIso?: string, endIso?: string, opts: { atLeast?: boolean } = {}): string | undefined {
+  if (!startIso || !endIso) return undefined
+  const start = Date.parse(startIso)
+  const end = Date.parse(endIso)
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return undefined
+  const minutes = (end - start) / 60_000
+  const prefix = opts.atLeast ? 'active at least' : 'active'
+  if (minutes < 60) return `${prefix} ${Math.round(minutes)} min`
+  const hours = minutes / 60
+  if (hours < 48) return `${prefix} ${Math.round(hours)}h`
+  return `${prefix} ${Math.round(hours / 24)} days`
+}
