@@ -8,10 +8,13 @@ import { loadEventTypes } from '@/lib/local/ingest/events'
 import { deriveEvidenceLevel } from '@/lib/local/ingest/trust'
 import { sweepLifecycle } from '@/lib/local/ingest/lifecycle'
 
-// D4 dispatcher. Trigger every minute (Vercel Pro cron, else Supabase pg_cron +
-// pg_net) with `Authorization: Bearer ${CRON_SECRET}`. Runs whichever registered
-// sources are due, each with its own timeout so one slow source can't block the
-// others, and logs every run to local_job_run. Never polls via GitHub/cron-job.org.
+// D4 dispatcher. An external scheduler pings this every few minutes with
+// `Authorization: Bearer ${CRON_SECRET}`; it runs whichever registered sources are
+// DUE (each source self-throttles via crawl_interval_seconds, 300s floor), so a
+// tighter ping cadence just no-ops the not-due ones. Any HTTP cron works —
+// production uses cron-job.org every 5 min; Vercel Pro cron or Supabase pg_cron are
+// equivalents. Each source has its own timeout so one slow source can't block the
+// others; every run is logged to local_job_run. See docs/local/OPERATIONS.md.
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
