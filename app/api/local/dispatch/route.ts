@@ -6,6 +6,7 @@ import { adapterFor } from '@/lib/local/ingest/registry'
 import { runSource } from '@/lib/local/ingest/pipeline'
 import { loadEventTypes } from '@/lib/local/ingest/events'
 import { deriveEvidenceLevel } from '@/lib/local/ingest/trust'
+import { sweepLifecycle } from '@/lib/local/ingest/lifecycle'
 
 // D4 dispatcher. Trigger every minute (Vercel Pro cron, else Supabase pg_cron +
 // pg_net) with `Authorization: Bearer ${CRON_SECRET}`. Runs whichever registered
@@ -89,10 +90,21 @@ export async function GET(request: Request) {
   const ran = outcomes.map((o, i) =>
     o.status === 'fulfilled' ? o.value : { slug: due[i].slug, error: (o.reason as Error)?.message ?? 'error' },
   )
+
+  // §7.4 time-based lifecycle sweep — once per dispatch, independent of which
+  // sources ran (ages out stale/event-log events, archives old resolved ones).
+  let lifecycle: { resolved: number; archived: number } | { error: string }
+  try {
+    lifecycle = await sweepLifecycle(supabase)
+  } catch (e) {
+    lifecycle = { error: e instanceof Error ? e.message : String(e) }
+  }
+
   return NextResponse.json({
     ok: true,
     at: new Date().toISOString(),
     due: due.map(s => s.slug),
     ran,
+    lifecycle,
   })
 }
