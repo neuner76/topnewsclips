@@ -6,6 +6,7 @@ import { calfireIncidentsAdapter } from './adapters/calfire-incidents'
 import { marinPermitsAdapter } from './adapters/marin-permits'
 import { marinAgendasAdapter } from './adapters/marin-agendas'
 import { nasaFirmsAdapter } from './adapters/nasa-firms'
+import { airnowAdapter } from './adapters/airnow'
 
 // Every ingestion adapter, keyed by its local_source.slug. The dispatcher (D4) runs
 // only sources that (a) are active in local_source and (b) appear here.
@@ -17,6 +18,7 @@ export const LOCAL_ADAPTERS: Record<string, SourceAdapter> = {
   [marinPermitsAdapter.slug]: marinPermitsAdapter,
   [marinAgendasAdapter.slug]: marinAgendasAdapter,
   [nasaFirmsAdapter.slug]: nasaFirmsAdapter,
+  [airnowAdapter.slug]: airnowAdapter,
 }
 
 export function adapterFor(slug: string): SourceAdapter | undefined {
