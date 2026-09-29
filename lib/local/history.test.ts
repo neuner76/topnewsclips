@@ -3,6 +3,7 @@ import { HISTORY_SECTIONS, sectionForType } from './history'
 import { formatActiveDuration } from './history'
 import { formatPacificTime } from './history'
 import { inferResolutionKind } from './history'
+import { formatResolution } from './history'
 
 describe('history sections', () => {
   it('maps event types to sections, reservoir_change → Weather & Water', () => {
@@ -73,5 +74,18 @@ describe('inferResolutionKind', () => {
   it('small gap defaults to feed_absent', () => {
     expect(inferResolutionKind({ resolvedAt: '2026-09-28T12:10:00Z', latestUpdateAt: '2026-09-28T12:00:00Z' })).toBe('feed_absent')
     expect(inferResolutionKind({})).toBe('feed_absent')
+  })
+})
+
+describe('formatResolution', () => {
+  const now = new Date('2026-09-29T20:00:00Z')
+  it('feed_absent → cleared ~time', () => {
+    expect(formatResolution('feed_absent', '2026-09-29T19:40:00Z', undefined, now)).toBe('cleared ~12:40 PM')
+  })
+  it('explicit_end → ended time', () => {
+    expect(formatResolution('explicit_end', '2026-09-29T19:40:00Z', undefined, now)).toBe('ended 12:40 PM')
+  })
+  it('time_sweep → no updates after latest_update time', () => {
+    expect(formatResolution('time_sweep', '2026-09-29T19:40:00Z', '2026-09-29T18:40:00Z', now)).toBe('no updates after 11:40 AM')
   })
 })

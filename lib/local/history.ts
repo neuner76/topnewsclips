@@ -89,3 +89,13 @@ export function inferResolutionKind(args: { resolvedAt?: string; latestUpdateAt?
   if (Number.isFinite(resolved) && Number.isFinite(latest) && resolved - latest >= SWEEP_GAP_MS) return 'time_sweep'
   return 'feed_absent'
 }
+
+export function formatResolution(kind: ResolutionKind, resolvedAt?: string, latestUpdateAt?: string, now: Date = new Date()): string {
+  if (kind === 'time_sweep') {
+    const t = latestUpdateAt ?? resolvedAt
+    return t ? `no updates after ${formatPacificTime(t, now)}` : 'resolved'
+  }
+  if (!resolvedAt) return 'resolved'
+  const when = formatPacificTime(resolvedAt, now)
+  return kind === 'explicit_end' ? `ended ${when}` : `cleared ~${when}`
+}
