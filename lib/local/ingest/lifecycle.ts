@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { resolvedUpdateRow } from './resolution'
 
 // §7.4 time-based lifecycle — the complement to absence resolution (resolve.ts).
 // Absence resolution only covers current-state feeds; this sweep handles the rest:
@@ -88,7 +89,7 @@ export async function sweepLifecycle(sb: SupabaseClient, now: Date = new Date())
   const nowIso = now.toISOString()
   if (toResolve.length > 0) {
     await sb.from('local_events').update({ lifecycle_state: 'resolved', status: 'resolved', resolved_at: nowIso, updated_at: nowIso }).in('id', toResolve)
-    await sb.from('local_event_update').insert(toResolve.map(id => ({ event_id: id, kind: 'resolved', text: 'Aged out (no recent activity)' })))
+    await sb.from('local_event_update').insert(toResolve.map(id => resolvedUpdateRow(id, 'time_sweep', 'Aged out (no recent activity)')))
   }
   if (toArchive.length > 0) {
     await sb.from('local_events').update({ lifecycle_state: 'archived', updated_at: nowIso }).in('id', toArchive)
