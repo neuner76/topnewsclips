@@ -21,7 +21,7 @@ export interface CalFireIncident {
   lng: number
 }
 
-interface CalFireRaw {
+export interface CalFireRaw {
   Name?: string
   Final?: boolean
   IsActive?: boolean
