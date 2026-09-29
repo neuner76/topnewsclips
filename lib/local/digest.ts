@@ -23,6 +23,7 @@ import { fetchCalFire } from './adapters/calfire'
 import { type Anchor } from './anchors'
 import { PUBLIC_SEED_PLACES } from './seed-places'
 import { sectionSource, type LocalSectionKey } from './config'
+import { readPublishedEvents, STORE_ROAD_TYPES, STORE_NEED_TO_KNOW_TYPES } from './store-read'
 import { fetch511Events } from './adapters/bay511'
 import { fetchCaltransCameras, type LocalCamera } from './adapters/caltrans-cameras'
 import { fetchCaltransClosures } from './adapters/caltrans-lcs'
@@ -384,15 +385,27 @@ function resolveNeedToKnow(i: LocalInputs, environment: EnvironmentSnapshot, roa
 // D1 dispatch: a section is served by the store OR live-computes, never both. The
 // store arm throws until it's wired — flip a flag to 'store' in lib/local/config
 // only once that section's store read exists.
-async function resolveSection<T>(key: LocalSectionKey, live: () => T): Promise<T> {
+// D1 strangler seam. A section flagged 'store' is served from the event store
+// (readPublishedEvents); 'live' runs the fetch-on-request path. Never both (D1).
+// A 'store'-flagged section MUST supply a `store` reader, else we fail loudly
+// rather than silently serve stale/empty data.
+async function resolveSection<T>(
+  key: LocalSectionKey,
+  live: () => T | Promise<T>,
+  store?: () => Promise<T>,
+): Promise<T> {
   if (sectionSource(key) === 'store') {
-    throw new Error(`Local section "${key}" is flagged 'store' but the event store isn't wired yet (D1). Implement its store read or set it back to 'live' in lib/local/config.`)
+    if (!store) {
+      throw new Error(`Local section "${key}" is flagged 'store' but no store reader is wired (D1). Add one in buildMyLocalDigest or set it back to 'live' in lib/local/config.`)
+    }
+    return store()
   }
   return live()
 }
 
 export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLocalDigest> {
   const inputs = await loadLocalInputs(ctx)
+  const sb = getServiceClient()
 
   // Each section goes through the store/live flag. Order respects dependencies:
   // blindspot before government; environment + roads before Need To Know.
@@ -400,10 +413,18 @@ export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLoc
   const changing = await resolveSection('changingAroundYou', () => resolveChanging(inputs))
   const trafficCameras = await resolveSection('trafficCameras', () => resolveCameras(inputs))
   const reporting = await resolveSection('localReporting', () => resolveReporting(inputs))
-  const roads = await resolveSection('roadsAndIncidents', () => resolveRoads(inputs))
+  const roads = await resolveSection(
+    'roadsAndIncidents',
+    () => resolveRoads(inputs),
+    () => readPublishedEvents(sb, { types: STORE_ROAD_TYPES, limit: 8 }),
+  )
   const blindspots = await resolveSection('localBlindspot', () => resolveBlindspot(inputs))
   const government = await resolveSection('yourGovernment', () => resolveGovernment(inputs, blindspots))
-  const needToKnow = await resolveSection('needToKnow', () => resolveNeedToKnow(inputs, environment, roads))
+  const needToKnow = await resolveSection(
+    'needToKnow',
+    () => resolveNeedToKnow(inputs, environment, roads),
+    () => readPublishedEvents(sb, { types: STORE_NEED_TO_KNOW_TYPES, limit: NEED_TO_KNOW_MAX }),
+  )
 
   return assembleMyLocalDigest({
     places: inputs.places,
