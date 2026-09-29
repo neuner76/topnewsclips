@@ -6,6 +6,7 @@ import { inferResolutionKind } from './history'
 import { formatResolution } from './history'
 import { verificationLabel } from './history'
 import { extractRoadName, isRoutineClosure } from './history'
+import { formatRoutineSummary } from './history'
 
 describe('history sections', () => {
   it('maps event types to sections, reservoir_change → Weather & Water', () => {
@@ -134,5 +135,18 @@ describe('isRoutineClosure (spec §5)', () => {
   })
   it('a short closure on an exempt road IS routine', () => {
     expect(isRoutineClosure({ ...base, title: 'SR-1 North — Lane closure near Marshall', resolvedAt: '2026-09-28T04:00:00Z' })).toBe(true)
+  })
+})
+
+describe('formatRoutineSummary (spec §5)', () => {
+  it('undefined when count is zero', () => {
+    expect(formatRoutineSummary(0, [])).toBeUndefined()
+  })
+  it('no "mostly" clause under 3', () => {
+    expect(formatRoutineSummary(2, ['US-101'])).toBe('Plus 2 planned lane closures.')
+    expect(formatRoutineSummary(1, ['US-101'])).toBe('Plus 1 planned lane closure.')
+  })
+  it('adds "mostly" with the top 2 roads at 3+', () => {
+    expect(formatRoutineSummary(9, ['US-101', 'SR-1', 'I-580'])).toBe('Plus 9 planned lane closures, mostly US-101, SR-1.')
   })
 })

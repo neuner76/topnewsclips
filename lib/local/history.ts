@@ -138,3 +138,11 @@ export function isRoutineClosure(e: RoutineClosureInput): boolean {
   }
   return true
 }
+
+export function formatRoutineSummary(count: number, topRoads: string[]): string | undefined {
+  if (count <= 0) return undefined
+  const noun = count === 1 ? 'closure' : 'closures'
+  const base = `Plus ${count} planned lane ${noun}`
+  if (count >= 3 && topRoads.length > 0) return `${base}, mostly ${topRoads.slice(0, 2).join(', ')}.`
+  return `${base}.`
+}
