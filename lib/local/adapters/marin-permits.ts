@@ -192,11 +192,11 @@ const PERMIT_ABBREV: Array<[RegExp, string]> = [
 
 // Permits whose description is flagged expired are stale — they did not just
 // "change around you". The county marks these with a "***Expired" suffix.
-function isExpiredPermit(r: MarinPermitRow): boolean {
+export function isExpiredPermit(r: MarinPermitRow): boolean {
   return /\*\*\*\s*expired/i.test(`${r.description ?? ''} ${r.type_permit ?? ''}`)
 }
 
-function prettyPermitTitle(desc: string): string {
+export function prettyPermitTitle(desc: string): string {
   let s = desc.replace(/\*{2,}\s*expired\s*\*{0,}/gi, '').replace(/\*{2,}/g, '').trim()
   for (const [re, rep] of PERMIT_ABBREV) s = s.replace(re, rep)
   return s.replace(/\s+/g, ' ').trim()
