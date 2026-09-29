@@ -18,6 +18,7 @@ const SPEC_TO_APP_TYPE: Record<string, LocalEventType> = {
   air_quality: 'air_quality',
   reservoir_change: 'environment',
   fire_incident: 'fire',
+  fire_detection: 'fire',
   public_safety: 'crime_public_safety',
   government_action: 'government_meeting',
   development_update: 'planning',
@@ -148,6 +149,6 @@ export async function readPublishedEvents(sb: SupabaseClient, opts: ReadPublishe
 // Section event-type groupings (which ingestion types feed which /local section).
 export const STORE_ROAD_TYPES = ['road_closure', 'road_incident', 'transit_disruption']
 export const STORE_NEED_TO_KNOW_TYPES = [
-  'weather_alert', 'coastal_flood', 'stream_high_water', 'fire_incident',
+  'weather_alert', 'coastal_flood', 'stream_high_water', 'fire_incident', 'fire_detection',
   'public_safety', 'power_outage', 'road_closure', 'air_quality',
 ]

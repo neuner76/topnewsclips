@@ -34,7 +34,7 @@ export function parseFirmsCsv(csv: string): FirmsDetection[] {
 }
 
 // Low-confidence VIIRS detections ('l') and MODIS < 30 are noisy — skip them.
-function isConfident(confidence: string): boolean {
+export function isConfident(confidence: string): boolean {
   if (confidence === 'l' || confidence === 'low') return false
   const n = Number(confidence)
   if (Number.isFinite(n)) return n >= 30
