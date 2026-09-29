@@ -73,6 +73,7 @@ export function nwsAlertToCandidates(item: NormalizedItem): EventCandidate[] {
 
 export const nwsAlertsAdapter: SourceAdapter = {
   slug: 'nws-alerts-marin',
+  resolvesByAbsence: true, // active-alerts feed: gone from the feed = expired
   async fetch() {
     const url = `https://api.weather.gov/alerts/active?point=${MARIN_POINT.lat},${MARIN_POINT.lng}`
     const res = await fetch(url, { headers: { 'User-Agent': UA } })

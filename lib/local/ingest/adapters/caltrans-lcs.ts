@@ -104,6 +104,7 @@ export function lcsItemToCandidate(item: NormalizedItem): EventCandidate {
 
 export const caltransLcsAdapter: SourceAdapter = {
   slug: 'caltrans-d4-lcs',
+  resolvesByAbsence: true, // current closures: gone = reopened/ended
   async fetch(_ctx: FetchContext): Promise<RawPayload[]> {
     void _ctx
     const res = await fetch('https://cwwp2.dot.ca.gov/data/d4/lcs/lcsStatusD04.json', { headers: { 'User-Agent': UA } })

@@ -74,6 +74,10 @@ export interface EventCandidate {
 // add `toEventCandidates`.
 export interface SourceAdapter {
   slug: string
+  // Current-state feeds set this: an event whose dedupe_key stops appearing in the
+  // latest fetch is resolved (§7.4). Event-log sources (permits, agendas) leave it
+  // falsy — a row aging out of the query window is not a resolution.
+  resolvesByAbsence?: boolean
   fetch(ctx: FetchContext): Promise<RawPayload[]>
   normalize(raw: RawPayload): Promise<NormalizedItem[]>
   toObservations?(item: NormalizedItem): ObservationInput[]

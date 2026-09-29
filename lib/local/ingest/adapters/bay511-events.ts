@@ -94,6 +94,7 @@ export function bay511EventToCandidate(item: NormalizedItem): EventCandidate {
 
 export const bay511EventsAdapter: SourceAdapter = {
   slug: '511-traffic-events',
+  resolvesByAbsence: true, // live events feed: gone = cleared
   async fetch(_ctx: FetchContext): Promise<RawPayload[]> {
     void _ctx
     const key = process.env.BAY511_API_KEY
