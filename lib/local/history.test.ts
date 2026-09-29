@@ -5,6 +5,7 @@ import { formatPacificTime } from './history'
 import { inferResolutionKind } from './history'
 import { formatResolution } from './history'
 import { verificationLabel } from './history'
+import { extractRoadName, isRoutineClosure } from './history'
 
 describe('history sections', () => {
   it('maps event types to sections, reservoir_change → Weather & Water', () => {
@@ -101,5 +102,37 @@ describe('verificationLabel (from verification_status)', () => {
   it('defaults null/unknown to Unverified', () => {
     expect(verificationLabel(null)).toBe('Unverified')
     expect(verificationLabel('weird')).toBe('Unverified')
+  })
+})
+
+describe('extractRoadName', () => {
+  it('pulls the route token from the title', () => {
+    expect(extractRoadName('US-101 South — Lane closure near Novato')).toBe('US-101')
+    expect(extractRoadName('SR-1 North / South — Lane closure near Marshall')).toBe('SR-1')
+  })
+  it('falls back to the whole leading phrase when no route pattern', () => {
+    expect(extractRoadName('Sir Francis Drake Blvd — Lane closure')).toBe('Sir Francis Drake Blvd')
+  })
+})
+
+describe('isRoutineClosure (spec §5)', () => {
+  const base = { specEventType: 'road_closure', title: 'US-101 South — Lane closure near Novato', summary: 'AC Paving/Overlay', startedAt: '2026-09-28T00:00:00Z', resolvedAt: '2026-09-28T06:00:00Z' }
+  it('a planned partial US-101 lane closure is routine', () => {
+    expect(isRoutineClosure(base)).toBe(true)
+  })
+  it('full closures are NOT routine', () => {
+    expect(isRoutineClosure({ ...base, title: 'US-101 South — Full closure near Mill Valley' })).toBe(false)
+  })
+  it('road_incident is never routine', () => {
+    expect(isRoutineClosure({ ...base, specEventType: 'road_incident' })).toBe(false)
+  })
+  it('emergency work is NOT routine', () => {
+    expect(isRoutineClosure({ ...base, summary: 'Emergency slide repair' })).toBe(false)
+  })
+  it('a long closure (≥12h) on an exempt road is NOT routine', () => {
+    expect(isRoutineClosure({ ...base, title: 'SR-1 North — Lane closure near Marshall', resolvedAt: '2026-09-28T18:00:00Z' })).toBe(false)
+  })
+  it('a short closure on an exempt road IS routine', () => {
+    expect(isRoutineClosure({ ...base, title: 'SR-1 North — Lane closure near Marshall', resolvedAt: '2026-09-28T04:00:00Z' })).toBe(true)
   })
 })

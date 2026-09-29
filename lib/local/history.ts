@@ -108,3 +108,33 @@ export function verificationLabel(verificationStatus?: string | null): string {
     default: return 'Unverified'
   }
 }
+
+export function extractRoadName(title: string): string {
+  const head = title.split('—')[0].trim()
+  const route = head.match(/^(US-?\d+|SR-?\d+|I-?\d+|CA-?\d+)/i)
+  return route ? route[1].toUpperCase().replace(/([A-Z]+)-?(\d+)/, '$1-$2') : head
+}
+
+export interface RoutineClosureInput {
+  specEventType: string
+  title: string
+  summary?: string
+  startedAt?: string
+  resolvedAt?: string
+}
+
+// §5: routine = a planned, non-full road_closure that isn't emergency work and
+// isn't a long (≥12h) closure on a low-alternative road. Full-closure detection
+// reuses the live /full closure/i title convention (need-to-know.ts).
+export function isRoutineClosure(e: RoutineClosureInput): boolean {
+  if (e.specEventType !== 'road_closure') return false
+  if (/full closure/i.test(e.title)) return false
+  const text = `${e.title} ${e.summary ?? ''}`
+  if (/emergenc/i.test(text)) return false
+  const onExempt = ROUTINE_CLOSURE_ROADS_EXEMPT.some(r => e.title.toLowerCase().includes(r.toLowerCase()))
+  if (onExempt && e.startedAt && e.resolvedAt) {
+    const hours = (Date.parse(e.resolvedAt) - Date.parse(e.startedAt)) / 3_600_000
+    if (Number.isFinite(hours) && hours >= 12) return false
+  }
+  return true
+}
