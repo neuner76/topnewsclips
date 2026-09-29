@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { HISTORY_SECTIONS, sectionForType } from './history'
 import { formatActiveDuration } from './history'
 import { formatPacificTime } from './history'
+import { inferResolutionKind } from './history'
 
 describe('history sections', () => {
   it('maps event types to sections, reservoir_change → Weather & Water', () => {
@@ -58,5 +59,19 @@ describe('formatPacificTime (America/Los_Angeles)', () => {
     const winterNow = new Date('2026-01-15T20:00:00Z')
     // 2026-01-15T19:40Z = 11:40 AM PST
     expect(formatPacificTime('2026-01-15T19:40:00Z', winterNow)).toBe('11:40 AM')
+  })
+})
+
+describe('inferResolutionKind', () => {
+  it('explicit reason wins', () => {
+    expect(inferResolutionKind({ resolvedAt: '2026-09-28T12:00:00Z', latestUpdateAt: '2026-09-28T11:59:00Z', reason: 'time_sweep' })).toBe('time_sweep')
+    expect(inferResolutionKind({ reason: 'explicit_end' })).toBe('explicit_end')
+  })
+  it('60-minute gap between latest update and resolved → time_sweep', () => {
+    expect(inferResolutionKind({ resolvedAt: '2026-09-28T13:30:00Z', latestUpdateAt: '2026-09-28T12:00:00Z' })).toBe('time_sweep')
+  })
+  it('small gap defaults to feed_absent', () => {
+    expect(inferResolutionKind({ resolvedAt: '2026-09-28T12:10:00Z', latestUpdateAt: '2026-09-28T12:00:00Z' })).toBe('feed_absent')
+    expect(inferResolutionKind({})).toBe('feed_absent')
   })
 })

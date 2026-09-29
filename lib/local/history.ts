@@ -78,3 +78,14 @@ export function formatPacificTime(iso: string, now: Date = new Date()): string {
   // DATE_TIME_FMT yields e.g. "Sep 24, 3:40 PM"; TIME_FMT yields "12:40 PM".
   return within24h ? TIME_FMT.format(t) : DATE_TIME_FMT.format(t)
 }
+
+const SWEEP_GAP_MS = 60 * 60_000 // §4.2: latest_update → resolved ≥ 60 min ⇒ time_sweep
+
+export function inferResolutionKind(args: { resolvedAt?: string; latestUpdateAt?: string; reason?: string | null }): ResolutionKind {
+  const r = args.reason
+  if (r === 'feed_absent' || r === 'explicit_end' || r === 'time_sweep') return r
+  const resolved = args.resolvedAt ? Date.parse(args.resolvedAt) : NaN
+  const latest = args.latestUpdateAt ? Date.parse(args.latestUpdateAt) : NaN
+  if (Number.isFinite(resolved) && Number.isFinite(latest) && resolved - latest >= SWEEP_GAP_MS) return 'time_sweep'
+  return 'feed_absent'
+}
