@@ -56,6 +56,9 @@ export function nwsAlertToCandidates(item: NormalizedItem): EventCandidate[] {
   return [{
     eventType: isCoastalFlood ? 'coastal_flood' : 'weather_alert',
     dedupeKey: `nws-alerts-marin:${item.externalId ?? item.contentHash}`,
+    // County-level geo: NWS alerts are zone/county polygons (min_geo=county). The
+    // representative point is Marin County; precision 'county' passes the §10 gate.
+    geo: { lat: 37.9735, lng: -122.5311, precision: 'county' },
     headline: event,
     summary: item.bodyText,
     startedAt: item.publishedAt,
