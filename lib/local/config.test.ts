@@ -1,14 +1,17 @@
-import { describe, expect, it } from 'vitest'
-import { LOCAL_SECTION_KEYS, LOCAL_SECTION_SOURCE, sectionSource } from './config'
+import { describe, expect, it, afterEach } from 'vitest'
+import { sectionSource } from './config'
 
-describe('local section source config (D1 strangler)', () => {
-  it('every section is live until its store read is wired', () => {
-    for (const key of LOCAL_SECTION_KEYS) {
-      expect(sectionSource(key), key).toBe('live')
-    }
+const orig = process.env.LOCAL_STORE_SECTIONS
+afterEach(() => { process.env.LOCAL_STORE_SECTIONS = orig })
+
+describe('sectionSource env override (D1 flip)', () => {
+  it('defaults to live', () => {
+    delete process.env.LOCAL_STORE_SECTIONS
+    expect(sectionSource('roadsAndIncidents')).toBe('live')
   })
-
-  it('has a source flag for exactly the known sections', () => {
-    expect(Object.keys(LOCAL_SECTION_SOURCE).sort()).toEqual([...LOCAL_SECTION_KEYS].sort())
+  it('flips listed sections to store, ignores unknown keys', () => {
+    process.env.LOCAL_STORE_SECTIONS = 'roadsAndIncidents, bogusKey'
+    expect(sectionSource('roadsAndIncidents')).toBe('store')
+    expect(sectionSource('needToKnow')).toBe('live')
   })
 })

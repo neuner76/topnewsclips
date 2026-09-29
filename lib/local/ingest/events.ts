@@ -69,6 +69,11 @@ export async function landEventForItem(
   const now = new Date().toISOString()
   const geoPrecision: GeoPrecision = candidate.geo?.precision ?? 'unknown'
   const dedupeKey = candidate.dedupeKey ?? null
+  // Persist a minimal GeoScope so store-read events are mappable (lat/lng when the
+  // candidate has a point; empty object otherwise). event_geom/gazetteer land later.
+  const geoScope: Record<string, unknown> = candidate.geo
+    ? { latitude: candidate.geo.lat, longitude: candidate.geo.lng }
+    : {}
 
   // MATCH — an active event with the same dedupe_key (§7.3). Append an update +
   // corroborating source; the partial-unique index guarantees at most one.
@@ -132,6 +137,7 @@ export async function landEventForItem(
       first_detected_at: now,
       latest_update_at: now,
       geo_precision: geoPrecision,
+      geo: geoScope,
       summary: candidate.summary ?? null,
       dedupe_key: dedupeKey,
       publish_state: publish.state,

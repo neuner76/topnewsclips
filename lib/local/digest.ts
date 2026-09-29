@@ -398,7 +398,15 @@ async function resolveSection<T>(
     if (!store) {
       throw new Error(`Local section "${key}" is flagged 'store' but no store reader is wired (D1). Add one in buildMyLocalDigest or set it back to 'live' in lib/local/config.`)
     }
-    return store()
+    // Store-first, live-fallback: a 'store' flag turned on before the store is
+    // populated (or a transient DB error) must never take down /local. This is
+    // error recovery, not dual-sourcing — the happy path serves the store alone.
+    try {
+      return await store()
+    } catch (e) {
+      console.warn(`[local] store read for "${key}" failed; falling back to live:`, e instanceof Error ? e.message : e)
+      return live()
+    }
   }
   return live()
 }
