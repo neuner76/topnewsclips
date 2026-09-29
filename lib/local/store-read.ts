@@ -99,7 +99,7 @@ interface EventSourceJoinRow {
   } | null
 }
 
-async function sourcesByEvent(sb: SupabaseClient, eventIds: string[]): Promise<Map<string, LocalEvidenceSource[]>> {
+export async function readSourcesByEvent(sb: SupabaseClient, eventIds: string[]): Promise<Map<string, LocalEvidenceSource[]>> {
   const byEvent = new Map<string, LocalEvidenceSource[]>()
   if (eventIds.length === 0) return byEvent
   const { data } = await sb
@@ -142,7 +142,7 @@ export async function readPublishedEvents(sb: SupabaseClient, opts: ReadPublishe
   const { data, error } = await q
   if (error) throw new Error(`readPublishedEvents: ${error.message}`)
   const rows = (data ?? []) as StoredEventRow[]
-  const srcMap = await sourcesByEvent(sb, rows.map(r => r.id))
+  const srcMap = await readSourcesByEvent(sb, rows.map(r => r.id))
   return rows.map(r => mapStoredEventToLocalEvent(r, srcMap.get(r.id) ?? []))
 }
 
