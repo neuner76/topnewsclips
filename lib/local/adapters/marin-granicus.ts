@@ -14,7 +14,7 @@ function decode(s: string): string {
 
 // Meeting date from the "Meeting YYMMDD" code in the title; falls back to a
 // trailing "Mon DD, YYYY", then to the publish date.
-function meetingDate(title: string, pubDate: string): string | null {
+export function meetingDate(title: string, pubDate: string): string | null {
   const code = title.match(/Meeting\s+(\d{2})(\d{2})(\d{2})/)
   if (code) return `20${code[1]}-${code[2]}-${code[3]}`
   const tail = title.match(/-\s*([A-Z][a-z]{2}\s+\d{1,2},\s*\d{4})\s*$/)

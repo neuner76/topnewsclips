@@ -19,7 +19,7 @@ const SPEC_TO_APP_TYPE: Record<string, LocalEventType> = {
   reservoir_change: 'environment',
   fire_incident: 'fire',
   public_safety: 'crime_public_safety',
-  government_action: 'government_vote',
+  government_action: 'government_meeting',
   development_update: 'planning',
   community_report: 'other',
 }
