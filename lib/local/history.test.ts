@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { HISTORY_SECTIONS, sectionForType } from './history'
 import { formatActiveDuration } from './history'
+import { formatPacificTime } from './history'
 
 describe('history sections', () => {
   it('maps event types to sections, reservoir_change → Weather & Water', () => {
@@ -40,5 +41,22 @@ describe('formatActiveDuration', () => {
     expect(formatActiveDuration(start, undefined)).toBeUndefined()
     expect(formatActiveDuration(start, 'nope')).toBeUndefined()
     expect(formatActiveDuration('2026-09-28T15:00:00Z', start)).toBeUndefined()
+  })
+})
+
+describe('formatPacificTime (America/Los_Angeles)', () => {
+  const now = new Date('2026-09-29T20:00:00Z') // 1:00 PM PDT
+  it('within 24h shows time only, in Pacific', () => {
+    // 2026-09-29T19:40Z = 12:40 PM PDT
+    expect(formatPacificTime('2026-09-29T19:40:00Z', now)).toBe('12:40 PM')
+  })
+  it('older than 24h shows date + time', () => {
+    // 2026-09-24T22:40Z = 3:40 PM PDT
+    expect(formatPacificTime('2026-09-24T22:40:00Z', now)).toBe('Sep 24, 3:40 PM')
+  })
+  it('handles a winter (PST) instant across DST', () => {
+    const winterNow = new Date('2026-01-15T20:00:00Z')
+    // 2026-01-15T19:40Z = 11:40 AM PST
+    expect(formatPacificTime('2026-01-15T19:40:00Z', winterNow)).toBe('11:40 AM')
   })
 })

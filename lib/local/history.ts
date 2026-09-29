@@ -66,3 +66,15 @@ export function formatActiveDuration(startIso?: string, endIso?: string, opts: {
   if (hours < 48) return `${prefix} ${Math.round(hours)}h`
   return `${prefix} ${Math.round(hours / 24)} days`
 }
+
+const PACIFIC_TZ = 'America/Los_Angeles'
+const TIME_FMT = new Intl.DateTimeFormat('en-US', { timeZone: PACIFIC_TZ, hour: 'numeric', minute: '2-digit' })
+const DATE_TIME_FMT = new Intl.DateTimeFormat('en-US', { timeZone: PACIFIC_TZ, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+
+export function formatPacificTime(iso: string, now: Date = new Date()): string {
+  const t = Date.parse(iso)
+  if (!Number.isFinite(t)) return ''
+  const within24h = now.getTime() - t < 24 * 3_600_000 && now.getTime() - t >= 0
+  // DATE_TIME_FMT yields e.g. "Sep 24, 3:40 PM"; TIME_FMT yields "12:40 PM".
+  return within24h ? TIME_FMT.format(t) : DATE_TIME_FMT.format(t)
+}
