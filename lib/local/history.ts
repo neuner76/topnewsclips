@@ -99,3 +99,12 @@ export function formatResolution(kind: ResolutionKind, resolvedAt?: string, late
   const when = formatPacificTime(resolvedAt, now)
   return kind === 'explicit_end' ? `ended ${when}` : `cleared ~${when}`
 }
+
+export function verificationLabel(verificationStatus?: string | null): string {
+  switch (verificationStatus) {
+    case 'confirmed': return 'Confirmed'
+    case 'developing': return 'Developing'
+    case 'community_reports': return 'Community reports'
+    default: return 'Unverified'
+  }
+}

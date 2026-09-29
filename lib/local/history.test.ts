@@ -4,6 +4,7 @@ import { formatActiveDuration } from './history'
 import { formatPacificTime } from './history'
 import { inferResolutionKind } from './history'
 import { formatResolution } from './history'
+import { verificationLabel } from './history'
 
 describe('history sections', () => {
   it('maps event types to sections, reservoir_change → Weather & Water', () => {
@@ -87,5 +88,18 @@ describe('formatResolution', () => {
   })
   it('time_sweep → no updates after latest_update time', () => {
     expect(formatResolution('time_sweep', '2026-09-29T19:40:00Z', '2026-09-29T18:40:00Z', now)).toBe('no updates after 11:40 AM')
+  })
+})
+
+describe('verificationLabel (from verification_status)', () => {
+  it('maps the four statuses', () => {
+    expect(verificationLabel('confirmed')).toBe('Confirmed')
+    expect(verificationLabel('developing')).toBe('Developing')
+    expect(verificationLabel('community_reports')).toBe('Community reports')
+    expect(verificationLabel('unverified')).toBe('Unverified')
+  })
+  it('defaults null/unknown to Unverified', () => {
+    expect(verificationLabel(null)).toBe('Unverified')
+    expect(verificationLabel('weird')).toBe('Unverified')
   })
 })
