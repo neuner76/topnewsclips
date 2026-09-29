@@ -22,5 +22,16 @@ export default async function LocalPage() {
     return <main className="mx-auto max-w-2xl px-4 py-10"><p className="text-sm text-red-600">My Local is temporarily unavailable.</p></main>
   }
 
-  return <LocalDigestView digest={digest} heading="My Local" subheading="What changed around you — from your block to your county." />
+  return (
+    <LocalDigestView
+      digest={digest}
+      heading="My Local"
+      subheading="What changed around you — from your block to your county."
+      note={
+        <a href="/local/review" className="mt-2 inline-block text-xs font-semibold text-[#2563EB] hover:underline">
+          Review queue →
+        </a>
+      }
+    />
+  )
 }
