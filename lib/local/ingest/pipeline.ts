@@ -97,6 +97,17 @@ export async function runSource(
     }
   }
 
+  // FRESHNESS — bump last_seen_at on every active event re-confirmed this run (its
+  // dedupe_key appeared, changed or not), so the UI shows "confirmed Xm ago" rather
+  // than "last changed 9h ago" for a still-current event.
+  if (seenDedupeKeys.size > 0) {
+    await supabase
+      .from('local_events')
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq('lifecycle_state', 'active')
+      .in('dedupe_key', [...seenDedupeKeys])
+  }
+
   // RESOLVE ABSENT (§7.4) — only for current-state feeds, and only when the fetch
   // actually returned a payload (an empty payload list means we fetched nothing —
   // e.g. a source with no API key — so we must not resolve everything).
