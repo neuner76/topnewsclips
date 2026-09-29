@@ -94,7 +94,7 @@ export async function landEventForItem(
       await supabase.from('local_event_update').insert({
         event_id: eventId, kind: 'detail', text: candidate.headline ?? null, source_item_id: sourceItemId,
       })
-      await supabase.from('local_events').update({ latest_update_at: now, updated_at: now }).eq('id', eventId)
+      await supabase.from('local_events').update({ latest_update_at: now, last_seen_at: now, updated_at: now }).eq('id', eventId)
       return 'updated'
     }
   }
@@ -136,6 +136,7 @@ export async function landEventForItem(
       first_seen_at: candidate.startedAt ?? now,
       first_detected_at: now,
       latest_update_at: now,
+      last_seen_at: now,
       geo_precision: geoPrecision,
       geo: geoScope,
       summary: candidate.summary ?? null,

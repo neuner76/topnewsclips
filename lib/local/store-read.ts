@@ -37,6 +37,7 @@ export interface StoredEventRow {
   status: string | null
   first_seen_at: string
   latest_update_at: string
+  last_seen_at?: string | null
   geo: unknown
   consequence_score: number | null
   confidence: string | null
@@ -63,7 +64,7 @@ export function mapStoredEventToLocalEvent(row: StoredEventRow, sources: LocalEv
     eventType: appEventType(row.event_type),
     status,
     firstSeenAt: row.first_seen_at,
-    latestUpdateAt: row.latest_update_at,
+    latestUpdateAt: row.last_seen_at ?? row.latest_update_at, // freshness = last confirmed
     geo: asGeoScope(row.geo),
     consequenceScore: row.consequence_score ?? 0,
     confidence,
@@ -129,7 +130,7 @@ export interface ReadPublishedOptions {
 export async function readPublishedEvents(sb: SupabaseClient, opts: ReadPublishedOptions = {}): Promise<LocalEvent[]> {
   let q = sb
     .from('local_events')
-    .select('id, title, headline, event_type, status, first_seen_at, latest_update_at, geo, consequence_score, confidence, summary, why_it_matters, what_changed, importance')
+    .select('id, title, headline, event_type, status, first_seen_at, latest_update_at, last_seen_at, geo, consequence_score, confidence, summary, why_it_matters, what_changed, importance')
     .eq('publish_state', 'published')
     .eq('lifecycle_state', 'active')
     .order('importance', { ascending: false, nullsFirst: false })

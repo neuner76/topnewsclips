@@ -39,6 +39,10 @@ describe('mapStoredEventToLocalEvent', () => {
     expect(e.consequenceScore).toBe(0.55)
     expect(e.sources).toEqual([])
   })
+  it('uses last_seen_at for latestUpdateAt (freshness = last confirmed), falls back to latest_update_at', () => {
+    expect(mapStoredEventToLocalEvent({ ...row, last_seen_at: '2026-09-28T14:30:00Z' }).latestUpdateAt).toBe('2026-09-28T14:30:00Z')
+    expect(mapStoredEventToLocalEvent(row).latestUpdateAt).toBe('2026-09-28T13:00:00Z') // no last_seen_at → latest_update_at
+  })
   it('defaults bad status/confidence and empty geo safely', () => {
     const e = mapStoredEventToLocalEvent({ ...row, status: 'weird', confidence: null, geo: null, headline: null })
     expect(e.title).toBe('Coastal Flood Advisory') // falls back to title
