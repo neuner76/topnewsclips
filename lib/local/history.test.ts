@@ -7,6 +7,7 @@ import { formatResolution } from './history'
 import { verificationLabel } from './history'
 import { extractRoadName, isRoutineClosure } from './history'
 import { formatRoutineSummary } from './history'
+import { groupHistoryBySection, type HistoryEvent } from './history'
 
 describe('history sections', () => {
   it('maps event types to sections, reservoir_change → Weather & Water', () => {
@@ -148,5 +149,26 @@ describe('formatRoutineSummary (spec §5)', () => {
   })
   it('adds "mostly" with the top 2 roads at 3+', () => {
     expect(formatRoutineSummary(9, ['US-101', 'SR-1', 'I-580'])).toBe('Plus 9 planned lane closures, mostly US-101, SR-1.')
+  })
+})
+
+function he(specEventType: string, id: string): HistoryEvent {
+  return {
+    event: { id, title: id, eventType: 'other', status: 'resolved', firstSeenAt: '', latestUpdateAt: '', geo: {}, consequenceScore: 0, confidence: 'medium', sources: [] },
+    specEventType, resolutionKind: 'feed_absent', correctionCount: 0, verificationLabel: 'Confirmed',
+  }
+}
+
+describe('groupHistoryBySection', () => {
+  it('buckets by section, keeps section order, omits empty, drops unknown types', () => {
+    const events = [he('coastal_flood', 'a'), he('road_closure', 'b'), he('mystery', 'c'), he('reservoir_change', 'd')]
+    const out = groupHistoryBySection(events, 15)
+    expect(out.map(s => s.def.key)).toEqual(['roads', 'weather']) // roads before weather; air/fire/etc omitted
+    expect(out.find(s => s.def.key === 'weather')!.events.map(e => e.event.id)).toEqual(['a', 'd'])
+  })
+  it('preserves input order and enforces the per-section cap', () => {
+    const events = [he('road_closure', '1'), he('road_closure', '2'), he('road_closure', '3')]
+    const out = groupHistoryBySection(events, 2)
+    expect(out[0].events.map(e => e.event.id)).toEqual(['1', '2'])
   })
 })

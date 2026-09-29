@@ -146,3 +146,17 @@ export function formatRoutineSummary(count: number, topRoads: string[]): string 
   if (count >= 3 && topRoads.length > 0) return `${base}, mostly ${topRoads.slice(0, 2).join(', ')}.`
   return `${base}.`
 }
+
+export function groupHistoryBySection(events: HistoryEvent[], perSectionLimit: number): HistorySectionView[] {
+  const buckets = new Map<string, HistoryEvent[]>()
+  for (const e of events) {
+    const key = sectionForType(e.specEventType)
+    if (!key) continue
+    const list = buckets.get(key) ?? []
+    if (list.length < perSectionLimit) list.push(e)
+    buckets.set(key, list)
+  }
+  return HISTORY_SECTIONS
+    .map(def => ({ def, events: buckets.get(def.key) ?? [] }))
+    .filter(s => s.events.length > 0)
+}
