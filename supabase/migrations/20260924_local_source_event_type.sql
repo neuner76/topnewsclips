@@ -87,7 +87,7 @@ values
   ('air_quality',        'Air quality alert',            'Environment', '🌲', 720,   null, 'county',  true,  1,  40, null, 30),
   ('reservoir_change',   'Reservoir change',             'Water',       '🌊', null,  null, 'exact',   true,  1,  20, null, 30),
   ('stream_high_water',  'High water',                   'Water',       '🌊', 720,   null, 'exact',   true,  1,  55, null, 30),
-  ('coastal_flood',      'Coastal flooding / king tide', 'Water',       '🌊', 720,   5000, 'place',   true,  1,  45, null, 30),
+  ('coastal_flood',      'Coastal flooding / king tide', 'Water',       '🌊', 720,   5000, 'county',  true,  1,  45, null, 30),
   ('transit_disruption', 'Transit disruption',           'Transit',     '🚆', 180,   null, 'segment', true,  1,  30, null, 30),
   ('fire_incident',      'Fire',                         'Fire',        '🔥', 360,   2000, 'place',   true,  1,  60, null, 30),
   ('public_safety',      'Public safety',                'Safety',      '🚨', 180,   800,  'place',   false, null, 0,  null, 30),
