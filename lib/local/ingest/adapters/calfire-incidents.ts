@@ -65,6 +65,7 @@ export function calfireItemToCandidate(item: NormalizedItem): EventCandidate {
 
 export const calfireIncidentsAdapter: SourceAdapter = {
   slug: 'calfire-incidents',
+  resolvesByAbsence: true, // active incidents (?inactive=false): gone = contained/over
   async fetch(_ctx: FetchContext): Promise<RawPayload[]> {
     void _ctx
     const res = await fetch('https://incidents.fire.ca.gov/umbraco/api/IncidentApi/List?inactive=false', { headers: { 'User-Agent': UA } })
