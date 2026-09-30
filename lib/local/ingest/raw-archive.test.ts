@@ -14,3 +14,16 @@ describe('storageKey (§5.3)', () => {
     expect(key).toBe('nws-alerts-marin/2026/09/25/2026-09-25T04:07:00.000Z-abc123')
   })
 })
+
+import { shouldArchive } from './raw-archive'
+
+describe('shouldArchive (§2.3 skip identical)', () => {
+  it('skips when the new hash equals the latest archived hash', () => {
+    expect(shouldArchive('abc', 'abc')).toBe(false)
+  })
+  it('archives when the hash differs or there is no prior row', () => {
+    expect(shouldArchive('abc', 'def')).toBe(true)
+    expect(shouldArchive(null, 'abc')).toBe(true)
+    expect(shouldArchive(undefined, 'abc')).toBe(true)
+  })
+})

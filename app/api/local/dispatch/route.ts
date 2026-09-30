@@ -7,6 +7,7 @@ import { runSource } from '@/lib/local/ingest/pipeline'
 import { loadEventTypes } from '@/lib/local/ingest/events'
 import { deriveEvidenceLevel } from '@/lib/local/ingest/trust'
 import { sweepLifecycle } from '@/lib/local/ingest/lifecycle'
+import { pruneRawPayload } from '@/lib/local/ingest/retention'
 
 // D4 dispatcher. An external scheduler pings this every few minutes with
 // `Authorization: Bearer ${CRON_SECRET}`; it runs whichever registered sources are
@@ -94,13 +95,42 @@ export async function GET(request: Request) {
     o.status === 'fulfilled' ? o.value : { slug: due[i].slug, error: (o.reason as Error)?.message ?? 'error' },
   )
 
-  // §7.4 time-based lifecycle sweep — once per dispatch, independent of which
-  // sources ran (ages out stale/event-log events, archives old resolved ones).
+  // §7.4 lifecycle sweep — once per dispatch, recorded as a labeled run for /local/status.
+  const sweepStart = new Date().toISOString()
   let lifecycle: { resolved: number; archived: number } | { error: string }
   try {
-    lifecycle = await sweepLifecycle(supabase)
+    const r = await sweepLifecycle(supabase)
+    lifecycle = r
+    await supabase.from('local_job_run').insert({
+      source_id: null, label: 'Lifecycle sweep', started_at: sweepStart, finished_at: new Date().toISOString(),
+      status: 'ok', events_updated: r.resolved + r.archived,
+    })
   } catch (e) {
-    lifecycle = { error: e instanceof Error ? e.message : String(e) }
+    const msg = e instanceof Error ? e.message : String(e)
+    lifecycle = { error: msg }
+    await supabase.from('local_job_run').insert({
+      source_id: null, label: 'Lifecycle sweep', started_at: sweepStart, finished_at: new Date().toISOString(),
+      status: 'error', error: msg,
+    })
+  }
+
+  // Raw-payload retention — last step, non-fatal, recorded as a labeled run.
+  const pruneStart = new Date().toISOString()
+  let prunedRawPayloads: number | { error: string }
+  try {
+    const n = await pruneRawPayload(supabase)
+    prunedRawPayloads = n
+    await supabase.from('local_job_run').insert({
+      source_id: null, label: 'Raw-payload retention', started_at: pruneStart, finished_at: new Date().toISOString(),
+      status: 'ok', items_new: n,
+    })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    prunedRawPayloads = { error: msg }
+    await supabase.from('local_job_run').insert({
+      source_id: null, label: 'Raw-payload retention', started_at: pruneStart, finished_at: new Date().toISOString(),
+      status: 'error', error: msg,
+    })
   }
 
   return NextResponse.json({
@@ -109,5 +139,6 @@ export async function GET(request: Request) {
     due: due.map(s => s.slug),
     ran,
     lifecycle,
+    prunedRawPayloads,
   })
 }
