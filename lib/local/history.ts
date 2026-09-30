@@ -84,6 +84,10 @@ export function formatPacificTime(iso: string, now: Date = new Date()): string {
 
 const SWEEP_GAP_MS = 60 * 60_000 // §4.2: latest_update → resolved ≥ 60 min ⇒ time_sweep
 
+// NOTE: the spec's §4.2 weather-expiry heuristic for `explicit_end` is intentionally
+// NOT implemented — event expiry isn't stored on a queryable local_events column, and
+// NWS advisories resolve by absence (→ 'feed_absent', rendered "cleared ~"). `explicit_end`
+// is honored only if a resolver ever writes reason:'explicit_end'; none does today.
 export function inferResolutionKind(args: { resolvedAt?: string; latestUpdateAt?: string; reason?: string | null }): ResolutionKind {
   const r = args.reason
   if (r === 'feed_absent' || r === 'explicit_end' || r === 'time_sweep') return r
@@ -177,6 +181,7 @@ interface HistoryRow extends StoredEventRow {
   first_seen_at: string
 }
 
+// `confidence` is the text label the mapper needs; the history page never renders it (spec §6).
 const SELECT_COLS =
   'id, title, headline, event_type, status, first_seen_at, first_detected_at, latest_update_at, resolved_at, verification_status, geo, consequence_score, confidence, summary, why_it_matters, what_changed, importance, last_seen_at'
 
