@@ -42,6 +42,12 @@ describe('formatActiveDuration', () => {
   it('at-least prefix for time_sweep', () => {
     expect(formatActiveDuration(start, '2026-09-28T14:00:00Z', { atLeast: true })).toBe('active at least 2h')
   })
+  it('rounds before bucketing at the minute/hour boundary (~59.7 min → 1h, not 60 min)', () => {
+    expect(formatActiveDuration(start, '2026-09-28T12:59:42Z')).toBe('active 1h')
+  })
+  it('rounds before bucketing at the hour/day boundary (~47.7h → 2 days, not 48h)', () => {
+    expect(formatActiveDuration(start, '2026-09-30T11:42:00Z')).toBe('active 2 days')
+  })
   it('undefined for missing/invalid/end-before-start', () => {
     expect(formatActiveDuration(undefined, start)).toBeUndefined()
     expect(formatActiveDuration(start, undefined)).toBeUndefined()

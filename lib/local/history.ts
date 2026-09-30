@@ -59,12 +59,13 @@ export function formatActiveDuration(startIso?: string, endIso?: string, opts: {
   const start = Date.parse(startIso)
   const end = Date.parse(endIso)
   if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return undefined
-  const minutes = (end - start) / 60_000
   const prefix = opts.atLeast ? 'active at least' : 'active'
-  if (minutes < 60) return `${prefix} ${Math.round(minutes)} min`
-  const hours = minutes / 60
-  if (hours < 48) return `${prefix} ${Math.round(hours)}h`
-  return `${prefix} ${Math.round(hours / 24)} days`
+  const totalMinutes = (end - start) / 60_000
+  const roundedMinutes = Math.round(totalMinutes)
+  if (roundedMinutes < 60) return `${prefix} ${roundedMinutes} min`
+  const roundedHours = Math.round(totalMinutes / 60)
+  if (roundedHours < 48) return `${prefix} ${roundedHours}h`
+  return `${prefix} ${Math.round(totalMinutes / 1440)} days`
 }
 
 const PACIFIC_TZ = 'America/Los_Angeles'
@@ -123,6 +124,10 @@ export interface RoutineClosureInput {
   resolvedAt?: string
 }
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 // §5: routine = a planned, non-full road_closure that isn't emergency work and
 // isn't a long (≥12h) closure on a low-alternative road. Full-closure detection
 // reuses the live /full closure/i title convention (need-to-know.ts).
@@ -131,7 +136,7 @@ export function isRoutineClosure(e: RoutineClosureInput): boolean {
   if (/full closure/i.test(e.title)) return false
   const text = `${e.title} ${e.summary ?? ''}`
   if (/emergenc/i.test(text)) return false
-  const onExempt = ROUTINE_CLOSURE_ROADS_EXEMPT.some(r => new RegExp(`\\b${r}\\b`, 'i').test(e.title))
+  const onExempt = ROUTINE_CLOSURE_ROADS_EXEMPT.some(r => new RegExp(`\\b${escapeRegExp(r)}\\b`, 'i').test(e.title))
   if (onExempt && e.startedAt && e.resolvedAt) {
     const hours = (Date.parse(e.resolvedAt) - Date.parse(e.startedAt)) / 3_600_000
     if (Number.isFinite(hours) && hours >= 12) return false
