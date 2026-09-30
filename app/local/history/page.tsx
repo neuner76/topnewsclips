@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { readEventHistory, formatActiveDuration, formatResolution, type EventHistory, type HistoryEvent } from '@/lib/local/history'
+import { readEventHistory, formatActiveDuration, formatResolution, HISTORY_SECTIONS, type EventHistory, type HistoryEvent, type HistorySectionDef } from '@/lib/local/history'
 
 // Owner-gated archive of concluded (resolved/archived) published events, grouped
 // by section per the event-history spec. Dynamic — reads the admin session and
@@ -45,6 +45,17 @@ function formatResolutionDate(iso: string): string {
   return new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric' }).format(Date.parse(iso))
 }
 
+// Icon + accented label shared by a normal section and the routine-summary-only
+// fallback (Roads can have a non-empty routineSummary with zero kept rows).
+function SectionEyebrow({ def }: { def: HistorySectionDef }) {
+  return (
+    <div className="mb-3 flex items-center gap-2">
+      <span aria-hidden className="text-base leading-none">{def.icon}</span>
+      <h2 className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: def.accent }}>{def.label}</h2>
+    </div>
+  )
+}
+
 export default async function HistoryPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -68,15 +79,12 @@ export default async function HistoryPage() {
           <p className="mt-1 text-sm text-muted-foreground">What has concluded around you in the last 30 days.</p>
         </div>
         {error && <p className="rounded-lg border border-[#FEE2E2] bg-[#FEF2F2] px-4 py-3 text-sm text-red-700">{error}</p>}
-        {history && history.sections.length === 0 && !error && (
+        {history && history.sections.length === 0 && !history.routineSummary && !error && (
           <p className="rounded-lg border border-[#EFF2F6] bg-[#FAFBFC] px-4 py-8 text-center text-sm text-muted-foreground">No recent history yet.</p>
         )}
         {history && history.sections.map(section => (
           <section key={section.def.key} className="mb-8">
-            <div className="mb-3 flex items-center gap-2">
-              <span aria-hidden className="text-base leading-none">{section.def.icon}</span>
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: section.def.accent }}>{section.def.label}</h2>
-            </div>
+            <SectionEyebrow def={section.def} />
             <div className="rounded-lg border border-[#EFF2F6] bg-white px-4 py-2">
               {section.events.map(e => <Row key={e.event.id} e={e} now={now} />)}
             </div>
@@ -85,6 +93,12 @@ export default async function HistoryPage() {
             )}
           </section>
         ))}
+        {history && history.routineSummary && !history.sections.some(s => s.def.key === 'roads') && (
+          <section className="mb-8">
+            <SectionEyebrow def={HISTORY_SECTIONS.find(s => s.key === 'roads')!} />
+            <p className="text-[12px] text-muted-foreground">{history.routineSummary}</p>
+          </section>
+        )}
       </main>
       <Footer />
     </>
