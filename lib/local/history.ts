@@ -199,12 +199,13 @@ async function fetchSection(sb: SupabaseClient, eventTypes: string[], sinceIso: 
 async function resolutionReasons(sb: SupabaseClient, eventIds: string[]): Promise<Map<string, string | null>> {
   const m = new Map<string, string | null>()
   if (eventIds.length === 0) return m
-  const { data } = await sb
+  const { data, error } = await sb
     .from('local_event_update')
     .select('event_id, at, new_value')
     .eq('kind', 'resolved')
     .in('event_id', eventIds)
     .order('at', { ascending: false })
+  if (error) throw new Error(`history resolution reasons: ${error.message}`)
   for (const r of (data ?? []) as Array<{ event_id: string; new_value: { reason?: string } | null }>) {
     if (!m.has(r.event_id)) m.set(r.event_id, r.new_value?.reason ?? null) // first = most recent
   }
@@ -214,7 +215,8 @@ async function resolutionReasons(sb: SupabaseClient, eventIds: string[]): Promis
 async function correctionCounts(sb: SupabaseClient, eventIds: string[]): Promise<Map<string, number>> {
   const m = new Map<string, number>()
   if (eventIds.length === 0) return m
-  const { data } = await sb.from('local_event_update').select('event_id').eq('kind', 'correction').in('event_id', eventIds)
+  const { data, error } = await sb.from('local_event_update').select('event_id').eq('kind', 'correction').in('event_id', eventIds)
+  if (error) throw new Error(`history correction counts: ${error.message}`)
   for (const r of (data ?? []) as Array<{ event_id: string }>) m.set(r.event_id, (m.get(r.event_id) ?? 0) + 1)
   return m
 }
@@ -247,7 +249,6 @@ export async function readEventHistory(sb: SupabaseClient, opts: { sinceDays?: n
   const sinceDays = opts.sinceDays ?? 30
   const perSectionLimit = opts.perSectionLimit ?? 15
   const sinceIso = new Date(Date.now() - sinceDays * 86_400_000).toISOString()
-  const now = new Date()
 
   const roadsDef = HISTORY_SECTIONS.find(s => s.key === 'roads')!
   const otherDefs = HISTORY_SECTIONS.filter(s => s.key !== 'roads')
@@ -278,7 +279,6 @@ export async function readEventHistory(sb: SupabaseClient, opts: { sinceDays?: n
   ])
 
   const events = allRows.map(r => toHistoryEvent(r, sources.get(r.id) ?? [], reasons.get(r.id), corrections.get(r.id) ?? 0))
-  void now // formatting happens in the page with the request-time `now`
   return { sections: groupHistoryBySection(events, perSectionLimit), routineSummary }
 }
 
