@@ -97,7 +97,7 @@ export async function readPipelineStatus(sb: SupabaseClient, now: Date = new Dat
   // Recent runs, newest first, joined to the source slug.
   const { data: runs } = await sb
     .from('local_job_run')
-    .select('started_at, finished_at, status, items_fetched, items_new, events_created, events_updated, error, local_source(slug)')
+    .select('started_at, finished_at, status, items_fetched, items_new, events_created, events_updated, error, label, local_source(slug)')
     .order('started_at', { ascending: false })
     .limit(40)
 
@@ -105,9 +105,9 @@ export async function readPipelineStatus(sb: SupabaseClient, now: Date = new Dat
     started_at: string; finished_at: string | null; status: string | null
     items_fetched: number | null; items_new: number | null
     events_created: number | null; events_updated: number | null
-    error: string | null; local_source: { slug: string | null } | null
+    error: string | null; label: string | null; local_source: { slug: string | null } | null
   }>).map(r => ({
-    slug: r.local_source?.slug ?? '—',
+    slug: r.local_source?.slug ?? r.label ?? '—', // sourceless sweep/retention runs show their label
     startedAt: r.started_at,
     finishedAt: r.finished_at,
     status: r.status,
