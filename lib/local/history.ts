@@ -1,5 +1,7 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { LocalEvent } from './types'
 import type { ResolutionReason } from './ingest/resolution'
+import { mapStoredEventToLocalEvent, readSourcesByEvent, type StoredEventRow } from './store-read'
 
 export type ResolutionKind = ResolutionReason
 
@@ -164,4 +166,124 @@ export function groupHistoryBySection(events: HistoryEvent[], perSectionLimit: n
   return HISTORY_SECTIONS
     .map(def => ({ def, events: buckets.get(def.key) ?? [] }))
     .filter(s => s.events.length > 0)
+}
+
+interface HistoryRow extends StoredEventRow {
+  event_type: string
+  first_detected_at: string | null
+  resolved_at: string | null
+  verification_status: string | null
+  latest_update_at: string
+  first_seen_at: string
+}
+
+const SELECT_COLS =
+  'id, title, headline, event_type, status, first_seen_at, first_detected_at, latest_update_at, resolved_at, verification_status, geo, consequence_score, confidence, summary, why_it_matters, what_changed, importance, last_seen_at'
+
+const ROADS_FETCH_LIMIT = 500 // fetch the 30-day road window, then partition routine vs not in code
+
+async function fetchSection(sb: SupabaseClient, eventTypes: string[], sinceIso: string, limit: number): Promise<HistoryRow[]> {
+  const { data, error } = await sb
+    .from('local_events')
+    .select(SELECT_COLS)
+    .eq('publish_state', 'published')
+    .in('lifecycle_state', ['resolved', 'archived'])
+    .in('event_type', eventTypes)
+    .gte('resolved_at', sinceIso) // resolved_at is set on every resolution (absence + sweep)
+    .order('resolved_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(`history ${eventTypes.join(',')}: ${error.message}`)
+  return (data ?? []) as HistoryRow[]
+}
+
+async function resolutionReasons(sb: SupabaseClient, eventIds: string[]): Promise<Map<string, string | null>> {
+  const m = new Map<string, string | null>()
+  if (eventIds.length === 0) return m
+  const { data } = await sb
+    .from('local_event_update')
+    .select('event_id, at, new_value')
+    .eq('kind', 'resolved')
+    .in('event_id', eventIds)
+    .order('at', { ascending: false })
+  for (const r of (data ?? []) as Array<{ event_id: string; new_value: { reason?: string } | null }>) {
+    if (!m.has(r.event_id)) m.set(r.event_id, r.new_value?.reason ?? null) // first = most recent
+  }
+  return m
+}
+
+async function correctionCounts(sb: SupabaseClient, eventIds: string[]): Promise<Map<string, number>> {
+  const m = new Map<string, number>()
+  if (eventIds.length === 0) return m
+  const { data } = await sb.from('local_event_update').select('event_id').eq('kind', 'correction').in('event_id', eventIds)
+  for (const r of (data ?? []) as Array<{ event_id: string }>) m.set(r.event_id, (m.get(r.event_id) ?? 0) + 1)
+  return m
+}
+
+function toHistoryEvent(
+  row: HistoryRow,
+  sources: Parameters<typeof mapStoredEventToLocalEvent>[1],
+  reason: string | null | undefined,
+  correctionCount: number,
+): HistoryEvent {
+  return {
+    event: mapStoredEventToLocalEvent(row, sources),
+    specEventType: row.event_type,
+    startedAt: row.first_seen_at ?? undefined,     // source-provided start (see reconciliation note)
+    firstDetectedAt: row.first_detected_at ?? undefined,
+    resolvedAt: row.resolved_at ?? undefined,
+    latestUpdateAt: row.latest_update_at ?? undefined,
+    resolutionKind: inferResolutionKind({ resolvedAt: row.resolved_at ?? undefined, latestUpdateAt: row.latest_update_at ?? undefined, reason }),
+    correctionCount,
+    verificationLabel: verificationLabel(row.verification_status),
+  }
+}
+
+export interface EventHistory {
+  sections: HistorySectionView[]
+  routineSummary?: string
+}
+
+export async function readEventHistory(sb: SupabaseClient, opts: { sinceDays?: number; perSectionLimit?: number } = {}): Promise<EventHistory> {
+  const sinceDays = opts.sinceDays ?? 30
+  const perSectionLimit = opts.perSectionLimit ?? 15
+  const sinceIso = new Date(Date.now() - sinceDays * 86_400_000).toISOString()
+  const now = new Date()
+
+  const roadsDef = HISTORY_SECTIONS.find(s => s.key === 'roads')!
+  const otherDefs = HISTORY_SECTIONS.filter(s => s.key !== 'roads')
+
+  // One query per section in parallel (Roads pulls a wider window to partition).
+  const [roadRows, ...otherRows] = await Promise.all([
+    fetchSection(sb, roadsDef.eventTypes, sinceIso, ROADS_FETCH_LIMIT),
+    ...otherDefs.map(d => fetchSection(sb, d.eventTypes, sinceIso, perSectionLimit)),
+  ])
+
+  // Partition roads: routine road_closures → summary; everything else → rows (capped).
+  const routine: HistoryRow[] = []
+  const roadRowsKept: HistoryRow[] = []
+  for (const r of roadRows) {
+    if (isRoutineClosure({ specEventType: r.event_type, title: r.headline ?? r.title, summary: r.summary ?? undefined, startedAt: r.first_seen_at ?? undefined, resolvedAt: r.resolved_at ?? undefined })) routine.push(r)
+    else roadRowsKept.push(r)
+  }
+  const roadTop = topRoadsByFrequency(routine.map(r => extractRoadName(r.headline ?? r.title)))
+  const routineSummary = formatRoutineSummary(routine.length, roadTop)
+
+  // Assemble the flat row set (roads capped to perSectionLimit here; others already capped by query).
+  const allRows: HistoryRow[] = [...roadRowsKept.slice(0, perSectionLimit), ...otherRows.flat()]
+  const ids = allRows.map(r => r.id)
+  const [sources, reasons, corrections] = await Promise.all([
+    readSourcesByEvent(sb, ids),
+    resolutionReasons(sb, ids),
+    correctionCounts(sb, ids),
+  ])
+
+  const events = allRows.map(r => toHistoryEvent(r, sources.get(r.id) ?? [], reasons.get(r.id), corrections.get(r.id) ?? 0))
+  void now // formatting happens in the page with the request-time `now`
+  return { sections: groupHistoryBySection(events, perSectionLimit), routineSummary }
+}
+
+function topRoadsByFrequency(names: string[]): string[] {
+  const counts = new Map<string, number>()
+  for (const n of names) counts.set(n, (counts.get(n) ?? 0) + 1)
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(e => e[0]).slice(0, 3)
 }
