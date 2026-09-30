@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { resolvedUpdateRow } from './resolution'
 
 // §7.4 event lifecycle — absence-based resolution. Current-state feeds (NWS active
 // alerts, current lane closures, active fires, live 511 events) report only what is
@@ -48,7 +49,7 @@ export async function resolveAbsentEvents(
   if (updErr) throw new Error(`resolveAbsentEvents update: ${updErr.message}`)
 
   await sb.from('local_event_update').insert(
-    ids.map(id => ({ event_id: id, kind: 'resolved', text: 'No longer present in the source feed' })),
+    ids.map(id => resolvedUpdateRow(id, 'feed_absent', 'No longer present in the source feed')),
   )
   return ids.length
 }

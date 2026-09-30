@@ -31,6 +31,7 @@ export default async function LocalPage() {
         <span className="mt-2 inline-flex gap-3">
           <a href="/local/review" className="text-xs font-semibold text-[#2563EB] hover:underline">Review queue →</a>
           <a href="/local/status" className="text-xs font-semibold text-[#2563EB] hover:underline">Pipeline status →</a>
+          <a href="/local/history" className="text-xs font-semibold text-[#2563EB] hover:underline">History →</a>
         </span>
       }
     />
