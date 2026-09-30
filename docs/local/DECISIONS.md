@@ -119,3 +119,17 @@ apply a significance filter. See `docs/local/CHANGES_MODEL.md`.
 - **O5 — Stale body text.** Spec §2/§3/§5.1/§11/§12.1 still contain pre-v1.1 statements
   (CHP row, `LOCAL_511_API_KEY`, schema `local`, `src/local`, "`/local` — Live"). §0.1
   supersedes, but consider striking them so no one acts on the stale rows.
+
+## Raw-payload retention (2026-09-30)
+
+- **Retention window deviates from Phase-0/1 §5.3 (90-day full).** We keep every
+  `local_raw_payload` for 7 days, then one per source per Pacific day up to 90 days,
+  then nothing. The raw archive is debug/replay only; the daily snapshot preserves
+  replayability at ~90 rows/source. Enforced by `local_prune_raw_payload`.
+- **Skip identical payloads on write.** `archiveRawPayload` skips the insert when a
+  source's body hash is unchanged from its last archived row (`content_hash` already
+  existed). Pruning is the backstop.
+- **`raw_ref` resolution.** Nothing resolves `raw_ref` today, so pruning strands no
+  reader. Any FUTURE `raw_ref` resolver (a "view raw" link, a replay script) MUST
+  treat a missing row as "raw payload expired" — ideally via a shared helper — rather
+  than throw.
