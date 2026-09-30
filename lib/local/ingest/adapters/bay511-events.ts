@@ -61,7 +61,12 @@ export function parse511TrafficItems(
 
     items.push({
       externalId: id,
-      contentHash: hashContent([id, ev.status, ev.headline, updated, ev.severity]),
+      // Exclude the volatile `updated` timestamp: 511 re-stamps it every poll even
+      // when nothing material changed, which otherwise re-inserts unchanged incidents
+      // as new source_items every cycle. Hash the material fields only; the event's
+      // freshness comes from last_seen_at (bumped each cycle), and the dedupe key is
+      // the incident id, so matching is unaffected.
+      contentHash: hashContent([id, ev.status, ev.headline, ev.severity]),
       title: headline.length > 110 ? headline.slice(0, 108) + '…' : headline,
       url: 'https://511.org/',
       publishedAt: updated,

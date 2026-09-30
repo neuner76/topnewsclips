@@ -32,6 +32,15 @@ describe('511 traffic ingestion', () => {
     expect(cand.geo?.precision).toBe('segment')
     expect(cand.fields?.majorRoute).toBe(true)
   })
+  it('content hash ignores the volatile `updated` timestamp (no churn) but reflects material changes', () => {
+    const mk = (over: Record<string, unknown>) => parse511TrafficItems({ events: [
+      { id: 'a1', status: 'ACTIVE', event_type: 'INCIDENT', severity: 'Major', headline: 'Crash on US-101 NB',
+        created: '2026-09-28T11:30:00Z', geography: { coordinates: [-122.53, 37.97] }, roads: [{ name: 'US-101', direction: 'NB' }], ...over },
+    ] })[0].contentHash
+    const base = mk({ updated: '2026-09-28T12:00:00Z' })
+    expect(mk({ updated: '2026-09-28T12:30:00Z' })).toBe(base) // only `updated` changed → same hash
+    expect(mk({ updated: '2026-09-28T12:00:00Z', severity: 'Minor' })).not.toBe(base) // material change → new hash
+  })
 })
 
 describe('Caltrans LCS ingestion', () => {
