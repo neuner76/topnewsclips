@@ -131,7 +131,7 @@ export function isRoutineClosure(e: RoutineClosureInput): boolean {
   if (/full closure/i.test(e.title)) return false
   const text = `${e.title} ${e.summary ?? ''}`
   if (/emergenc/i.test(text)) return false
-  const onExempt = ROUTINE_CLOSURE_ROADS_EXEMPT.some(r => e.title.toLowerCase().includes(r.toLowerCase()))
+  const onExempt = ROUTINE_CLOSURE_ROADS_EXEMPT.some(r => new RegExp(`\\b${r}\\b`, 'i').test(e.title))
   if (onExempt && e.startedAt && e.resolvedAt) {
     const hours = (Date.parse(e.resolvedAt) - Date.parse(e.startedAt)) / 3_600_000
     if (Number.isFinite(hours) && hours >= 12) return false

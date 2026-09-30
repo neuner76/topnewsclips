@@ -137,6 +137,9 @@ describe('isRoutineClosure (spec §5)', () => {
   it('a short closure on an exempt road IS routine', () => {
     expect(isRoutineClosure({ ...base, title: 'SR-1 North — Lane closure near Marshall', resolvedAt: '2026-09-28T04:00:00Z' })).toBe(true)
   })
+  it('a long closure (≥12h) on SR-116 is routine (SR-1 exemption must not prefix-match SR-116)', () => {
+    expect(isRoutineClosure({ ...base, title: 'SR-116 East — Lane closure near Guerneville', resolvedAt: '2026-09-28T18:00:00Z' })).toBe(true)
+  })
 })
 
 describe('formatRoutineSummary (spec §5)', () => {
