@@ -21,6 +21,7 @@ describe('511 traffic ingestion', () => {
     expect(a1.geo?.precision).toBe('segment')
     expect(a1.extracted?.eventType).toBe('road_incident')
     expect(a1.extracted?.majorRoute).toBe(true) // US-101
+    expect(a1.url).toContain('google.com/maps') // deep link to the exact spot
     const con = items.find(i => i.externalId === 'con1')!
     expect(con.extracted?.eventType).toBe('road_closure') // CONSTRUCTION
     expect(con.extracted?.majorRoute).toBe(true) // Sir Francis Drake
@@ -63,6 +64,7 @@ describe('Caltrans LCS ingestion', () => {
     expect(items[0].extracted?.majorRoute).toBe(true)
     expect(items[0].geo?.precision).toBe('segment')
     expect(items[0].title).toContain('US-101')
+    expect(items[0].url).toContain('google.com/maps')
   })
   it('drops other counties and already-ended closures', () => {
     const otherCounty = mk({ location: { begin: { beginCounty: 'Alameda', beginLatitude: '37.8', beginLongitude: '-122.2' }, travelFlowDirection: 'NB' } })

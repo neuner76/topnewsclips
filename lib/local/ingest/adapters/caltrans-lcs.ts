@@ -1,5 +1,6 @@
 import type { SourceAdapter, NormalizedItem, EventCandidate, RawPayload, FetchContext } from '../types'
 import { hashContent } from '../content-hash'
+import { mapLink } from '../../geography'
 
 // Caltrans D4 lane-closure system (LCS) as an ingestion source. Parsing mirrors the
 // live digest adapter (lib/local/adapters/caltrans-lcs.ts) but emits the §5.1 shapes
@@ -70,7 +71,7 @@ export function parseLcsItems(
       externalId,
       contentHash: hashContent([externalId, cl.typeOfClosure, cl.lanesClosed, ts.closureStartEpoch, ts.closureEndEpoch]),
       title: headline.length > 110 ? headline.slice(0, 108) + '…' : headline,
-      url: 'https://quickmap.dot.ca.gov/',
+      url: mapLink(lat, lng), // QuickMap has no per-closure page → pin the exact spot
       publishedAt: startedAt,
       placeText: begin.beginNearbyPlace || begin.beginCounty || undefined,
       geo: { lat, lng, precision: 'segment' },

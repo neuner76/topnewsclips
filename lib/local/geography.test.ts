@@ -52,3 +52,11 @@ describe('scoreLocalRelevance', () => {
     expect(scoreLocalRelevance(ev({ cities: ['novato'] }), place)).toBeCloseTo(SCORING_WEIGHTS.localRelevance.cityMatch, 5)
   })
 })
+
+import { mapLink } from './geography'
+
+describe('mapLink', () => {
+  it('builds a Google Maps pin URL at the exact coordinate', () => {
+    expect(mapLink(37.97, -122.53)).toBe('https://www.google.com/maps/search/?api=1&query=37.97,-122.53')
+  })
+})

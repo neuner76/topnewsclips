@@ -17,6 +17,7 @@ describe('NASA FIRMS ingestion', () => {
     expect(items[0].extracted?.count).toBe(2) // two pixels merged
     expect(items[0].geo?.precision).toBe('place')
     expect(items[0].title).toContain('2 satellite fire detections')
+    expect(items[0].url).toContain('google.com/maps')
   })
   it('candidate maps to fire_detection with a cell-keyed dedupeKey', () => {
     const cand = firmsItemToCandidate(parseFirmsItems(csv)[0])

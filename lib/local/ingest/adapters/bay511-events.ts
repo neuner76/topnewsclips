@@ -1,6 +1,6 @@
 import type { SourceAdapter, NormalizedItem, EventCandidate, RawPayload, FetchContext } from '../types'
 import { hashContent } from '../content-hash'
-import { haversineMiles } from '../../geography'
+import { haversineMiles, mapLink } from '../../geography'
 
 // 511 SF Bay traffic events (Open511) as an ingestion source. Parsing mirrors the
 // live digest adapter (lib/local/adapters/bay511.ts) but emits the §5.1 shapes and
@@ -68,7 +68,7 @@ export function parse511TrafficItems(
       // the incident id, so matching is unaffected.
       contentHash: hashContent([id, ev.status, ev.headline, ev.severity]),
       title: headline.length > 110 ? headline.slice(0, 108) + '…' : headline,
-      url: 'https://511.org/',
+      url: mapLink(pt.lat, pt.lng), // 511 has no per-incident page → pin the exact spot
       publishedAt: updated,
       placeText: roadText || undefined,
       geo: { lat: pt.lat, lng: pt.lng, precision: 'segment' },
