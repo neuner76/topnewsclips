@@ -67,8 +67,25 @@ export interface EnvironmentSources {
   earthquakes?: string
 }
 
+export interface ForecastPeriod {
+  name: string
+  temperatureF?: number
+  temperatureUnit?: string
+  isDaytime?: boolean
+  shortForecast?: string
+}
+
+export interface CurrentConditions {
+  label: string
+  temperatureF?: number
+  temperatureUnit?: string
+  shortForecast?: string
+  isDaytime?: boolean
+}
+
 export interface EnvironmentSnapshot {
   wind?: WindReading
+  weather?: { current?: CurrentConditions; forecast: ForecastPeriod[] }
   fireRisk?: FireRisk
   airQuality?: AirQualityReading
   tide?: TideReading
