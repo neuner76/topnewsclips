@@ -1,6 +1,6 @@
 import type { SourceAdapter, NormalizedItem, EventCandidate, RawPayload, FetchContext } from '../types'
 import { hashContent } from '../content-hash'
-import { haversineMiles } from '../../geography'
+import { haversineMiles, mapLink } from '../../geography'
 import { parseFirmsCsv, isConfident } from '../../adapters/firms'
 
 // NASA FIRMS active-fire / thermal-anomaly detections as a §7 ingestion source.
@@ -44,7 +44,7 @@ export function parseFirmsItems(
       externalId: key,
       contentHash: hashContent([key, String(c.count), c.acqDate]),
       title: headline,
-      url: 'https://firms.modaps.eosdis.nasa.gov/map/',
+      url: mapLink(c.lat, c.lng), // FIRMS map has no per-detection page → pin the exact spot
       publishedAt: c.acqDate ? `${c.acqDate}T00:00:00Z` : undefined,
       geo: { lat: c.lat, lng: c.lng, precision: 'place' },
       extracted: {

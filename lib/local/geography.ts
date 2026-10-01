@@ -51,3 +51,11 @@ export function scoreLocalRelevance(event: LocalEvent, savedPlace: SavedPlace): 
 
   return w.proximity * proximity + w.cityMatch * cityMatch + w.countyMatch * countyMatch
 }
+
+// Stable deep link centered on a coordinate, via Google Maps' documented URL API
+// (https://developers.google.com/maps/documentation/urls/get-started). Drops a pin
+// at the exact point — used as the "source" link for feeds that expose no stable
+// per-record page (511, Caltrans closures, FIRMS detections).
+export function mapLink(lat: number, lng: number): string {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+}
