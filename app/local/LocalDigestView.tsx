@@ -138,6 +138,27 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
   return (
     <SectionCard accent={meta.accent}>
       <Eyebrow icon={meta.icon} title={meta.title} accent={meta.accent} aside={`updated ${formatFreshness(env.dataAsOf)}`} />
+      {env.weather?.current && (
+        <div className="mb-3 flex items-baseline gap-2">
+          <span className="text-2xl font-black tabular-nums text-foreground">
+            {env.weather.current.temperatureF != null ? `${Math.round(env.weather.current.temperatureF)}°${env.weather.current.temperatureUnit ?? ''}` : '—'}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            {[env.weather.current.label, env.weather.current.shortForecast].filter(Boolean).join(' · ')}
+          </span>
+        </div>
+      )}
+      {env.weather && env.weather.forecast.length > 0 && (
+        <div className="mb-3 flex gap-2 overflow-x-auto">
+          {env.weather.forecast.map((p, i) => (
+            <div key={i} className="shrink-0 rounded-md bg-[#F1F5F9] px-2.5 py-1.5 text-center">
+              <div className="text-[11px] font-semibold text-[#475569]">{p.name}</div>
+              <div className="text-sm font-bold tabular-nums text-foreground">{p.temperatureF != null ? `${Math.round(p.temperatureF)}°` : '—'}</div>
+              {p.shortForecast && <div className="mt-0.5 max-w-[7rem] truncate text-[10px] text-muted-foreground" title={p.shortForecast}>{p.shortForecast}</div>}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
         {env.fireRisk && env.fireRisk.level !== 'unknown' && <Stat label="Fire risk" value={env.fireRisk.level} href={env.sources?.fireRisk} />}
         {env.wind && <Stat label="Wind" value={env.wind.text || `${env.wind.direction ?? ''} ${env.wind.speedMph ?? ''} mph`} href={env.sources?.wind} />}

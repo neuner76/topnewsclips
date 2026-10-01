@@ -10,7 +10,7 @@ import { toPublicPlace, type PublicSavedPlace } from './privacy'
 import type { SavedPlace, LocalEvent } from './types'
 import type {
   EnvironmentSnapshot, EnvironmentSources, WindReading, FireRisk, NwsAlertSummary, QuakeSummary,
-  TideReading, AirQualityReading,
+  TideReading, AirQualityReading, CurrentConditions, ForecastPeriod,
 } from './adapters/types'
 import { normalizeNwsForecast, normalizeNwsAlerts } from './adapters/nws'
 import { normalizeUsgsEarthquakes } from './adapters/usgs'
@@ -74,7 +74,7 @@ export interface MyLocalDigest {
 }
 
 export interface SnapshotParts {
-  forecast?: { wind: WindReading; temperatureF?: number; shortForecast?: string }
+  forecast?: { wind: WindReading; temperatureF?: number; shortForecast?: string; current?: CurrentConditions; forecast?: ForecastPeriod[] }
   alerts?: { alerts: NwsAlertSummary[]; fireRisk: FireRisk }
   quakes?: QuakeSummary[]
   tide?: TideReading
@@ -85,6 +85,9 @@ export interface SnapshotParts {
 export function buildEnvironmentSnapshot(parts: SnapshotParts): EnvironmentSnapshot {
   return {
     wind: parts.forecast?.wind,
+    weather: parts.forecast
+      ? { current: parts.forecast.current, forecast: parts.forecast.forecast ?? [] }
+      : undefined,
     fireRisk: parts.alerts?.fireRisk,
     airQuality: parts.airQuality,
     tide: parts.tide,
