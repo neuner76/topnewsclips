@@ -30,6 +30,19 @@ describe('AirNow ingestion', () => {
     expect(cand[0].fields?.aqi).toBe(158)
     expect(cand[0].geo?.precision).toBe('county')
   })
+  it('reads the new camelCase/nowcastAQI schema identically (endpoint migration)', () => {
+    const items = parseAirNowItems([
+      { parameter: 'PM2.5', nowcastAQI: 158, category: 'Unhealthy', reportingArea: 'San Rafael', latitude: 37.97, longitude: -122.53, dateObserved: '2026-10-06', hourObserved: 9 },
+    ])
+    expect(items).toHaveLength(1)
+    expect(items[0].extracted?.aqi).toBe(158)
+    expect(items[0].extracted?.area).toBe('San Rafael')
+    expect(items[0].geo).toMatchObject({ lat: 37.97, lng: -122.53 })
+    expect(airnowItemToCandidates(items[0])[0].eventType).toBe('air_quality')
+  })
+  it('treats the "no observations" WebServiceError envelope as empty', () => {
+    expect(parseAirNowItems({ WebServiceError: [{ Message: 'No data' }] })).toHaveLength(0)
+  })
   it('a changed AQI yields a new content hash (→ event update)', () => {
     const a = parseAirNowItems(obs(158, 'Unhealthy'))[0]
     const b = parseAirNowItems(obs(180, 'Unhealthy'))[0]
