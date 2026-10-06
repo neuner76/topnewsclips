@@ -79,7 +79,9 @@ const checks = [
   {
     id: 'C8',
     name: 'Loaded outrage language',
-    pattern: /\b(shocking|explosive(?!\s+media\b)|humiliating|devastating takedown)\b/i,
+    // 'explosive' only flags outrage framing ('explosive report/allegation'), not literal
+    // explosions ('explosive ocean splashdown') which tripped this as a false positive.
+    pattern: /\b(shocking|humiliating|devastating takedown)\b|\bexplosive\s+(?:report|allegation|claim|revelation|testimony|document)s?/i,
   },
 ]
 

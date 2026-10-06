@@ -249,7 +249,11 @@ export function runContentChecks(html, text, path) {
     const agrees = [...tags].some(t => placeRegions.has(t))
     if (!agrees) {
       const placesLabel = [...placeRegions].map(r => r ?? 'US/domestic').join(', ')
-      push(finding('region_consistency', `Region tag ${[...tags].join('/')} contradicts every named place (text names: ${placesLabel})`, 'hard', [c.text.slice(0, 160)]))
+      // WARNING, not hard: against scraped HTML (no per-card structure) this check
+      // false-positives on self-named regions and adjacent-card window bleed, so it
+      // can't reliably gate CI. Non-blocking; restore to 'hard' only with a structured
+      // per-card data source (no __NEXT_DATA__ on the App Router pages today).
+      push(finding('region_consistency', `Region tag ${[...tags].join('/')} contradicts every named place (text names: ${placesLabel})`, 'warning', [c.text.slice(0, 160)]))
     }
   }
 
