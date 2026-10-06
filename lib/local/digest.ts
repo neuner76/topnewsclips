@@ -270,7 +270,7 @@ function environmentSources(point: { lat: number; lng: number }, airQuality?: Ai
 async function resolveAirQuality(point: { lat: number; lng: number }): Promise<AirQualityReading | undefined> {
   const airnow = process.env.AIRNOW_API_KEY
     ? await safe(async () => {
-        const url = `https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${point.lat}&longitude=${point.lng}&distance=25&API_KEY=${process.env.AIRNOW_API_KEY}`
+        const url = `https://www.airnowapi.org/aq/observation/current/ziplatlong/?format=application/json&latitude=${point.lat}&longitude=${point.lng}&distance=25&API_KEY=${process.env.AIRNOW_API_KEY}`
         const res = await fetch(url)
         if (!res.ok) throw new Error(`airnow ${res.status}`)
         return normalizeAirNow(await res.json())

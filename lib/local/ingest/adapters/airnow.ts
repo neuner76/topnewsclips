@@ -1,5 +1,6 @@
 import type { SourceAdapter, NormalizedItem, EventCandidate, RawPayload, FetchContext } from '../types'
 import { hashContent } from '../content-hash'
+import { airNowObsList, airNowAqi, airNowCategory, airNowParameter, airNowReportingArea, airNowLat, airNowLng } from '../../adapters/airnow'
 
 // AirNow current air quality as a §7 ingestion source. Records every reading as a
 // source_item, but emits an air_quality EVENT only when AQI is elevated (≥101,
@@ -15,30 +16,18 @@ const UA = 'TopNewsClipsLocal/1.0 (neuner@gmail.com)'
 const MARIN_CENTER = { lat: 37.9735, lng: -122.5311 }
 export const AQI_ALERT_THRESHOLD = 101 // Unhealthy for Sensitive Groups (orange)
 
-interface AirNowObs {
-  ParameterName?: string
-  AQI?: number
-  Category?: { Name?: string }
-  ReportingArea?: string
-  Latitude?: number
-  Longitude?: number
-  DateObserved?: string
-  HourObserved?: number
-}
-
 export function parseAirNowItems(body: unknown, opts: { center?: { lat: number; lng: number } } = {}): NormalizedItem[] {
   const center = opts.center ?? MARIN_CENTER
-  const obs = (Array.isArray(body) ? body : []) as AirNowObs[]
-  const withAqi = obs.filter(o => typeof o.AQI === 'number')
+  const withAqi = airNowObsList(body).filter(o => typeof airNowAqi(o) === 'number')
   if (withAqi.length === 0) return []
 
-  const worst = withAqi.reduce((a, b) => ((b.AQI ?? 0) > (a.AQI ?? 0) ? b : a))
-  const aqi = worst.AQI ?? 0
-  const category = worst.Category?.Name ?? 'Unknown'
-  const area = worst.ReportingArea || 'Marin'
-  const lat = typeof worst.Latitude === 'number' ? worst.Latitude : center.lat
-  const lng = typeof worst.Longitude === 'number' ? worst.Longitude : center.lng
-  const observedKey = `${worst.DateObserved ?? ''}:${worst.HourObserved ?? ''}`
+  const worst = withAqi.reduce((a, b) => ((airNowAqi(b) ?? 0) > (airNowAqi(a) ?? 0) ? b : a))
+  const aqi = airNowAqi(worst) ?? 0
+  const category = airNowCategory(worst)
+  const area = airNowReportingArea(worst) || 'Marin'
+  const lat = airNowLat(worst) ?? center.lat
+  const lng = airNowLng(worst) ?? center.lng
+  const observedKey = `${worst.DateObserved ?? worst.dateObserved ?? ''}:${worst.HourObserved ?? worst.hourObserved ?? ''}`
 
   return [{
     externalId: area,
@@ -48,7 +37,7 @@ export function parseAirNowItems(body: unknown, opts: { center?: { lat: number; 
     publishedAt: new Date().toISOString(),
     placeText: area,
     geo: { lat, lng, precision: 'county' }, // AirNow reporting area is county-level
-    extracted: { aqi, category, parameter: worst.ParameterName ?? '', area },
+    extracted: { aqi, category, parameter: airNowParameter(worst), area },
   }]
 }
 
@@ -75,10 +64,10 @@ export const airnowAdapter: SourceAdapter = {
     void _ctx
     const key = process.env.AIRNOW_API_KEY
     if (!key) return [] // no key → nothing to ingest (source stays healthy)
-    const url = `https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${MARIN_CENTER.lat}&longitude=${MARIN_CENTER.lng}&distance=25&API_KEY=${key}`
+    const url = `https://www.airnowapi.org/aq/observation/current/ziplatlong/?format=application/json&latitude=${MARIN_CENTER.lat}&longitude=${MARIN_CENTER.lng}&distance=25&API_KEY=${key}`
     const res = await fetch(url, { headers: { 'User-Agent': UA } })
     if (!res.ok) throw new Error(`AirNow HTTP ${res.status}`)
-    return [{ body: await res.json(), contentType: 'application/json', url: 'https://www.airnowapi.org/aq/observation/latLong/current/', fetchedAt: new Date().toISOString() }]
+    return [{ body: await res.json(), contentType: 'application/json', url: 'https://www.airnowapi.org/aq/observation/current/ziplatlong/', fetchedAt: new Date().toISOString() }]
   },
   async normalize(raw: RawPayload): Promise<NormalizedItem[]> {
     return parseAirNowItems(raw.body)

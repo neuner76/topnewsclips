@@ -71,4 +71,10 @@ describe('normalizeAirNow', () => {
     expect(a.parameter).toBe('O3')
     expect(a.category).toBe('Good')
   })
+  it('also reads the new camelCase/nowcastAQI schema (endpoint migration)', () => {
+    const a = normalizeAirNow([{ parameter: 'PM2.5', nowcastAQI: 120, category: 'Unhealthy for Sensitive Groups' }])
+    expect(a.aqi).toBe(120)
+    expect(a.parameter).toBe('PM2.5')
+    expect(a.category).toBe('Unhealthy for Sensitive Groups')
+  })
 })
