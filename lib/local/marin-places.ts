@@ -34,6 +34,7 @@ export const MARIN_PLACES: MarinPlace[] = [
   { slug: 'inverness', label: 'Inverness', lat: 38.1010, lng: -122.8569, radiusMiles: 10, region: 'West Marin' },
   { slug: 'marshall', label: 'Marshall', lat: 38.1585, lng: -122.8905, radiusMiles: 10, region: 'West Marin' },
   { slug: 'tomales', label: 'Tomales', lat: 38.2463, lng: -122.9050, radiusMiles: 10, region: 'West Marin' },
+  { slug: 'dillon-beach', label: 'Dillon Beach', lat: 38.2522, lng: -122.9633, radiusMiles: 8, region: 'West Marin' },
   { slug: 'nicasio', label: 'Nicasio', lat: 38.0630, lng: -122.6975, radiusMiles: 8, region: 'West Marin' },
   { slug: 'san-geronimo-valley', label: 'San Geronimo Valley', lat: 38.0130, lng: -122.6430, radiusMiles: 8, region: 'West Marin' },
   { slug: 'bolinas', label: 'Bolinas', lat: 37.9091, lng: -122.6864, radiusMiles: 8, region: 'West Marin' },
@@ -47,7 +48,7 @@ export function findMarinPlace(slug: string): MarinPlace | undefined {
 // Marin residential ZIP codes -> the nearest town in MARIN_PLACES, so a briefing
 // can be reached by ZIP too (e.g. /local/share/94940). ZIPs whose exact hamlet
 // isn't its own entry map to the closest listed town (Olema->Point Reyes Station,
-// Dillon Beach->Tomales, the San Geronimo Valley hamlets->San Geronimo Valley).
+// the San Geronimo Valley hamlets->San Geronimo Valley).
 export const MARIN_ZIP_TO_SLUG: Record<string, string> = {
   // North Marin — Novato
   '94945': 'novato', '94947': 'novato', '94948': 'novato', '94949': 'novato',
@@ -67,7 +68,8 @@ export const MARIN_ZIP_TO_SLUG: Record<string, string> = {
   '94956': 'point-reyes-station', '94950': 'point-reyes-station', // 94950 = Olema
   '94937': 'inverness',
   '94940': 'marshall',
-  '94971': 'tomales', '94929': 'tomales', // 94929 = Dillon Beach
+  '94971': 'tomales',
+  '94929': 'dillon-beach', // Dillon Beach has its own town page
   '94946': 'nicasio',
   '94963': 'san-geronimo-valley', '94973': 'san-geronimo-valley', '94938': 'san-geronimo-valley', '94933': 'san-geronimo-valley',
   '94924': 'bolinas',

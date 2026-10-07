@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parse511TrafficItems, bay511EventToCandidate } from './bay511-events'
-import { parseLcsItems, lcsItemToCandidate } from './caltrans-lcs'
+import { parseLcsItems, lcsItemToCandidate, lcsImpactSummary } from './caltrans-lcs'
 
 describe('511 traffic ingestion', () => {
   const body = {
@@ -76,5 +76,19 @@ describe('Caltrans LCS ingestion', () => {
     const cand = lcsItemToCandidate(parseLcsItems({ data: [mk()] }, { nowEpoch: now })[0])
     expect(cand.dedupeKey).toBe('caltrans-d4-lcs:us-101|nb|paving|lane')
     expect(cand.fields?.majorRoute).toBe(true)
+    expect(cand.summary).toBe('Paving · 1 of 3 lanes') // impact: work · lane extent
+  })
+})
+
+describe('lcsImpactSummary (Roads impact)', () => {
+  it('combines work type, lane extent, and estimated delay', () => {
+    expect(lcsImpactSummary({ typeOfWork: 'Paving', lanesClosed: '1', totalExistingLanes: '3' })).toBe('Paving · 1 of 3 lanes')
+    expect(lcsImpactSummary({ typeOfWork: 'Pile Driving', isFull: true, estimatedDelay: '30 minutes' })).toBe('Pile Driving · all lanes · ~30 minutes delay')
+  })
+  it('omits an unreported delay', () => {
+    expect(lcsImpactSummary({ typeOfWork: 'Utility', lanesClosed: '1', totalExistingLanes: '3', estimatedDelay: 'Not Reported' })).toBe('Utility · 1 of 3 lanes')
+  })
+  it('undefined when there is nothing to report', () => {
+    expect(lcsImpactSummary({})).toBeUndefined()
   })
 })

@@ -22,6 +22,12 @@ describe('MARIN_PLACES', () => {
     }
   })
 
+  it('Dillon Beach is its own West Marin town (ZIP 94929)', () => {
+    expect(findMarinPlace('dillon-beach')?.label).toBe('Dillon Beach')
+    expect(findMarinPlace('dillon-beach')?.region).toBe('West Marin')
+    expect(findMarinPlaceByZip('94929')?.label).toBe('Dillon Beach')
+  })
+
   it('findMarinPlace resolves by slug, case-insensitively', () => {
     expect(findMarinPlace('point-reyes-station')?.label).toBe('Point Reyes Station')
     expect(findMarinPlace('MARSHALL')?.label).toBe('Marshall')
