@@ -29,6 +29,26 @@ function toEpoch(s?: string): number | null {
 
 const MAJOR_ROUTE_RE = /\b101\b|u\.?s\.?-?101|\bca[- ]?1\b|\bsr[- ]?1\b|highway 1|\bhwy 1\b|\b580\b|\b37\b|sir francis drake|richmond[- ]san rafael/i
 
+// Closure impact for the card summary — work type · lane extent · estimated delay —
+// so a Roads update conveys HOW disruptive it is, not just that it exists. Delay is
+// Caltrans' own estimate (often "Not Reported", in which case the lane extent carries
+// the signal). This is scheduled-closure impact, not live traffic flow.
+export function lcsImpactSummary(p: {
+  typeOfWork?: string; isFull?: boolean; lanesClosed?: string; totalExistingLanes?: string; estimatedDelay?: string
+}): string | undefined {
+  const parts: string[] = []
+  if (p.typeOfWork && p.typeOfWork.trim()) parts.push(p.typeOfWork.trim())
+  const lanesClosed = (p.lanesClosed ?? '').trim()
+  const total = Number(p.totalExistingLanes)
+  if (p.isFull || lanesClosed.toLowerCase() === 'all') parts.push('all lanes')
+  else if (lanesClosed && Number.isFinite(Number(lanesClosed)) && Number.isFinite(total) && total > 0) {
+    parts.push(`${lanesClosed} of ${total} lanes`)
+  }
+  const delay = (p.estimatedDelay ?? '').trim()
+  if (delay && delay.toLowerCase() !== 'not reported' && delay !== '0') parts.push(`~${delay} delay`)
+  return parts.length ? parts.join(' · ') : undefined
+}
+
 export function parseLcsItems(
   body: unknown,
   opts: { counties?: string[]; nowEpoch?: number; lookaheadHours?: number } = {},
@@ -79,6 +99,10 @@ export function parseLcsItems(
         eventType: 'road_closure',
         majorRoute: MAJOR_ROUTE_RE.test(`${route} ${desc ?? ''}`),
         typeOfWork: cl.typeOfWork,
+        isFull,
+        lanesClosed: cl.lanesClosed,
+        totalExistingLanes: cl.totalExistingLanes,
+        estimatedDelay: cl.estimatedDelay,
         // deterministic match key across re-fetches: route + direction + work + type
         dedupeKey: `caltrans-d4-lcs:${[route, dir ?? '', cl.typeOfWork ?? '', cl.typeOfClosure ?? ''].join('|').toLowerCase()}`,
         startedAt,
@@ -95,7 +119,7 @@ export function lcsItemToCandidate(item: NormalizedItem): EventCandidate {
     eventType: String(ex.eventType ?? 'road_closure'),
     dedupeKey: String(ex.dedupeKey ?? `caltrans-d4-lcs:${item.externalId ?? item.contentHash}`),
     headline: item.title,
-    summary: ex.typeOfWork ? String(ex.typeOfWork) : undefined,
+    summary: lcsImpactSummary({ typeOfWork: ex.typeOfWork as string, isFull: !!ex.isFull, lanesClosed: ex.lanesClosed as string, totalExistingLanes: ex.totalExistingLanes as string, estimatedDelay: ex.estimatedDelay as string }),
     startedAt: (ex.startedAt as string) ?? item.publishedAt,
     geo: item.geo,
     sourceRole: 'origin',
