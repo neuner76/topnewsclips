@@ -148,6 +148,19 @@ export async function readPublishedEvents(sb: SupabaseClient, opts: ReadPublishe
 
 // Section event-type groupings (which ingestion types feed which /local section).
 export const STORE_ROAD_TYPES = ['road_closure', 'road_incident', 'transit_disruption']
+
+// Roads read that leads with LIVE incidents (unplanned 511 events — accidents,
+// hazards, transit disruptions) so the real-time signal isn't crowded out of the
+// slot budget by scheduled Caltrans lane closures, then fills the rest with
+// closures. If there are no active incidents it degrades to all closures.
+export async function readRoadsStore(sb: SupabaseClient, opts: { limit?: number; incidentSlots?: number } = {}): Promise<LocalEvent[]> {
+  const limit = opts.limit ?? 8
+  const incidentSlots = Math.min(opts.incidentSlots ?? 4, limit)
+  const incidents = await readPublishedEvents(sb, { types: ['road_incident', 'transit_disruption'], limit: incidentSlots })
+  const remaining = limit - incidents.length
+  const closures = remaining > 0 ? await readPublishedEvents(sb, { types: ['road_closure'], limit: remaining }) : []
+  return [...incidents, ...closures]
+}
 export const STORE_NEED_TO_KNOW_TYPES = [
   'weather_alert', 'coastal_flood', 'stream_high_water', 'fire_incident', 'fire_detection',
   'public_safety', 'power_outage', 'road_closure', 'air_quality',

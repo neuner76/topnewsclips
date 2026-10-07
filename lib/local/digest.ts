@@ -23,7 +23,7 @@ import { fetchCalFire } from './adapters/calfire'
 import { type Anchor } from './anchors'
 import { PUBLIC_SEED_PLACES } from './seed-places'
 import { sectionSource, type LocalSectionKey } from './config'
-import { readPublishedEvents, STORE_ROAD_TYPES, STORE_NEED_TO_KNOW_TYPES } from './store-read'
+import { readPublishedEvents, readRoadsStore, STORE_NEED_TO_KNOW_TYPES } from './store-read'
 import { fetch511Events } from './adapters/bay511'
 import { fetchCaltransCameras, type LocalCamera } from './adapters/caltrans-cameras'
 import { fetchCaltransClosures } from './adapters/caltrans-lcs'
@@ -427,7 +427,7 @@ export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLoc
   const roads = await resolveSection(
     'roadsAndIncidents',
     () => resolveRoads(inputs),
-    () => readPublishedEvents(sb, { types: STORE_ROAD_TYPES, limit: 8 }),
+    () => readRoadsStore(sb, { limit: 8 }),
   )
   const blindspots = await resolveSection('localBlindspot', () => resolveBlindspot(inputs))
   const government = await resolveSection('yourGovernment', () => resolveGovernment(inputs, blindspots))
