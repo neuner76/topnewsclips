@@ -225,8 +225,12 @@ export function runContentChecks(html, text, path) {
 
   // 10. High-severity suspect coverage (HARD): a 0-of-N card on a mass-casualty
   //     / disaster story — an implausible blindspot used as a prominent slot.
+  // Legal/charging FOLLOW-UPS to a high-salience event (a suspect charged, arrested,
+  // sentenced, on trial) legitimately carry low mainstream coverage — only the
+  // original EVENT being shown 0-of-N is the implausible-blindspot signal we gate on.
+  const LEGAL_FOLLOWUP = /\b(charg\w+|arrest\w+|sentenc\w+|indict\w+|plead\w+|convict\w+|acquit\w+|\btrial\b|lawsuit|sued|prosecut\w+|accused|suspect\w*|detain\w+|custody|verdict|appeal\w*|arraign\w+)\b/i
   for (const c of cards) {
-    if (c.coverageCount === 0 && HIGH_SALIENCE.test(c.text)) {
+    if (c.coverageCount === 0 && HIGH_SALIENCE.test(c.text) && !LEGAL_FOLLOWUP.test(c.text)) {
       push(finding('high_severity_suspect_coverage', 'High-salience story shown 0-of-N (suspect coverage)', 'hard', [c.text]))
     }
   }
