@@ -72,6 +72,12 @@ describe('Caltrans LCS ingestion', () => {
     expect(parseLcsItems({ data: [otherCounty] }, { nowEpoch: now })).toHaveLength(0)
     expect(parseLcsItems({ data: [ended] }, { nowEpoch: now })).toHaveLength(0)
   })
+  it('trims far-north Sonoma by radius (drops Santa Rosa, keeps Petaluma)', () => {
+    const santaRosa = mk({ location: { travelFlowDirection: 'NB', begin: { beginRoute: 'US-101', beginCounty: 'Sonoma', beginLatitude: '38.44', beginLongitude: '-122.71', beginNearbyPlace: 'Santa Rosa' } } })
+    expect(parseLcsItems({ data: [santaRosa] }, { nowEpoch: now })).toHaveLength(0) // ~33 mi > 30
+    const petaluma = mk({ location: { travelFlowDirection: 'NB', begin: { beginRoute: 'US-101', beginCounty: 'Sonoma', beginLatitude: '38.23', beginLongitude: '-122.64', beginNearbyPlace: 'Petaluma' } } })
+    expect(parseLcsItems({ data: [petaluma] }, { nowEpoch: now })).toHaveLength(1) // ~18 mi, kept
+  })
   it('candidate uses a deterministic route-based dedupeKey', () => {
     const cand = lcsItemToCandidate(parseLcsItems({ data: [mk()] }, { nowEpoch: now })[0])
     expect(cand.dedupeKey).toBe('caltrans-d4-lcs:us-101|nb|paving|lane')

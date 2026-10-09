@@ -1,6 +1,6 @@
 import type { SourceAdapter, NormalizedItem, EventCandidate, RawPayload, FetchContext } from '../types'
 import { hashContent } from '../content-hash'
-import { mapLink } from '../../geography'
+import { mapLink, haversineMiles } from '../../geography'
 
 // Caltrans D4 lane-closure system (LCS) as an ingestion source. Parsing mirrors the
 // live digest adapter (lib/local/adapters/caltrans-lcs.ts) but emits the §5.1 shapes
@@ -8,6 +8,8 @@ import { mapLink } from '../../geography'
 // have already ended, or start beyond the look-ahead window, are dropped.
 const UA = 'TopNewsClipsLocal/1.0 (neuner@gmail.com)'
 const DEFAULT_COUNTIES = ['marin', 'sonoma']
+const MARIN_CENTER = { lat: 37.9735, lng: -122.5311 } // San Rafael
+const REGION_RADIUS_MILES = 30 // drop far-north Sonoma (Santa Rosa/Cloverdale); keeps Petaluma + Marin
 
 interface LcsBegin {
   beginRoute?: string; beginNearbyPlace?: string; beginCounty?: string
@@ -51,9 +53,11 @@ export function lcsImpactSummary(p: {
 
 export function parseLcsItems(
   body: unknown,
-  opts: { counties?: string[]; nowEpoch?: number; lookaheadHours?: number } = {},
+  opts: { counties?: string[]; nowEpoch?: number; lookaheadHours?: number; center?: { lat: number; lng: number }; radiusMiles?: number } = {},
 ): NormalizedItem[] {
   const countySet = new Set((opts.counties ?? DEFAULT_COUNTIES).map(c => c.toLowerCase()))
+  const center = opts.center ?? MARIN_CENTER
+  const radiusMiles = opts.radiusMiles ?? REGION_RADIUS_MILES
   const now = opts.nowEpoch ?? Math.floor(Date.now() / 1000)
   const lookahead = (opts.lookaheadHours ?? 24) * 3600
   const items: NormalizedItem[] = []
@@ -68,6 +72,7 @@ export function parseLcsItems(
     const lat = Number(begin.beginLatitude)
     const lng = Number(begin.beginLongitude)
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
+    if (haversineMiles(center.lat, center.lng, lat, lng) > radiusMiles) continue // trim far-north Sonoma
 
     const ts = cl.closureTimestamp ?? {}
     const start = toEpoch(ts.closureStartEpoch)
