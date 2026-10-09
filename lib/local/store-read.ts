@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { LocalEvent, LocalEventType, LocalEventStatus, Confidence, LocalEvidenceSource, LocalEvidenceType, GeoScope } from './types'
+import { nearAnyAnchor, type Anchor } from './anchors'
 
 // Read side of the D1 strangler: turn PUBLISHED, ACTIVE local_events rows (written
 // by the §5.2 ingestion pipeline) into the LocalEvent shape the /local UI renders.
@@ -125,6 +126,29 @@ export async function readSourcesByEvent(sb: SupabaseClient, eventIds: string[])
 export interface ReadPublishedOptions {
   types?: string[] // ingestion event_type slugs; omit for all
   limit?: number
+  // Town-centered views pass the saved-place anchors; an event WITH coordinates
+  // is kept only when it falls inside some anchor's radius (same test the live 511 /
+  // Caltrans path uses). Coordinate-less, name/county-scoped events (county-wide
+  // weather, AQI) are never dropped by this point test. Omit for an unfiltered,
+  // store-wide read.
+  anchors?: Anchor[]
+}
+
+// Over-fetch factor when an anchor filter is active: the store is ordered by
+// importance across the whole coverage area, so near-you events can sit anywhere
+// in that order. Pull a generous candidate pool, filter by distance, then cap.
+const ANCHOR_OVERFETCH = 8
+const ANCHOR_FETCH_FLOOR = 80
+const ANCHOR_FETCH_CEIL = 300
+
+// A stored event clears the anchor filter if there are no anchors, if it has no
+// point (name/county-scoped — judged by name match elsewhere, not proximity), or
+// if its point is within any anchor's radius.
+export function withinAnchors(geo: GeoScope, anchors?: Anchor[]): boolean {
+  if (!anchors || anchors.length === 0) return true
+  const { latitude, longitude } = geo
+  if (latitude == null || longitude == null) return true
+  return nearAnyAnchor(latitude, longitude, anchors).ok
 }
 
 // Published + active events, most important first, with their sources attached.
@@ -137,11 +161,19 @@ export async function readPublishedEvents(sb: SupabaseClient, opts: ReadPublishe
     .order('importance', { ascending: false, nullsFirst: false })
     .order('latest_update_at', { ascending: false })
   if (opts.types && opts.types.length > 0) q = q.in('event_type', opts.types)
-  if (opts.limit) q = q.limit(opts.limit)
+  const anchored = !!(opts.anchors && opts.anchors.length > 0)
+  if (opts.limit) {
+    const fetchLimit = anchored
+      ? Math.min(Math.max(opts.limit * ANCHOR_OVERFETCH, ANCHOR_FETCH_FLOOR), ANCHOR_FETCH_CEIL)
+      : opts.limit
+    q = q.limit(fetchLimit)
+  }
 
   const { data, error } = await q
   if (error) throw new Error(`readPublishedEvents: ${error.message}`)
-  const rows = (data ?? []) as StoredEventRow[]
+  let rows = (data ?? []) as StoredEventRow[]
+  if (anchored) rows = rows.filter(r => withinAnchors(asGeoScope(r.geo), opts.anchors))
+  if (opts.limit) rows = rows.slice(0, opts.limit)
   const srcMap = await readSourcesByEvent(sb, rows.map(r => r.id))
   return rows.map(r => mapStoredEventToLocalEvent(r, srcMap.get(r.id) ?? []))
 }
@@ -153,13 +185,29 @@ export const STORE_ROAD_TYPES = ['road_closure', 'road_incident', 'transit_disru
 // hazards, transit disruptions) so the real-time signal isn't crowded out of the
 // slot budget by scheduled Caltrans lane closures, then fills the rest with
 // closures. If there are no active incidents it degrades to all closures.
-export async function readRoadsStore(sb: SupabaseClient, opts: { limit?: number; incidentSlots?: number } = {}): Promise<LocalEvent[]> {
+export async function readRoadsStore(sb: SupabaseClient, opts: { limit?: number; incidentSlots?: number; anchors?: Anchor[] } = {}): Promise<LocalEvent[]> {
   const limit = opts.limit ?? 8
   const incidentSlots = Math.min(opts.incidentSlots ?? 4, limit)
-  const incidents = await readPublishedEvents(sb, { types: ['road_incident', 'transit_disruption'], limit: incidentSlots })
+  const incidents = await readPublishedEvents(sb, { types: ['road_incident', 'transit_disruption'], limit: incidentSlots, anchors: opts.anchors })
   const remaining = limit - incidents.length
-  const closures = remaining > 0 ? await readPublishedEvents(sb, { types: ['road_closure'], limit: remaining }) : []
+  const closures = remaining > 0 ? await readPublishedEvents(sb, { types: ['road_closure'], limit: remaining, anchors: opts.anchors }) : []
   return [...incidents, ...closures]
+}
+
+// A road_closure earns a Need To Know slot only when it's a FULL closure (mirrors
+// the live buildNeedToKnow rule); routine lane/ramp closures stay in Roads only.
+export function isFullClosure(e: LocalEvent): boolean {
+  return /full closure/i.test(e.title)
+}
+
+// Store arm of Need To Know. Pulls the urgent event types near the anchors, then
+// keeps only FULL road closures from the road_closure type so lane/emergency work
+// doesn't masquerade as "need to know" (and doesn't duplicate the Roads section).
+export async function readNeedToKnowStore(sb: SupabaseClient, opts: { limit?: number; anchors?: Anchor[] } = {}): Promise<LocalEvent[]> {
+  const limit = opts.limit ?? 4
+  const pool = await readPublishedEvents(sb, { types: STORE_NEED_TO_KNOW_TYPES, limit: limit * 3, anchors: opts.anchors })
+  const kept = pool.filter(e => e.eventType !== 'road_closure' || isFullClosure(e))
+  return kept.slice(0, limit)
 }
 export const STORE_NEED_TO_KNOW_TYPES = [
   'weather_alert', 'coastal_flood', 'stream_high_water', 'fire_incident', 'fire_detection',
