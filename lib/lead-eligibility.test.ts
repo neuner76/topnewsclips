@@ -36,6 +36,17 @@ describe('lead eligibility gates (Tasks 2–5)', () => {
     expect(evaluateLeadEligibility(fixtures.commentaryAnalysisLowCoverageStory).status).toBe('blocked')
   })
 
+  it('blocks a commentary content_type even when legacy category is reported (the Oct-8 gap)', () => {
+    const commentaryByContentType: Story = { ...fixtures.reportedCorroboratedLead, category: 'reported', content_type: 'commentary_analysis' }
+    expect(checkLeadContentType(commentaryByContentType).status).toBe('blocked')
+    expect(evaluateLeadEligibility(commentaryByContentType).status).toBe('blocked')
+  })
+
+  it('content_type wins over legacy category (reported content_type, analysis category → not blocked by type)', () => {
+    const reportedByContentType: Story = { ...fixtures.reportedCorroboratedLead, category: 'analysis', content_type: 'reported' }
+    expect(checkLeadContentType(reportedByContentType).status).toBe('eligible')
+  })
+
   it('requires override for a T7 source', () => {
     const t7Reported: Story = { ...fixtures.reportedCorroboratedLead, source_tier: 7 }
     expect(checkLeadSourceTier(t7Reported).status).toBe('override_required')

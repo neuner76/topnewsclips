@@ -35,7 +35,7 @@ export interface LeadEligibilityResult {
 // pass lighter rows.
 export type LeadCandidate = Pick<
   Story,
-  | 'title' | 'description' | 'subcategory' | 'category'
+  | 'title' | 'description' | 'subcategory' | 'category' | 'content_type'
   | 'source_tier' | 'source_type' | 'msm_outlet_coverage' | 'msm_gap'
   | 'journalist_username' | 'source' | 'region'
 >
@@ -134,7 +134,13 @@ function isSingleSource(story: LeadCandidate): boolean {
 
 // ── Task 2: content-type gate ───────────────────────────────────────────────
 export function checkLeadContentType(story: LeadCandidate): LeadEligibilityResult {
-  const contentType = deriveLeadContentType(story)
+  // Prefer the authoritative classifier `content_type` (what the card displays);
+  // fall back to the legacy `category` for rows predating classification. A story
+  // can display "Commentary / Analysis" via content_type while category is still
+  // 'reported'/null — that commentary piece must NOT be eligible to lead.
+  const contentType = story.content_type
+    ? leadContentTypeFromClassified(story.content_type)
+    : deriveLeadContentType(story)
   if (LEAD_BLOCKED_CONTENT_TYPES.has(contentType)) {
     return {
       status: 'blocked',
