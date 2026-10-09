@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { appEventType, mapStoredEventToLocalEvent, type StoredEventRow } from './store-read'
+import { appEventType, mapStoredEventToLocalEvent, withinAnchors, isFullClosure, type StoredEventRow } from './store-read'
+import type { LocalEvent } from './types'
+import type { Anchor } from './anchors'
 
 const row: StoredEventRow = {
   id: 'e1',
@@ -53,5 +55,42 @@ describe('mapStoredEventToLocalEvent', () => {
   it('parses geo delivered as a JSON string', () => {
     const e = mapStoredEventToLocalEvent({ ...row, geo: '{"cities":["Novato"]}' })
     expect(e.geo.cities).toEqual(['Novato'])
+  })
+})
+
+
+describe('withinAnchors (store-mode geo filter)', () => {
+  // Novato center + its 6 mi radius — the anchor a shared Novato briefing passes.
+  const novato: Anchor = { lat: 38.1074, lng: -122.5697, radiusMiles: 6, label: 'Novato' }
+
+  it('no anchors → keep everything (unfiltered store-wide read)', () => {
+    expect(withinAnchors({ latitude: 37.5985, longitude: -122.3872 }, [])).toBe(true)
+    expect(withinAnchors({ latitude: 37.5985, longitude: -122.3872 }, undefined)).toBe(true)
+  })
+  it('keeps a point inside the anchor radius (central Novato)', () => {
+    expect(withinAnchors({ latitude: 38.108, longitude: -122.569 }, [novato])).toBe(true)
+  })
+  it('drops a far point with coordinates (Millbrae, ~35 mi south — the Novato bug)', () => {
+    expect(withinAnchors({ latitude: 37.5985, longitude: -122.3872 }, [novato])).toBe(false)
+  })
+  it('drops Sausalito (~17 mi) and Greenbrae (~10 mi) for a 6 mi Novato anchor', () => {
+    expect(withinAnchors({ latitude: 37.8591, longitude: -122.4853 }, [novato])).toBe(false)
+    expect(withinAnchors({ latitude: 37.9520, longitude: -122.5110 }, [novato])).toBe(false)
+  })
+  it('never drops a coordinate-less, county-scoped event (county-wide weather / AQI)', () => {
+    expect(withinAnchors({ counties: ['Marin'] }, [novato])).toBe(true)
+  })
+})
+
+describe('isFullClosure (Need To Know road promotion)', () => {
+  const base: LocalEvent = {
+    id: 'r1', title: '', eventType: 'road_closure', status: 'new',
+    firstSeenAt: '2026-10-09T00:00:00Z', latestUpdateAt: '2026-10-09T00:00:00Z',
+    geo: {}, consequenceScore: 0.5, confidence: 'high', sources: [],
+  }
+  it('true only for a full closure, not routine lane/emergency work', () => {
+    expect(isFullClosure({ ...base, title: 'US-101 North — Full closure near Greenbrae' })).toBe(true)
+    expect(isFullClosure({ ...base, title: 'US-101 South — Lane closure near Novato' })).toBe(false)
+    expect(isFullClosure({ ...base, title: 'US-101 North — Emergency Work' })).toBe(false)
   })
 })
