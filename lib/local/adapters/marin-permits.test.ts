@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import sample from '../../../fixtures/sources/marin-permits/sample.json'
-import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, isSignificantPermit, type MarinPermitRow } from './marin-permits'
+import { normalizeMarinPermits, permitConsequence, permitDetailUrl, permitDetailFields, isSignificantPermit, isCivicPermit, type MarinPermitRow } from './marin-permits'
 
 const row = (over: Partial<MarinPermitRow>): MarinPermitRow => ({
   address: '1 MAIN ST, NOVATO, CA 94945', city_town: 'NOVATO', zipcode: '94945',
@@ -158,5 +158,23 @@ describe('normalizeMarinPermits', () => {
     const out = normalizeMarinPermits(sample as MarinPermitRow[])
     expect(out.every(e => e.eventType === 'building_permit')).toBe(true)
     expect(out.every(e => e.geo.latitude != null && e.geo.longitude != null)).toBe(true)
+  })
+})
+
+
+describe('isCivicPermit (Local Blindspot = civic/public-interest only)', () => {
+  it('excludes private single-family homes, however expensive', () => {
+    expect(isCivicPermit('(N) One-Story SFD With Attached Garage, Septic System, And Irrigation Well')).toBe(false)
+    expect(isCivicPermit('Construct (N) Two Story S F D. Proposed Building Area Is Approx. 6,360 Sf.')).toBe(false)
+    expect(isCivicPermit('Addition & Remodel; Garage Expansion, Ret Wall, Fencing, Outdoor Trellis, Bbq Station')).toBe(false)
+    expect(isCivicPermit('New pool and spa with patio')).toBe(false)
+  })
+  it('keeps commercial, multi-family, institutional, and infrastructure records', () => {
+    expect(isCivicPermit('48-unit affordable housing project')).toBe(true)
+    expect(isCivicPermit('New commercial building — retail')).toBe(true)
+    expect(isCivicPermit('Tenant improvement for restaurant')).toBe(true)
+    expect(isCivicPermit('New Construction Of An Aircraft Hangar, County Owned Property')).toBe(true)
+    expect(isCivicPermit('Elementary school classroom addition')).toBe(true)
+    expect(isCivicPermit('Sewer treatment plant upgrade')).toBe(true)
   })
 })
