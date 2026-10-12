@@ -35,8 +35,32 @@ const MAJOR_ROUTE_RE = /\b101\b|u\.?s\.?-?101|\bca[- ]?1\b|\bsr[- ]?1\b|highway 
 // so a Roads update conveys HOW disruptive it is, not just that it exists. Delay is
 // Caltrans' own estimate (often "Not Reported", in which case the lane extent carries
 // the signal). This is scheduled-closure impact, not live traffic flow.
+// Absolute Pacific-time closure window from the start/end epochs. Absolute (not
+// relative) so a value baked into the stored summary never goes stale: "Sat 7:00 AM–
+// 3:00 PM" (same day), "Fri 7:00 PM → Sat 10:00 AM" (overnight), "from Sat 7:00 AM"
+// (open-ended). Returns undefined when there's no usable start.
+const PT = 'America/Los_Angeles'
+function ptDay(epoch: number): string {
+  return new Date(epoch * 1000).toLocaleDateString('en-US', { weekday: 'short', timeZone: PT })
+}
+function ptTime(epoch: number): string {
+  return new Date(epoch * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: PT })
+}
+export function lcsWindowText(startEpoch?: number | null, endEpoch?: number | null, indefinite?: boolean): string | undefined {
+  if (startEpoch == null) return undefined
+  const startDay = ptDay(startEpoch)
+  const startTime = ptTime(startEpoch)
+  if (indefinite || endEpoch == null) return `from ${startDay} ${startTime}`
+  const endDay = ptDay(endEpoch)
+  const endTime = ptTime(endEpoch)
+  return startDay === endDay
+    ? `${startDay} ${startTime}–${endTime}`
+    : `${startDay} ${startTime} → ${endDay} ${endTime}`
+}
+
 export function lcsImpactSummary(p: {
   typeOfWork?: string; isFull?: boolean; lanesClosed?: string; totalExistingLanes?: string; estimatedDelay?: string
+  startEpoch?: number | null; endEpoch?: number | null; indefinite?: boolean
 }): string | undefined {
   const parts: string[] = []
   if (p.typeOfWork && p.typeOfWork.trim()) parts.push(p.typeOfWork.trim())
@@ -48,6 +72,10 @@ export function lcsImpactSummary(p: {
   }
   const delay = (p.estimatedDelay ?? '').trim()
   if (delay && delay.toLowerCase() !== 'not reported' && delay !== '0') parts.push(`~${delay} delay`)
+  // Caltrans D4 almost never reports a delay, but it does give the closure window —
+  // the honest impact signal (how long, and whether it's now or scheduled).
+  const window = lcsWindowText(p.startEpoch, p.endEpoch, p.indefinite)
+  if (window) parts.push(window)
   return parts.length ? parts.join(' · ') : undefined
 }
 
@@ -108,6 +136,9 @@ export function parseLcsItems(
         lanesClosed: cl.lanesClosed,
         totalExistingLanes: cl.totalExistingLanes,
         estimatedDelay: cl.estimatedDelay,
+        startEpoch: start,
+        endEpoch: end,
+        indefinite,
         // deterministic match key across re-fetches: route + direction + work + type
         dedupeKey: `caltrans-d4-lcs:${[route, dir ?? '', cl.typeOfWork ?? '', cl.typeOfClosure ?? ''].join('|').toLowerCase()}`,
         startedAt,
@@ -124,7 +155,11 @@ export function lcsItemToCandidate(item: NormalizedItem): EventCandidate {
     eventType: String(ex.eventType ?? 'road_closure'),
     dedupeKey: String(ex.dedupeKey ?? `caltrans-d4-lcs:${item.externalId ?? item.contentHash}`),
     headline: item.title,
-    summary: lcsImpactSummary({ typeOfWork: ex.typeOfWork as string, isFull: !!ex.isFull, lanesClosed: ex.lanesClosed as string, totalExistingLanes: ex.totalExistingLanes as string, estimatedDelay: ex.estimatedDelay as string }),
+    summary: lcsImpactSummary({
+      typeOfWork: ex.typeOfWork as string, isFull: !!ex.isFull, lanesClosed: ex.lanesClosed as string,
+      totalExistingLanes: ex.totalExistingLanes as string, estimatedDelay: ex.estimatedDelay as string,
+      startEpoch: ex.startEpoch as number | null, endEpoch: ex.endEpoch as number | null, indefinite: !!ex.indefinite,
+    }),
     startedAt: (ex.startedAt as string) ?? item.publishedAt,
     geo: item.geo,
     sourceRole: 'origin',

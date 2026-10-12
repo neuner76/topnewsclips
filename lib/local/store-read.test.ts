@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { appEventType, mapStoredEventToLocalEvent, withinAnchors, isFullClosure, type StoredEventRow } from './store-read'
+import { appEventType, mapStoredEventToLocalEvent, withinAnchors, isFullClosure, isCurrentlyActive, type StoredEventRow } from './store-read'
 import type { LocalEvent } from './types'
 import type { Anchor } from './anchors'
 
@@ -92,5 +92,23 @@ describe('isFullClosure (Need To Know road promotion)', () => {
     expect(isFullClosure({ ...base, title: 'US-101 North — Full closure near Greenbrae' })).toBe(true)
     expect(isFullClosure({ ...base, title: 'US-101 South — Lane closure near Novato' })).toBe(false)
     expect(isFullClosure({ ...base, title: 'US-101 North — Emergency Work' })).toBe(false)
+  })
+})
+
+describe('isCurrentlyActive (scheduled vs active closures)', () => {
+  const now = Date.parse('2026-10-12T20:00:00Z')
+  const base: LocalEvent = {
+    id: 'c1', title: 'US-101 — Full closure', eventType: 'road_closure', status: 'new',
+    firstSeenAt: '', latestUpdateAt: '2026-10-12T20:00:00Z',
+    geo: {}, consequenceScore: 0.8, confidence: 'high', sources: [],
+  }
+  it('active when the closure has already started', () => {
+    expect(isCurrentlyActive({ ...base, firstSeenAt: '2026-10-12T18:00:00Z' }, now)).toBe(true)
+  })
+  it('not active when it is scheduled for later', () => {
+    expect(isCurrentlyActive({ ...base, firstSeenAt: '2026-10-14T07:00:00Z' }, now)).toBe(false)
+  })
+  it('treats an unparseable start as active (fail open)', () => {
+    expect(isCurrentlyActive({ ...base, firstSeenAt: 'n/a' }, now)).toBe(true)
   })
 })

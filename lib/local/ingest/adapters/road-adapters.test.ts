@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parse511TrafficItems, bay511EventToCandidate } from './bay511-events'
-import { parseLcsItems, lcsItemToCandidate, lcsImpactSummary } from './caltrans-lcs'
+import { parseLcsItems, lcsItemToCandidate, lcsImpactSummary, lcsWindowText } from './caltrans-lcs'
 
 describe('511 traffic ingestion', () => {
   const body = {
@@ -82,7 +82,9 @@ describe('Caltrans LCS ingestion', () => {
     const cand = lcsItemToCandidate(parseLcsItems({ data: [mk()] }, { nowEpoch: now })[0])
     expect(cand.dedupeKey).toBe('caltrans-d4-lcs:us-101|nb|paving|lane')
     expect(cand.fields?.majorRoute).toBe(true)
-    expect(cand.summary).toBe('Paving · 1 of 3 lanes') // impact: work · lane extent
+    // impact: work · lane extent · closure window (the window is appended from the fixture's epochs)
+    expect(cand.summary).toContain('Paving · 1 of 3 lanes · ')
+    expect(cand.summary).toMatch(/· (from )?[A-Z][a-z]{2} /)
   })
 })
 
@@ -96,5 +98,42 @@ describe('lcsImpactSummary (Roads impact)', () => {
   })
   it('undefined when there is nothing to report', () => {
     expect(lcsImpactSummary({})).toBeUndefined()
+  })
+})
+
+
+describe('lcsWindowText (closure window → honest impact signal)', () => {
+  // Oct 10 2026 is a Saturday (PDT, UTC-7).
+  const sat7am = Math.floor(Date.UTC(2026, 9, 10, 14, 0, 0) / 1000) // 7:00 AM PT
+  const sat3pm = Math.floor(Date.UTC(2026, 9, 10, 22, 0, 0) / 1000) // 3:00 PM PT
+  const fri7pm = Math.floor(Date.UTC(2026, 9, 10, 2, 0, 0) / 1000)  // Fri 7:00 PM PT
+  it('same-day window uses one weekday and an en-dash', () => {
+    const w = lcsWindowText(sat7am, sat3pm)
+    expect(w).toContain('Sat')
+    expect(w).toContain('–')
+    expect(w).not.toContain('→')
+  })
+  it('overnight window names both days with an arrow', () => {
+    const w = lcsWindowText(fri7pm, sat7am)
+    expect(w).toContain('Fri')
+    expect(w).toContain('Sat')
+    expect(w).toContain('→')
+  })
+  it('open-ended closure reads "from <day time>"', () => {
+    expect(lcsWindowText(sat7am, null, false)).toMatch(/^from Sat /)
+    expect(lcsWindowText(sat7am, sat3pm, true)).toMatch(/^from Sat /)
+  })
+  it('no start → undefined', () => {
+    expect(lcsWindowText(null, sat3pm)).toBeUndefined()
+  })
+})
+
+describe('lcsImpactSummary appends the window', () => {
+  const sat7am = Math.floor(Date.UTC(2026, 9, 10, 14, 0, 0) / 1000)
+  const sat3pm = Math.floor(Date.UTC(2026, 9, 10, 22, 0, 0) / 1000)
+  it('includes work, lane extent, and the closure window', () => {
+    const out = lcsImpactSummary({ typeOfWork: 'Emergency Work', lanesClosed: '1', totalExistingLanes: '3', startEpoch: sat7am, endEpoch: sat3pm })
+    expect(out).toContain('Emergency Work · 1 of 3 lanes · ')
+    expect(out).toContain('Sat')
   })
 })

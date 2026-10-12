@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatFreshness } from './format'
+import { formatFreshness, formatSchedule } from './format'
 
 const now = Date.parse('2026-09-15T12:00:00Z')
 
@@ -26,5 +26,20 @@ describe('formatFreshness', () => {
   it('shows an absolute date for a future timestamp (upcoming meeting)', () => {
     // Not "in the future ago" nonsense — a real date.
     expect(formatFreshness('2026-09-22T12:00:00Z', now)).toMatch(/Sep 22\b/)
+  })
+})
+
+describe('formatSchedule (upcoming closures)', () => {
+  it('empty for now/past (caller falls back to freshness)', () => {
+    expect(formatSchedule('2026-09-15T12:00:00Z', now)).toBe('')
+    expect(formatSchedule('2026-09-15T11:00:00Z', now)).toBe('')
+    expect(formatSchedule('bad', now)).toBe('')
+  })
+  it('relative minutes then hours for the near term', () => {
+    expect(formatSchedule('2026-09-15T12:30:00Z', now)).toBe('starts in 30m')
+    expect(formatSchedule('2026-09-15T15:00:00Z', now)).toBe('starts in 3h')
+  })
+  it('absolute day+time once it is far out', () => {
+    expect(formatSchedule('2026-09-16T18:00:00Z', now)).toMatch(/^starts [A-Z][a-z]{2} /)
   })
 })
