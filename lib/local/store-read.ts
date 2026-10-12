@@ -200,13 +200,21 @@ export function isFullClosure(e: LocalEvent): boolean {
   return /full closure/i.test(e.title)
 }
 
+// Active now vs scheduled. Caltrans publishes closures ahead of time; first_seen_at
+// carries the closure START (events.ts: first_seen_at = candidate.startedAt). A
+// closure that hasn't started yet is a heads-up for Roads, not "Need To Know now".
+export function isCurrentlyActive(e: LocalEvent, now: number = Date.now()): boolean {
+  const start = Date.parse(e.firstSeenAt)
+  return Number.isNaN(start) || start <= now
+}
+
 // Store arm of Need To Know. Pulls the urgent event types near the anchors, then
 // keeps only FULL road closures from the road_closure type so lane/emergency work
 // doesn't masquerade as "need to know" (and doesn't duplicate the Roads section).
 export async function readNeedToKnowStore(sb: SupabaseClient, opts: { limit?: number; anchors?: Anchor[] } = {}): Promise<LocalEvent[]> {
   const limit = opts.limit ?? 4
   const pool = await readPublishedEvents(sb, { types: STORE_NEED_TO_KNOW_TYPES, limit: limit * 3, anchors: opts.anchors })
-  const kept = pool.filter(e => e.eventType !== 'road_closure' || isFullClosure(e))
+  const kept = pool.filter(e => e.eventType !== 'road_closure' || (isFullClosure(e) && isCurrentlyActive(e)))
   return kept.slice(0, limit)
 }
 export const STORE_NEED_TO_KNOW_TYPES = [

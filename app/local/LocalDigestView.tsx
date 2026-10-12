@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import SectionCard from '@/components/SectionCard'
-import { formatFreshness } from '@/lib/local/format'
+import { formatFreshness, formatSchedule } from '@/lib/local/format'
 import type { MyLocalDigest } from '@/lib/local/digest'
 import type { LocalEvent } from '@/lib/local/types'
 import type { EnvironmentSnapshot } from '@/lib/local/adapters/types'
@@ -35,6 +35,11 @@ function EventRow({ e }: { e: LocalEvent }) {
   const url = e.sources.find(s => s.url)?.url
   const ts = e.latestUpdateAt || e.firstSeenAt
   const freshness = formatFreshness(ts)
+  // Road closures/incidents are often scheduled ahead (first_seen_at = start). When
+  // the closure hasn't begun, "9m ago" (last feed confirmation) misleads — show when
+  // it actually starts instead.
+  const isRoad = e.eventType === 'road_closure' || e.eventType === 'traffic'
+  const schedule = isRoad ? formatSchedule(e.firstSeenAt) : ''
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
@@ -53,7 +58,9 @@ function EventRow({ e }: { e: LocalEvent }) {
       <div className="mt-1.5 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
         <span className="uppercase tracking-wide">{e.confidence} confidence</span>
         {e.sources[0] && <span>· {e.sources[0].label}</span>}
-        {freshness && <span title={new Date(ts).toISOString()}>· {freshness}</span>}
+        {schedule
+          ? <span>· {schedule}</span>
+          : freshness && <span title={new Date(ts).toISOString()}>· {freshness}</span>}
       </div>
     </>
   )
