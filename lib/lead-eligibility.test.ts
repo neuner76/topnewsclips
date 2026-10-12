@@ -11,6 +11,7 @@ import {
   checkLeadSourceTier,
   checkLeadCorroboration,
   checkLeadConsequence,
+  promoteEligibleLead,
 } from './lead-eligibility'
 import type { SourcePolicy } from './source-policy'
 import type { Story } from './types'
@@ -169,5 +170,32 @@ describe('degraded-lead fallback (Task 5b)', () => {
     expect(result.heldForReview).toBe(true)
     const validation = validateCanonicalPull(result)
     expect(validation.errors.some(e => /hold for review/i.test(e))).toBe(true)
+  })
+})
+
+describe('promoteEligibleLead (homepage live-lead gate)', () => {
+  const eligible: Story = { ...fixtures.reportedCorroboratedLead, slug: 'reported-a' }
+  const commentary: Story = { ...fixtures.reportedCorroboratedLead, slug: 'commentary-a', category: 'reported', content_type: 'commentary_analysis' }
+
+  it('promotes the first eligible story when the current lead is blocked (the Oct-12 homepage bug)', () => {
+    const out = promoteEligibleLead([commentary, eligible])
+    expect(out[0].slug).toBe('reported-a')
+    expect(out[1].slug).toBe('commentary-a')
+  })
+
+  it('leaves an already-eligible lead untouched', () => {
+    const out = promoteEligibleLead([eligible, commentary])
+    expect(out.map(s => s.slug)).toEqual(['reported-a', 'commentary-a'])
+  })
+
+  it('preserves order when every story is blocked (degraded day — never invents a lead)', () => {
+    const c2: Story = { ...commentary, slug: 'commentary-b' }
+    const out = promoteEligibleLead([commentary, c2])
+    expect(out.map(s => s.slug)).toEqual(['commentary-a', 'commentary-b'])
+  })
+
+  it('is a no-op for 0 or 1 stories', () => {
+    expect(promoteEligibleLead([])).toEqual([])
+    expect(promoteEligibleLead([commentary]).map(s => s.slug)).toEqual(['commentary-a'])
   })
 })
