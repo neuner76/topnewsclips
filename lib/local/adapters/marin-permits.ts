@@ -60,6 +60,22 @@ const ROUTINE_PERMIT_RE =
 const SIGNIFICANT_PERMIT_RE =
   /(subdivision|new construction|new commercial|use permit|rezone|zoning|general plan|environmental|\beir\b|mixed.?use|apartment|multi.?family|\bunits?\b|affordable|hotel|motel|winery|brewery|cannabis|dispensary|cell tower|wireless|master plan|planned (unit )?development|\bpud\b|hangar|commercial building|warehouse|\bretail\b|office building|medical|\bschool\b|church|assembly|child.?care|day.?care|infrastructure|water main|\bsewer|treatment plant|substation)/i
 
+// Civic / public-interest signal for the Local Blindspot. A blindspot is a public
+// record of CIVIC consequence that local media isn't covering — commercial,
+// multi-family/affordable housing, institutional, or infrastructure. A private
+// single-family home (new build, addition, remodel, pool, garage…), however
+// expensive, is not something local journalism is expected to cover, so it must
+// NOT be flagged as an under-covered blindspot. (Unlike isSignificantPermit, this
+// deliberately omits the bare "new construction" signal, which over-captures new
+// private houses.) Default: not civic — only an explicit public-interest signal
+// qualifies, so private residences never leak into Blindspot.
+const CIVIC_PERMIT_RE =
+  /(subdivision|new commercial|commercial building|tenant improvement|mixed.?use|apartment|multi.?family|\bunits?\b|affordable|\bhousing\b|hotel|motel|winery|brewery|cannabis|dispensary|cell tower|wireless|master plan|planned (unit )?development|\bpud\b|hangar|warehouse|\bretail\b|\bstore\b|\bmarket\b|restaurant|\bcafe\b|office building|\boffice\b|medical|clinic|hospital|\bschool\b|college|church|temple|synagogue|mosque|assembly|child.?care|day.?care|infrastructure|water main|\bsewer|treatment plant|substation|\butility\b|\bpublic\b|municipal|\bcounty\b|fire station|police|library|\bpark\b|marina|\bpier\b|wharf|bridge|\btrail\b)/i
+
+export function isCivicPermit(text: string): boolean {
+  return CIVIC_PERMIT_RE.test(text ?? '')
+}
+
 export function isSignificantPermit(row: MarinPermitRow): boolean {
   const desc = (row.description ?? '').toString()
   if (SIGNIFICANT_PERMIT_RE.test(desc)) return true // strong keep signal wins

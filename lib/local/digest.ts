@@ -27,7 +27,7 @@ import { readRoadsStore, readNeedToKnowStore } from './store-read'
 import { fetch511Events } from './adapters/bay511'
 import { fetchCaltransCameras, type LocalCamera } from './adapters/caltrans-cameras'
 import { fetchCaltransClosures } from './adapters/caltrans-lcs'
-import { fetchMarinPermits } from './adapters/marin-permits'
+import { fetchMarinPermits, isCivicPermit } from './adapters/marin-permits'
 import { fetchMarinAgendas } from './adapters/marin-granicus'
 import { selectLocalBlindspots } from './blindspot'
 import { fetchLocalNews, fetchCoverageArticles, articleToLocalEvent, isLocalToMarin, COVERAGE_OUTLET_NAMES } from './adapters/local-news'
@@ -363,7 +363,11 @@ function resolveRoads(i: LocalInputs): LocalEvent[] {
 
 function resolveBlindspot(i: LocalInputs): LocalEvent[] {
   // MAJOR public records (>= ~$250k) not covered by the local outlets we track.
-  const blindspotPool = [...i.permitPool, ...i.agendaItems]
+  // Blindspot = CIVIC/public-interest records media missed, so private single-family
+  // homes are excluded even when their valuation tops the permit list; agenda items
+  // (government actions) are inherently civic and always eligible.
+  const civicPermits = i.permitPool.filter(e => isCivicPermit(`${e.title} ${e.whatChanged ?? ''} ${e.whyItMatters ?? ''}`))
+  const blindspotPool = [...civicPermits, ...i.agendaItems]
   const outletsChecked = COVERAGE_OUTLET_NAMES.join(', ')
   return selectLocalBlindspots(
     blindspotPool.map(e => ({ event: e, localMediaOutlets: detectLocalCoverage(e, i.coverageArticles) })),
