@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { fetchYouTubeTrending, resolveYouTubeChannelId, type YouTubeClip } from './youtube'
 import { fetchTikTokTrending, type TikTokClip } from './tiktok'
 import { fetchGlobalClips, type GlobalClip } from './global'
-import { checkMSMCoverage } from './msm-check'
+import { checkMSMCoverage, recheckThrottledCoverage, type ThrottledRecheckEntry } from './msm-check'
 import { verifyAndTitle } from './claude-verify'
 import { classifyStory } from './classify'
 import { reconcileRegion } from './geo'
@@ -640,6 +640,9 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
   }
 
   const publishedSlugs: string[] = []
+  // Stories whose coverage check was throttled mid-run; re-checked after the
+  // loop, once the Google News burst has subsided (see recheckThrottledCoverage).
+  const throttledForRecheck: ThrottledRecheckEntry[] = []
 
   // Load tier overrides from featured_journalists — used for community-accepted sources
   // that aren't yet in the static source-tier.ts lookup table
@@ -742,7 +745,13 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         source: candidate.source,
       })
       if (msm.throttled) {
-        console.warn(`[ingest] MSM coverage throttled for "${candidate.title.slice(0, 50)}" — stored count (${msm.coveredBy.length}) may be low; digest re-check will correct it`)
+        console.warn(`[ingest] MSM coverage throttled for "${candidate.title.slice(0, 50)}" — stored count (${msm.coveredBy.length}) may be low; queued for end-of-run re-check`)
+        throttledForRecheck.push({
+          slug: candidate.slug,
+          title: candidate.title,
+          journalistUsername: candidate.journalist_username,
+          source: candidate.source,
+        })
       }
       await delay(200)
 
@@ -1123,6 +1132,19 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         `Error processing ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`
       )
     }
+  }
+
+  // End-of-run coverage re-check. The ingest burst is what trips Google News'
+  // rate limiter, so a story checked mid-burst can store a false 0-of-15. Now that
+  // the burst is over, re-check the throttled stories that actually published and
+  // overwrite with a clean result (recheckThrottledCoverage skips anything still
+  // throttled). Bounded + spaced so we don't re-trigger the limiter.
+  const published = new Set(publishedSlugs)
+  const toRecheck = throttledForRecheck.filter(e => published.has(e.slug)).slice(0, 60)
+  if (toRecheck.length > 0) {
+    await new Promise(r => setTimeout(r, 5000)) // let Google News recover from the ingest burst
+    const { updated, stillThrottled } = await recheckThrottledCoverage(supabase, toRecheck)
+    result.errors.push(`Coverage re-check: ${updated} corrected, ${stillThrottled} still throttled (of ${toRecheck.length} published throttled stories)`)
   }
 
   // Ping IndexNow with all newly published story URLs

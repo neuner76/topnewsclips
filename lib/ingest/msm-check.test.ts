@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery, keywordCoverageQuery, resetThrottleDetection, originatingOutletDomain } from './msm-check'
+import { checkMSMCoverage, MSM_OUTLET_COUNT, normalizeCoverageQuery, keywordCoverageQuery, resetThrottleDetection, originatingOutletDomain, recheckThrottledCoverage } from './msm-check'
 
 // Build a minimal Google-News-style RSS payload that "mentions" the given
 // outlet domains (so the substring match in checkMSMCoverage fires).
@@ -208,5 +208,53 @@ describe('checkMSMCoverage unions the keyword-core query', () => {
     const r = await checkMSMCoverage('US stock markets decline amid AI valuation concerns')
     expect(r.coveredBy.length).toBeGreaterThanOrEqual(4)
     expect(r.coveredBy).toContain('reuters.com')
+  })
+})
+
+
+// Minimal supabase stub: records stories.update(...).eq('slug', x) calls.
+function fakeSupabase() {
+  const updates: Array<{ slug: string; patch: Record<string, unknown> }> = []
+  return {
+    updates,
+    from(_table: string) {
+      return {
+        update(patch: Record<string, unknown>) {
+          return { eq: async (_col: string, slug: string) => { updates.push({ slug, patch }); return { error: null } } }
+        },
+      }
+    },
+  }
+}
+
+describe('recheckThrottledCoverage (end-of-run coverage fix)', () => {
+  it('persists a clean result for a throttled story by slug', async () => {
+    // Story RSS now returns 5 outlets (recovered); canary healthy → not throttled.
+    mockFetch(rss(['nytimes.com', 'cnn.com', 'bbc.com', 'apnews.com', 'reuters.com']))
+    const sb = fakeSupabase()
+    const res = await recheckThrottledCoverage(sb as unknown as never, [
+      { slug: 'hurricane-isaias', title: 'Hurricane Isaias leaves hundreds of thousands without power' },
+    ], { gapMs: 0 })
+    expect(res.updated).toBe(1)
+    expect(res.stillThrottled).toBe(0)
+    expect(sb.updates).toHaveLength(1)
+    expect(sb.updates[0].slug).toBe('hurricane-isaias')
+    expect((sb.updates[0].patch.msm_outlet_coverage as { covered: string[] }).covered.length).toBe(5)
+  })
+
+  it('does NOT overwrite when still throttled (thin story + dead canary)', async () => {
+    vi.useFakeTimers()
+    // Everything (incl. canary) returns no outlets → environment throttled.
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, text: async () => rss([]) })))
+    const sb = fakeSupabase()
+    const p = recheckThrottledCoverage(sb as unknown as never, [
+      { slug: 'still-throttled', title: 'Some ongoing story about things happening somewhere today' },
+    ], { gapMs: 0 })
+    await vi.runAllTimersAsync()
+    const res = await p
+    vi.useRealTimers()
+    expect(res.updated).toBe(0)
+    expect(res.stillThrottled).toBe(1)
+    expect(sb.updates).toHaveLength(0)
   })
 })

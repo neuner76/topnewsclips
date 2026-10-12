@@ -102,6 +102,47 @@ export async function recheckMSMCoverage(
 // can only add outlets, never remove the ones the full title already found.
 const COVERAGE_RETRY_THRESHOLD = 5
 
+export interface ThrottledRecheckEntry {
+  slug: string
+  title: string
+  journalistUsername?: string | null
+  source?: string | null
+}
+
+// Re-check coverage for stories whose ingest-time check came back THROTTLED. Run
+// after the ingest burst, when Google News has recovered. Persists ONLY a clean
+// (non-throttled) result — a still-throttled retry never overwrites the stored
+// value — so a story stuck at 0-of-15 by a transient rate-limit gets its real
+// coverage, while a genuine blindspot stays at 0. Spaced out to stay under the
+// limiter. This is the "digest re-check will correct it" the ingest path assumes.
+export async function recheckThrottledCoverage(
+  supabase: any,
+  entries: ThrottledRecheckEntry[],
+  opts: { gapMs?: number } = {},
+): Promise<{ updated: number; stillThrottled: number }> {
+  const gapMs = opts.gapMs ?? 600
+  let updated = 0
+  let stillThrottled = 0
+  resetThrottleDetection() // fresh canary — the burst that throttled ingest is over
+  for (const e of entries) {
+    const result = await checkMSMCoverage(e.title, {
+      journalistUsername: e.journalistUsername,
+      source: e.source,
+    })
+    if (result.throttled || result.articleCount < 0) {
+      stillThrottled++
+    } else {
+      await supabase.from('stories').update({
+        msm_gap: result.msmGap,
+        msm_outlet_coverage: { covered: result.coveredBy, notCovered: result.notCoveredBy },
+      }).eq('slug', e.slug)
+      updated++
+    }
+    await new Promise(r => setTimeout(r, gapMs))
+  }
+  return { updated, stillThrottled }
+}
+
 // Subordinate/appositive connectors that usually begin the "elaboration" tail of
 // a headline (e.g. "…Strait of Hormuz amid escalating naval confrontation").
 // Only clear elaboration-tail markers — cutting here keeps a core that still
