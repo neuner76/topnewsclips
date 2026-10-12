@@ -419,23 +419,45 @@ const PULSE_OUTLETS = [
   { domain: 'foxnews.com',  label: 'Fox News',  descriptor: 'conservative' },
 ]
 
+// Google News rate-limits bursts: firing all PULSE_OUTLETS in parallel from one IP
+// made 2-3 outlets 429/time-out, and a single failed fetch silently dropped that
+// outlet for the whole day (no retry). Fetch one feed with retries + backoff so a
+// momentary rate-limit doesn't nuke an outlet; callers also stagger the starts.
+async function fetchPulseFeed(url: string, attempts = 3): Promise<string | null> {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url, { headers: { 'User-Agent': 'TopNewsClips/1.0' }, signal: AbortSignal.timeout(8000), cache: 'no-store' })
+      if (res.ok) {
+        const xml = await res.text()
+        if (xml.includes('<item>')) return xml
+      }
+    } catch { /* transient — fall through to backoff + retry */ }
+    if (i < attempts - 1) await new Promise(r => setTimeout(r, 500 * (i + 1) + Math.floor(Math.random() * 400)))
+  }
+  return null
+}
+
 async function fetchMainstreamPulse(previousHeadlines?: Map<string, string>): Promise<MainstreamPulseItem[]> {
   function decodeHtml(s: string) {
     return s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim()
   }
 
   const results = await Promise.all(
-    PULSE_OUTLETS.map(async ({ domain, label, descriptor }) => {
+    PULSE_OUTLETS.map(async ({ domain, label, descriptor }, index) => {
+      // Stagger the starts (~300ms apart) so six identical requests don't hit
+      // Google News in one burst and trip its rate limiter.
+      await new Promise(r => setTimeout(r, index * 300))
       try {
         // when:1d restricts to the last 24 hours — without it, Google News
         // search RSS ranks by relevance and keeps surfacing yesterday's
         // still-trending story at the top.
-        const res = await fetch(
-          `https://news.google.com/rss/search?q=site:${domain}+when:1d&hl=en-US&gl=US&ceid=US:en`,
-          { headers: { 'User-Agent': 'TopNewsClips/1.0' }, signal: AbortSignal.timeout(8000), cache: 'no-store' }
+        const xml = await fetchPulseFeed(
+          `https://news.google.com/rss/search?q=site:${domain}+when:1d&hl=en-US&gl=US&ceid=US:en`
         )
-        if (!res.ok) return null
-        const xml = await res.text()
+        if (!xml) {
+          console.warn(`[pulse] ${label} (${domain}) returned no items after retries — dropped from Mainstream Pulse`)
+          return null
+        }
         const items = xml.split('<item>').slice(1, 9)
         const candidates: { headline: string; pubDate: number; url: string | null }[] = []
         for (const item of items) {
