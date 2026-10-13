@@ -410,3 +410,21 @@ export function suggestNonLeadSection(story: LeadCandidate): CanonicalDigestSect
   if (story.region && story.region !== 'World' && (story.msm_gap || coverageCount(story) <= 2)) return 'Global Blindspot'
   return 'Politics & World Affairs'
 }
+
+// Guarantee a lead-eligible story sits first. The digest gates its lead at
+// generation, but surfaces that re-fetch needToKnow stories LIVE (the homepage)
+// can show a lead whose classification drifted to commentary/analysis/satire
+// afterward (reverify / QC sweep), or whose content_type/category disagree. When
+// the current first story is BLOCKED, promote the first non-blocked story to the
+// front; otherwise return the list unchanged. Never invents a lead — if every
+// story is blocked (a genuinely degraded day) the order is preserved.
+export function promoteEligibleLead<T extends LeadCandidate>(stories: T[]): T[] {
+  if (stories.length < 2) return stories
+  if (evaluateLeadEligibility(stories[0]).status !== 'blocked') return stories
+  const idx = stories.findIndex(s => evaluateLeadEligibility(s).status !== 'blocked')
+  if (idx <= 0) return stories
+  const next = [...stories]
+  const [lead] = next.splice(idx, 1)
+  next.unshift(lead)
+  return next
+}

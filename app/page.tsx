@@ -1,5 +1,6 @@
 import { getLatestDigest } from '@/lib/digest'
 import { createPublicClient } from '@/lib/supabase/server'
+import { promoteEligibleLead } from '@/lib/lead-eligibility'
 import type { Story } from '@/lib/types'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -40,6 +41,11 @@ export default async function LandingPage() {
       }
     }
   }
+
+  // The digest gates its lead at generation, but we re-fetch these stories live —
+  // a story's classification can drift to commentary/analysis afterward, which
+  // would seat an ineligible lead on the homepage. Re-apply the same gate.
+  needToKnowStories = promoteEligibleLead(needToKnowStories)
 
   return (
     <>
