@@ -86,12 +86,33 @@ describe('Caltrans LCS ingestion', () => {
     expect(cand.summary).toContain('Paving · 1 of 3 lanes · ')
     expect(cand.summary).toMatch(/· (from )?[A-Z][a-z]{2} /)
   })
+  it('labels all-lanes-of-a-1-lane-segment as a RAMP closure, not a freeway full closure', () => {
+    const ramp = mk({ closure: { closureID: 'r1', typeOfClosure: 'Full', typeOfWork: 'Electrical Work', lanesClosed: 'All', totalExistingLanes: '1',
+      closureTimestamp: { closureStartEpoch: String(now - 3600), closureEndEpoch: String(now + 7200), isClosureEndIndefinite: 'false' } } })
+    const item = parseLcsItems({ data: [ramp] }, { nowEpoch: now })[0]
+    expect(item.title).toContain('Ramp closure')
+    expect(item.title).not.toContain('Full closure')
+    expect(item.extracted?.isRamp).toBe(true)
+    expect(item.extracted?.isFull).toBe(false) // excluded from Need To Know (isFullClosure checks the title)
+    expect(lcsItemToCandidate(item).summary).toContain('ramp/connector closed')
+  })
+  it('keeps a genuine MAINLINE full closure (all lanes of a multi-lane segment)', () => {
+    const full = mk({ closure: { closureID: 'f1', typeOfClosure: 'Full', typeOfWork: 'Bridge Work', lanesClosed: 'All', totalExistingLanes: '3',
+      closureTimestamp: { closureStartEpoch: String(now - 3600), closureEndEpoch: String(now + 7200), isClosureEndIndefinite: 'false' } } })
+    const item = parseLcsItems({ data: [full] }, { nowEpoch: now })[0]
+    expect(item.title).toContain('Full closure')
+    expect(item.extracted?.isFull).toBe(true)
+    expect(item.extracted?.isRamp).toBe(false)
+    expect(lcsItemToCandidate(item).summary).toContain('all lanes')
+  })
 })
 
 describe('lcsImpactSummary (Roads impact)', () => {
   it('combines work type, lane extent, and estimated delay', () => {
     expect(lcsImpactSummary({ typeOfWork: 'Paving', lanesClosed: '1', totalExistingLanes: '3' })).toBe('Paving · 1 of 3 lanes')
     expect(lcsImpactSummary({ typeOfWork: 'Pile Driving', isFull: true, estimatedDelay: '30 minutes' })).toBe('Pile Driving · all lanes · ~30 minutes delay')
+    // a ramp reads "ramp/connector closed", never "all lanes" (even though lanesClosed='All')
+    expect(lcsImpactSummary({ typeOfWork: 'Electrical Work', isRamp: true, lanesClosed: 'All', totalExistingLanes: '1' })).toBe('Electrical Work · ramp/connector closed')
   })
   it('omits an unreported delay', () => {
     expect(lcsImpactSummary({ typeOfWork: 'Utility', lanesClosed: '1', totalExistingLanes: '3', estimatedDelay: 'Not Reported' })).toBe('Utility · 1 of 3 lanes')

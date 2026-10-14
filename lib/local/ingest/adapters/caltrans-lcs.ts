@@ -59,14 +59,15 @@ export function lcsWindowText(startEpoch?: number | null, endEpoch?: number | nu
 }
 
 export function lcsImpactSummary(p: {
-  typeOfWork?: string; isFull?: boolean; lanesClosed?: string; totalExistingLanes?: string; estimatedDelay?: string
+  typeOfWork?: string; isFull?: boolean; isRamp?: boolean; lanesClosed?: string; totalExistingLanes?: string; estimatedDelay?: string
   startEpoch?: number | null; endEpoch?: number | null; indefinite?: boolean
 }): string | undefined {
   const parts: string[] = []
   if (p.typeOfWork && p.typeOfWork.trim()) parts.push(p.typeOfWork.trim())
   const lanesClosed = (p.lanesClosed ?? '').trim()
   const total = Number(p.totalExistingLanes)
-  if (p.isFull || lanesClosed.toLowerCase() === 'all') parts.push('all lanes')
+  if (p.isRamp) parts.push('ramp/connector closed') // all lanes of a 1-lane segment
+  else if (p.isFull || lanesClosed.toLowerCase() === 'all') parts.push('all lanes')
   else if (lanesClosed && Number.isFinite(Number(lanesClosed)) && Number.isFinite(total) && total > 0) {
     parts.push(`${lanesClosed} of ${total} lanes`)
   }
@@ -111,8 +112,17 @@ export function parseLcsItems(
 
     const route = begin.beginRoute || 'Highway'
     const dir = l?.location?.travelFlowDirection
-    const isFull = (cl.typeOfClosure ?? '').toLowerCase() === 'full' || (cl.lanesClosed ?? '').toLowerCase() === 'all'
-    const closureLabel = isFull ? 'Full closure' : 'Lane closure'
+    const totalLanes = Number(cl.totalExistingLanes)
+    const fullSignal = (cl.typeOfClosure ?? '').toLowerCase() === 'full' || (cl.lanesClosed ?? '').toLowerCase() === 'all'
+    // "Full / All lanes" on a 1-lane segment is a RAMP or connector, not the
+    // mainline freeway — Caltrans reports totalExistingLanes=1 for those. Only all
+    // lanes of a MULTI-lane segment is a genuine freeway full closure (the kind that
+    // belongs in Need To Know). Mislabeling a ramp as "Full closure" reads as the
+    // whole highway being shut.
+    const mainlineFull = fullSignal && Number.isFinite(totalLanes) && totalLanes >= 2
+    const isRamp = fullSignal && !mainlineFull
+    const isFull = mainlineFull
+    const closureLabel = mainlineFull ? 'Full closure' : isRamp ? 'Ramp closure' : 'Lane closure'
     const desc = begin.beginFreeFormDescription?.trim()
     const where = desc ? `${closureLabel} ${desc}` : begin.beginNearbyPlace ? `${closureLabel} near ${begin.beginNearbyPlace}` : closureLabel
     const headline = [[route, dir].filter(Boolean).join(' '), where].join(' — ')
@@ -133,6 +143,7 @@ export function parseLcsItems(
         majorRoute: MAJOR_ROUTE_RE.test(`${route} ${desc ?? ''}`),
         typeOfWork: cl.typeOfWork,
         isFull,
+        isRamp,
         lanesClosed: cl.lanesClosed,
         totalExistingLanes: cl.totalExistingLanes,
         estimatedDelay: cl.estimatedDelay,
@@ -156,7 +167,7 @@ export function lcsItemToCandidate(item: NormalizedItem): EventCandidate {
     dedupeKey: String(ex.dedupeKey ?? `caltrans-d4-lcs:${item.externalId ?? item.contentHash}`),
     headline: item.title,
     summary: lcsImpactSummary({
-      typeOfWork: ex.typeOfWork as string, isFull: !!ex.isFull, lanesClosed: ex.lanesClosed as string,
+      typeOfWork: ex.typeOfWork as string, isFull: !!ex.isFull, isRamp: !!ex.isRamp, lanesClosed: ex.lanesClosed as string,
       totalExistingLanes: ex.totalExistingLanes as string, estimatedDelay: ex.estimatedDelay as string,
       startEpoch: ex.startEpoch as number | null, endEpoch: ex.endEpoch as number | null, indefinite: !!ex.indefinite,
     }),

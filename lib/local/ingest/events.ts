@@ -94,7 +94,19 @@ export async function landEventForItem(
       await supabase.from('local_event_update').insert({
         event_id: eventId, kind: 'detail', text: candidate.headline ?? null, source_item_id: sourceItemId,
       })
-      await supabase.from('local_events').update({ latest_update_at: now, last_seen_at: now, updated_at: now }).eq('id', eventId)
+      // Refresh the displayed headline/summary to the latest instance. Recurring
+      // closures (Caltrans publishes a nightly series under one dedupe_key) would
+      // otherwise keep the FIRST instance's headline/summary forever — a stale
+      // window, and no way for a corrected label (e.g. ramp vs full closure) to
+      // ever reach the persistent event. Only overwrite when the new candidate
+      // actually carries the field.
+      await supabase.from('local_events').update({
+        latest_update_at: now,
+        last_seen_at: now,
+        updated_at: now,
+        ...(candidate.headline ? { headline: candidate.headline, title: candidate.headline } : {}),
+        ...(candidate.summary ? { summary: candidate.summary } : {}),
+      }).eq('id', eventId)
       return 'updated'
     }
   }
