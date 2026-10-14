@@ -22,9 +22,16 @@ describe('live QC content checks (Section 2)', () => {
     expect(ids(failures)).toContain('blindspot_placement')
   })
 
-  it('hard-fails a high-salience 0-of-N card (mass-casualty)', () => {
+  it('hard-fails a high-salience 0-of-N card (mass-casualty, domestic)', () => {
     const { failures } = run('Need To Know Gunman opens fire, 10 wounded 0 of 15 outlets Reported')
     expect(ids(failures)).toContain('high_severity_suspect_coverage')
+  })
+
+  it('does NOT hard-fail a FOREIGN high-salience 0-of-N card (international — legitimately undercovered by US MSM)', () => {
+    // A region tag / named foreign place exempts the card: an overseas disaster is a
+    // real under-coverage, not an implausible domestic blindspot. Mirrors isDomestic().
+    const { failures } = run('Need To Know South Asia Earthquake devastates region near Nepal 0 of 15 outlets Reported')
+    expect(ids(failures)).not.toContain('high_severity_suspect_coverage')
   })
 
   it('warns on a duplication artifact ("aBC")', () => {

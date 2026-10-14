@@ -3,6 +3,7 @@ import { fetchYouTubeTrending, resolveYouTubeChannelId, type YouTubeClip } from 
 import { fetchTikTokTrending, type TikTokClip } from './tiktok'
 import { fetchGlobalClips, type GlobalClip } from './global'
 import { checkMSMCoverage, recheckThrottledCoverage, type ThrottledRecheckEntry } from './msm-check'
+import { isHighSalienceDomestic, isHardNewsRole } from '../coverage-integrity'
 import { verifyAndTitle } from './claude-verify'
 import { classifyStory } from './classify'
 import { reconcileRegion } from './geo'
@@ -640,9 +641,11 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
   }
 
   const publishedSlugs: string[] = []
-  // Stories whose coverage check was throttled mid-run; re-checked after the
-  // loop, once the Google News burst has subsided (see recheckThrottledCoverage).
-  const throttledForRecheck: ThrottledRecheckEntry[] = []
+  // Stories to re-check after the loop, once the Google News burst subsides:
+  // (a) ones throttled mid-run, and (b) ones PUBLISHED with zero coverage that
+  // plausibly should have pickup (high-salience domestic / hard-news role) — a 0
+  // there is usually a match/throttle miss, not a real blindspot.
+  const coverageRecheckQueue: ThrottledRecheckEntry[] = []
 
   // Load tier overrides from featured_journalists — used for community-accepted sources
   // that aren't yet in the static source-tier.ts lookup table
@@ -746,7 +749,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       })
       if (msm.throttled) {
         console.warn(`[ingest] MSM coverage throttled for "${candidate.title.slice(0, 50)}" — stored count (${msm.coveredBy.length}) may be low; queued for end-of-run re-check`)
-        throttledForRecheck.push({
+        coverageRecheckQueue.push({
           slug: candidate.slug,
           title: candidate.title,
           journalistUsername: candidate.journalist_username,
@@ -1120,6 +1123,28 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
         result.inserted++
         bumpChannelCount(candidate.source)
         publishedSlugs.push(candidate.slug)
+        // A published story shown with ZERO coverage that should plausibly have
+        // mainstream pickup gets re-checked after the burst (catches match/throttle
+        // misses that weren't flagged throttled — e.g. a Navy-carrier story stored
+        // 0 that actually has 5 outlets). Genuine foreign blindspots re-check to 0.
+        if (msm.coveredBy.length === 0) {
+          const salienceStory = {
+            title: verification.headline,
+            description: verification.summary,
+            category: verification.category,
+            region: candidateRegion,
+            topic_role: classification.topic_role,
+            subcategory: null,
+          }
+          if (isHighSalienceDomestic(salienceStory) || isHardNewsRole(salienceStory)) {
+            coverageRecheckQueue.push({
+              slug: candidate.slug,
+              title: candidate.title,
+              journalistUsername: candidate.journalist_username,
+              source: candidate.source,
+            })
+          }
+        }
         await tagStoryBySlug(supabase, candidate.slug).catch(err => {
           result.errors.push(`Tagging failed for ${candidate.slug}: ${err instanceof Error ? err.message : String(err)}`)
         })
@@ -1140,11 +1165,16 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
   // overwrite with a clean result (recheckThrottledCoverage skips anything still
   // throttled). Bounded + spaced so we don't re-trigger the limiter.
   const published = new Set(publishedSlugs)
-  const toRecheck = throttledForRecheck.filter(e => published.has(e.slug)).slice(0, 60)
+  const seenRecheck = new Set<string>()
+  const toRecheck = coverageRecheckQueue.filter(e => {
+    if (!published.has(e.slug) || seenRecheck.has(e.slug)) return false
+    seenRecheck.add(e.slug)
+    return true
+  }).slice(0, 60)
   if (toRecheck.length > 0) {
     await new Promise(r => setTimeout(r, 5000)) // let Google News recover from the ingest burst
     const { updated, stillThrottled } = await recheckThrottledCoverage(supabase, toRecheck)
-    result.errors.push(`Coverage re-check: ${updated} corrected, ${stillThrottled} still throttled (of ${toRecheck.length} published throttled stories)`)
+    result.errors.push(`Coverage re-check: ${updated} corrected, ${stillThrottled} still throttled (of ${toRecheck.length} throttled/suspect-zero published stories)`)
   }
 
   // Ping IndexNow with all newly published story URLs

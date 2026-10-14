@@ -230,9 +230,14 @@ export function runContentChecks(html, text, path) {
   // original EVENT being shown 0-of-N is the implausible-blindspot signal we gate on.
   const LEGAL_FOLLOWUP = /\b(charg\w+|arrest\w+|sentenc\w+|indict\w+|plead\w+|convict\w+|acquit\w+|\btrial\b|lawsuit|sued|prosecut\w+|accused|suspect\w*|detain\w+|custody|verdict|appeal\w*|arraign\w+)\b/i
   for (const c of cards) {
-    if (c.coverageCount === 0 && HIGH_SALIENCE.test(c.text) && !LEGAL_FOLLOWUP.test(c.text)) {
-      push(finding('high_severity_suspect_coverage', 'High-salience story shown 0-of-N (suspect coverage)', 'hard', [c.text]))
-    }
+    if (c.coverageCount !== 0 || !HIGH_SALIENCE.test(c.text) || LEGAL_FOLLOWUP.test(c.text)) continue
+    // Only a DOMESTIC story shown 0-of-N is an implausible blindspot. International
+    // stories legitimately carry low US-mainstream coverage, so a foreign region tag
+    // or named foreign place exempts the card — mirrors the backend isDomestic()
+    // gate in lib/coverage-integrity.ts (highSalienceCategory returns null abroad).
+    const foreign = regionTagsInText(c.text).size > 0 || namedPlaceRegions(c.text).size > 0
+    if (foreign) continue
+    push(finding('high_severity_suspect_coverage', 'High-salience story shown 0-of-N (suspect coverage)', 'hard', [c.text]))
   }
 
   // 11. Region consistency (HARD): a card's region tag (label) contradicts every
