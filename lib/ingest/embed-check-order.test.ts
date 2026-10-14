@@ -8,7 +8,7 @@ const runQCAndInsert = vi.fn()
 const tagStoryBySlug = vi.fn()
 const pingIndexNow = vi.fn()
 
-vi.mock('./msm-check', () => ({ checkMSMCoverage }))
+vi.mock('./msm-check', () => ({ checkMSMCoverage, MSM_OUTLET_COUNT: 15 }))
 vi.mock('./claude-verify', () => ({ verifyAndTitle }))
 vi.mock('./qc-publish', () => ({ runQCAndInsert }))
 vi.mock('./indexnow', () => ({ pingIndexNow }))
