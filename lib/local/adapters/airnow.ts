@@ -24,9 +24,22 @@ export function airNowAqi(o: AirNowObs): number | undefined {
   const v = o.nowcastAQI ?? o.AQI ?? o.aqi
   return typeof v === 'number' ? v : undefined
 }
+// Standard AirNow AQI → category bands (airnow.gov/aqi/aqi-basics). Used as a
+// fallback when the feed omits a category name: the ziplatlong endpoint returns the
+// AQI number but not always a Category.Name, which rendered "AQI 37 · Unknown" for
+// what is plainly Good air.
+export function aqiCategory(aqi: number | undefined): string {
+  if (aqi == null || !Number.isFinite(aqi) || aqi < 0) return 'Unknown'
+  if (aqi <= 50) return 'Good'
+  if (aqi <= 100) return 'Moderate'
+  if (aqi <= 150) return 'Unhealthy for Sensitive Groups'
+  if (aqi <= 200) return 'Unhealthy'
+  if (aqi <= 300) return 'Very Unhealthy'
+  return 'Hazardous'
+}
 export function airNowCategory(o: AirNowObs): string {
-  const c = (o.Category && typeof o.Category === 'object' ? o.Category.Name : (o.Category as string | undefined)) ?? o.category ?? o.categoryName
-  return c || 'Unknown'
+  const named = (o.Category && typeof o.Category === 'object' ? o.Category.Name : (o.Category as string | undefined)) ?? o.category ?? o.categoryName
+  return named || aqiCategory(airNowAqi(o))
 }
 export function airNowParameter(o: AirNowObs): string {
   return o.ParameterName ?? o.parameter ?? o.parameterName ?? ''
