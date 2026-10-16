@@ -314,7 +314,7 @@ async function loadLocalInputs(ctx?: LocalBuildContext) {
     roads511, closures, trafficCameras, wildfires, agendaItems,
   ] = await Promise.all([
     buildLiveEnvironment(point),
-    safe(() => fetchMarinPermits(6, 'consequence', { anchors, significantOnly: true })).then(r => r ?? []),
+    safe(() => fetchMarinPermits(24, 'consequence', { anchors, significantOnly: true })).then(r => r ?? []),
     agendasP,
     safe(() => fetchLocalNews()).then(r => r ?? []),
     safe(() => fetchCoverageArticles()),
@@ -346,7 +346,14 @@ type LocalInputs = Awaited<ReturnType<typeof loadLocalInputs>>
 // Each is the "live" arm of one briefing section; the "store" arm slots in behind
 // resolveSection (D1) without touching these.
 
-function resolveChanging(i: LocalInputs): LocalEvent[] { return i.changingPermits }
+const CHANGING_MAX = 6
+function resolveChanging(i: LocalInputs): LocalEvent[] {
+  // Commercial & civic only — drop private single-family homes (same rule as the
+  // Local Blindspot, so the section matches its 'Commercial & Civic' title).
+  return i.changingPermits
+    .filter(e => isCivicPermit(`${e.title} ${e.whatChanged ?? ''} ${e.whyItMatters ?? ''}`))
+    .slice(0, CHANGING_MAX)
+}
 function resolveEnvironment(i: LocalInputs): EnvironmentSnapshot { return i.environment }
 function resolveCameras(i: LocalInputs): LocalCamera[] { return i.trafficCameras }
 
@@ -445,12 +452,16 @@ export async function buildMyLocalDigest(ctx?: LocalBuildContext): Promise<MyLoc
   const ntkIds = new Set(needToKnow.map(e => e.id))
   const roadsDeduped = roads.filter(e => !ntkIds.has(e.id))
 
+  // A permit surfaced as a Local Blindspot shouldn't also repeat in the permits list.
+  const blindspotIds = new Set(blindspots.map(e => e.id))
+  const changingDeduped = changing.filter(e => !blindspotIds.has(e.id))
+
   return assembleMyLocalDigest({
     places: inputs.places,
     environment,
     sections: {
       needToKnow,
-      changingAroundYou: changing,
+      changingAroundYou: changingDeduped,
       yourGovernment: government,
       roadsAndIncidents: roadsDeduped,
       localReporting: reporting,
