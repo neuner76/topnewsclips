@@ -35,6 +35,7 @@ function getTikTokId(url: string): string | null {
 
 function YouTubeEmbed({ videoId, embedUrl, title }: { videoId: string; embedUrl: string; title: string }) {
   const [blocked, setBlocked] = useState(false)
+  const [activated, setActivated] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const isShort = embedUrl.includes('/shorts/')
 
@@ -55,14 +56,45 @@ function YouTubeEmbed({ videoId, embedUrl, title }: { videoId: string; embedUrl:
 
   if (blocked) return <EmbedFallback url={`https://www.youtube.com/watch?v=${videoId}`} />
 
+  const containerClass = isShort
+    ? "relative mx-auto rounded-xl overflow-hidden bg-zinc-100 w-full max-w-[340px] aspect-[9/16]"
+    : "relative w-full aspect-video rounded-xl overflow-hidden bg-zinc-100"
+
+  // Facade: paint the thumbnail + play button first (instant LCP, no heavy YouTube
+  // iframe on load). Tapping swaps in the real player with autoplay — still one tap
+  // to watch, but the page lands immediately on the frame readers came for.
+  if (!activated) {
+    return (
+      <button
+        type="button"
+        onClick={() => setActivated(true)}
+        aria-label={`Play video: ${title}`}
+        className={`${containerClass} group block cursor-pointer`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+          alt={title}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` }}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <span className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="flex items-center justify-center w-16 h-11 rounded-xl bg-[#FF0000] shadow-lg group-hover:scale-105 transition-transform">
+            <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+          </span>
+        </span>
+      </button>
+    )
+  }
+
   return (
-    <div className={isShort
-      ? "relative mx-auto rounded-xl overflow-hidden bg-zinc-100 w-full max-w-[340px] aspect-[9/16]"
-      : "relative w-full aspect-video rounded-xl overflow-hidden bg-zinc-100"
-    }>
+    <div className={containerClass}>
       <iframe
         ref={iframeRef}
-        src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&enablejsapi=1`}
+        src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&enablejsapi=1&autoplay=1`}
         title={title}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
