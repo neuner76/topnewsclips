@@ -38,7 +38,6 @@ import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
 import { getResponseEligibility } from '@/lib/response-eligibility'
 import { getApprovedResponseResources } from '@/lib/response-resources'
-import Image from 'next/image'
 
 export const revalidate = 300
 
@@ -199,10 +198,10 @@ export default async function StoryPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Header />
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6" aria-label="Breadcrumb">
+        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-muted-foreground transition-colors">Home</Link>
           <span>›</span>
           <Link href="/feed/clips" className="hover:text-muted-foreground transition-colors">Clips</Link>
@@ -214,83 +213,48 @@ export default async function StoryPage({ params }: Props) {
           )}
         </nav>
 
-        {/* Hero card */}
-        <div
-          className="relative rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(16,24,40,0.06)] mb-6"
-          style={{ background: '#ffffff', minHeight: 300 }}
-        >
-          {/* CSS globe grid */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: `
-                radial-gradient(ellipse at 70% 50%, rgba(37,99,235,0.04) 0%, transparent 65%),
-                linear-gradient(rgba(37,99,235,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(37,99,235,0.02) 1px, transparent 1px),
-                linear-gradient(rgba(37,99,235,0.008) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(37,99,235,0.008) 1px, transparent 1px)
-              `,
-              backgroundSize: '100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px',
-            }}
-          />
-
-          {/* Thumbnail right half */}
-          {thumbnail && (
-            <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden sm:block">
-              <Image src={thumbnail} alt={s.title} fill className="object-cover opacity-70" unoptimized />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#ffffff] via-[#ffffff22] to-transparent" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff66] via-transparent to-transparent pointer-events-none" />
-
-          {/* Content */}
-          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 max-w-lg">
-            {/* Badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <PlatformBadge platform={s.platform} />
-              <CategoryBadge category={s.category} />
-              {s.msm_gap && <MSMBadge notes={s.msm_notes} coverage={s.msm_outlet_coverage} />}
-            </div>
-
-            {/* Archived banner */}
-            {!s.published && (
-              <div className="mb-4 px-3 py-2 rounded-lg text-xs text-muted-foreground" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.1)' }}>
-                Archived story, cycled out of the daily feed.{' '}
-                <Link href="/" className="font-semibold text-foreground hover:underline underline-offset-2">See today&apos;s stories →</Link>
-              </div>
-            )}
-
-            {/* Title */}
-            <h1 className="editorial-title text-foreground mb-3 leading-tight">{s.title}</h1>
-
-            {/* Description */}
-            {s.description && (
-              <p className="text-[15px] text-[#475569] line-clamp-3 mb-5 leading-relaxed">{s.description}</p>
-            )}
-
-            {/* Tier meter */}
-            <div className="flex items-center gap-4 flex-wrap">
-              <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
-            </div>
-          </div>
+        {/* Provenance — compact strip above the video (replaces the tall hero card) */}
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <PlatformBadge platform={s.platform} />
+          <CategoryBadge category={s.category} />
+          <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
+          {s.msm_gap && <MSMBadge notes={s.msm_notes} coverage={s.msm_outlet_coverage} />}
         </div>
 
-        {/* In context — major stories only, above the source video (Phase 3) */}
+        {/* Archived banner */}
+        {!s.published && (
+          <div className="mb-3 px-3 py-2 rounded-lg text-xs text-muted-foreground" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.1)' }}>
+            Archived story, cycled out of the daily feed.{' '}
+            <Link href="/" className="font-semibold text-foreground hover:underline underline-offset-2">See today&apos;s stories →</Link>
+          </div>
+        )}
+
+        {/* Source video — FIRST on every breakpoint. Readers tap through from the
+            newsletter to watch; the player is the point, so it leads. */}
+        <div className="mb-4">
+          <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
+        </div>
+
+        {/* Headline — smaller, below the video */}
+        <h1 className="editorial-headline text-foreground mb-2 leading-snug">{s.title}</h1>
+
+        {/* Description */}
+        {s.description && (
+          <p className="text-[15px] text-[#475569] mb-4 leading-relaxed">{s.description}</p>
+        )}
+
+        {/* Share */}
+        <div className="mb-5">
+          <ShareButtons title={s.title} slug={s.slug} />
+        </div>
+
+        {/* In context — major stories only */}
         {s.in_context && (
           <SectionCard accent="#a855f7" className="mb-4">
             <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#a855f7] mb-3">🧭 In Context</p>
             <p className="text-sm text-muted-foreground leading-relaxed">{s.in_context}</p>
           </SectionCard>
         )}
-
-        {/* Source Video */}
-        <SectionCard accent="#2563EB" className="mb-4">
-          <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1D4ED8] mb-3">📹 Source Video</p>
-          <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
-          <div className="mt-4">
-            <ShareButtons title={s.title} slug={s.slug} />
-          </div>
-        </SectionCard>
 
         {/* What we know / What remains unclear — major stories only (Phase 3) */}
         {((s.what_we_know && s.what_we_know.length > 0) || (s.what_remains_unclear && s.what_remains_unclear.length > 0)) && (
