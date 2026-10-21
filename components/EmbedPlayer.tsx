@@ -57,8 +57,11 @@ function YouTubeEmbed({ videoId, embedUrl, title }: { videoId: string; embedUrl:
   if (blocked) return <EmbedFallback url={`https://www.youtube.com/watch?v=${videoId}`} />
 
   const containerClass = isShort
+    // Vertical Shorts stay centered at 340px (never full-bleed), so keep them rounded.
     ? "relative mx-auto rounded-xl overflow-hidden bg-zinc-100 w-full max-w-[340px] aspect-[9/16]"
-    : "relative w-full aspect-video rounded-xl overflow-hidden bg-zinc-100"
+    // 16:9 goes edge-to-edge on mobile (the page breaks it past the gutter) — square
+    // the corners there, round them again once it's back inside the container at sm+.
+    : "relative w-full aspect-video rounded-none sm:rounded-xl overflow-hidden bg-zinc-100"
 
   // Facade: paint the thumbnail + play button first (instant LCP, no heavy YouTube
   // iframe on load). Tapping swaps in the real player with autoplay — still one tap
