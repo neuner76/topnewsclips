@@ -230,8 +230,10 @@ export default async function StoryPage({ params }: Props) {
         )}
 
         {/* Source video — FIRST on every breakpoint. Readers tap through from the
-            newsletter to watch; the player is the point, so it leads. */}
-        <div className="mb-4">
+            newsletter to watch; the player is the point, so it leads. Full-bleed on
+            mobile: -mx-4 cancels <main>'s px-4 so the video spans edge-to-edge; it
+            snaps back inside the container at sm+. */}
+        <div className="-mx-4 sm:mx-0 mb-4">
           <EmbedPlayer embedUrl={s.embed_url} platform={s.platform} title={s.title} />
         </div>
 
