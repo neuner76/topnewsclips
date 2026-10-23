@@ -161,11 +161,11 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
     const story = storyMap.get(item.slug)
     return `
     <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid #e5e7eb;">
-      ${story ? renderBadgeRow(story) : ''}
       <a href="${storyUrl(siteUrl, item.slug)}" style="text-decoration:none;">
         <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">NEED TO KNOW</div>
-        <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
+        <h2 style="margin:0 0 8px;font-size:20px;font-weight:800;color:#111827;line-height:1.3;">${item.sectionTitle}</h2>
       </a>
+      ${story ? renderBadgeRow(story) : ''}
       ${item.paragraphs.slice(0, 2).map((p, i) => `<div style="margin-bottom:14px;"><div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#9ca3af;text-transform:uppercase;margin-bottom:4px;">${i === 0 ? 'What happened' : 'Why it matters'}</div><p style="margin:0;font-size:15px;line-height:1.65;color:#374151;">${p}</p></div>`).join('')}
       ${item.howWorldSeesIt && item.howWorldSeesIt.length > 0 ? `
         <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;">
