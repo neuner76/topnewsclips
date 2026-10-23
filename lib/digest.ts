@@ -9,6 +9,7 @@ import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcem
 import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
 import { selectNeedToKnowBackfill, NEED_TO_KNOW_TARGET, pickComedyBackstop } from './digest-fallback'
 import { dedupeByIncident } from './digest-dedupe'
+import { repairLensOutletEcho } from './feed-editorial'
 import { firstSentence } from './first-sentence'
 import { SATIRE_HANDLES } from './satire-sources'
 import type { LeadCandidate } from './lead-eligibility'
@@ -1905,6 +1906,9 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       if (seenLensOutlets.has(item.region)) return false  // one item per outlet
       seenLensOutlets.add(item.region)
       item.title = titleMap.get(item.slug)!
+      // Repair the "ABC News Australia aBC Australia centers…" duplication artifact
+      // using the canonical outlet name, so the stored summary (email + feed) is clean.
+      item.summary = repairLensOutletEcho(item.summary, outletNameMap.get(item.slug) ?? item.region)
       return true
     }).slice(0, 4)
 
