@@ -7,6 +7,7 @@ import {
   displaySummary,
   emergingSignalCopy,
   globalLensDisplayText,
+  repairLensOutletEcho,
   isLimitedSourceNeedToKnow,
   isWeakPrimarySingleton,
   isZeroCoverageStory,
@@ -125,5 +126,36 @@ describe('feed editorial hierarchy', () => {
       'The pest was eradicated from the United States through a decades-long program, and its return left officials working to determine how far the infestation has spread.'
     )
     expect(displaySummary('The report raises questions about agency oversight.', 20)).toBe('The report has prompted scrutiny of agency oversight.')
+  })
+})
+
+describe('repairLensOutletEcho (duplication artifact)', () => {
+  it('rebuilds a garbled outlet echo from the canonical name (the "aBC Australia" bug)', () => {
+    const got = repairLensOutletEcho(
+      "ABC News Australia aBC Australia centers China's leverage over iron ore supply chains, contrasting with US coverage.",
+      'ABC News Australia',
+    )
+    expect(got).toBe("ABC News Australia centers China's leverage over iron ore supply chains, contrasting with US coverage.")
+    expect(got).not.toMatch(/[a-z][A-Z]{2,}/) // no broken-caps remain
+  })
+
+  it('collapses an immediately-repeated word', () => {
+    expect(repairLensOutletEcho('DW News frames the the European response.', 'DW News'))
+      .toBe('DW News frames the European response.')
+  })
+
+  it('leaves a clean summary untouched', () => {
+    const clean = 'Al Jazeera centers the human toll on families, rather than the security framing.'
+    expect(repairLensOutletEcho(clean, 'Al Jazeera')).toBe(clean)
+  })
+
+  it('does not rewrite the prefix when there is no broken-caps corruption', () => {
+    const s = 'France 24 highlights EU unity rather than national divisions.'
+    expect(repairLensOutletEcho(s, 'France 24')).toBe(s)
+  })
+
+  it('is a safe no-op without an outlet name (still collapses dup words)', () => {
+    expect(repairLensOutletEcho('TRT World World frames the protest.', undefined))
+      .toBe('TRT World frames the protest.')
   })
 })

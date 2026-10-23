@@ -214,6 +214,27 @@ export function validateGlobalLensSourceConsistency(item: {
   return { valid: true }
 }
 
+const LENS_FRAMING_VERB =
+  /\b(centers|centres|frames|emphasi[sz]es|foregrounds|highlights|focuses|leads|prioriti[sz]es|treats|presents|spotlights|examines|centres on|centers on)\b/i
+
+// Repair the duplication artifact in a Global Lens summary. The framing is
+// "[Outlet] centers [frame] …", and the model sometimes emits a garbled partial
+// echo of the outlet before the verb — e.g. "ABC News Australia aBC Australia
+// centers …" (QC flags the broken-caps "aBC"). Collapse immediately-repeated words,
+// and when the prefix before the framing verb carries a broken-caps corruption,
+// rebuild it from the canonical outlet name (passed from the story record).
+export function repairLensOutletEcho(summary: string, outletName?: string | null): string {
+  let out = (summary ?? '').replace(/\b(\w{3,})\s+\1\b/gi, '$1') // "Australia Australia" → "Australia"
+  const outlet = (outletName ?? '').trim()
+  if (outlet) {
+    const verb = out.match(LENS_FRAMING_VERB)
+    if (verb && verb.index != null && /[a-z][A-Z]{2,}/.test(out.slice(0, verb.index))) {
+      out = `${outlet} ${out.slice(verb.index)}`
+    }
+  }
+  return out.replace(/\s{2,}/g, ' ').trim()
+}
+
 export function globalLensDisplayText(summary: string): string {
   const clean = stripSourceBoilerplate(summary)
   return clampWords(firstSentence(clean), 45)
