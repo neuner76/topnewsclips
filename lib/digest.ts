@@ -2063,15 +2063,22 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       for (const w of sigWords(a)) if (wb.has(w)) overlap++
       return overlap >= 2
     }
+    const backfillEditionNow = new Date()
     const additions = selectNeedToKnowBackfill(
       content.needToKnow.map(i => ({ slug: i.slug, title: i.sectionTitle })),
-      freshCandidates.map(s => ({
-        slug: s.slug,
-        title: s.title,
-        description: s.description,
-        coveredCount: coverageCount(s),
-        eligible: isNeedToKnowEligible(s, 80),
-      })),
+      freshCandidates
+        // Don't re-promote a story the 72h freshness gate just dropped. freshCandidates
+        // is "fresh" only by ingest time (created_at), so a recap uploaded this week
+        // about a week-old event (e.g. an Oct-16 shooting leading the Oct-22 edition)
+        // is still in the pool — apply the same event-freshness gate here.
+        .filter(s => needToKnowFreshness(`${s.title} ${s.description ?? ''}`, backfillEditionNow).fresh)
+        .map(s => ({
+          slug: s.slug,
+          title: s.title,
+          description: s.description,
+          coveredCount: coverageCount(s),
+          eligible: isNeedToKnowEligible(s, 80),
+        })),
       sameNtkTopic,
     )
     if (additions.length > 0) {
