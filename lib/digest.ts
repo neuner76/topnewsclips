@@ -10,6 +10,7 @@ import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-f
 import { selectNeedToKnowBackfill, NEED_TO_KNOW_TARGET, pickComedyBackstop } from './digest-fallback'
 import { dedupeByIncident } from './digest-dedupe'
 import { repairLensOutletEcho } from './feed-editorial'
+import { buildDigestIntroLLM, buildDigestIntro, type DigestIntro } from './digest-intro'
 import { firstSentence } from './first-sentence'
 import { SATIRE_HANDLES } from './satire-sources'
 import type { LeadCandidate } from './lead-eligibility'
@@ -81,6 +82,9 @@ export interface DigestContent {
   // eligible story that day). Surfaced in the email + admin so a weak lead is
   // never shipped silently. See lib/lead-enforcement.ts.
   leadNotice?: LeadDegradedNotice
+  // Warm orientation open (greeting + throughline + "also inside"). LLM-crafted at
+  // generation with a deterministic fallback. See lib/digest-intro.ts.
+  intro?: DigestIntro
 }
 
 export interface Digest {
@@ -2131,6 +2135,21 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
       console.warn(`[digest] degraded lead: ${leadEnforcement.notice.message} Failed gate(s): ${leadEnforcement.notice.failedGates.join(' ')}`)
     }
   }
+
+  // Warm orientation open (greeting + throughline + "also inside"), crafted in the
+  // 1440 voice. Runs on the FINAL content so the preview reflects what shipped;
+  // buildDigestIntroLLM validates every field and falls back to the deterministic
+  // builder, so a bad/absent completion never blocks the edition.
+  const introGenerate = async (prompt: string): Promise<string> => {
+    const msg = await createWithRetry({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 600,
+      messages: [{ role: 'user', content: prompt }],
+    })
+    const block = msg.content.find(b => b.type === 'text')
+    return block && block.type === 'text' ? block.text : ''
+  }
+  content.intro = (await buildDigestIntroLLM(content, today, introGenerate)) ?? undefined
 
   // Validate digest quality before saving
   const digestIssues = validateDigest(content, validNtkSlugs)

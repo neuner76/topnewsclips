@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { getLatestDigest, type DigestContent } from '@/lib/digest'
+import { formatAlsoInside } from '@/lib/digest-intro'
 import type { Story } from '@/lib/types'
 import { buildEmailHtml, buildStoryMap, feedUrlUtm, formatDate, storyUrl } from '@/lib/email/digest-html'
 import { unsubscribeLink } from '@/lib/unsubscribe'
@@ -32,6 +33,19 @@ function buildEmailText(content: DigestContent, date: string, siteUrl: string, s
   lines.push('')
   lines.push('━'.repeat(60))
   lines.push('')
+
+  // Warm orientation open
+  if (content.intro) {
+    lines.push(`${content.intro.greeting} ${content.intro.throughline}`)
+    const alsoInside = formatAlsoInside(content.intro.alsoInside)
+    if (alsoInside) {
+      lines.push('')
+      lines.push(alsoInside)
+    }
+    lines.push('')
+    lines.push('─'.repeat(60))
+    lines.push('')
+  }
 
   // Need to Know
   for (const item of content.needToKnow) {
