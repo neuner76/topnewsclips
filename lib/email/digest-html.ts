@@ -4,6 +4,7 @@ import type { Story } from '@/lib/types'
 import { getSourceTier } from '@/lib/ingest/source-tier'
 import { getConfidenceLabel } from '@/lib/confidence'
 import { selectNewsletterNextStep } from '@/lib/newsletter-next-step'
+import { formatAlsoInside } from '@/lib/digest-intro'
 import {
   buildDigestEdition,
   formatDigestMetadata,
@@ -290,6 +291,14 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
     </div>
   ` : ''
 
+  const intro = content.intro
+  const alsoInsideLine = intro ? formatAlsoInside(intro.alsoInside) : null
+  const introHtml = intro ? `
+    <div style="margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid #e5e7eb;">
+      <p style="margin:0;font-size:15px;line-height:1.6;color:#374151;"><span style="font-weight:700;color:#111827;">${escapeHtml(intro.greeting)}</span> ${escapeHtml(intro.throughline)}</p>
+      ${alsoInsideLine ? `<p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:#6b7280;">${escapeHtml(alsoInsideLine)}</p>` : ''}
+    </div>` : ''
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -311,6 +320,8 @@ export function buildEmailHtml(content: DigestContent, date: string, siteUrl: st
 
     <!-- Body -->
     <div style="padding:32px;">
+
+      ${introHtml}
 
       <!-- Need to Know -->
       ${renderLeadNoticeBanner(content.leadNotice)}
