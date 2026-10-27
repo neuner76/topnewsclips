@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Story } from './types'
 import {
+  cleanHeadline,
   clampWords,
   coverageText,
   coverageTotal,
@@ -157,5 +158,21 @@ describe('repairLensOutletEcho (duplication artifact)', () => {
   it('is a safe no-op without an outlet name (still collapses dup words)', () => {
     expect(repairLensOutletEcho('TRT World World frames the protest.', undefined))
       .toBe('TRT World frames the protest.')
+  })
+})
+
+describe('cleanHeadline (C3 vague-filler in titles)', () => {
+  it('rewrites "raises questions about" to a crisp verb (the DOJ/Omar headline)', () => {
+    const out = cleanHeadline('DOJ Letter Raises Questions About Rep. Ilhan Omar’s Name History')
+    expect(out).toBe('DOJ Letter Questions Rep. Ilhan Omar’s Name History')
+    expect(out).not.toMatch(/raises questions/i)
+  })
+  it('clears the other C3 filler constructions', () => {
+    expect(cleanHeadline('Report Sparks Concerns About Safety')).not.toMatch(/sparks concerns/i)
+    expect(cleanHeadline('In a Notable Development, Talks Resume').trim()).toBe('Talks Resume')
+    expect(cleanHeadline('A Reportedly Significant Shift')).toBe('A Significant Shift')
+  })
+  it('leaves a clean headline untouched', () => {
+    expect(cleanHeadline('Four Killed in Oregon School Shooting')).toBe('Four Killed in Oregon School Shooting')
   })
 })

@@ -19,6 +19,7 @@ import ConfidenceBadge from '@/components/ConfidenceBadge'
 import MSMBadge from '@/components/MSMBadge'
 import FeedStoryLink from '@/components/FeedStoryLink'
 import {
+  cleanHeadline,
   coverageCount,
   coverageText,
   displaySummary,
@@ -468,6 +469,7 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
     ...((usResult.data as Story[]) ?? []),
     ...((regionalResult.data as Story[]) ?? []),
   ].filter(story => !HIDDEN_STORY_SLUGS.has(story.slug))
+    .map(s => ({ ...s, title: cleanHeadline(s.title) })) // strip vague-filler headlines (C3)
   const storyMap = new Map(all.map(s => [s.slug, s]))
 
   // Supplement storyMap with any digest-referenced stories not in the 7-day window
@@ -482,7 +484,7 @@ export async function FeedPage({ preferredView }: { preferredView: 'digest' | 'c
     const missingSlugs = [...new Set(digestSlugs)].filter(slug => !storyMap.has(slug))
     if (missingSlugs.length > 0) {
       const { data: extra } = await supabase.from('stories').select('*').in('slug', missingSlugs)
-      for (const s of (extra ?? []) as Story[]) storyMap.set(s.slug, s)
+      for (const s of (extra ?? []) as Story[]) storyMap.set(s.slug, { ...s, title: cleanHeadline(s.title) })
     }
   }
 
