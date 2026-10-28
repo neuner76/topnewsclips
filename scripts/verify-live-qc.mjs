@@ -59,7 +59,11 @@ const checks = [
   {
     id: 'C4',
     name: 'Retrospective framed as current news',
-    pattern: /\b(retrospective|from the archives?|archive documentary|looking back|history of|filmed in 20\d{2}|VICE archives?|South China Sea retrospective)\b/i,
+    // Only strong archive/compilation signals. Dropped the over-broad terms that
+    // flagged CURRENT stories: "history of" ("her history of abuse"), bare
+    // "retrospective" ("a retrospective study"), and bare "looking back". Date-based
+    // freshness for the digest is handled by needToKnowFreshness, not this scrape.
+    pattern: /\b(from the archives?|archive documentary|looking back at (?:the )?(?:19|20)\d{2}|filmed in (?:19|20)\d{2}|VICE archives?|retrospective (?:compilation|reel|documentary|special|episode|series))\b/i,
   },
   {
     id: 'C5',

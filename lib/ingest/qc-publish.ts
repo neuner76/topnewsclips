@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { runQCGate, runStaticQCChecks, type QCCheckResult, type QCContentType, type QCConfidenceLabel } from './qc-gate'
+import { cleanHeadline } from '../feed-editorial'
 
 export interface QCContext {
   section: string
@@ -54,7 +55,7 @@ export async function runQCAndInsert(
   storyData: Record<string, unknown> & { slug: string; title: string; description: string },
   qc: QCContext
 ): Promise<QCPublishResult> {
-  let headline = storyData.title
+  let headline = cleanHeadline(storyData.title) // strip vague-filler constructions (C3)
   let summary = storyData.description
   const staticFailures = staticHoldFailures(runStaticQCChecks({
     storyId: storyData.slug,

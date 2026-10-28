@@ -136,6 +136,30 @@ export function displaySummary(text: string | null | undefined, maxWords: number
   return clampWords(stripSourceBoilerplate(text), maxWords)
 }
 
+// Strip the vague-filler constructions the live-QC C3 check flags from a HEADLINE —
+// stripSourceBoilerplate only cleans summaries, so titles shipped these verbatim
+// (e.g. "DOJ Letter Raises Questions About Omar's Name" on /clips). Rewrites to a
+// crisp headline verb. Applied at generation (clean going forward) and at display
+// (existing titles), so the firehose page no longer trips C3.
+export function cleanHeadline(title: string | null | undefined): string {
+  // Preserve the original leading capitalization when swapping a phrase.
+  const cap = (match: string, repl: string) => (/^[A-Z]/.test(match) ? repl.charAt(0).toUpperCase() + repl.slice(1) : repl)
+  const t = (title ?? '')
+    .replace(/\braises questions (?:about|over|regarding)\b/gi, m => cap(m, 'questions'))
+    .replace(/\braises questions\b/gi, m => cap(m, 'raises doubts'))
+    .replace(/\bsparks concerns? (?:about|over)\b/gi, m => cap(m, 'stirs concern over'))
+    .replace(/\bsparks concerns?\b/gi, m => cap(m, 'stirs concern'))
+    .replace(/\bin a notable development\b/gi, '')
+    .replace(/\breportedly significant\b/gi, m => cap(m, 'significant'))
+    .replace(/\bunder these circumstances\b/gi, '')
+    .replace(/\bin this way\b/gi, '')
+  return t
+    .replace(/\s+([,.;:])/g, '$1') // no space before punctuation
+    .replace(/^[\s,.;:]+/, '')      // drop a leading comma left by a removed phrase
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
 function normalizeOutletName(value: string): string {
   return value
     .toLowerCase()
