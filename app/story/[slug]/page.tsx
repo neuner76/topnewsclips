@@ -217,7 +217,7 @@ export default async function StoryPage({ params }: Props) {
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <PlatformBadge platform={s.platform} />
           <CategoryBadge category={s.category} />
-          <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
+          <TierBadge tier={badge.tier} sourceType={badge.sourceType} contentType={s.content_type} />
           {s.msm_gap && <MSMBadge notes={s.msm_notes} coverage={s.msm_outlet_coverage} />}
         </div>
 
@@ -395,7 +395,7 @@ export default async function StoryPage({ params }: Props) {
               {badge.sourceType && (
                 <div className="flex gap-3">
                   <span className="font-semibold text-muted-foreground w-28 shrink-0">Source type</span>
-                  <TierBadge tier={badge.tier} sourceType={badge.sourceType} />
+                  <TierBadge tier={badge.tier} sourceType={badge.sourceType} contentType={s.content_type} />
                 </div>
               )}
               {contentTypeLabel && (

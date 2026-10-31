@@ -203,7 +203,7 @@ export default function WorldMapSection({
                           {story.title}
                         </h3>
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                          <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
                           <ConfidenceBadge label={confidence} category={story.category} />
                           <span className="text-[11px] text-[#64748B]">{coverageText(story)}</span>
                           <SocialClipLabel story={story} />
@@ -268,7 +268,7 @@ export default function WorldMapSection({
                         <p className={`text-xs ${lowerConfidence ? 'text-muted-foreground line-clamp-1' : 'text-muted-foreground line-clamp-2'} leading-relaxed mb-2`}>{displaySummary(story.description, lowerConfidence ? 24 : 45)}</p>
                       )}
                       <div className="mt-auto pt-2 flex flex-wrap items-center gap-2">
-                        <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                        <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
                         <ConfidenceBadge label={confidence} category={story.category} />
                         <span className="text-[11px] text-[#64748B]">{coverageText(story)}</span>
                         {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}
@@ -317,7 +317,7 @@ export default function WorldMapSection({
                           {story.title}
                         </h3>
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                          <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
                           <ConfidenceBadge label={confidence} category={story.category} />
                           <span className="text-[11px] text-[#64748B]">{coverageText(story)}</span>
                           <SocialClipLabel story={story} />
@@ -363,7 +363,7 @@ export default function WorldMapSection({
                         <p className={`text-xs ${lowerConfidence ? 'text-muted-foreground line-clamp-1' : 'text-muted-foreground line-clamp-2'} leading-relaxed mb-2`}>{displaySummary(story.description, lowerConfidence ? 24 : 45)}</p>
                       )}
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                        <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
                         <ConfidenceBadge label={confidence} category={story.category} />
                         <span className="text-[11px] text-[#64748B]">{coverageText(story)}</span>
                         {showZeroCoverageCaution && <LimitedMainstreamCoverageLabel />}

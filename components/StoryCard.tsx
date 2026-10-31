@@ -67,7 +67,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
               </h3>
             </Link>
             <div className="mt-2">
-              <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+              <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
             </div>
           </div>
           {thumbnail && (
@@ -129,7 +129,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 45)}</p>
         )}
         <div className="mt-auto pt-1 flex flex-wrap items-center gap-2">
-          <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+          <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
           <ConfidenceBadge label={getConfidenceLabel(story)} category={story.category} />
           <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
         </div>

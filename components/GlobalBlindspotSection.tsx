@@ -118,7 +118,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                     <h3 className="text-sm font-bold text-[#1F2937] group-hover:underline underline-offset-2 line-clamp-3 leading-snug mb-2">{story.title}</h3>
                     {story.description && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 55)}</p>}
                     <div className="mt-auto flex items-center gap-2 flex-wrap">
-                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
                       <span className="text-[11px] text-[#64748B]">{formatPublishedDate(story.created_at)}</span>
                       {sourceHandle(story) && (
                         <span className="text-[11px] text-[#64748B]">{sourceHandle(story)}</span>
@@ -160,7 +160,7 @@ export default function GlobalBlindspotSection({ stories, layout = 'list' }: Glo
                       <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{displaySummary(story.description, 65)}</p>
                     )}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                      <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
                       <span className="text-[11px] text-[#64748B]">{formatPublishedDate(story.created_at)}</span>
                       {sourceHandle(story) && (
                         <span className="text-[11px] text-[#64748B]">{sourceHandle(story)}</span>
