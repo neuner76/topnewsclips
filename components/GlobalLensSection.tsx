@@ -177,7 +177,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                     {summary && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{summary}</p>}
                     {tier !== null && (
                       <div className="mt-auto flex items-center gap-2 flex-wrap">
-                        <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                        <TierBadge tier={tier} sourceType={sourceType} contentType={story?.content_type} compact asLink={false} />
                         {story && <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>}
                         {story && sourceHandle(story) && (
                           <span className="text-[10px] text-muted-foreground">{sourceHandle(story)}</span>
@@ -214,7 +214,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                     {summary && <p className="text-sm text-muted-foreground mt-0.5 line-clamp-3 leading-relaxed mb-2">{summary}</p>}
                     <div className="flex items-center gap-2 flex-wrap">
                       {tier !== null && (
-                        <TierBadge tier={tier} sourceType={sourceType} compact asLink={false} />
+                        <TierBadge tier={tier} sourceType={sourceType} contentType={story?.content_type} compact asLink={false} />
                       )}
                       {story && <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>}
                       {story && sourceHandle(story) && (

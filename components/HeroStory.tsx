@@ -86,7 +86,7 @@ export default function HeroStory({ story }: HeroStoryProps) {
 
         {/* Footer row */}
         <div className="flex items-center gap-4 flex-wrap">
-          <TierBadge tier={tier} sourceType={sourceType} />
+          <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} />
           <Link
             href={`/story/${story.slug}`}
             target="_blank"

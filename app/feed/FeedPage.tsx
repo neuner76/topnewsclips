@@ -89,7 +89,7 @@ function NeedToKnowStory({ item, storyMap, position }: { item: NeedToKnowItem; s
               Emerging signal
             </span>
           )}
-          {(badge?.tier || badge?.sourceType) && <TierBadge tier={badge.tier} sourceType={badge.sourceType} />}
+          {(badge?.tier || badge?.sourceType) && <TierBadge tier={badge.tier} sourceType={badge.sourceType} contentType={story?.content_type} />}
           {story && <ConfidenceBadge label={confidence} category={story.category} />}
           {story && <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>}
           {story?.journalist_username && (
@@ -327,7 +327,7 @@ function DigestView({ content, date, storyMap }: { content: DigestContent; date:
                   ) : text}
                   {story && (
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <TierBadge tier={badge?.tier ?? null} sourceType={badge?.sourceType ?? null} />
+                      <TierBadge tier={badge?.tier ?? null} sourceType={badge?.sourceType ?? null} contentType={story?.content_type} />
                       <ConfidenceBadge label={confidence} category={story.category} />
                       <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
                     </div>

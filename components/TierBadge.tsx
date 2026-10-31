@@ -14,6 +14,7 @@
 interface TierBadgeProps {
   tier: number | null
   sourceType: string | null
+  contentType?: string | null
   compact?: boolean
   asLink?: boolean
 }
@@ -74,17 +75,32 @@ const PUBLIC_SOURCE_LABELS: Record<string, string> = {
   'Mainstream Pulse':                'General Newsroom',
 }
 
-export function getPublicSourceLabel(sourceType: string, tier?: number | null): string {
-  const label = PUBLIC_SOURCE_LABELS[sourceType] ?? sourceType
+// A reporting clip can come from a commentary/satire SOURCE. Showing that source's
+// "Commentary / Analysis" / "Satire" framing then mislabels reported CONTENT — and
+// the lead-eligibility QC reads the source label as the content's confidence. When
+// content_type (the authoritative classifier) says the clip is reporting, show a
+// neutral source descriptor instead.
+const REPORTING_CONTENT_TYPES = new Set(['reported', 'investigative', 'official_primary'])
+const REPORTING_SOURCE_OVERRIDE: Record<string, string> = {
+  'Independent Commentary': 'Independent',
+  'Independent Commentary (Satire)': 'Independent',
+  'Newsroom (Satire)': 'General Newsroom',
+}
+
+export function getPublicSourceLabel(sourceType: string, tier?: number | null, contentType?: string | null): string {
+  const reportingOverride = contentType && REPORTING_CONTENT_TYPES.has(contentType)
+    ? REPORTING_SOURCE_OVERRIDE[sourceType]
+    : undefined
+  const label = reportingOverride ?? PUBLIC_SOURCE_LABELS[sourceType] ?? sourceType
   return tier ? `${label} · T${tier}` : label
 }
 
-export default function TierBadge({ tier, sourceType, compact = false, asLink = true }: TierBadgeProps) {
+export default function TierBadge({ tier, sourceType, contentType, compact = false, asLink = true }: TierBadgeProps) {
   if (!tier || !sourceType) return null
 
   const band = getBand(tier)
   const styles = BAND_STYLES[band]
-  const [label, tierLabel] = getPublicSourceLabel(sourceType, tier).split(' · ')
+  const [label, tierLabel] = getPublicSourceLabel(sourceType, tier, contentType).split(' · ')
 
   const pill = (
     <span className="inline-flex items-center gap-1.5">
