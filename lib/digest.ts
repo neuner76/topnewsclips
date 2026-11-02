@@ -415,6 +415,26 @@ function getSupabase() {
   )
 }
 
+// Section / product / brand landing pages Google News surfaces for a site: search
+// on low-news days (NYT Sundays especially — "The Athletic", a Wordle page, etc.).
+// Matched EXACTLY after the trailing-source strip, so a real headline that merely
+// contains one of these words ("The Athletic reports a trade") is untouched.
+const PULSE_SECTION_TITLES = /^(the athletic|wirecutter|nyt cooking|cooking|the morning|the upshot|connections|wordle|spelling bee|the mini|mini crossword|crossword|the daily|headlines|live|watch|listen|audio|video|podcasts?|briefing|newsletters?|games?|the new york times|the wall street journal|associated press|reuters|fox news|npr)$/i
+
+// Clean a Google-News RSS <title> into a usable Mainstream Pulse headline, or null
+// to skip it. Strips a trailing " - Source" / "– Source" / "| Source" (any dash —
+// Google varies the character), then drops opinion, too-short, print/nav, and
+// section/brand landing titles. Exported for testing.
+export function cleanPulseHeadline(decodedTitle: string): string | null {
+  const headline = (decodedTitle ?? '').replace(/\s*[-–—|]\s*[^-–—|]+$/, '').trim()
+  if (!headline) return null
+  if (/^(Opinion|Editorial|Letters?|Commentary)\s*[|:]/i.test(headline)) return null
+  if (headline.length < 25) return null
+  if (/print edition|wall street journal|subscribe|log in|news quiz/i.test(headline)) return null
+  if (PULSE_SECTION_TITLES.test(headline)) return null
+  return headline
+}
+
 const PULSE_OUTLETS = [
   { domain: 'npr.org',      label: 'NPR',      descriptor: 'public media' },
   { domain: 'nytimes.com',  label: 'NYT',      descriptor: 'center-left' },
@@ -467,14 +487,8 @@ async function fetchMainstreamPulse(previousHeadlines?: Map<string, string>): Pr
         const candidates: { headline: string; pubDate: number; url: string | null }[] = []
         for (const item of items) {
           const titleRaw = item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ''
-          // Google News search titles are "Headline - Source Name" or "Headline | Source Name" — strip the trailing source
-          const headline = decodeHtml(titleRaw.replace(/\s*[-|]\s*[^-|]+$/, ''))
+          const headline = cleanPulseHeadline(decodeHtml(titleRaw))
           if (!headline) continue
-          // Skip opinion, editorial, and letter pieces — not news leads
-          if (/^(Opinion|Editorial|Letters?|Commentary)\s*[|:]/i.test(headline)) continue
-          // Skip navigation/print pages — WSJ and others sometimes return site UI as headlines
-          if (headline.length < 25) continue
-          if (/print edition|wall street journal|subscribe|log in|news quiz/i.test(headline)) continue
           const pubDate = Date.parse(item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? '') || 0
           const url = decodeHtml(item.match(/<link>([\s\S]*?)<\/link>/)?.[1] ?? '') || null
           candidates.push({ headline, pubDate, url })
