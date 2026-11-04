@@ -1154,17 +1154,18 @@ If one topic (e.g., Iran/Middle East conflict, US-Iran talks) exceeds 50% of tot
 2. Replace the weakest items from the dominant cluster with them. "Weakest" = lowest confidence, lowest source tier, most duplicative of another item already on the page.
 
 SECTION-SPECIFIC LIMITS:
-- Need To Know: maximum 2 items from the same story cluster. At least 1 must be a different topic.
+- Need To Know: maximum 2 items from the same story cluster, at least 1 a different topic — UNLESS it is a SINGULAR NATIONAL-EVENT day (see EXCEPTION), when all 3 Need To Know slots MAY cover distinct developments of the one event.
 - In The Know: at least 2 category sections must be non-conflict. Science & Technology, Business & Markets, Sports/Entertainment/Culture, or Comedy & Satire all qualify as non-conflict.
 - Global Blindspot: maximum 3 items from the same region or conflict. At least 1 must be from a different region or topic.
 - Global Lens: no clustering limit — this section is specifically about multiple outlets covering the same story.
 - Etcetera: ZERO items from the dominant conflict cluster. This section exists for breadth and variety.
 
-EXCEPTION: Suspend the 50% rule ONLY if the event would lead every major outlet worldwide simultaneously AND no reasonable reader would expect topic diversity that day (nuclear strike, 9/11-scale event). Active wars and ongoing diplomatic negotiations do NOT qualify for suspension — they are important but not singular.
+EXCEPTION — SINGULAR NATIONAL-EVENT DAYS: Suspend the 50% / clustering limits ONLY on a day dominated by ONE singular national event that meets ALL THREE tests: (a) it leads every major US outlet simultaneously; (b) a reasonable US reader EXPECTS wall-to-wall coverage of it that day; and (c) the day's strongest, best-corroborated INPUT stories genuinely cluster on it — you are recognizing a real cluster, not manufacturing one. Qualifying events: a US general / midterm / presidential ELECTION night or results day; a mass-casualty domestic attack or national-scale disaster; a historic Supreme Court ruling; a presidential death, resignation, or transition; a 9/11- or nuclear-scale event. NOT qualifying (important but not singular for a US reader): active wars, ongoing diplomatic negotiations, a single foreign conflict, routine political fights, or any normal heavy-news day.
+When the exception applies: the dominant event MAY exceed 50% of items and MAY fill all 3 Need To Know slots. Go DEEP — surface the day's genuinely DISTINCT developments (different races, results, rulings, or fronts), ranked by consequence × corroboration, not padded repetition of the same fact. Do NOT relax sourcing standards, and still include a genuinely strong non-event story when one exists — but NEVER displace a marquee result (e.g. a major race flipping, a governor conceding) with a niche story just to satisfy diversity.
 
 DAILY SELF-CHECK before finalizing:
-  ✓ Count total items. Dominant topic ≤ 50%?
-  ✓ Need To Know has ≤ 2 from same cluster?
+  ✓ Count total items. Dominant topic ≤ 50%?  (skip on a SINGULAR NATIONAL-EVENT day — see EXCEPTION)
+  ✓ Need To Know has ≤ 2 from same cluster?  (skip on a SINGULAR NATIONAL-EVENT day)
   ✓ In The Know has ≥ 2 non-conflict categories?
   ✓ Global Blindspot has ≥ 1 non-conflict item?
   ✓ Etcetera has 0 items from dominant cluster?
