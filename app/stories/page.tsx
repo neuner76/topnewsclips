@@ -94,7 +94,7 @@ export default async function StoriesPage({
 
         {/* Header */}
         <div className="mb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Stories
           </p>

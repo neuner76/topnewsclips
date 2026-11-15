@@ -88,7 +88,7 @@ export default function HowItWorksPage() {
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
         <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}How It Works
           </p>
@@ -106,11 +106,11 @@ export default function HowItWorksPage() {
 
         {/* The process in 5 steps — quick summary above the full breakdown */}
         <div className="mb-10 p-5 bg-muted border border-border rounded-lg">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-3">The process in 5 steps</p>
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-3">The process in 5 steps</p>
           <ol className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-1.5 text-sm">
             {['Pull broadly', 'Filter noise', 'Classify sources', 'Measure coverage', 'Challenge and summarize'].map((label, i) => (
               <li key={label} className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 rounded-full bg-[#2563EB] text-foreground text-[10px] font-bold">{i + 1}</span>
+                <span className="inline-flex items-center justify-center w-5 h-5 shrink-0 rounded-full bg-[#2563EB] text-foreground text-[0.625rem] font-bold">{i + 1}</span>
                 <span className="font-semibold text-muted-foreground">{label}</span>
                 {i < 4 && <span className="hidden sm:inline text-muted-foreground ml-1.5">→</span>}
               </li>
@@ -119,16 +119,16 @@ export default function HowItWorksPage() {
           <p className="text-xs text-muted-foreground mt-3">The full process is detailed below.</p>
         </div>
 
-        <div className="space-y-10 text-[15px] leading-relaxed text-muted-foreground">
+        <div className="space-y-10 text-[0.9375rem] leading-relaxed text-muted-foreground">
           {STEPS.map(({ step, title, body, note, list, link }) => (
             <div key={step} className="border-l-2 border-border pl-5">
               <div className="flex items-baseline gap-3 mb-2">
-                <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase shrink-0">
+                <span className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase shrink-0">
                   Step {step}
                 </span>
                 <h2 className="text-base font-black tracking-tight text-foreground">{title}</h2>
               </div>
-              {body && <p className="text-[15px] text-muted-foreground">{body}</p>}
+              {body && <p className="text-[0.9375rem] text-muted-foreground">{body}</p>}
               {list && (
                 <ul className="mt-2 space-y-1">
                   {list.map((item, i) => (
@@ -154,35 +154,35 @@ export default function HowItWorksPage() {
         {/* Annotated example */}
         <div className="mt-12 border border-border bg-muted rounded-lg overflow-hidden">
           <div className="bg-muted px-5 py-3 border-b border-border">
-            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Example: How a story reaches your briefing</p>
+            <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase">Example: How a story reaches your briefing</p>
           </div>
-          <div className="px-5 py-4 space-y-4 text-[14px] text-muted-foreground">
+          <div className="px-5 py-4 space-y-4 text-[0.875rem] text-muted-foreground">
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 1, Source identified</p>
+              <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 1, Source identified</p>
               <p>Channel: <span className="font-semibold">@60minutes</span>, Tier 6 (Newsroom)</p>
               <p className="text-muted-foreground">Published: April 4, 2026</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 2, Coverage check</p>
+              <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 2, Coverage check</p>
               <p>Checked against 15 major US outlets. Result: <span className="font-semibold">0 of 15</span> had covered this story at publication time.</p>
               <p className="text-muted-foreground mt-0.5">→ Flagged as Limited Coverage.</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 3, Content classification</p>
+              <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 3, Content classification</p>
               <p>Type: <span className="font-semibold">Reported</span>, original field journalism with named sources.</p>
               <p className="text-muted-foreground mt-0.5">Not commentary. Not raw footage. Not promotional.</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 4, Verification</p>
+              <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 4, Verification</p>
               <p>A second AI model challenges the classification, checks the financial figures, and flags anything that can&apos;t be corroborated. If confidence is below threshold, the story is held for human review rather than published.</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 5, Placement decision</p>
+              <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 5, Placement decision</p>
               <p>Assigned to: <span className="font-semibold">Science &amp; Technology</span></p>
               <p className="text-muted-foreground mt-0.5">Rationale: primary significance is the engineering innovation, not the geopolitics.</p>
             </div>
             <div className="border-l-2 border-border pl-4">
-              <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 6, Summary written</p>
+              <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-1">Step 6, Summary written</p>
               <p>Attribution-forward voice. &ldquo;60 Minutes reports that...&rdquo; No editorial conclusions beyond what the source documents.</p>
             </div>
             <div className="bg-muted rounded p-3 text-sm">
@@ -203,7 +203,7 @@ export default function HowItWorksPage() {
           <p className="text-sm text-muted-foreground mb-6">
             A story qualifies for the daily briefing when it meets at least one of these criteria.
           </p>
-          <div className="space-y-4 text-[14px]">
+          <div className="space-y-4 text-[0.875rem]">
             {[
               {
                 label: 'Public consequence',
@@ -240,7 +240,7 @@ export default function HowItWorksPage() {
               </div>
             ))}
           </div>
-          <p className="mt-5 text-[13px] text-muted-foreground border-t border-border pt-4">
+          <p className="mt-5 text-[0.8125rem] text-muted-foreground border-t border-border pt-4">
             Stories are <strong>not</strong> included simply because they are viral, dramatic, or emotionally provocative.
             Virality and engagement metrics are tracked but are not inclusion criteria.
           </p>
@@ -249,7 +249,7 @@ export default function HowItWorksPage() {
         {/* Short version */}
         <div className="mt-8 p-5 bg-muted border border-border rounded-lg">
           <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-3">Short version</p>
-          <p className="text-[15px] leading-relaxed">
+          <p className="text-[0.9375rem] leading-relaxed">
             Overnight, the pipeline pulls from 50+ sources across 10 credibility tiers, filters junk,
             classifies every source, checks coverage against 15 mainstream outlets, pressure-tests stories
             with multiple AI models, and assembles a briefing with visible source labels and coverage

@@ -78,7 +78,7 @@ export default function EmailCaptureInline({ placement = 'inline' }: { placement
           {status === 'loading' ? '...' : 'Get the digest'}
         </button>
       </form>
-      <p className="text-[11px] text-[#64748B] mt-1.5">Free. No spam. Unsubscribe anytime.</p>
+      <p className="text-[0.6875rem] text-[#64748B] mt-1.5">Free. No spam. Unsubscribe anytime.</p>
       {status === 'error' && (
         <p className="text-xs text-red-500 mt-1">Something went wrong, try again.</p>
       )}

@@ -84,7 +84,7 @@ export default async function ResponseResourcesPage() {
                       {resource.response_type} · {resource.story_category ?? 'any category'} · {resource.region ?? 'any region'} · {formatDate(resource.created_at)}
                     </p>
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[resource.approval_status]}`}>
+                  <span className={`text-[0.625rem] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[resource.approval_status]}`}>
                     {resource.approval_status}
                   </span>
                 </div>
@@ -112,7 +112,7 @@ export default async function ResponseResourcesPage() {
                 <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold hover:underline break-all">
                   {resource.title}
                 </a>
-                <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[resource.approval_status]}`}>
+                <span className={`text-[0.625rem] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[resource.approval_status]}`}>
                   {resource.approval_status}
                 </span>
               </div>

@@ -52,7 +52,7 @@ export default async function IssuePage({
         </nav>
 
         <div className="mb-8 border-b border-border pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">Track this issue</p>
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">Track this issue</p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-foreground">{titleFromSlug(slug)}</h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
             We&apos;ll surface meaningful updates and related stories here.

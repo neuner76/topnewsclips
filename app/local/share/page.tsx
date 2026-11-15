@@ -22,7 +22,7 @@ export default function MarinPickerPage() {
       <Header />
       <main className="mx-auto max-w-[780px] px-4 py-8 sm:px-6 text-foreground">
         <header className="mb-8">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#2563EB]">📍 Local Briefing</p>
+          <p className="mb-2 text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-[#2563EB]">📍 Local Briefing</p>
           <h1 className="text-3xl font-black leading-tight tracking-tight text-foreground sm:text-4xl">Your Marin neighborhood</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Pick your town for a live local briefing — what’s changing nearby, roads &amp; alerts, weather, fire, and local reporting.
@@ -32,7 +32,7 @@ export default function MarinPickerPage() {
         <div className="space-y-7">
           {byRegion.map(({ region, places }) => (
             <section key={region}>
-              <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#2563EB]">{region}</h2>
+              <h2 className="mb-3 text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-[#2563EB]">{region}</h2>
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                 {places.map(p => (
                   <Link
@@ -48,12 +48,12 @@ export default function MarinPickerPage() {
           ))}
         </div>
 
-        <p className="mt-8 text-[12px] leading-relaxed text-muted-foreground">
+        <p className="mt-8 text-[0.75rem] leading-relaxed text-muted-foreground">
           Tip: jump straight to your area by ZIP or name — e.g.{' '}
           <span className="font-mono text-foreground">/local/share/94940</span> or{' '}
           <span className="font-mono text-foreground">/local/share/point-reyes-station</span>.
         </p>
-        <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-[0.75rem] leading-relaxed text-muted-foreground">
           Building-permit activity is richest in unincorporated (West &amp; North) Marin; weather, roads, fire, tides, and
           local reporting cover the whole county.
         </p>

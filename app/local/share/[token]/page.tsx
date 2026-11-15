@@ -53,7 +53,7 @@ export default async function SharedLocalPage({ params }: { params: Promise<{ to
       heading={`Local — ${loc.label}`}
       subheading={`A live local briefing centered on ${loc.label}.`}
       note={
-        <p className="mt-2 inline-block rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
+        <p className="mt-2 inline-block rounded-full bg-muted px-2.5 py-1 text-[0.6875rem] text-muted-foreground">
           Shared with you · powered by TopNewsClips
         </p>
       }

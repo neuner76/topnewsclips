@@ -49,14 +49,14 @@ export default function TierMeter({ tier, sourceType, sources, compact = false }
 
       {/* Tier number */}
       {!compact && (
-        <span className="text-[10px] font-semibold tracking-wide" style={{ color }}>
+        <span className="text-[0.625rem] font-semibold tracking-wide" style={{ color }}>
           T{tier}
         </span>
       )}
 
       {/* Source type label */}
       {!compact && (
-        <span className="text-[10px] text-muted-foreground">
+        <span className="text-[0.625rem] text-muted-foreground">
           {sourceType}
         </span>
       )}
@@ -64,8 +64,8 @@ export default function TierMeter({ tier, sourceType, sources, compact = false }
       {/* Source count */}
       {sources !== undefined && sources > 0 && !compact && (
         <>
-          <span className="text-[10px] text-muted-foreground/50">·</span>
-          <span className="text-[10px] text-muted-foreground">{sources} sources</span>
+          <span className="text-[0.625rem] text-muted-foreground/50">·</span>
+          <span className="text-[0.625rem] text-muted-foreground">{sources} sources</span>
         </>
       )}
     </span>

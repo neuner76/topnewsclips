@@ -4,7 +4,7 @@ export default function UnsubscribedPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-[#ffffff] text-foreground">
       <div className="max-w-md text-center">
-        <p className="text-[11px] font-bold tracking-[0.18em] uppercase mb-3 text-[#2563EB]">
+        <p className="text-[0.6875rem] font-bold tracking-[0.18em] uppercase mb-3 text-[#2563EB]">
           Top News Clips
         </p>
         <h1 className="text-3xl font-black tracking-tight mb-3 text-foreground">You&apos;re unsubscribed.</h1>

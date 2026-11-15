@@ -17,7 +17,7 @@ function Badge({ label, color }: { label: string; color: 'green' | 'amber' | 're
     red:   'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
     gray:  'bg-muted text-muted-foreground',
   }[color]
-  return <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${cls}`}>{label}</span>
+  return <span className={`inline-block text-[0.625rem] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${cls}`}>{label}</span>
 }
 
 export default async function PipelinePage() {

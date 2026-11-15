@@ -27,7 +27,7 @@ export default function ContactPage() {
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
         <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Contact
           </p>
@@ -37,7 +37,7 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="space-y-8 text-[15px] leading-relaxed text-muted-foreground">
+        <div className="space-y-8 text-[0.9375rem] leading-relaxed text-muted-foreground">
 
           <div className="space-y-4">
             {[

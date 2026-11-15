@@ -27,12 +27,12 @@ function Row({ e, now }: { e: HistoryEvent; now: Date }) {
   const meta = [duration, resolution].filter(Boolean).join(' · ')
   return (
     <div className="group block border-t border-[#EFF2F6] py-3.5 first:border-t-0 first:pt-0 last:pb-0">
-      <div className="text-[15px] font-semibold leading-snug text-foreground">
+      <div className="text-[0.9375rem] font-semibold leading-snug text-foreground">
         {url ? <a href={url} target="_blank" rel="noopener noreferrer" className="group-hover:text-[#2563EB]">{e.event.title} <span aria-hidden className="text-muted-foreground">→</span></a> : e.event.title}
-        {e.correctionCount > 0 && <span className="ml-2 rounded bg-[#FEF3C7] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#92400E]">Corrected</span>}
+        {e.correctionCount > 0 && <span className="ml-2 rounded bg-[#FEF3C7] px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-[#92400E]">Corrected</span>}
       </div>
-      {meta && <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{meta}</p>}
-      <div className="mt-1.5 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+      {meta && <p className="mt-1 text-[0.8125rem] leading-relaxed text-muted-foreground">{meta}</p>}
+      <div className="mt-1.5 flex flex-wrap gap-x-2 text-[0.6875rem] text-muted-foreground">
         <span>{e.verificationLabel}</span>
         {e.event.sources[0] && <span>· {e.event.sources[0].label}</span>}
       </div>
@@ -51,7 +51,7 @@ function SectionEyebrow({ def }: { def: HistorySectionDef }) {
   return (
     <div className="mb-3 flex items-center gap-2">
       <span aria-hidden className="text-base leading-none">{def.icon}</span>
-      <h2 className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: def.accent }}>{def.label}</h2>
+      <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.18em]" style={{ color: def.accent }}>{def.label}</h2>
     </div>
   )
 }
@@ -89,14 +89,14 @@ export default async function HistoryPage() {
               {section.events.map(e => <Row key={e.event.id} e={e} now={now} />)}
             </div>
             {section.def.key === 'roads' && history!.routineSummary && (
-              <p className="mt-2 text-[12px] text-muted-foreground">{history!.routineSummary}</p>
+              <p className="mt-2 text-[0.75rem] text-muted-foreground">{history!.routineSummary}</p>
             )}
           </section>
         ))}
         {history && history.routineSummary && !history.sections.some(s => s.def.key === 'roads') && (
           <section className="mb-8">
             <SectionEyebrow def={HISTORY_SECTIONS.find(s => s.key === 'roads')!} />
-            <p className="text-[12px] text-muted-foreground">{history.routineSummary}</p>
+            <p className="text-[0.75rem] text-muted-foreground">{history.routineSummary}</p>
           </section>
         )}
       </main>

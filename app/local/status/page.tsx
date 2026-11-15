@@ -63,15 +63,15 @@ export default async function StatusPage() {
               {(['published', 'held', 'rejected'] as const).map(k => (
                 <div key={k} className="rounded-lg border border-[#EFF2F6] bg-white px-4 py-3">
                   <div className="text-2xl font-black tabular-nums text-foreground">{status!.eventCounts[k]}</div>
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{k}</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">{k}</div>
                 </div>
               ))}
             </div>
 
-            <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#2563EB]">Sources</h2>
+            <h2 className="mb-2 text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-[#2563EB]">Sources</h2>
             <div className="mb-8 overflow-hidden rounded-lg border border-[#EFF2F6]">
               <table className="w-full text-left text-sm">
-                <thead className="bg-[#FAFBFC] text-[11px] uppercase tracking-wide text-muted-foreground">
+                <thead className="bg-[#FAFBFC] text-[0.6875rem] uppercase tracking-wide text-muted-foreground">
                   <tr>
                     <th className="px-3 py-2 font-semibold">Source</th>
                     <th className="px-3 py-2 font-semibold">Health</th>
@@ -87,10 +87,10 @@ export default async function StatusPage() {
                       <tr key={s.slug} className="border-t border-[#EFF2F6]">
                         <td className="px-3 py-2">
                           <div className="font-medium text-foreground">{s.name}</div>
-                          <div className="text-[11px] text-muted-foreground">{s.slug}{!s.active && ' · inactive'}</div>
-                          {s.health === 'failing' && s.lastError && <div className="mt-0.5 text-[11px] text-red-600">{s.lastError}</div>}
+                          <div className="text-[0.6875rem] text-muted-foreground">{s.slug}{!s.active && ' · inactive'}</div>
+                          {s.health === 'failing' && s.lastError && <div className="mt-0.5 text-[0.6875rem] text-red-600">{s.lastError}</div>}
                         </td>
-                        <td className="px-3 py-2"><span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${h.cls}`}>{h.label}</span>{s.consecutiveFailures > 0 && <span className="ml-1 text-[11px] text-red-600">×{s.consecutiveFailures}</span>}</td>
+                        <td className="px-3 py-2"><span className={`rounded px-1.5 py-0.5 text-[0.625rem] font-semibold ${h.cls}`}>{h.label}</span>{s.consecutiveFailures > 0 && <span className="ml-1 text-[0.6875rem] text-red-600">×{s.consecutiveFailures}</span>}</td>
                         <td className="px-3 py-2 text-muted-foreground">{when(s.lastSuccessAt)}</td>
                         <td className="px-3 py-2 tabular-nums text-muted-foreground">{s.intervalSeconds}s</td>
                         <td className="px-3 py-2 text-muted-foreground">{s.dueNow ? 'now' : '—'}</td>
@@ -101,13 +101,13 @@ export default async function StatusPage() {
               </table>
             </div>
 
-            <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#2563EB]">Recent runs</h2>
+            <h2 className="mb-2 text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-[#2563EB]">Recent runs</h2>
             {status.recentRuns.length === 0 ? (
               <p className="rounded-lg border border-[#EFF2F6] bg-[#FAFBFC] px-4 py-6 text-center text-sm text-muted-foreground">No runs recorded yet — the dispatcher hasn&apos;t fired.</p>
             ) : (
               <div className="overflow-hidden rounded-lg border border-[#EFF2F6]">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-[#FAFBFC] text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <thead className="bg-[#FAFBFC] text-[0.6875rem] uppercase tracking-wide text-muted-foreground">
                     <tr>
                       <th className="px-3 py-2 font-semibold">Source</th>
                       <th className="px-3 py-2 font-semibold">When</th>
@@ -121,7 +121,7 @@ export default async function StatusPage() {
                       <tr key={i} className="border-t border-[#EFF2F6]">
                         <td className="px-3 py-2 text-foreground">{r.slug}</td>
                         <td className="px-3 py-2 text-muted-foreground">{when(r.startedAt)}</td>
-                        <td className="px-3 py-2">{r.status === 'ok' ? <span className="text-[#166534]">ok</span> : <span className="text-red-600">{r.status ?? '—'}</span>}{r.error && <div className="text-[11px] text-red-600">{r.error}</div>}</td>
+                        <td className="px-3 py-2">{r.status === 'ok' ? <span className="text-[#166534]">ok</span> : <span className="text-red-600">{r.status ?? '—'}</span>}{r.error && <div className="text-[0.6875rem] text-red-600">{r.error}</div>}</td>
                         <td className="px-3 py-2 tabular-nums text-muted-foreground">{r.itemsFetched} ({r.itemsNew})</td>
                         <td className="px-3 py-2 tabular-nums text-muted-foreground">+{r.eventsCreated} ~{r.eventsUpdated}</td>
                       </tr>

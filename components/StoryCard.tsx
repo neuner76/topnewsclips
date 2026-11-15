@@ -58,7 +58,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
               <CategoryBadge category={story.category} />
               {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
               {story.journalist_username && (
-                <span className="text-[10px] font-medium text-muted-foreground">@{story.journalist_username}</span>
+                <span className="text-[0.625rem] font-medium text-muted-foreground">@{story.journalist_username}</span>
               )}
             </div>
             <Link href={`/story/${story.slug}`} target="_blank" rel="noopener noreferrer" className="block group/title">
@@ -108,7 +108,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
           <CategoryBadge category={story.category} />
           {story.msm_gap && <MSMBadge notes={story.msm_notes} coverage={story.msm_outlet_coverage} size="sm" />}
         </div>
-        <span className="absolute top-2 right-2 text-[10px] text-muted-foreground bg-black/40 px-1.5 py-0.5 rounded">
+        <span className="absolute top-2 right-2 text-[0.625rem] text-muted-foreground bg-black/40 px-1.5 py-0.5 rounded">
           {formatPublishedDate(story.created_at)}
         </span>
       </Link>
@@ -131,7 +131,7 @@ export default function StoryCard({ story, layout = 'grid' }: StoryCardProps) {
         <div className="mt-auto pt-1 flex flex-wrap items-center gap-2">
           <TierBadge tier={tier} sourceType={sourceType} contentType={story.content_type} compact asLink={false} />
           <ConfidenceBadge label={getConfidenceLabel(story)} category={story.category} />
-          <span className="text-[10px] text-muted-foreground">{coverageText(story)}</span>
+          <span className="text-[0.625rem] text-muted-foreground">{coverageText(story)}</span>
         </div>
       </div>
     </article>

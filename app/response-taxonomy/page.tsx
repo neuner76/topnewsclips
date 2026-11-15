@@ -49,7 +49,7 @@ export default function ResponseTaxonomyPage() {
         </nav>
 
         <div className="mb-8">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             Editorial Framework, Version 1.0
           </p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-foreground">

@@ -48,7 +48,7 @@ export default function SectionHeader({ variant, title, subtitle, seeAllHref, se
       {/* Text */}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 flex-wrap">
-          <span className={isLg ? 'text-[11px] mr-0.5' : 'text-[10px]'}>{cfg.icon}</span>
+          <span className={isLg ? 'text-[0.6875rem] mr-0.5' : 'text-[0.625rem]'}>{cfg.icon}</span>
           <h2
             className={`font-black tracking-tight uppercase ${isLg ? 'text-xl sm:text-2xl' : 'text-sm'}`}
             style={{ color: cfg.accent }}

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CONFIDENCE_META, type ConfidenceLabel } from '@/lib/confidence'
 
-const BADGE_CLASS = 'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide border transition-opacity hover:opacity-80'
+const BADGE_CLASS = 'inline-flex items-center px-1.5 py-0.5 rounded text-[0.625rem] font-semibold tracking-wide border transition-opacity hover:opacity-80'
 
 // Confidence labels are reserved for news content. Satire/comedy shows a
 // "Cultural lens" content-type badge instead — pass `category` so the rule

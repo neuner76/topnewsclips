@@ -133,7 +133,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
 
         {/* Header */}
         <div className="mb-6">
-          <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: '#2563EB' }}>
+          <span className="inline-block text-[0.625rem] font-bold tracking-[0.15em] uppercase mb-2" style={{ color: '#2563EB' }}>
             🌐 Global Lens
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
@@ -168,7 +168,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                       <div className="w-full h-full flex items-center justify-center"><span className="text-muted-foreground text-3xl">📰</span></div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#ffffff] via-[#ffffff66] to-transparent" />
-                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: '#2563EB', color: 'white' }}>
+                    <span className="absolute top-2 left-2 text-[0.625rem] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: '#2563EB', color: 'white' }}>
                       {regionFlag(region)} {region}
                     </span>
                   </div>
@@ -178,9 +178,9 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                     {tier !== null && (
                       <div className="mt-auto flex items-center gap-2 flex-wrap">
                         <TierBadge tier={tier} sourceType={sourceType} contentType={story?.content_type} compact asLink={false} />
-                        {story && <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>}
+                        {story && <span className="text-[0.625rem] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>}
                         {story && sourceHandle(story) && (
-                          <span className="text-[10px] text-muted-foreground">{sourceHandle(story)}</span>
+                          <span className="text-[0.625rem] text-muted-foreground">{sourceHandle(story)}</span>
                         )}
                       </div>
                     )}
@@ -208,7 +208,7 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                       <span className="text-sm">{regionFlag(region)}</span>
-                      <span className="text-[10px] font-bold tracking-wide uppercase" style={{ color: '#2563EB' }}>{region}</span>
+                      <span className="text-[0.625rem] font-bold tracking-wide uppercase" style={{ color: '#2563EB' }}>{region}</span>
                     </div>
                     <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:underline underline-offset-2 leading-snug mb-1.5">{title}</h3>
                     {summary && <p className="text-sm text-muted-foreground mt-0.5 line-clamp-3 leading-relaxed mb-2">{summary}</p>}
@@ -216,9 +216,9 @@ export default function GlobalLensSection({ items, stories, storyMap, layout = '
                       {tier !== null && (
                         <TierBadge tier={tier} sourceType={sourceType} contentType={story?.content_type} compact asLink={false} />
                       )}
-                      {story && <span className="text-[10px] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>}
+                      {story && <span className="text-[0.625rem] text-muted-foreground">{formatPublishedDate(story.created_at)}</span>}
                       {story && sourceHandle(story) && (
-                        <span className="text-[10px] text-muted-foreground">{sourceHandle(story)}</span>
+                        <span className="text-[0.625rem] text-muted-foreground">{sourceHandle(story)}</span>
                       )}
                     </div>
                   </div>
