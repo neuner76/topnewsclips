@@ -80,7 +80,7 @@ export default function AdminStoryRow({ story, isReview = false }: { story: Stor
   return (
     <div className="flex items-center gap-4 px-4 py-3">
       {/* Platform */}
-      <span className="text-[10px] font-bold text-muted-foreground w-6 shrink-0">
+      <span className="text-[0.625rem] font-bold text-muted-foreground w-6 shrink-0">
         {platformLabel[story.platform]}
       </span>
 

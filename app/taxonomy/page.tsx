@@ -122,7 +122,7 @@ export default function TaxonomyPage() {
         </nav>
 
         <div className="mb-8">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             Editorial Framework, Version 1.0
           </p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-foreground">
@@ -154,7 +154,7 @@ export default function TaxonomyPage() {
                 <span className="text-xs font-bold text-muted-foreground w-10 shrink-0">
                   Tier {tier}
                 </span>
-                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide border ${color}`}>
+                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[0.625rem] font-semibold tracking-wide border ${color}`}>
                   {tier === 8 ? `⚠ ${name}` : name}
                 </span>
               </div>
@@ -215,7 +215,7 @@ export default function TaxonomyPage() {
             ].map(({ label, color, definition, when }) => (
               <div key={label} className="border border-border bg-muted rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide border ${color}`}>
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[0.625rem] font-semibold tracking-wide border ${color}`}>
                     {label}
                   </span>
                 </div>

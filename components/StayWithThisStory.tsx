@@ -40,7 +40,7 @@ export default function StayWithThisStory({ story, resources = [] }: {
         }}
       />
       <div className="mb-4">
-        <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#0F766E] mb-1">Stay with this story</p>
+        <p className="text-[0.6875rem] font-bold tracking-[0.15em] uppercase text-[#0F766E] mb-1">Stay with this story</p>
         <p className="text-xs text-[#64748B]">
           Response links are not endorsements. They are restrained ways to learn more, track updates, and ask better questions.
         </p>

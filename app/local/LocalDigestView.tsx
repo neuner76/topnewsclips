@@ -24,8 +24,8 @@ function Eyebrow({ icon, title, accent, aside }: { icon: string; title: string; 
   return (
     <div className="mb-4 flex items-center gap-2">
       <span aria-hidden className="text-base leading-none">{icon}</span>
-      <h2 className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: accent }}>{title}</h2>
-      {aside && <span className="ml-auto text-[10px] font-medium text-muted-foreground">{aside}</span>}
+      <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.18em]" style={{ color: accent }}>{title}</h2>
+      {aside && <span className="ml-auto text-[0.625rem] font-medium text-muted-foreground">{aside}</span>}
     </div>
   )
 }
@@ -43,7 +43,7 @@ function EventRow({ e }: { e: LocalEvent }) {
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
-        <div className="text-[15px] font-semibold leading-snug text-foreground group-hover:text-[#2563EB] transition-colors">
+        <div className="text-[0.9375rem] font-semibold leading-snug text-foreground group-hover:text-[#2563EB] transition-colors">
           {e.title}{url && <span aria-hidden className="text-muted-foreground"> →</span>}
         </div>
         {e.amountUsd != null && (
@@ -53,9 +53,9 @@ function EventRow({ e }: { e: LocalEvent }) {
         )}
       </div>
       {(e.whyItMatters || e.summary || e.whatChanged) && (
-        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{e.whyItMatters ?? e.summary ?? e.whatChanged}</p>
+        <p className="mt-1 text-[0.8125rem] leading-relaxed text-muted-foreground">{e.whyItMatters ?? e.summary ?? e.whatChanged}</p>
       )}
-      <div className="mt-1.5 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+      <div className="mt-1.5 flex flex-wrap gap-x-2 text-[0.6875rem] text-muted-foreground">
         <span className="uppercase tracking-wide">{e.confidence} confidence</span>
         {e.sources[0] && <span>· {e.sources[0].label}</span>}
         {schedule
@@ -86,7 +86,7 @@ function NeedToKnowSection({ events }: { events: LocalEvent[] }) {
     <SectionCard accent={meta.accent}>
       <Eyebrow icon={meta.icon} title={meta.title} accent={meta.accent} />
       {events.length === 0 ? (
-        <div className="rounded-lg border border-[#DCFCE7] bg-[#F0FDF4] px-3 py-3 text-[13px] text-[#166534]">
+        <div className="rounded-lg border border-[#DCFCE7] bg-[#F0FDF4] px-3 py-3 text-[0.8125rem] text-[#166534]">
           ✓ Nothing urgent near you right now — no active weather alerts, wildfires, nearby earthquakes, fire detections, or full road closures.
         </div>
       ) : (
@@ -114,7 +114,7 @@ function CameraSection({ cameras }: { cameras: MyLocalDigest['trafficCameras'] }
             {/* Live Caltrans snapshot (~5-min refresh); plain img so next/image can't cache a stale frame. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={cam.imageUrl} alt={cam.label} loading="lazy" className="aspect-video w-full bg-muted object-cover" />
-            <div className="truncate px-2.5 py-2 text-[11px] text-muted-foreground">
+            <div className="truncate px-2.5 py-2 text-[0.6875rem] text-muted-foreground">
               {cam.route && <span className="font-semibold text-foreground">{cam.route}</span>}
               {cam.route && cam.label ? ' · ' : ''}{cam.label}
             </div>
@@ -128,7 +128,7 @@ function CameraSection({ cameras }: { cameras: MyLocalDigest['trafficCameras'] }
 function Stat({ label, value, href }: { label: string; value: string; href?: string }) {
   const inner = (
     <>
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+      <div className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">
         {label}{href && <span aria-hidden className="text-muted-foreground"> ↗</span>}
       </div>
       <div className="mt-0.5 text-sm font-semibold text-foreground">{value}</div>
@@ -159,9 +159,9 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
         <div className="mb-3 flex gap-2 overflow-x-auto">
           {env.weather.forecast.map((p, i) => (
             <div key={i} className="shrink-0 rounded-md bg-[#F1F5F9] px-2.5 py-1.5 text-center">
-              <div className="text-[11px] font-semibold text-[#475569]">{p.name}</div>
+              <div className="text-[0.6875rem] font-semibold text-[#475569]">{p.name}</div>
               <div className="text-sm font-bold tabular-nums text-foreground">{p.temperatureF != null ? `${Math.round(p.temperatureF)}°` : '—'}</div>
-              {p.shortForecast && <div className="mt-0.5 max-w-[7rem] truncate text-[10px] text-muted-foreground" title={p.shortForecast}>{p.shortForecast}</div>}
+              {p.shortForecast && <div className="mt-0.5 max-w-[7rem] truncate text-[0.625rem] text-muted-foreground" title={p.shortForecast}>{p.shortForecast}</div>}
             </div>
           ))}
         </div>
@@ -203,11 +203,11 @@ function EnvironmentModule({ env }: { env: EnvironmentSnapshot }) {
       {env.recentEarthquakes.length > 0 && (
         <div className="mt-3">
           {env.sources?.earthquakes ? (
-            <a href={env.sources.earthquakes} target="_blank" rel="noopener noreferrer" className="text-[11px] uppercase tracking-wide text-muted-foreground hover:text-[#2563EB]">
+            <a href={env.sources.earthquakes} target="_blank" rel="noopener noreferrer" className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground hover:text-[#2563EB]">
               Recent earthquakes <span aria-hidden>↗</span>
             </a>
           ) : (
-            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Recent earthquakes</div>
+            <div className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">Recent earthquakes</div>
           )}
           <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
             {env.recentEarthquakes.slice(0, 5).map((q, i) => (
@@ -229,7 +229,7 @@ export function LocalDigestView({
       <Header />
       <main className="mx-auto max-w-[780px] px-4 py-8 sm:px-6 text-foreground">
         <header className="mb-6">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#2563EB]">📍 Local Briefing</p>
+          <p className="mb-2 text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-[#2563EB]">📍 Local Briefing</p>
           <h1 className="text-3xl font-black leading-tight tracking-tight text-foreground sm:text-4xl">{heading}</h1>
           {digest.coverageAreas.length > 0 && (
             <p className="mt-2 text-sm text-muted-foreground">

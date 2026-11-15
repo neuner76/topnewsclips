@@ -51,18 +51,18 @@ export function ReviewList({ initial }: { initial: HeldEventView[] }) {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#475569]">{e.typeLabel}</span>
-                  <span className="text-[11px] tabular-nums text-muted-foreground">importance {e.importance}</span>
-                  {e.verificationStatus && <span className="text-[11px] text-muted-foreground">· {e.verificationStatus}</span>}
-                  {e.geoPrecision && <span className="text-[11px] text-muted-foreground">· {e.geoPrecision}</span>}
+                  <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-[#475569]">{e.typeLabel}</span>
+                  <span className="text-[0.6875rem] tabular-nums text-muted-foreground">importance {e.importance}</span>
+                  {e.verificationStatus && <span className="text-[0.6875rem] text-muted-foreground">· {e.verificationStatus}</span>}
+                  {e.geoPrecision && <span className="text-[0.6875rem] text-muted-foreground">· {e.geoPrecision}</span>}
                 </div>
-                <p className="mt-1.5 text-[15px] font-semibold leading-snug text-foreground">
+                <p className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-foreground">
                   {src?.url
                     ? <a href={src.url} target="_blank" rel="noopener noreferrer" className="hover:text-[#2563EB]">{e.headline} <span aria-hidden className="text-muted-foreground">→</span></a>
                     : e.headline}
                 </p>
-                {e.summary && <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{e.summary}</p>}
-                <div className="mt-1.5 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+                {e.summary && <p className="mt-1 text-[0.8125rem] leading-relaxed text-muted-foreground">{e.summary}</p>}
+                <div className="mt-1.5 flex flex-wrap gap-x-2 text-[0.6875rem] text-muted-foreground">
                   {src && <span>{src.label}</span>}
                   {when && <span>· detected {when}</span>}
                   {e.publishReason && <span>· held: {e.publishReason}</span>}
@@ -84,7 +84,7 @@ export function ReviewList({ initial }: { initial: HeldEventView[] }) {
               >
                 Reject
               </button>
-              {errored[e.id] && <span className="text-[11px] text-red-600">{errored[e.id]}</span>}
+              {errored[e.id] && <span className="text-[0.6875rem] text-red-600">{errored[e.id]}</span>}
             </div>
           </li>
         )

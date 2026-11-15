@@ -35,7 +35,7 @@ export default function AboutPage() {
           </p>
         </div>
 
-        <div className="space-y-10 text-[15px] leading-relaxed text-muted-foreground">
+        <div className="space-y-10 text-[0.9375rem] leading-relaxed text-muted-foreground">
 
           {/* About Top News Clips */}
           <section>

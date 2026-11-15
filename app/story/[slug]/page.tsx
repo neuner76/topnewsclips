@@ -242,7 +242,7 @@ export default async function StoryPage({ params }: Props) {
 
         {/* Description */}
         {s.description && (
-          <p className="text-[15px] text-[#475569] mb-4 leading-relaxed">{s.description}</p>
+          <p className="text-[0.9375rem] text-[#475569] mb-4 leading-relaxed">{s.description}</p>
         )}
 
         {/* Share */}
@@ -253,7 +253,7 @@ export default async function StoryPage({ params }: Props) {
         {/* In context — major stories only */}
         {s.in_context && (
           <SectionCard accent="#a855f7" className="mb-4">
-            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#a855f7] mb-3">🧭 In Context</p>
+            <p className="text-[0.625rem] font-bold tracking-[0.15em] uppercase text-[#a855f7] mb-3">🧭 In Context</p>
             <p className="text-sm text-muted-foreground leading-relaxed">{s.in_context}</p>
           </SectionCard>
         )}
@@ -263,7 +263,7 @@ export default async function StoryPage({ params }: Props) {
           <SectionCard accent="#16A34A" className="mb-4" tint="#F8FCFA">
             {s.what_we_know && s.what_we_know.length > 0 && (
               <div className="mb-4">
-                <p className="text-[11px] font-bold tracking-widest text-[#15803D] uppercase mb-2">What we know</p>
+                <p className="text-[0.6875rem] font-bold tracking-widest text-[#15803D] uppercase mb-2">What we know</p>
                 <ul className="space-y-1.5">
                   {s.what_we_know.map((fact, i) => (
                     <li key={i} className="flex gap-2 text-sm text-muted-foreground">
@@ -276,7 +276,7 @@ export default async function StoryPage({ params }: Props) {
             )}
             {s.what_remains_unclear && s.what_remains_unclear.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold tracking-widest text-[#f59e0b] uppercase mb-2">What remains unclear</p>
+                <p className="text-[0.625rem] font-bold tracking-widest text-[#f59e0b] uppercase mb-2">What remains unclear</p>
                 <ul className="space-y-1.5">
                   {s.what_remains_unclear.map((q, i) => (
                     <li key={i} className="flex gap-2 text-sm text-muted-foreground">
@@ -295,13 +295,13 @@ export default async function StoryPage({ params }: Props) {
           <SectionCard accent="#16A34A" className="mb-4" tint="#F8FCFA">
             {s.verified_interpretation.headerNote && (
               <div className="mb-4">
-                <p className="text-[11px] font-bold tracking-widest text-[#EA580C] uppercase mb-1">Editorial note</p>
+                <p className="text-[0.6875rem] font-bold tracking-widest text-[#EA580C] uppercase mb-1">Editorial note</p>
                 <p className="text-sm text-[#475569] leading-relaxed">{s.verified_interpretation.headerNote}</p>
               </div>
             )}
             {s.verified_interpretation.verified.length > 0 && (
               <div className="mb-4">
-                <p className="text-[11px] font-bold tracking-widest text-[#15803D] uppercase mb-2">✓ Verified</p>
+                <p className="text-[0.6875rem] font-bold tracking-widest text-[#15803D] uppercase mb-2">✓ Verified</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.verified.map((claim, i) => (
                     <li key={i} className="flex gap-2 text-sm leading-relaxed text-[#334155]">
@@ -314,7 +314,7 @@ export default async function StoryPage({ params }: Props) {
             )}
             {s.verified_interpretation.interpretation.length > 0 && (
               <div>
-                <p className="text-[11px] font-bold tracking-widest text-[#2563EB] uppercase mb-2">~ Interpretation</p>
+                <p className="text-[0.6875rem] font-bold tracking-widest text-[#2563EB] uppercase mb-2">~ Interpretation</p>
                 <ul className="space-y-1.5">
                   {s.verified_interpretation.interpretation.map((claim, i) => (
                     <li key={i} className="flex gap-2 text-sm leading-relaxed text-[#475569]">
@@ -331,7 +331,7 @@ export default async function StoryPage({ params }: Props) {
         {/* Limited Coverage */}
         {s.msm_gap && (
           <SectionCard accent="#ef4444" className="mb-4">
-            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#ef4444] mb-3">⚠️ Limited Coverage</p>
+            <p className="text-[0.625rem] font-bold tracking-[0.15em] uppercase text-[#ef4444] mb-3">⚠️ Limited Coverage</p>
             {s.msm_outlet_coverage ? (
               <div className="space-y-2">
                 {s.msm_outlet_coverage.covered.length > 0 && (
@@ -356,12 +356,12 @@ export default async function StoryPage({ params }: Props) {
         {/* World View */}
         {worldView.length > 0 && (
           <SectionCard accent="#f97316" className="mb-4">
-            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#f97316] mb-4">🌍 World View, How others are covering this</p>
+            <p className="text-[0.625rem] font-bold tracking-[0.15em] uppercase text-[#f97316] mb-4">🌍 World View, How others are covering this</p>
             <div className="space-y-3">
               {worldView.map(r => (
                 <div key={r.id} className="border-b border-border last:border-0 pb-3 last:pb-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{r.region ?? 'US'}</span>
+                    <span className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase">{r.region ?? 'US'}</span>
                     {r.msm_gap && r.region && <GlobalBlindspotBadge />}
                   </div>
                   <Link href={`/story/${r.slug}`} target="_blank" rel="noopener noreferrer"
@@ -378,7 +378,7 @@ export default async function StoryPage({ params }: Props) {
         {/* Why This Is Here */}
         <SectionCard accent="#94a3b8" className="mb-4">
           <details className="group">
-            <summary className="cursor-pointer list-none flex items-center justify-between gap-2 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-[11px] font-bold tracking-[0.12em] text-[#334155] uppercase select-none hover:bg-[#F1F5F9] transition-colors">
+            <summary className="cursor-pointer list-none flex items-center justify-between gap-2 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-[0.6875rem] font-bold tracking-[0.12em] text-[#334155] uppercase select-none hover:bg-[#F1F5F9] transition-colors">
               <span>Why we included this story</span>
               <span className="text-[#64748B] text-sm leading-none">
                 <span className="group-open:hidden">▾</span>

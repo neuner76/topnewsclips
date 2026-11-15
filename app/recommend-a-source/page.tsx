@@ -115,7 +115,7 @@ export default async function RecommendASourcePage() {
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
         <div className="mb-10 border-b-2 border-[#2563EB] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Recommend a Source
           </p>
@@ -130,7 +130,7 @@ export default async function RecommendASourcePage() {
           </p>
         </div>
 
-        <div className="space-y-12 text-[15px] leading-relaxed text-muted-foreground">
+        <div className="space-y-12 text-[0.9375rem] leading-relaxed text-muted-foreground">
 
           {/* Submission form */}
           <section>
@@ -220,7 +220,7 @@ export default async function RecommendASourcePage() {
                       >
                         {s.channel_url}
                       </a>
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide border shrink-0 ${STATUS_STYLES[s.status] ?? STATUS_STYLES.submitted}`}>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[0.625rem] font-semibold tracking-wide border shrink-0 ${STATUS_STYLES[s.status] ?? STATUS_STYLES.submitted}`}>
                         {STATUS_LABELS[s.status] ?? s.status}
                       </span>
                     </div>

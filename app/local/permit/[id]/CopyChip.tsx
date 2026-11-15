@@ -23,7 +23,7 @@ export function CopyChip({ value, label }: { value: string; label?: string }) {
       aria-label={`Copy ${label ?? 'value'} ${value}`}
     >
       <span className="font-medium tabular-nums">{value}</span>
-      <span className="text-[11px] text-muted-foreground">{copied ? '✓ copied' : 'copy'}</span>
+      <span className="text-[0.6875rem] text-muted-foreground">{copied ? '✓ copied' : 'copy'}</span>
     </button>
   )
 }

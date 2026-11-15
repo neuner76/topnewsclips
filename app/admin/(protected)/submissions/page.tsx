@@ -115,7 +115,7 @@ export default async function SubmissionsPage() {
                       {s.submitter_email && ` · ${s.submitter_email}`}
                     </p>
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[s.status]}`}>
+                  <span className={`text-[0.625rem] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[s.status]}`}>
                     {s.status.replace('_', ' ')}
                   </span>
                 </div>
@@ -147,7 +147,7 @@ export default async function SubmissionsPage() {
                   >
                     {s.channel_url}
                   </a>
-                  <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[s.status]}`}>
+                  <span className={`text-[0.625rem] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[s.status]}`}>
                     {s.status}
                   </span>
                 </div>

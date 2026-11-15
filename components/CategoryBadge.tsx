@@ -14,7 +14,7 @@ export default function CategoryBadge({ category }: CategoryBadgeProps) {
   const entry = config[category]
   if (!entry) return null
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider border ${entry.color}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[0.625rem] font-bold tracking-wider border ${entry.color}`}>
       {entry.label}
     </span>
   )

@@ -86,7 +86,7 @@ export default function ReaderQuestionBox({ storySlug, storyId, storyCategory, e
         >
           {status === 'submitting' ? 'Submitting...' : 'Submit question'}
         </button>
-        <span className="text-[11px] text-[#64748B]">Questions are reviewed before any public use.</span>
+        <span className="text-[0.6875rem] text-[#64748B]">Questions are reviewed before any public use.</span>
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>

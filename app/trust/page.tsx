@@ -81,7 +81,7 @@ export default function TrustPage() {
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
         <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}Why Trust This
           </p>
@@ -95,7 +95,7 @@ export default function TrustPage() {
           </p>
         </div>
 
-        <div className="text-[15px] leading-relaxed space-y-10 text-muted-foreground">
+        <div className="text-[0.9375rem] leading-relaxed space-y-10 text-muted-foreground">
 
           <div className="space-y-3">
             <p>

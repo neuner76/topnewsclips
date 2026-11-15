@@ -19,7 +19,7 @@ export default function PlatformBadge({ platform }: { platform: Platform }) {
   const { label, className } = config[platform]
   return (
     <span
-      className={`inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border ${className}`}
+      className={`inline-flex items-center text-[0.625rem] font-semibold px-1.5 py-0.5 rounded border ${className}`}
     >
       {label}
     </span>

@@ -81,7 +81,7 @@ export default async function ReaderQuestionsPage() {
                       )}
                     </p>
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[question.status]}`}>
+                  <span className={`text-[0.625rem] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[question.status]}`}>
                     {question.status}
                   </span>
                 </div>
@@ -99,7 +99,7 @@ export default async function ReaderQuestionsPage() {
             <div key={question.id} className="p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <p className="text-sm font-semibold">{question.question}</p>
-                <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[question.status]}`}>
+                <span className={`text-[0.625rem] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${STATUS_COLORS[question.status]}`}>
                   {question.status}
                 </span>
               </div>

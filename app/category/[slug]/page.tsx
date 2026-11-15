@@ -104,7 +104,7 @@ export default async function CategoryPage({
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
 
         <div className="mb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}
             <Link href="/stories" className="hover:text-foreground transition-colors">Stories</Link>

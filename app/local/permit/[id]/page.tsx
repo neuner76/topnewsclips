@@ -27,7 +27,7 @@ function Field({ label, value }: { label: string; value?: string }) {
   if (!value) return null
   return (
     <div className="border-t border-[#EFF2F6] py-3">
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="mt-0.5 text-sm text-foreground">{value}</div>
     </div>
   )
@@ -73,7 +73,7 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
       <Link href="/local" className="text-sm text-[#2563EB] hover:underline">← Back to My Local</Link>
 
       <header className="mb-4 mt-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#2563EB]">🏗️ Building Permit</p>
+        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-[#2563EB]">🏗️ Building Permit</p>
         <h1 className="mt-1.5 text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">{permit.title}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {permit.valuationUsd != null && (
@@ -95,7 +95,7 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
         <Field label="Contractor" value={permit.contractor} />
         {permit.parcelNumber && (
           <div className="border-t border-[#EFF2F6] py-3">
-            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Parcel (APN)</div>
+            <div className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">Parcel (APN)</div>
             <div className="mt-0.5"><CopyChip value={permit.parcelNumber} label="parcel number" /></div>
           </div>
         )}
@@ -113,7 +113,7 @@ export default async function PermitDetailPage({ params }: { params: Promise<{ i
         </a>
       </div>
 
-      <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="mt-6 text-[0.6875rem] leading-relaxed text-muted-foreground">
         Source:{' '}
         <a href={MARIN_PERMIT_LOOKUP_URL} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">
           Marin County Building Permits

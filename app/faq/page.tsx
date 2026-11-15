@@ -97,7 +97,7 @@ export default function FAQPage() {
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 text-foreground">
 
         <div className="mb-8 border-b-2 border-[#2563EB] pb-6">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          <p className="text-[0.625rem] font-bold tracking-widest text-muted-foreground uppercase mb-2">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             {' › '}FAQ
           </p>
@@ -105,7 +105,7 @@ export default function FAQPage() {
           <p className="text-sm text-muted-foreground">Frequently asked questions about Top News Clips.</p>
         </div>
 
-        <dl className="space-y-6 text-[15px]">
+        <dl className="space-y-6 text-[0.9375rem]">
           {FAQ.map(({ q, a }) => (
             <div key={q} className="border-b border-border pb-6 last:border-0 last:pb-0">
               <dt className="font-bold mb-2 text-foreground">{q}</dt>
