@@ -415,6 +415,12 @@ function getSupabase() {
   )
 }
 
+// The service-role key is scoped to Production, so a Preview build doesn't have it.
+// Read paths that run at BUILD time (prerendered pages) short-circuit to empty when
+// it's absent, instead of letting createClient throw "supabaseKey is required" and
+// fail the whole preview build. Runtime (production) always has the key.
+const hasServiceKey = () => !!process.env.SUPABASE_SERVICE_ROLE_KEY
+
 // Section / product / brand landing pages Google News surfaces for a site: search
 // on low-news days (NYT Sundays especially — "The Athletic", a Wordle page, etc.).
 // Matched EXACTLY after the trailing-source strip, so a real headline that merely
@@ -2187,6 +2193,7 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 }
 
 export async function getLatestDigest(): Promise<Digest | null> {
+  if (!hasServiceKey()) return null
   const supabase = getSupabase()
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
   const { data } = await supabase
@@ -2206,6 +2213,7 @@ export interface DigestSummary {
 }
 
 export async function getRecentDigests(n: number): Promise<DigestSummary[]> {
+  if (!hasServiceKey()) return []
   const supabase = getSupabase()
   const { data } = await supabase
     .from('digests')
@@ -2216,6 +2224,7 @@ export async function getRecentDigests(n: number): Promise<DigestSummary[]> {
 }
 
 export async function getDigestByDate(date: string): Promise<Digest | null> {
+  if (!hasServiceKey()) return null
   const supabase = getSupabase()
   const { data } = await supabase
     .from('digests')

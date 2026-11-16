@@ -22,18 +22,18 @@ function getYouTubeThumbnail(embedUrl: string): string | null {
 }
 
 export async function GET() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const { data: stories } = await supabase
-    .from('stories')
-    .select('slug, title, description, embed_url, platform, thumbnail_url, category, region, msm_gap, created_at')
-    .eq('published', true)
-    .is('region', null)
-    .order('created_at', { ascending: false })
-    .limit(50)
+  // The service-role key is Production-scoped, so a Preview build doesn't have it.
+  // Without a key, emit a valid empty feed rather than throwing at build time.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const stories = serviceKey
+    ? (await createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
+        .from('stories')
+        .select('slug, title, description, embed_url, platform, thumbnail_url, category, region, msm_gap, created_at')
+        .eq('published', true)
+        .is('region', null)
+        .order('created_at', { ascending: false })
+        .limit(50)).data
+    : null
 
   const items = (stories ?? []).map(s => {
     const url = `${SITE_URL}/story/${s.slug}`
