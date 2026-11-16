@@ -6,17 +6,17 @@ export const revalidate = 300
 const SITE_URL = 'https://www.topnewsclips.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
+  // The service-role key is Production-scoped; a Preview build lacks it. Without it,
+  // emit just the static routes rather than throwing at build time.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   // display_order < 99 = ever-published stories (live + archived); 99 = draft/rejected
-  const { data: stories } = await supabase
-    .from('stories')
-    .select('slug, updated_at, published')
-    .lt('display_order', 99)
-    .not('slug', 'is', null)
+  const { data: stories } = serviceKey
+    ? await createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
+        .from('stories')
+        .select('slug, updated_at, published')
+        .lt('display_order', 99)
+        .not('slug', 'is', null)
+    : { data: null }
 
   const storyUrls: MetadataRoute.Sitemap = (stories ?? []).map(s => ({
     url: `${SITE_URL}/story/${s.slug}`,
