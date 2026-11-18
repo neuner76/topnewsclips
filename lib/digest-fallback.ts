@@ -16,6 +16,13 @@ export interface FallbackCandidate {
 // CORROBORATED threshold (6) so a story on the cusp still rescues the edition.
 export const FALLBACK_MIN_COVERAGE = 5
 
+// Relaxed floor for topping up REMAINING Need To Know slots after the
+// well-corroborated pass. Two independent outlets is a "this is real" bar — weak
+// enough to fill a thin NTK on a light domestic day, strong enough to keep
+// single-source stories out of the section. The lead-eligibility gate still runs
+// afterward, so a relaxed-floor pick can only land in a non-lead slot.
+export const FALLBACK_RELAXED_COVERAGE = 2
+
 export function pickFallbackNeedToKnow(
   candidates: FallbackCandidate[],
   minCoverage = FALLBACK_MIN_COVERAGE,
@@ -41,20 +48,78 @@ export function selectNeedToKnowBackfill(
   sameTopic: (a: string, b: string) => boolean,
   target = NEED_TO_KNOW_TARGET,
   minCoverage = FALLBACK_MIN_COVERAGE,
+  relaxedCoverage = FALLBACK_RELAXED_COVERAGE,
 ): FallbackCandidate[] {
   const need = target - currentNtk.length
   if (need <= 0) return []
   const usedSlugs = new Set(currentNtk.map(i => i.slug))
   const chosenTitles = currentNtk.map(i => i.title)
-  const pool = candidates
-    .filter(c => c.eligible && c.coveredCount >= minCoverage && !usedSlugs.has(c.slug))
-    .sort((a, b) => b.coveredCount - a.coveredCount)
   const result: FallbackCandidate[] = []
+  // Graduated floors: fill from the best-corroborated stories first, then relax to
+  // the lower floor only for slots still missing. This keeps the section's
+  // preference for well-mirrored news while guaranteeing it is never shipped short
+  // when an eligible, different-topic hard-news story exists in the pool. The old
+  // single hard floor (5) left NTK at two items on a light domestic day whose only
+  // high-coverage stories were the lead's own cluster (e.g. the Nov-17 FAA day).
+  const floors = [...new Set([minCoverage, relaxedCoverage])].sort((a, b) => b - a)
+  for (const floor of floors) {
+    if (result.length >= need) break
+    const taken = new Set([...usedSlugs, ...result.map(r => r.slug)])
+    const pool = candidates
+      .filter(c => c.eligible && c.coveredCount >= floor && !taken.has(c.slug))
+      .sort((a, b) => b.coveredCount - a.coveredCount)
+    for (const c of pool) {
+      if (result.length >= need) break
+      if (chosenTitles.some(t => sameTopic(t, c.title))) continue
+      result.push(c)
+      chosenTitles.push(c.title)
+    }
+  }
+  return result
+}
+
+export interface LensCandidate {
+  slug: string
+  title: string
+  outlet: string      // cleaned outlet name, used as the Lens region label
+  summary: string     // honest factual gloss (the story's own lede), not a claimed "frame"
+  sourceTier: number
+}
+
+export const GLOBAL_LENS_TARGET = 3
+
+// Deterministic Global Lens backfill. The model intermittently returns an empty
+// globalLens even when international outlets clearly cover the day's US-adjacent
+// stories — a recurring "empty Lens" failure, not a genuine drought. This promotes
+// REAL overlapping international stories: each must share a topic with something
+// already on the US page (`overlapsUsPage`), so it is a genuine cross-origin lens
+// on news the reader is already seeing, never random foreign filler. Public
+// broadcasters (lower source_tier) are preferred, one item per outlet. Summaries
+// are the stories' own factual ledes — the backfill never fabricates a framing
+// claim. Returns the items to ADD; the caller only commits them if the section
+// reaches its display floor of two (an empty Lens stays legitimately empty).
+export function selectGlobalLensBackfill(
+  current: { slug: string }[],
+  usedSlugs: Set<string>,
+  candidates: LensCandidate[],
+  overlapsUsPage: (title: string) => boolean,
+  target = GLOBAL_LENS_TARGET,
+): { region: string; slug: string; title: string; summary: string }[] {
+  const need = target - current.length
+  if (need <= 0) return []
+  const blocked = new Set<string>([...usedSlugs, ...current.map(i => i.slug)])
+  const seenOutlets = new Set<string>()
+  const pool = candidates
+    .filter(c => c.slug && c.title && c.summary?.trim() && c.outlet && !blocked.has(c.slug))
+    .filter(c => overlapsUsPage(c.title))
+    .sort((a, b) => (a.sourceTier ?? 99) - (b.sourceTier ?? 99))
+  const result: { region: string; slug: string; title: string; summary: string }[] = []
   for (const c of pool) {
     if (result.length >= need) break
-    if (chosenTitles.some(t => sameTopic(t, c.title))) continue
-    result.push(c)
-    chosenTitles.push(c.title)
+    const outletKey = c.outlet.toLowerCase()
+    if (seenOutlets.has(outletKey)) continue
+    seenOutlets.add(outletKey)
+    result.push({ region: c.outlet, slug: c.slug, title: c.title, summary: c.summary.trim() })
   }
   return result
 }

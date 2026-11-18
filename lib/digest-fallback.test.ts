@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pickFallbackNeedToKnow, selectNeedToKnowBackfill, pickComedyBackstop, type FallbackCandidate, type ComedyCandidate } from './digest-fallback'
+import { pickFallbackNeedToKnow, selectNeedToKnowBackfill, selectGlobalLensBackfill, pickComedyBackstop, type FallbackCandidate, type ComedyCandidate, type LensCandidate } from './digest-fallback'
 
 // Belt-and-suspenders: if Need To Know ends up empty but a domestic hard-news
 // story is strongly MSM-corroborated, promote it rather than ship an empty
@@ -94,9 +94,32 @@ describe('selectNeedToKnowBackfill', () => {
     expect(out.map(x => x.slug)).toEqual(['b'])
   })
 
-  it('respects the corroboration floor and eligibility', () => {
-    expect(selectNeedToKnowBackfill([], [cand('a', 4), cand('b', 3)], never)).toEqual([])
+  it('relaxes to the lower floor to fill remaining slots, strongest first', () => {
+    // No story clears the preferred floor (5); the relaxed floor (2) admits the
+    // cov-4 and cov-3 stories so a thin NTK still fills, best-corroborated first.
+    const out = selectNeedToKnowBackfill([], [cand('a', 4), cand('b', 3), cand('c', 2)], never)
+    expect(out.map(x => x.slug)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('fills well-corroborated slots first, then relaxes only for the remainder', () => {
+    // One cov-8 story takes a slot at the preferred floor; the relaxed pass then
+    // tops up the rest from cov-3/cov-2, never reordering the strong pick below them.
+    const out = selectNeedToKnowBackfill([], [cand('strong', 8), cand('mid', 3), cand('weak', 2)], never)
+    expect(out.map(x => x.slug)).toEqual(['strong', 'mid', 'weak'])
+  })
+
+  it('still excludes single/zero-source stories below the relaxed floor', () => {
+    expect(selectNeedToKnowBackfill([], [cand('a', 1), cand('b', 0)], never)).toEqual([])
+  })
+
+  it('never promotes an ineligible story however well covered', () => {
     expect(selectNeedToKnowBackfill([], [cand('a', 15, 'A', false)], never)).toEqual([])
+  })
+
+  it('honors a custom relaxed floor', () => {
+    // Raising the relaxed floor to 4 keeps the cov-3 story out.
+    expect(selectNeedToKnowBackfill([], [cand('a', 3)], never, 3, 5, 4)).toEqual([])
+    expect(selectNeedToKnowBackfill([], [cand('a', 4)], never, 3, 5, 4).map(x => x.slug)).toEqual(['a'])
   })
 
   it('skips a candidate that duplicates the topic of an already-selected item', () => {
@@ -108,6 +131,69 @@ describe('selectNeedToKnowBackfill', () => {
       (a, b) => a === b,
     )
     expect(out.map(x => x.slug)).toEqual(['clancy', 'iran9', 'paxton'])
+  })
+})
+
+// Global Lens backfill: the model intermittently ships an empty Lens even when
+// international outlets clearly cover the day's US-adjacent stories. The backfill
+// promotes real overlapping international stories (public broadcasters first, one
+// per outlet) and never fabricates a framing claim.
+describe('selectGlobalLensBackfill', () => {
+  const lc = (slug: string, title: string, outlet: string, sourceTier = 3, summary = `${outlet} reports: ${title}`): LensCandidate =>
+    ({ slug, title, outlet, summary, sourceTier })
+  // Overlaps the US page when the title mentions one of the day's page topics.
+  const overlaps = (title: string) => /gaza|kyiv|myanmar/i.test(title)
+
+  it('fills an empty Lens from overlapping international stories, public broadcasters first', () => {
+    const out = selectGlobalLensBackfill(
+      [], new Set(),
+      [lc('kyiv', 'Russia strikes Kyiv', 'DW News', 6), lc('myanmar', 'Myanmar genocide verdict', 'Al Jazeera', 3), lc('gaza', 'Israeli airstrike on Gaza hospital', 'France 24', 4)],
+      overlaps,
+    )
+    expect(out.map(x => x.slug)).toEqual(['myanmar', 'gaza', 'kyiv'])
+    expect(out[0].region).toBe('Al Jazeera')
+    expect(out[0].summary).toContain('Myanmar')
+  })
+
+  it('excludes international stories that do not overlap anything on the US page', () => {
+    const out = selectGlobalLensBackfill(
+      [], new Set(),
+      [lc('fifa', 'France football chief enters FIFA race', 'France 24'), lc('turtles', 'Sea turtles return to coast', 'ABC')],
+      overlaps,
+    )
+    expect(out).toEqual([])
+  })
+
+  it('skips slugs already used elsewhere on the page or already in Lens', () => {
+    const out = selectGlobalLensBackfill(
+      [{ slug: 'gaza' }], new Set(['kyiv']),
+      [lc('gaza', 'Gaza strike', 'France 24'), lc('kyiv', 'Kyiv strike', 'DW News'), lc('myanmar', 'Myanmar verdict', 'Al Jazeera')],
+      overlaps,
+    )
+    expect(out.map(x => x.slug)).toEqual(['myanmar'])
+  })
+
+  it('caps at one item per outlet', () => {
+    const out = selectGlobalLensBackfill(
+      [], new Set(),
+      [lc('a', 'Gaza one', 'Al Jazeera', 3), lc('b', 'Kyiv two', 'Al Jazeera', 3), lc('c', 'Myanmar three', 'DW News', 3)],
+      overlaps,
+    )
+    expect(out.map(x => x.slug)).toEqual(['a', 'c'])
+  })
+
+  it('adds nothing when Lens already meets the target', () => {
+    const cur = [{ slug: 'x' }, { slug: 'y' }, { slug: 'z' }]
+    expect(selectGlobalLensBackfill(cur, new Set(), [lc('gaza', 'Gaza strike', 'DW News')], overlaps)).toEqual([])
+  })
+
+  it('drops candidates with no summary', () => {
+    const out = selectGlobalLensBackfill(
+      [], new Set(),
+      [{ slug: 'gaza', title: 'Gaza strike', outlet: 'DW News', summary: '   ', sourceTier: 3 }],
+      overlaps,
+    )
+    expect(out).toEqual([])
   })
 })
 

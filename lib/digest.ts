@@ -7,7 +7,7 @@ import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './co
 import { assessStateAffiliated } from './digest-risk'
 import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
 import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
-import { selectNeedToKnowBackfill, NEED_TO_KNOW_TARGET, pickComedyBackstop } from './digest-fallback'
+import { selectNeedToKnowBackfill, NEED_TO_KNOW_TARGET, pickComedyBackstop, selectGlobalLensBackfill, GLOBAL_LENS_TARGET, type LensCandidate } from './digest-fallback'
 import { dedupeByIncident } from './digest-dedupe'
 import { repairLensOutletEcho } from './feed-editorial'
 import { buildDigestIntroLLM, buildDigestIntro, type DigestIntro } from './digest-intro'
@@ -1989,6 +1989,62 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
 
   // Cap Etcetera at 3 (homepage gate hard rule — applied after padding so minimum is still met first)
   content.etcetera = content.etcetera.slice(0, 3)
+
+  // Global Lens backfill — the model intermittently ships an empty Lens even when
+  // international outlets clearly cover the day's US-adjacent stories (recurring
+  // empty-Lens failure, e.g. the Nov-17 edition: 9 eligible regional stories, Lens
+  // blank). Deterministically promote REAL overlapping international stories: each
+  // must share a topic with something already on the US page, so it is a genuine
+  // cross-origin lens, not foreign filler. Only commit if Lens reaches its display
+  // floor of two — an honestly-empty Lens stays empty.
+  {
+    content.globalLens = content.globalLens ?? []
+    if (content.globalLens.length < GLOBAL_LENS_TARGET) {
+      // Slugs already placed anywhere on the page (NTK/InTheKnow/Etcetera/Blindspot
+      // via usedSlugs) plus Lens itself and each lead's World-view section.
+      const lensUsedSlugs = new Set<string>(usedSlugs)
+      for (const b of content.globalBlindspots ?? []) lensUsedSlugs.add(b.slug)
+      for (const l of content.globalLens) lensUsedSlugs.add(l.slug)
+      for (const ntk of content.needToKnow) for (const w of ntk.howWorldSeesIt ?? []) lensUsedSlugs.add(w.slug)
+
+      // Word set of what the reader is already seeing on the US page, so a Lens
+      // pick must demonstrably overlap it (>= 2 significant shared words).
+      const pageWords = new Set<string>()
+      for (const ntk of content.needToKnow) for (const w of sigWords(ntk.sectionTitle)) pageWords.add(w)
+      for (const items of Object.values(content.inTheKnow)) for (const i of items) for (const w of sigWords(i.text)) pageWords.add(w)
+      const overlapsUsPage = (title: string): boolean => {
+        let overlap = 0
+        for (const w of sigWords(title)) if (pageWords.has(w)) { if (++overlap >= 2) return true }
+        return false
+      }
+
+      const firstSentence = (text: string): string => {
+        const clean = text.replace(/\s+/g, ' ').trim()
+        const stop = clean.search(/[.!?](?:\s|$)/)
+        const s = stop >= 0 ? clean.slice(0, stop + 1) : clean
+        return s.length > 180 ? s.slice(0, 177).trimEnd() + '…' : s
+      }
+      const toOutlet = (raw: string | null | undefined): string =>
+        (raw ?? '').replace(/^YouTube\//i, '').replace(/^@/, '').trim()
+
+      const lensCandidates: LensCandidate[] = [...(worldViewStories ?? []), ...(globalStories ?? [])]
+        .map(s => ({
+          slug: s.slug,
+          title: s.title,
+          outlet: toOutlet(s.source ?? s.journalist_username),
+          summary: firstSentence(s.description ?? ''),
+          sourceTier: s.source_tier ?? 99,
+        }))
+
+      const additions = selectGlobalLensBackfill(content.globalLens, lensUsedSlugs, lensCandidates, overlapsUsPage)
+      // Only commit if the section reaches the display floor of two; otherwise
+      // leave Lens as the model returned it (a legitimately-empty section).
+      if (additions.length > 0 && content.globalLens.length + additions.length >= 2) {
+        content.globalLens.push(...additions)
+        console.warn(`[digest] Global Lens backfill: added ${additions.length} overlapping international ${additions.length === 1 ? 'story' : 'stories'} (${additions.map(a => `${a.region}: ${a.title}`).join('; ')}) — model left Lens at ${content.globalLens.length - additions.length}`)
+      }
+    }
+  }
 
   // Cap Global Lens at 4 (homepage gate)
   if (content.globalLens) content.globalLens = content.globalLens.slice(0, 4)
