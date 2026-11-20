@@ -768,7 +768,16 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
       // covering elsewhere is mislabeled (WION on Lebanon → "South Asia", Al Jazeera
       // on Congo → "Middle East"). Correct to the dominant named region; cross-region
       // coverage stays published with the right tag. (Classification consistency A1.)
-      const regionCheck = reconcileRegion(rawRegion, `${candidate.title ?? ''} ${candidate.description ?? ''}`)
+      // Pass the outlet name so an attribution ("according to France 24's
+      // reporting") can't inject a false channel-home place signal — a US-subject
+      // story from a foreign broadcaster (e.g. France 24 on a US-company IPO) was
+      // staying tagged with the outlet's home region and getting locked out of the
+      // US-domestic Need To Know pool. (Classification consistency A1.)
+      const regionCheck = reconcileRegion(
+        rawRegion,
+        `${candidate.title ?? ''} ${candidate.description ?? ''}`,
+        candidate.source ?? candidate.journalist_username ?? null,
+      )
       const candidateRegion = regionCheck.region
       if (regionCheck.corrected) {
         console.warn(`[ingest] region corrected for ${candidate.slug}: ${regionCheck.reason}`)
