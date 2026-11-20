@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractPlaces, reconcileRegion, PLACE_REGION } from './geo'
+import { extractPlaces, reconcileRegion, stripSourceName, sourceNameVariants, PLACE_REGION } from './geo'
 
 describe('extractPlaces', () => {
   it('finds named places on word boundaries', () => {
@@ -99,6 +99,50 @@ describe('reconcileRegion — corrects channel-derived mislabels', () => {
     // no recognized bucket → no correction, keep assigned rather than mislabel domestic
     const r = reconcileRegion('Europe', 'Strong El Niño emerges off the Pacific coast of South America')
     expect(r.region).not.toBe(null)
+  })
+})
+
+// A US-subject story from a FOREIGN broadcaster was keeping the outlet's home
+// region because the outlet's own name, echoed in the summary's attribution
+// ("according to France 24's reporting"), matched as a named place and made the
+// channel-home tag look self-consistent. The real IPO clip — France 24 on
+// Anthropic's $81B US IPO — stayed "Europe" and was locked out of US Need To Know.
+describe('reconcileRegion — strips the outlet name from the attribution', () => {
+  it('France 24 clip on a US-company IPO → corrected to US (null), not kept Europe', () => {
+    const text = 'Anthropic Goes Public at $1.5 Trillion Valuation in $81 Billion IPO. ' +
+      "According to France 24's reporting, the U.S. AI lab completed its listing."
+    const kept = reconcileRegion('Europe', text)                       // no source name → old behavior
+    expect(kept.region).toBe('Europe')                                 // "france" (from France 24) wins
+    const fixed = reconcileRegion('Europe', text, 'YouTube/France 24 English')
+    expect(fixed.corrected).toBe(true)
+    expect(fixed.region).toBe(null)                                    // only "u.s." remains → domestic
+  })
+
+  it('does NOT strip a bare subject mention of the outlet-home country', () => {
+    // "France's economy" is the subject, not an attribution — it must survive so
+    // the story stays Europe even though the outlet is France 24.
+    const text = "France's economy shrinks as U.S. markets react, France 24 reports."
+    const r = reconcileRegion('Europe', text, 'YouTube/France 24 English')
+    expect(r.region).toBe('Europe')                                    // France (subject) agrees → kept
+  })
+
+  it('keeps a genuinely foreign story when only the outlet name carried the place', () => {
+    // No other place named; stripping the outlet name leaves nothing to verify,
+    // so the assigned region is kept (cannot verify), not flipped.
+    const r = reconcileRegion('Middle East', 'Al Jazeera examines shifting alliances across the region', 'YouTube/Al Jazeera English')
+    expect(r.corrected).toBe(false)
+    expect(r.region).toBe('Middle East')
+  })
+
+  it('sourceNameVariants yields the full name and qualifier-trimmed forms, never a bare word', () => {
+    expect(sourceNameVariants('YouTube/France 24 English')).toEqual(['france 24 english', 'france 24'])
+    expect(sourceNameVariants('Reuters')).toEqual([])                  // single bare word → not stripped
+  })
+
+  it('stripSourceName blanks the name but preserves surrounding text length/boundaries', () => {
+    const out = stripSourceName("per France 24's report", 'France 24 English')
+    expect(out).not.toMatch(/france/i)
+    expect(out).toContain("'s report")
   })
 })
 

@@ -57,6 +57,55 @@ export function extractPlaces(text: string): PlaceMatch[] {
   return matches
 }
 
+// Generic trailing words outlets append that aren't part of the distinguishing
+// name, so "France 24 English" also yields the "France 24" variant to strip.
+const OUTLET_QUALIFIER_WORDS = new Set([
+  'english', 'news', 'network', 'television', 'tv', 'channel', 'media',
+  'arabic', 'world', 'international', 'online', 'digital', 'service', 'live',
+])
+
+// Variants of an outlet name to blank from the text before place-matching, e.g.
+// "YouTube/France 24 English" → ["france 24 english", "france 24"]. Only the full
+// name phrase and its qualifier-trimmed forms — never a bare single word like
+// "france", so a genuine subject mention ("France's economy") still counts.
+export function sourceNameVariants(sourceName: string): string[] {
+  const base = sourceName
+    .replace(/^youtube\//i, '')
+    .replace(/[^a-z0-9\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+  if (!base) return []
+  const variants = new Set<string>([base])
+  let words = base.split(' ')
+  while (words.length > 1 && OUTLET_QUALIFIER_WORDS.has(words[words.length - 1])) {
+    words = words.slice(0, -1)
+    variants.add(words.join(' '))
+  }
+  // Keep only multi-word or distinctive variants: a single bare word (e.g.
+  // "reuters", "france") is too likely to also be a real subject mention.
+  return [...variants]
+    .filter(v => v.includes(' ') && v.length >= 4)
+    .sort((a, b) => b.length - a.length)
+}
+
+// Remove an outlet's own name from the text so an attribution ("according to
+// France 24's reporting") can't inject a false place signal that makes the
+// channel-home region look self-consistent. Blanks with equal-length spaces to
+// preserve word boundaries for the subsequent place match.
+export function stripSourceName(text: string, sourceName?: string | null): string {
+  if (!sourceName) return text
+  let out = text
+  for (const v of sourceNameVariants(sourceName)) {
+    const esc = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    out = out.replace(
+      new RegExp(`(^|[^a-z0-9])${esc}([^a-z0-9]|$)`, 'gi'),
+      (_full, before, after) => `${before}${' '.repeat(v.length)}${after}`,
+    )
+  }
+  return out
+}
+
 export interface RegionReconciliation {
   region: string | null // a Region when corrected; the passthrough assigned value (incl. 'World') otherwise
   corrected: boolean
@@ -71,9 +120,10 @@ export interface RegionReconciliation {
 // "Dominant" = most-named region, tie-broken by first appearance in the text.
 export function reconcileRegion(
   assignedRegion: string | null,
-  text: string
+  text: string,
+  sourceName?: string | null,
 ): RegionReconciliation {
-  const matches = extractPlaces(text)
+  const matches = extractPlaces(stripSourceName(text, sourceName))
   if (matches.length === 0) {
     return { region: (assignedRegion as Region | null) ?? null, corrected: false, matches }
   }
