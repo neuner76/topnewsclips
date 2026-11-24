@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pickFallbackNeedToKnow, selectNeedToKnowBackfill, selectGlobalLensBackfill, pickComedyBackstop, type FallbackCandidate, type ComedyCandidate, type LensCandidate } from './digest-fallback'
+import { pickFallbackNeedToKnow, selectNeedToKnowBackfill, selectGlobalLensBackfill, selectInTheKnowBackfill, pickComedyBackstop, type FallbackCandidate, type ComedyCandidate, type LensCandidate, type InTheKnowCandidate, type InTheKnowCategory } from './digest-fallback'
 
 // Belt-and-suspenders: if Need To Know ends up empty but a domestic hard-news
 // story is strongly MSM-corroborated, promote it rather than ship an empty
@@ -194,6 +194,120 @@ describe('selectGlobalLensBackfill', () => {
       overlaps,
     )
     expect(out).toEqual([])
+  })
+})
+
+// In The Know is the one marquee shelf with no deterministic safety net: when the
+// model drops a strong, corroborated topic story and leaves its category empty
+// (e.g. the Nov-23 edition — Science & Technology blank while a 3-outlet BBC story
+// on self-improving AI sat unused), nothing catches it. This rescues ONLY empty
+// (below-target) categories, from the published pool, honoring the coverage floor
+// and topic de-dup — it never pads a category that already has an item.
+describe('selectInTheKnowBackfill — rescues a dropped strong story for an empty topic shelf', () => {
+  const empty = (): Record<InTheKnowCategory, { slug: string | null; text: string }[]> => ({
+    'Politics & World Affairs': [],
+    'Science & Technology': [],
+    'Business & Markets': [],
+    'Sports, Entertainment, & Culture': [],
+    'Comedy & Satire': [],
+  })
+  const cand = (over: Partial<InTheKnowCandidate> & { slug: string; category: InTheKnowCategory }): InTheKnowCandidate => ({
+    title: over.slug, summary: `summary for ${over.slug}`, coveredCount: 3, sourceTier: 6, ...over,
+  })
+  const never = () => false
+  const SHELVES: InTheKnowCategory[] = ['Science & Technology', 'Business & Markets', 'Sports, Entertainment, & Culture']
+
+  it('fills an empty eligible category with the strongest corroborated matching candidate', () => {
+    const out = selectInTheKnowBackfill(
+      empty(),
+      SHELVES,
+      [
+        cand({ slug: 'ai', title: 'Self-improving AI raises control questions', category: 'Science & Technology', coveredCount: 3, summary: 'A BBC report on self-improving AI.' }),
+        cand({ slug: 'weak-ai', title: 'Minor gadget launch', category: 'Science & Technology', coveredCount: 2 }),
+      ],
+      new Set<string>(),
+      never,
+    )
+    expect(out).toEqual([
+      { category: 'Science & Technology', slug: 'ai', text: 'A BBC report on self-improving AI.' },
+    ])
+  })
+
+  it('does NOT pad a category that already has an item (empty-only rescue)', () => {
+    const current = empty()
+    current['Science & Technology'] = [{ slug: 'existing', text: 'already here' }]
+    const out = selectInTheKnowBackfill(
+      current,
+      SHELVES,
+      [cand({ slug: 'ai', category: 'Science & Technology', coveredCount: 9 })],
+      new Set<string>(),
+      never,
+    )
+    expect(out).toEqual([])
+  })
+
+  it('excludes candidates below the coverage floor (single-source stays out)', () => {
+    const out = selectInTheKnowBackfill(
+      empty(),
+      SHELVES,
+      [cand({ slug: 'thin', category: 'Business & Markets', coveredCount: 1 })],
+      new Set<string>(),
+      never,
+    )
+    expect(out).toEqual([])
+  })
+
+  it('skips a candidate that duplicates a topic already on the page', () => {
+    const current = empty()
+    current['Business & Markets'] = [{ slug: 'nasdaq-1', text: 'NASDAQ erases 2026 gains on AI fears' }]
+    // Sports shelf is empty; the only candidate repeats the NASDAQ topic already shown.
+    const sameTopic = (a: string, b: string) => a.toLowerCase().includes('nasdaq') && b.toLowerCase().includes('nasdaq')
+    const out = selectInTheKnowBackfill(
+      current,
+      SHELVES,
+      [cand({ slug: 'nasdaq-2', title: 'NASDAQ slides again as AI selloff deepens', category: 'Sports, Entertainment, & Culture', coveredCount: 8 })],
+      new Set<string>(),
+      sameTopic,
+    )
+    expect(out).toEqual([])
+  })
+
+  it('skips slugs already placed elsewhere on the page', () => {
+    const out = selectInTheKnowBackfill(
+      empty(),
+      SHELVES,
+      [cand({ slug: 'already-used', category: 'Science & Technology', coveredCount: 7 })],
+      new Set<string>(['already-used']),
+      never,
+    )
+    expect(out).toEqual([])
+  })
+
+  it('only backfills categories in the provided list, never others (e.g. Politics)', () => {
+    const out = selectInTheKnowBackfill(
+      empty(),
+      SHELVES, // Politics & World Affairs deliberately excluded
+      [cand({ slug: 'pol', category: 'Politics & World Affairs', coveredCount: 9 })],
+      new Set<string>(),
+      never,
+    )
+    expect(out).toEqual([])
+  })
+
+  it('adds at most one item per empty category and prefers higher coverage then lower tier', () => {
+    const out = selectInTheKnowBackfill(
+      empty(),
+      SHELVES,
+      [
+        cand({ slug: 'sci-lo', category: 'Science & Technology', coveredCount: 3, sourceTier: 6 }),
+        cand({ slug: 'sci-hi', category: 'Science & Technology', coveredCount: 5, sourceTier: 6 }),
+        cand({ slug: 'biz-tier1', category: 'Business & Markets', coveredCount: 4, sourceTier: 1 }),
+        cand({ slug: 'biz-tier6', category: 'Business & Markets', coveredCount: 4, sourceTier: 6 }),
+      ],
+      new Set<string>(),
+      never,
+    )
+    expect(out.map(a => a.slug)).toEqual(['sci-hi', 'biz-tier1'])
   })
 })
 

@@ -7,7 +7,7 @@ import { reverifyCoverage, shouldReverifyCoverage, MSM_OUTLET_TOTAL } from './co
 import { assessStateAffiliated } from './digest-risk'
 import { enforceLeadEligibility, type LeadDegradedNotice } from './lead-enforcement'
 import { needToKnowFreshness, SECONDARY_SECTION_MAX_AGE_HOURS } from './digest-freshness'
-import { selectNeedToKnowBackfill, NEED_TO_KNOW_TARGET, pickComedyBackstop, selectGlobalLensBackfill, GLOBAL_LENS_TARGET, type LensCandidate } from './digest-fallback'
+import { selectNeedToKnowBackfill, NEED_TO_KNOW_TARGET, pickComedyBackstop, selectGlobalLensBackfill, GLOBAL_LENS_TARGET, type LensCandidate, selectInTheKnowBackfill, type InTheKnowCandidate, type InTheKnowCategory } from './digest-fallback'
 import { dedupeByIncident } from './digest-dedupe'
 import { repairLensOutletEcho } from './feed-editorial'
 import { buildDigestIntroLLM, buildDigestIntro, type DigestIntro } from './digest-intro'
@@ -119,6 +119,23 @@ function emptyInTheKnow(): DigestContent['inTheKnow'] {
     'Business & Markets': [],
     'Sports, Entertainment, & Culture': [],
     'Comedy & Satire': [],
+  }
+}
+
+// Map the ingest classifier's section_fit taxonomy onto the digest's In The Know
+// category names. The two taxonomies drifted apart — the classifier emits
+// "Science, Health & Environment" / "Culture, Media & Society", the digest renders
+// "Science & Technology" / "Sports, Entertainment, & Culture" — so routing that
+// keyed off the (topic-less) `category` column silently never matched. This is the
+// single source of truth for section_fit → shelf. "Also Worth Knowing" maps to no
+// topic shelf (it belongs in Etcetera), so it returns undefined.
+export function sectionFitToInTheKnow(sectionFit: string | null | undefined): InTheKnowCategory | undefined {
+  switch (sectionFit) {
+    case 'Politics & World Affairs': return 'Politics & World Affairs'
+    case 'Science, Health & Environment': return 'Science & Technology'
+    case 'Business & Markets': return 'Business & Markets'
+    case 'Culture, Media & Society': return 'Sports, Entertainment, & Culture'
+    default: return undefined
   }
 }
 
@@ -583,7 +600,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
   const [{ data: usStoriesRaw, error }, { data: satireStories }, { data: globalStories }, { data: worldViewStories }, { data: mainstreampulseStoriesRaw }, rssMainstreamPulse] = await Promise.all([
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, subcategory, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count')
+      .select('id, title, slug, description, category, subcategory, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count, section_fit, content_type')
       .eq('published', true)
       .is('region', null)
       .neq('category', 'comedy')
@@ -596,7 +613,7 @@ export async function generateAndStoreDigest(): Promise<Digest> {
     // Satire/comedy stories fetched separately — they have display_order 80 and would be cut off by the limit
     supabase
       .from('stories')
-      .select('id, title, slug, description, category, subcategory, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count')
+      .select('id, title, slug, description, category, subcategory, journalist_username, source, msm_gap, region, source_tier, source_type, msm_outlet_coverage, topic_role, created_at, view_count, section_fit, content_type')
       .eq('published', true)
       .is('region', null)
       .eq('category', 'comedy')
@@ -1477,12 +1494,12 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     for (const item of misplacedSatire) {
       const story = cappedStories.find(s => s.slug === item.slug)
       if (!story) continue
-      // Politics & World Affairs is the fallback for anything ambiguous
+      // Route by the story's section_fit (the real topic taxonomy); Politics &
+      // World Affairs is the fallback for anything unmapped/ambiguous. The old
+      // `story.category === 'science'` checks never matched — that column only
+      // holds reported/analysis/comedy — so this always fell through to Politics.
       const targetCat: keyof typeof content.inTheKnow =
-        story.category === 'science' || story.category === 'technology' ? 'Science & Technology' :
-        story.category === 'business' || story.category === 'economy' ? 'Business & Markets' :
-        story.category === 'sports' || story.category === 'entertainment' ? 'Sports, Entertainment, & Culture' :
-        'Politics & World Affairs'
+        sectionFitToInTheKnow((story as { section_fit?: string | null }).section_fit) ?? 'Politics & World Affairs'
       content.inTheKnow[targetCat].push(item)
     }
   }
@@ -1551,6 +1568,65 @@ ${worldViewForPrompt.length > 0 ? `\nINTERNATIONAL PERSPECTIVES (how global outl
     commentaryItems.sort((a, b) => (storyTierMap.get(a.slug ?? '') ?? 99) - (storyTierMap.get(b.slug ?? '') ?? 99))
     const dropSlugs = new Set(commentaryItems.slice(1).map(i => i.slug).filter(Boolean))
     content.inTheKnow[cat] = items.filter(item => !item.slug || !dropSlugs.has(item.slug))
+  }
+
+  // In The Know backfill — the one marquee shelf with no deterministic net. The
+  // model sometimes leaves a topic category EMPTY while a strong, published,
+  // well-corroborated story that belongs there sits unused (Nov-23: Science &
+  // Technology blank, a 3-outlet BBC story on self-improving AI placed nowhere, on
+  // the most AI-driven news week of the cycle). Rescue the strongest matching
+  // story for each non-conflict shelf the model left empty — routed by section_fit
+  // (the real topic taxonomy), honoring the coverage floor, the tier-10 gate, and
+  // topic de-dup. Empty-only: it never pads a shelf the model already filled, so
+  // the prompt's "an honestly empty section beats forced filler" rule still holds.
+  {
+    const itkUsedSlugs = new Set<string>()
+    content.needToKnow.forEach(i => itkUsedSlugs.add(i.slug))
+    for (const items of Object.values(content.inTheKnow)) items.forEach(i => { if (i.slug) itkUsedSlugs.add(i.slug) })
+    ;(content.etcetera ?? []).forEach(i => { if (i.slug) itkUsedSlugs.add(i.slug) })
+    for (const l of content.globalLens ?? []) itkUsedSlugs.add(l.slug)
+    for (const b of content.globalBlindspots ?? []) itkUsedSlugs.add(b.slug)
+
+    const itkFirstSentence = (text: string): string => {
+      const clean = text.replace(/\s+/g, ' ').trim()
+      const stop = clean.search(/[.!?](?:\s|$)/)
+      const s = stop >= 0 ? clean.slice(0, stop + 1) : clean
+      return s.split(/\s+/).slice(0, 45).join(' ')
+    }
+    // Substantive news only — never rescue satire/comedy (its own backstop handles
+    // that shelf) or an uncategorized content type into a topic section.
+    const BACKFILL_CONTENT_TYPES = new Set(['reported', 'investigative', 'interview_panel', 'commentary_analysis', 'official_primary'])
+    const itkCandidates: InTheKnowCandidate[] = cappedStories
+      .filter(s => s.category !== 'comedy' && !tier10Slugs.has(s.slug))
+      .flatMap(s => {
+        const category = sectionFitToInTheKnow((s as { section_fit?: string | null }).section_fit)
+        const ct = (s as { content_type?: string | null }).content_type
+        if (!category) return []
+        if (ct && !BACKFILL_CONTENT_TYPES.has(ct)) return []
+        return [{
+          slug: s.slug,
+          title: s.title,
+          summary: itkFirstSentence(s.description ?? ''),
+          category,
+          coveredCount: coverageCount(s),
+          sourceTier: s.source_tier ?? 99,
+        }]
+      })
+
+    const sameItkTopic = (a: string, b: string): boolean => {
+      const wb = sigWords(b)
+      let overlap = 0
+      for (const w of sigWords(a)) if (wb.has(w)) overlap++
+      return overlap >= 2
+    }
+    // Only the non-conflict topic shelves (the prompt's own "at least 2 non-conflict
+    // categories" goal). Politics is the conflict-heavy default and rarely empty.
+    const BACKFILL_SHELVES: InTheKnowCategory[] = ['Science & Technology', 'Business & Markets', 'Sports, Entertainment, & Culture']
+    const itkAdditions = selectInTheKnowBackfill(content.inTheKnow, BACKFILL_SHELVES, itkCandidates, itkUsedSlugs, sameItkTopic)
+    if (itkAdditions.length > 0) {
+      for (const a of itkAdditions) content.inTheKnow[a.category].push({ text: a.text, slug: a.slug })
+      console.warn(`[digest] In The Know backfill: rescued ${itkAdditions.length} dropped ${itkAdditions.length === 1 ? 'story' : 'stories'} (${itkAdditions.map(a => `${a.category}: ${a.slug}`).join('; ')}) — model left ${itkAdditions.length === 1 ? 'the shelf' : 'these shelves'} empty`)
+    }
   }
 
   // Strip URLs from NeedToKnow paragraphs — raw descriptions (e.g. satire bypass) can contain promo links

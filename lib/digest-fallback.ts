@@ -124,6 +124,76 @@ export function selectGlobalLensBackfill(
   return result
 }
 
+export type InTheKnowCategory =
+  | 'Politics & World Affairs'
+  | 'Science & Technology'
+  | 'Business & Markets'
+  | 'Sports, Entertainment, & Culture'
+  | 'Comedy & Satire'
+
+export interface InTheKnowCandidate {
+  slug: string
+  title: string
+  summary: string              // factual gloss (the story's own lede), not a claimed frame
+  category: InTheKnowCategory  // caller-mapped from the story's section_fit taxonomy
+  coveredCount: number         // independent MSM outlets corroborating the story
+  sourceTier: number
+}
+
+// "This is real" floor: two independent outlets, matching the NTK relaxed floor.
+// A dropped story must clear it to be rescued — single-source items stay out.
+export const IN_THE_KNOW_BACKFILL_MIN_COVERAGE = 2
+// Rescue an EMPTY category to a single strong item — never pad toward a quota.
+// The prompt's rule stands ("an honestly empty section beats forced filler"); this
+// only fires when a genuinely corroborated, topic-matched story was dropped whole.
+export const IN_THE_KNOW_BACKFILL_TARGET = 1
+
+// Deterministic In The Know backfill. The model sometimes returns a topic shelf
+// EMPTY while a strong, published, well-corroborated story that belongs there sits
+// unused in the pool (Nov-23: Science & Technology blank, a 3-outlet BBC story on
+// self-improving AI placed nowhere, on the most AI-driven news week of the cycle).
+// Unlike NTK/Global Lens, In The Know had no net. This rescues the strongest
+// matching candidate for each category the caller flags — but ONLY when that
+// category is below target (empty): it never pads a shelf the model already filled,
+// never drops below the coverage floor, skips used slugs, and skips topic-dups of
+// anything already on the page (via the injected `sameTopic`). Summaries are the
+// stories' own ledes — the backfill never fabricates. Returns additions to commit.
+export function selectInTheKnowBackfill(
+  current: Partial<Record<InTheKnowCategory, { slug: string | null; text: string }[]>>,
+  categories: InTheKnowCategory[],
+  candidates: InTheKnowCandidate[],
+  usedSlugs: Set<string>,
+  sameTopic: (a: string, b: string) => boolean,
+  target = IN_THE_KNOW_BACKFILL_TARGET,
+  minCoverage = IN_THE_KNOW_BACKFILL_MIN_COVERAGE,
+): { category: InTheKnowCategory; slug: string; text: string }[] {
+  const taken = new Set<string>(usedSlugs)
+  // Titles of everything already shown anywhere in In The Know, so a rescued pick
+  // can't repeat a topic the reader is already seeing on another shelf.
+  const pageTitles: string[] = []
+  for (const items of Object.values(current)) for (const i of items ?? []) pageTitles.push(i.text)
+
+  const result: { category: InTheKnowCategory; slug: string; text: string }[] = []
+  for (const cat of categories) {
+    const need = target - (current[cat]?.length ?? 0)
+    if (need <= 0) continue // empty-only: never pad a shelf the model already filled
+    const pool = candidates
+      .filter(c => c.category === cat && c.slug && c.summary?.trim() && c.coveredCount >= minCoverage && !taken.has(c.slug))
+      // Best-corroborated first; break ties toward the more authoritative (lower) tier.
+      .sort((a, b) => b.coveredCount - a.coveredCount || (a.sourceTier ?? 99) - (b.sourceTier ?? 99))
+    let added = 0
+    for (const c of pool) {
+      if (added >= need) break
+      if (pageTitles.some(t => sameTopic(t, c.title))) continue
+      result.push({ category: cat, slug: c.slug, text: c.summary.trim() })
+      taken.add(c.slug)
+      pageTitles.push(c.title)
+      added++
+    }
+  }
+  return result
+}
+
 export interface ComedyCandidate {
   slug: string
   category?: string | null
