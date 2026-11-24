@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractPlaces, reconcileRegion, stripSourceName, sourceNameVariants, PLACE_REGION } from './geo'
+import { extractPlaces, reconcileRegion, resolveStoryRegion, stripSourceName, sourceNameVariants, PLACE_REGION } from './geo'
 
 describe('extractPlaces', () => {
   it('finds named places on word boundaries', () => {
@@ -143,6 +143,75 @@ describe('reconcileRegion — strips the outlet name from the attribution', () =
     const out = stripSourceName("per France 24's report", 'France 24 English')
     expect(out).not.toMatch(/france/i)
     expect(out).toContain("'s report")
+  })
+})
+
+// The region is assigned from the RAW candidate (title + YouTube description),
+// before the LLM summary exists — but the subject geography and the outlet-name
+// attribution both live in that summary. reconcileRegion on the raw text alone
+// therefore misses them: the real France 24 Anthropic IPO row had a placeless
+// headline, so the channel-home "Europe" tag survived, and the clean "U.S.-based"
+// signal only appeared in the summary the function never saw. resolveStoryRegion
+// adds a second pass over the generated summary so the correction actually fires.
+describe('resolveStoryRegion — reconciles against the generated summary too', () => {
+  const rawTitle = 'AI Lab Anthropic Goes Public at $1.5 Trillion Valuation in $81 Billion IPO'
+  const summary = 'Anthropic, a U.S.-based artificial intelligence laboratory, completed its ' +
+    'initial public offering. France 24 frames the offering as a bellwether for tech investment.'
+
+  it('corrects a placeless-headline US story once the summary reveals the subject (France 24 IPO)', () => {
+    // Raw-only reconcile keeps Europe — the headline names no place at all.
+    const rawOnly = resolveStoryRegion({ rawRegion: 'Europe', rawText: rawTitle, sourceName: 'YouTube/France 24 English' })
+    expect(rawOnly.region).toBe('Europe')
+    // With the summary, the outlet name is stripped and "u.s." wins → domestic.
+    const resolved = resolveStoryRegion({
+      rawRegion: 'Europe',
+      rawText: rawTitle,
+      summaryText: summary,
+      sourceName: 'YouTube/France 24 English',
+    })
+    expect(resolved.corrected).toBe(true)
+    expect(resolved.region).toBe(null)
+  })
+
+  it('keeps a correction the RAW pass already made when the summary agrees', () => {
+    // WION (home South Asia) covering Lebanon: raw text names Lebanon → Middle East.
+    const resolved = resolveStoryRegion({
+      rawRegion: 'South Asia',
+      rawText: 'Lebanese families rebuild homes in southern Lebanon after the conflict',
+      summaryText: 'Reconstruction continues across Lebanon months after the fighting ended.',
+      sourceName: 'YouTube/WION',
+    })
+    expect(resolved.corrected).toBe(true)
+    expect(resolved.region).toBe('Middle East')
+  })
+
+  it('falls back to the raw-only result when there is no summary', () => {
+    const withEmpty = resolveStoryRegion({ rawRegion: 'Europe', rawText: rawTitle, summaryText: '   ', sourceName: 'YouTube/France 24 English' })
+    const noSummary = resolveStoryRegion({ rawRegion: 'Europe', rawText: rawTitle, sourceName: 'YouTube/France 24 English' })
+    expect(withEmpty.region).toBe('Europe')
+    expect(noSummary.region).toBe('Europe')
+  })
+
+  it('does not flip a genuinely foreign story when only the outlet name is in the summary', () => {
+    const resolved = resolveStoryRegion({
+      rawRegion: 'Middle East',
+      rawText: 'Al Jazeera examines shifting regional alliances',
+      summaryText: 'Al Jazeera analyzes how alliances are shifting across the region.',
+      sourceName: 'YouTube/Al Jazeera English',
+    })
+    expect(resolved.corrected).toBe(false)
+    expect(resolved.region).toBe('Middle East')
+  })
+
+  it('keeps a domestic (null) story domestic when the summary names US places', () => {
+    const resolved = resolveStoryRegion({
+      rawRegion: null,
+      rawText: 'Clinic standoff ends in Texas',
+      summaryText: 'The standoff in Texas ended as Washington weighed a federal response.',
+      sourceName: 'YouTube/NBC News',
+    })
+    expect(resolved.corrected).toBe(false)
+    expect(resolved.region).toBe(null)
   })
 })
 

@@ -106,6 +106,34 @@ export function stripSourceName(text: string, sourceName?: string | null): strin
   return out
 }
 
+// Two-pass region resolution. Region is first derived from the RAW candidate
+// (channel-home tag reconciled against places named in the title + YouTube
+// description). But the subject geography — and the outlet-name attribution that
+// can mask it — live in the LLM summary generated afterward, which the raw pass
+// never sees: the France 24 Anthropic IPO row had a placeless headline, so the
+// "Europe" channel tag survived and the "U.S.-based" signal (summary-only) was
+// lost, locking a top US story out of Need To Know. This runs the raw pass, then
+// reconciles that result against the generated summary so the correction fires on
+// the text that actually names the subject. Returns the summary pass's region,
+// with `corrected` true if either pass changed the channel-home tag.
+export function resolveStoryRegion(params: {
+  rawRegion: string | null
+  rawText: string
+  summaryText?: string | null
+  sourceName?: string | null
+}): RegionReconciliation {
+  const first = reconcileRegion(params.rawRegion, params.rawText, params.sourceName)
+  const summary = params.summaryText?.trim()
+  if (!summary) return first
+  const second = reconcileRegion(first.region, summary, params.sourceName)
+  return {
+    region: second.region,
+    corrected: first.corrected || second.corrected,
+    matches: second.matches,
+    reason: second.corrected ? second.reason : first.reason,
+  }
+}
+
 export interface RegionReconciliation {
   region: string | null // a Region when corrected; the passthrough assigned value (incl. 'World') otherwise
   corrected: boolean

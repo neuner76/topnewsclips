@@ -6,7 +6,7 @@ import { checkMSMCoverage, recheckThrottledCoverage, type ThrottledRecheckEntry 
 import { isHighSalienceDomestic, isHardNewsRole } from '../coverage-integrity'
 import { verifyAndTitle } from './claude-verify'
 import { classifyStory } from './classify'
-import { reconcileRegion } from './geo'
+import { reconcileRegion, resolveStoryRegion } from './geo'
 import { pingIndexNow } from './indexnow'
 import { getSourceTier } from './source-tier'
 import { runQCAndInsert } from './qc-publish'
@@ -1014,6 +1014,24 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
 
       const coverageCount = msm.coveredBy.length
 
+      // Final region: re-reconcile against the generated summary. The region set at
+      // ingest (candidateRegion) was derived from the RAW candidate, before this
+      // summary existed — so a US-subject story from a foreign broadcaster with a
+      // placeless raw headline (e.g. France 24 on a US-company IPO) kept the
+      // outlet's home region and was locked out of US Need To Know. The summary
+      // names the subject geography in clean prose (and may echo the outlet name,
+      // which stripSourceName removes), so reconciling against it corrects the tag.
+      const regionResolution = resolveStoryRegion({
+        rawRegion: candidateRegion,
+        rawText: `${candidate.title ?? ''} ${candidate.description ?? ''}`,
+        summaryText: `${verification.headline ?? ''} ${verification.summary ?? ''}`,
+        sourceName: candidate.source ?? candidate.journalist_username ?? null,
+      })
+      const storedRegion = regionResolution.region
+      if (storedRegion !== candidateRegion) {
+        console.warn(`[ingest] region re-resolved from summary for ${candidate.slug}: "${candidateRegion ?? 'US/domestic'}" → "${storedRegion ?? 'US/domestic'}" (${regionResolution.reason ?? 'summary named the subject'})`)
+      }
+
       // Tier 8-10 / unrecognized sources with zero outlet coverage are held
       // for human review instead of auto-publishing with a Single-source label.
       const corroborationHold = needsCorroborationHold(finalTier, coverageCount)
@@ -1093,7 +1111,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
           section_fit: classification.section_fit,
           thumbnail_url: candidate.thumbnail_url ?? null,
           journalist_username: candidate.journalist_username ?? null,
-          region: candidateRegion,
+          region: storedRegion,
           duration: candidate.duration ?? null,
           verified_interpretation: verification.verifiedInterpretation ?? null,
           in_context: majorSections.inContext,
@@ -1141,7 +1159,7 @@ export async function runProcess(limit = 3): Promise<PipelineResult> {
             title: verification.headline,
             description: verification.summary,
             category: verification.category,
-            region: candidateRegion,
+            region: storedRegion,
             topic_role: classification.topic_role,
             subcategory: null,
           }
